@@ -1,0 +1,133 @@
+<!--
+  Hero: Brutalist / Raw Style
+  Oversized type, harsh contrasts, monospace body, broken grid.
+  Pair with: Bebas Neue + JetBrains Mono, Inverted Mono palette.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brutalist Hero</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-bg: #111111;
+    --color-text: #eeeeee;
+    --color-accent: #ff2d2d;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  .hero {
+    min-height: 100vh;
+    background: var(--color-bg);
+    color: var(--color-text);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 3rem;
+  }
+
+  .hero__number {
+    position: absolute;
+    top: -5vw;
+    right: -2vw;
+    font-family: var(--font-display);
+    font-size: 40vw;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.03);
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .hero__tag {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    background: var(--color-accent);
+    color: var(--color-bg);
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+  }
+
+  .hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(4rem, 15vw, 12rem);
+    line-height: 0.85;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    max-width: 90%;
+  }
+
+  .hero__title span {
+    display: block;
+    color: var(--color-accent);
+  }
+
+  .hero__meta {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 2rem;
+    border-top: 1px solid #333;
+    padding-top: 1rem;
+    display: flex;
+    gap: 3rem;
+  }
+
+  .hero__meta dt {
+    color: #444;
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+  }
+
+  .hero__meta dd {
+    margin-top: 0.25rem;
+    color: #999;
+  }
+
+  .hero__stripe {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 1px;
+    height: 100%;
+    background: #222;
+  }
+</style>
+</head>
+<body>
+  <section class="hero">
+    <div class="hero__number">01</div>
+    <div class="hero__stripe"></div>
+    <span class="hero__tag">New Work</span>
+    <h1 class="hero__title">
+      Break
+      <span>Everything</span>
+    </h1>
+    <dl class="hero__meta">
+      <div>
+        <dt>Status</dt>
+        <dd>In Progress</dd>
+      </div>
+      <div>
+        <dt>Year</dt>
+        <dd>2025</dd>
+      </div>
+      <div>
+        <dt>Type</dt>
+        <dd>Experimental</dd>
+      </div>
+    </dl>
+  </section>
+</body>
+</html>

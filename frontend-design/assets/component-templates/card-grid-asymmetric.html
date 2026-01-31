@@ -1,0 +1,217 @@
+<!--
+  Card Grid: Asymmetric / Masonry Style
+  Breaks the "3 equal cards" pattern with varied sizes, overlapping labels, and mixed content types.
+  Pair with: Syne + Inter Tight, Morning Fog or Obsidian Night palette.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asymmetric Card Grid</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-bg: #f0f2f5;
+    --color-surface: #ffffff;
+    --color-text: #1d2939;
+    --color-muted: #667085;
+    --color-accent: #1570ef;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'Inter Tight', sans-serif;
+    --radius-sm: 2px;
+    --radius-lg: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--color-bg);
+    font-family: var(--font-body);
+    color: var(--color-text);
+    padding: 3rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: minmax(120px, auto);
+    gap: 1.25rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: var(--color-surface);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .card:hover { transform: translateY(-4px); }
+
+  /* Large featured card */
+  .card--featured {
+    grid-column: span 7;
+    grid-row: span 3;
+    border-radius: var(--radius-lg);
+  }
+
+  /* Standard card */
+  .card--standard {
+    grid-column: span 5;
+    grid-row: span 2;
+  }
+
+  /* Wide card */
+  .card--wide {
+    grid-column: span 8;
+    grid-row: span 2;
+  }
+
+  /* Narrow tall card */
+  .card--tall {
+    grid-column: span 4;
+    grid-row: span 3;
+  }
+
+  /* Small square */
+  .card--small {
+    grid-column: span 4;
+    grid-row: span 1;
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+  }
+
+  .card__image {
+    width: 100%;
+    height: 65%;
+    min-height: 180px;
+    object-fit: cover;
+  }
+
+  .card__body {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .card__label {
+    font-family: var(--font-display);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin-bottom: 0.5rem;
+  }
+
+  .card__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 0.5rem;
+  }
+
+  .card--featured .card__title { font-size: 1.75rem; }
+  .card--standard .card__title { font-size: 1.15rem; }
+  .card--wide .card__title { font-size: 1.35rem; }
+  .card--tall .card__title { font-size: 1.25rem; }
+
+  .card__desc {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--color-muted);
+    line-height: 1.5;
+  }
+
+  .card__stat {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-accent);
+    line-height: 1;
+  }
+
+  .card__stat-label {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+    margin-top: 0.25rem;
+  }
+
+  .card__tag {
+    position: absolute;
+    top: 1rem;
+    left: -0.25rem;
+    background: var(--color-text);
+    color: var(--color-surface);
+    font-family: var(--font-display);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.75rem;
+  }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <article class="card card--featured">
+      <div class="card__tag">Featured</div>
+      <img class="card__image" src="https://picsum.photos/700/400?1" alt="">
+      <div class="card__body">
+        <span class="card__label">Design Systems</span>
+        <h2 class="card__title">Building Components That Actually Scale</h2>
+        <p class="card__desc">A practical guide to component architecture that survives real-world product development.</p>
+      </div>
+    </article>
+
+    <article class="card card--standard">
+      <img class="card__image" src="https://picsum.photos/500/300?2" alt="">
+      <div class="card__body">
+        <span class="card__label">Typography</span>
+        <h2 class="card__title">Variable Fonts in Production</h2>
+      </div>
+    </article>
+
+    <article class="card card--small">
+      <div>
+        <div class="card__stat">47%</div>
+        <div class="card__stat-label">faster load times</div>
+      </div>
+    </article>
+
+    <article class="card card--wide">
+      <img class="card__image" src="https://picsum.photos/800/300?3" alt="" style="height: 55%;">
+      <div class="card__body">
+        <span class="card__label">Case Study</span>
+        <h2 class="card__title">Redesigning Search for 10M Users</h2>
+        <p class="card__desc">How constraint-driven design led to a 3x improvement in task completion.</p>
+      </div>
+    </article>
+
+    <article class="card card--tall">
+      <img class="card__image" src="https://picsum.photos/400/600?4" alt="" style="height: 50%;">
+      <div class="card__body">
+        <span class="card__label">Motion</span>
+        <h2 class="card__title">Meaningful Animation Patterns</h2>
+        <p class="card__desc">Why timing curves matter more than which property you animate.</p>
+      </div>
+    </article>
+
+    <article class="card card--small">
+      <div>
+        <div class="card__stat">12</div>
+        <div class="card__stat-label">new articles this week</div>
+      </div>
+    </article>
+
+    <article class="card card--small">
+      <div>
+        <div class="card__stat">3.2s</div>
+        <div class="card__stat-label">avg. time to interactive</div>
+      </div>
+    </article>
+  </div>
+</body>
+</html>
