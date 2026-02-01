@@ -62,19 +62,23 @@ Validates and creates a `.skill` file (zip format) for distribution.
 
 ## Existing Skills
 
-| Skill                 | Purpose                                      |
-| --------------------- | -------------------------------------------- |
-| `algorithmic-art/`    | Create generative art with p5.js             |
-| `skill-creator/`      | Meta-skill for creating new skills           |
-| `gh-review-pr/`       | Review GitHub PRs with merge recommendations |
-| `gh-fix-issue/`       | Fix GitHub issues end-to-end                 |
-| `gh-triage-issues/`   | Triage and label GitHub issues               |
-| `compact-session/`    | Create session summaries for context handoff |
-| `frontend-design/`    | Create distinctive frontend interfaces       |
-| `create-cli/`         | Build command-line tools                     |
-| `nano-banana-pro/`    | Image generation with Nano Banana Pro        |
-| `theme-factory/`      | Generate color themes                        |
-| `markdown-converter/` | Convert markdown documents                   |
+| Skill                        | Purpose                                          |
+| ---------------------------- | ------------------------------------------------ |
+| `algorithmic-art/`           | Create generative art with p5.js                 |
+| `brainstorm/`                | Explore ideas and design before implementation   |
+| `compact-session/`           | Create session summaries for context handoff      |
+| `create-cli/`                | Build command-line tools                         |
+| `frontend-design/`           | Create distinctive frontend interfaces           |
+| `gh-commit-push-pr/`        | Commit, push, and open a GitHub PR               |
+| `gh-fix-issue/`             | Fix GitHub issues end-to-end                     |
+| `gh-review-pr/`             | Review GitHub PRs with merge recommendations     |
+| `gh-triage-issues/`         | Triage and label GitHub issues                   |
+| `markdown-converter/`       | Convert markdown documents                       |
+| `nano-banana-pro/`          | Image generation with Nano Banana Pro            |
+| `skill-creator/`            | Meta-skill for creating new skills               |
+| `template/`                 | Starter template for new skills                  |
+| `theme-factory/`            | Generate color themes                            |
+| `verify-before-complete/`   | Enforce verification before claiming work is done |
 
 ## Specification
 

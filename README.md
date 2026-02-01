@@ -39,6 +39,7 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 | **`markdown-converter/`** | **Document Conversion**: Utilities to convert various document formats to and from Markdown. |
 | **`nano-banana-pro/`** | **Image Generation**: Interface for generating images using Nano Banana Pro. |
 | **`skill-creator/`** | **Meta-Skill**: A set of tools to initialize, validate, and package *new* skills. |
+| **`template/`** | **Starter Template**: Scaffold directory for creating new skills from scratch. |
 | **`theme-factory/`** | **Theming**: Tools for generating color themes and design tokens. |
 | **`verify-before-complete/`** | **Quality Control**: Enforces a "verification before completion" protocol to ensure no work is marked done without evidence. |
 
