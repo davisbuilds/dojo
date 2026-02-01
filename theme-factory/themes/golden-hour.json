@@ -1,0 +1,24 @@
+{
+  "name": "Golden Hour",
+  "slug": "golden-hour",
+  "description": "A rich and warm autumnal palette that creates an inviting and sophisticated atmosphere.",
+  "colors": [
+    {"name": "Mustard Yellow", "hex": "#f4a900", "role": "bold primary accent"},
+    {"name": "Terracotta", "hex": "#c1666b", "role": "warm secondary"},
+    {"name": "Warm Beige", "hex": "#d4b896", "role": "neutral backgrounds"},
+    {"name": "Chocolate Brown", "hex": "#4a403a", "role": "dark text and anchors"}
+  ],
+  "css": {
+    "--theme-bg": "#4a403a",
+    "--theme-surface": "#5a504a",
+    "--theme-text": "#d4b896",
+    "--theme-muted": "#c1666b",
+    "--theme-accent": "#f4a900"
+  },
+  "typography": {
+    "heading": {"family": "FreeSans", "weight": "bold"},
+    "body": {"family": "FreeSans", "weight": "normal"}
+  },
+  "mode": "dark",
+  "use_cases": ["Restaurant presentations", "hospitality brands", "fall campaigns", "cozy lifestyle content", "artisan products"]
+}

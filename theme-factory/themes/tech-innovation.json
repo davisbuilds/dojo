@@ -1,0 +1,24 @@
+{
+  "name": "Tech Innovation",
+  "slug": "tech-innovation",
+  "description": "A bold and modern theme with high-contrast colors perfect for cutting-edge technology presentations.",
+  "colors": [
+    {"name": "Electric Blue", "hex": "#0066ff", "role": "vibrant primary accent"},
+    {"name": "Neon Cyan", "hex": "#00ffff", "role": "bright highlight"},
+    {"name": "Dark Gray", "hex": "#1e1e1e", "role": "deep backgrounds"},
+    {"name": "White", "hex": "#ffffff", "role": "clean text and contrast"}
+  ],
+  "css": {
+    "--theme-bg": "#1e1e1e",
+    "--theme-surface": "#2a2a2a",
+    "--theme-text": "#ffffff",
+    "--theme-muted": "#00ffff",
+    "--theme-accent": "#0066ff"
+  },
+  "typography": {
+    "heading": {"family": "DejaVu Sans", "weight": "bold"},
+    "body": {"family": "DejaVu Sans", "weight": "normal"}
+  },
+  "mode": "dark",
+  "use_cases": ["Tech startups", "software launches", "innovation showcases", "AI/ML presentations", "digital transformation content"]
+}

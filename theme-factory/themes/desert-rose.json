@@ -1,0 +1,24 @@
+{
+  "name": "Desert Rose",
+  "slug": "desert-rose",
+  "description": "A soft and sophisticated theme with dusty, muted tones perfect for elegant presentations.",
+  "colors": [
+    {"name": "Dusty Rose", "hex": "#d4a5a5", "role": "soft primary"},
+    {"name": "Clay", "hex": "#b87d6d", "role": "earthy accent"},
+    {"name": "Sand", "hex": "#e8d5c4", "role": "warm neutral backgrounds"},
+    {"name": "Deep Burgundy", "hex": "#5d2e46", "role": "rich dark contrast"}
+  ],
+  "css": {
+    "--theme-bg": "#e8d5c4",
+    "--theme-surface": "#f0e2d4",
+    "--theme-text": "#5d2e46",
+    "--theme-muted": "#b87d6d",
+    "--theme-accent": "#d4a5a5"
+  },
+  "typography": {
+    "heading": {"family": "FreeSans", "weight": "bold"},
+    "body": {"family": "FreeSans", "weight": "normal"}
+  },
+  "mode": "light",
+  "use_cases": ["Fashion presentations", "beauty brands", "wedding planning", "interior design", "boutique businesses"]
+}

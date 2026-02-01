@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{THEME_NAME}} — Theme Preview</title>
+<style>
+  :root {
+{{CSS_VARS}}
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--theme-bg);
+    color: var(--theme-text);
+    font-family: var(--theme-font-body), system-ui, sans-serif;
+    font-weight: var(--theme-font-body-weight);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .preview {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+
+  /* Header */
+  .preview__header {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--theme-muted);
+  }
+
+  .preview__label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--theme-accent);
+    margin-bottom: 0.5rem;
+  }
+
+  .preview__title {
+    font-family: var(--theme-font-heading), system-ui, sans-serif;
+    font-weight: var(--theme-font-heading-weight);
+    font-size: 2.5rem;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+  }
+
+  .preview__desc {
+    color: var(--theme-muted);
+    font-size: 1rem;
+    max-width: 50ch;
+  }
+
+  .preview__mode {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--theme-muted);
+    color: var(--theme-muted);
+    margin-top: 1rem;
+  }
+
+  /* Swatches */
+  .swatches {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .swatch {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .swatch__color {
+    width: 100%;
+    height: 80px;
+    border-radius: 4px;
+    border: 1px solid rgba(128,128,128,0.15);
+  }
+
+  .swatch__name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+  }
+
+  .swatch__hex {
+    font-size: 0.7rem;
+    color: var(--theme-muted);
+    font-family: monospace;
+  }
+
+  .swatch__role {
+    font-size: 0.65rem;
+    color: var(--theme-muted);
+    font-style: italic;
+  }
+
+  /* Typography specimen */
+  .specimen {
+    margin-bottom: 3rem;
+  }
+
+  .specimen__section {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--theme-accent);
+    margin-bottom: 1.5rem;
+  }
+
+  .specimen h1 {
+    font-family: var(--theme-font-heading), system-ui, sans-serif;
+    font-weight: var(--theme-font-heading-weight);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .specimen h2 {
+    font-family: var(--theme-font-heading), system-ui, sans-serif;
+    font-weight: var(--theme-font-heading-weight);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .specimen h3 {
+    font-family: var(--theme-font-heading), system-ui, sans-serif;
+    font-weight: var(--theme-font-heading-weight);
+    font-size: 1.15rem;
+    margin-bottom: 1rem;
+  }
+
+  .specimen p {
+    margin-bottom: 1rem;
+    max-width: 60ch;
+  }
+
+  .specimen .muted {
+    color: var(--theme-muted);
+  }
+
+  /* Components */
+  .components {
+    margin-bottom: 3rem;
+  }
+
+  .components__section {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--theme-accent);
+    margin-bottom: 1.5rem;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .card {
+    background: var(--theme-surface);
+    border-radius: 6px;
+    padding: 1.5rem;
+    border: 1px solid rgba(128,128,128,0.1);
+  }
+
+  .card__title {
+    font-family: var(--theme-font-heading), system-ui, sans-serif;
+    font-weight: var(--theme-font-heading-weight);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .card__text {
+    font-size: 0.85rem;
+    color: var(--theme-muted);
+    line-height: 1.5;
+  }
+
+  .buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .btn {
+    padding: 0.6rem 1.4rem;
+    font-family: var(--theme-font-body), system-ui, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn--primary {
+    background: var(--theme-accent);
+    color: var(--theme-bg);
+  }
+
+  .btn--outline {
+    background: transparent;
+    border: 1.5px solid var(--theme-accent);
+    color: var(--theme-accent);
+  }
+
+  .btn--ghost {
+    background: transparent;
+    color: var(--theme-muted);
+    border: 1.5px solid var(--theme-muted);
+  }
+
+  /* CSS variables reference */
+  .vars-ref {
+    background: var(--theme-surface);
+    border-radius: 6px;
+    padding: 1.5rem;
+    border: 1px solid rgba(128,128,128,0.1);
+    font-family: monospace;
+    font-size: 0.75rem;
+    line-height: 1.8;
+    color: var(--theme-muted);
+    overflow-x: auto;
+  }
+
+  .vars-ref__prop {
+    color: var(--theme-accent);
+  }
+
+  .vars-ref__val {
+    color: var(--theme-text);
+  }
+
+  /* Footer */
+  .preview__footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--theme-muted);
+    font-size: 0.7rem;
+    color: var(--theme-muted);
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+  <div class="preview">
+    <header class="preview__header">
+      <div class="preview__label">Theme Preview</div>
+      <h1 class="preview__title">{{THEME_NAME}}</h1>
+      <p class="preview__desc">{{THEME_DESC}}</p>
+      <span class="preview__mode">{{THEME_MODE}} mode</span>
+    </header>
+
+    <section class="swatches">
+{{SWATCHES}}
+    </section>
+
+    <section class="specimen">
+      <div class="specimen__section">Typography</div>
+      <h1>Heading Level One</h1>
+      <h2>Heading Level Two</h2>
+      <h3>Heading Level Three</h3>
+      <p>Body text demonstrating the theme's typography. This paragraph shows how running text appears with the selected font pairing. Good typography creates visual hierarchy and guides the reader through content naturally.</p>
+      <p class="muted">Muted text for secondary information, captions, and supporting details that shouldn't compete with primary content.</p>
+    </section>
+
+    <section class="components">
+      <div class="components__section">Components</div>
+      <div class="cards">
+        <div class="card">
+          <div class="card__title">Surface Card</div>
+          <div class="card__text">Cards use the surface color to create depth against the background. Content sits comfortably on the elevated surface.</div>
+        </div>
+        <div class="card">
+          <div class="card__title">Second Card</div>
+          <div class="card__text">Repeated elements demonstrate consistency. The muted text color provides secondary hierarchy within each card.</div>
+        </div>
+        <div class="card">
+          <div class="card__title">Third Card</div>
+          <div class="card__text">Three cards show the grid behavior and how the theme scales across multiple identical components.</div>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button class="btn btn--primary">Primary Action</button>
+        <button class="btn btn--outline">Outline</button>
+        <button class="btn btn--ghost">Ghost</button>
+      </div>
+    </section>
+
+    <section>
+      <div class="components__section">CSS Variables</div>
+      <div class="vars-ref">
+{{VARS_REF}}
+      </div>
+    </section>
+
+    <footer class="preview__footer">
+      <span>{{THEME_NAME}} &mdash; {{USE_CASES}}</span>
+      <span>Theme Factory</span>
+    </footer>
+  </div>
+</body>
+</html>
