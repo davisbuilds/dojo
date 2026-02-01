@@ -1,0 +1,24 @@
+{
+  "name": "Arctic Frost",
+  "slug": "arctic-frost",
+  "description": "A cool and crisp winter-inspired theme that conveys clarity, precision, and professionalism.",
+  "colors": [
+    {"name": "Ice Blue", "hex": "#d4e4f7", "role": "light backgrounds and highlights"},
+    {"name": "Steel Blue", "hex": "#4a6fa5", "role": "primary accent"},
+    {"name": "Silver", "hex": "#c0c0c0", "role": "metallic accent elements"},
+    {"name": "Crisp White", "hex": "#fafafa", "role": "clean backgrounds and text"}
+  ],
+  "css": {
+    "--theme-bg": "#fafafa",
+    "--theme-surface": "#d4e4f7",
+    "--theme-text": "#2a3a50",
+    "--theme-muted": "#c0c0c0",
+    "--theme-accent": "#4a6fa5"
+  },
+  "typography": {
+    "heading": {"family": "DejaVu Sans", "weight": "bold"},
+    "body": {"family": "DejaVu Sans", "weight": "normal"}
+  },
+  "mode": "light",
+  "use_cases": ["Healthcare presentations", "technology solutions", "winter sports", "clean tech", "pharmaceutical content"]
+}

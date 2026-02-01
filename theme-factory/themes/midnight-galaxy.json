@@ -1,0 +1,24 @@
+{
+  "name": "Midnight Galaxy",
+  "slug": "midnight-galaxy",
+  "description": "A dramatic and cosmic theme with deep purples and mystical tones for impactful presentations.",
+  "colors": [
+    {"name": "Deep Purple", "hex": "#2b1e3e", "role": "rich dark base"},
+    {"name": "Cosmic Blue", "hex": "#4a4e8f", "role": "mystical mid-tone"},
+    {"name": "Lavender", "hex": "#a490c2", "role": "soft accent"},
+    {"name": "Silver", "hex": "#e6e6fa", "role": "light highlights and text"}
+  ],
+  "css": {
+    "--theme-bg": "#2b1e3e",
+    "--theme-surface": "#382a50",
+    "--theme-text": "#e6e6fa",
+    "--theme-muted": "#a490c2",
+    "--theme-accent": "#4a4e8f"
+  },
+  "typography": {
+    "heading": {"family": "FreeSans", "weight": "bold"},
+    "body": {"family": "FreeSans", "weight": "normal"}
+  },
+  "mode": "dark",
+  "use_cases": ["Entertainment industry", "gaming presentations", "nightlife venues", "luxury brands", "creative agencies"]
+}

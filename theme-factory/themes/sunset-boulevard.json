@@ -1,0 +1,24 @@
+{
+  "name": "Sunset Boulevard",
+  "slug": "sunset-boulevard",
+  "description": "A warm and vibrant theme inspired by golden hour sunsets, perfect for energetic and creative presentations.",
+  "colors": [
+    {"name": "Burnt Orange", "hex": "#e76f51", "role": "primary accent"},
+    {"name": "Coral", "hex": "#f4a261", "role": "secondary accent"},
+    {"name": "Warm Sand", "hex": "#e9c46a", "role": "highlight and backgrounds"},
+    {"name": "Deep Teal", "hex": "#264653", "role": "dark contrast and text"}
+  ],
+  "css": {
+    "--theme-bg": "#264653",
+    "--theme-surface": "#2f5461",
+    "--theme-text": "#e9c46a",
+    "--theme-muted": "#f4a261",
+    "--theme-accent": "#e76f51"
+  },
+  "typography": {
+    "heading": {"family": "DejaVu Serif", "weight": "bold"},
+    "body": {"family": "DejaVu Sans", "weight": "normal"}
+  },
+  "mode": "dark",
+  "use_cases": ["Creative pitches", "marketing presentations", "lifestyle brands", "event promotions", "inspirational content"]
+}

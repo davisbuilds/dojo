@@ -1,0 +1,24 @@
+{
+  "name": "Botanical Garden",
+  "slug": "botanical-garden",
+  "description": "A fresh and organic theme featuring vibrant garden-inspired colors for lively presentations.",
+  "colors": [
+    {"name": "Fern Green", "hex": "#4a7c59", "role": "rich natural green"},
+    {"name": "Marigold", "hex": "#f9a620", "role": "bright floral accent"},
+    {"name": "Terracotta", "hex": "#b7472a", "role": "earthy warm tone"},
+    {"name": "Cream", "hex": "#f5f3ed", "role": "soft neutral backgrounds"}
+  ],
+  "css": {
+    "--theme-bg": "#f5f3ed",
+    "--theme-surface": "#ebe8de",
+    "--theme-text": "#3a3028",
+    "--theme-muted": "#4a7c59",
+    "--theme-accent": "#f9a620"
+  },
+  "typography": {
+    "heading": {"family": "DejaVu Serif", "weight": "bold"},
+    "body": {"family": "DejaVu Sans", "weight": "normal"}
+  },
+  "mode": "light",
+  "use_cases": ["Garden centers", "food presentations", "farm-to-table content", "botanical brands", "natural products"]
+}

@@ -1,0 +1,123 @@
+<!--
+  Navigation: Minimal / Refined Style
+  Barely-there nav with precise typography, animated underlines, and restrained spacing.
+  Pair with: DM Serif Display + Outfit, Cream Canvas or Paper White palette.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minimal Navigation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-bg: #f5f0e8;
+    --color-text: #2c2c2c;
+    --color-muted: #8a8578;
+    --color-accent: #4a6741;
+    --font-display: 'DM Serif Display', serif;
+    --font-body: 'Outfit', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--color-bg);
+    min-height: 100vh;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 3rem;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .nav__logo {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .nav__links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+
+  .nav__link {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--color-muted);
+    text-decoration: none;
+    position: relative;
+    padding-bottom: 2px;
+    transition: color 0.25s ease;
+  }
+
+  .nav__link::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--color-accent);
+    transition: width 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .nav__link:hover {
+    color: var(--color-text);
+  }
+
+  .nav__link:hover::after {
+    width: 100%;
+  }
+
+  .nav__link--active {
+    color: var(--color-text);
+    font-weight: 500;
+  }
+
+  .nav__link--active::after {
+    width: 100%;
+    background: var(--color-text);
+  }
+
+  .nav__cta {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-bg);
+    background: var(--color-text);
+    border: none;
+    padding: 0.6rem 1.4rem;
+    cursor: pointer;
+    transition: background 0.25s ease;
+  }
+
+  .nav__cta:hover {
+    background: var(--color-accent);
+  }
+</style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="#" class="nav__logo">Atelier</a>
+    <ul class="nav__links">
+      <li><a href="#" class="nav__link nav__link--active">Work</a></li>
+      <li><a href="#" class="nav__link">About</a></li>
+      <li><a href="#" class="nav__link">Journal</a></li>
+      <li><a href="#" class="nav__link">Contact</a></li>
+    </ul>
+    <button class="nav__cta">Get in Touch</button>
+  </nav>
+</body>
+</html>

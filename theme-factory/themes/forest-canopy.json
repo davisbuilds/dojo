@@ -1,0 +1,24 @@
+{
+  "name": "Forest Canopy",
+  "slug": "forest-canopy",
+  "description": "A natural and grounded theme featuring earth tones inspired by dense forest environments.",
+  "colors": [
+    {"name": "Forest Green", "hex": "#2d4a2b", "role": "primary dark"},
+    {"name": "Sage", "hex": "#7d8471", "role": "muted accent"},
+    {"name": "Olive", "hex": "#a4ac86", "role": "light accent"},
+    {"name": "Ivory", "hex": "#faf9f6", "role": "backgrounds and text"}
+  ],
+  "css": {
+    "--theme-bg": "#faf9f6",
+    "--theme-surface": "#f0efe8",
+    "--theme-text": "#2d4a2b",
+    "--theme-muted": "#7d8471",
+    "--theme-accent": "#a4ac86"
+  },
+  "typography": {
+    "heading": {"family": "FreeSerif", "weight": "bold"},
+    "body": {"family": "FreeSans", "weight": "normal"}
+  },
+  "mode": "light",
+  "use_cases": ["Environmental presentations", "sustainability reports", "outdoor brands", "wellness content", "organic products"]
+}

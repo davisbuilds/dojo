@@ -1,0 +1,24 @@
+{
+  "name": "Modern Minimalist",
+  "slug": "modern-minimalist",
+  "description": "A clean and contemporary theme with a sophisticated grayscale palette for maximum versatility.",
+  "colors": [
+    {"name": "Charcoal", "hex": "#36454f", "role": "primary dark"},
+    {"name": "Slate Gray", "hex": "#708090", "role": "medium accent"},
+    {"name": "Light Gray", "hex": "#d3d3d3", "role": "backgrounds and dividers"},
+    {"name": "White", "hex": "#ffffff", "role": "text and clean backgrounds"}
+  ],
+  "css": {
+    "--theme-bg": "#ffffff",
+    "--theme-surface": "#f5f5f5",
+    "--theme-text": "#36454f",
+    "--theme-muted": "#708090",
+    "--theme-accent": "#36454f"
+  },
+  "typography": {
+    "heading": {"family": "DejaVu Sans", "weight": "bold"},
+    "body": {"family": "DejaVu Sans", "weight": "normal"}
+  },
+  "mode": "light",
+  "use_cases": ["Tech presentations", "architecture portfolios", "design showcases", "modern business proposals", "data visualization"]
+}

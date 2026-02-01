@@ -1,0 +1,24 @@
+{
+  "name": "Ocean Depths",
+  "slug": "ocean-depths",
+  "description": "A professional and calming maritime theme that evokes the serenity of deep ocean waters.",
+  "colors": [
+    {"name": "Deep Navy", "hex": "#1a2332", "role": "primary background"},
+    {"name": "Teal", "hex": "#2d8b8b", "role": "accent"},
+    {"name": "Seafoam", "hex": "#a8dadc", "role": "secondary accent"},
+    {"name": "Cream", "hex": "#f1faee", "role": "text and light backgrounds"}
+  ],
+  "css": {
+    "--theme-bg": "#1a2332",
+    "--theme-surface": "#243344",
+    "--theme-text": "#f1faee",
+    "--theme-muted": "#a8dadc",
+    "--theme-accent": "#2d8b8b"
+  },
+  "typography": {
+    "heading": {"family": "DejaVu Sans", "weight": "bold"},
+    "body": {"family": "DejaVu Sans", "weight": "normal"}
+  },
+  "mode": "dark",
+  "use_cases": ["Corporate presentations", "financial reports", "professional consulting decks", "trust-building content"]
+}
