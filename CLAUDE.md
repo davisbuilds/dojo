@@ -60,6 +60,7 @@ Validates and creates a `.skill` file (zip format) for distribution.
 | `algorithmic-art/` | Create generative art with p5.js |
 | `brainstorm/` | Explore ideas and design before implementation |
 | `compact-session/` | Create session summaries for context handoff |
+| `first-principles/` | First-principles reasoning for high-stakes technical tasks |
 | `create-cli/` | Build command-line tools |
 | `frontend-design/` | Create distinctive frontend interfaces |
 | `gh-commit-push-pr/` | Commit, push, and open a GitHub PR |
