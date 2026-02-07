@@ -74,6 +74,17 @@ Validates and creates a `.skill` file (zip format) for distribution.
 | `theme-factory/` | Generate color themes |
 | `verify-before-complete/` | Enforce verification before claiming work is done |
 
+### Compound Engineering Plugin Skills (v2.30.0 Reference)
+
+Skills and patterns extracted from the compound-engineering plugin for reference:
+
+| Skill/Folder | Purpose |
+|--------------|---------|
+| `code-review-agents/` | 18 specialized code review agent skills (architecture, data-integrity, security, etc.) |
+| `autonomous-engineering/` | LFG and SLFG autonomous engineering workflows |
+| `agent-native-architecture/` | Patterns for building apps where agents are first-class citizens |
+| `compound-docs/` | 7-step workflow for documenting solved problems |
+
 ## Specification
 
 Full skill specification: https://agentskills.io/specification
