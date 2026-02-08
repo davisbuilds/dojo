@@ -27,21 +27,21 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 
 | Skill Directory | Description |
 |----------------|-------------|
-| **`algorithmic-art/`** | **Generative Art**: Creating algorithmic art using p5.js with seeded randomness and interactive parameter exploration. |
-| **`brainstorm/`** | **Brainstorming Ideas**: Helps turn ideas into fully formed designs and specs through natural collaborative dialogue. |
-| **`compact-session/`** | **Context Management**: Creates session summaries to efficiently hand off context between sessions or agents. |
-| **`create-cli/`** | **CLI Builder**: Specialized workflows for building command-line tools. |
-| **`frontend-design/`** | **UI/UX Design**: Guidelines and workflows for creating distinctive, high-quality frontend interfaces. |
-| **`gh-commit-push-pr/`** | **GitHub Automation**: Streamlined workflow to commit changes, push to a branch, and open a Pull Request in a single step. |
-| **`gh-fix-issue/`** | **Issue Resolution**: End-to-end workflow for fixing GitHub issues. |
-| **`gh-review-pr/`** | **Code Review**: Capabilities for reviewing Pull Requests and providing merge recommendations. |
-| **`gh-triage-issues/`** | **Issue Triage**: Tools and instructions for triaging and labeling GitHub issues. |
-| **`markdown-converter/`** | **Document Conversion**: Utilities to convert various document formats to and from Markdown. |
-| **`nano-banana-pro/`** | **Image Generation**: Interface for generating images using Nano Banana Pro. |
-| **`skill-creator/`** | **Meta-Skill**: A set of tools to initialize, validate, and package *new* skills. |
-| **`template/`** | **Starter Template**: Scaffold directory for creating new skills from scratch. |
-| **`theme-factory/`** | **Theming**: Tools for generating color themes and design tokens. |
-| **`verify-before-complete/`** | **Quality Control**: Enforces a "verification before completion" protocol to ensure no work is marked done without evidence. |
+| **`skills/algorithmic-art/`** | **Generative Art**: Creating algorithmic art using p5.js with seeded randomness and interactive parameter exploration. |
+| **`skills/brainstorm/`** | **Brainstorming Ideas**: Helps turn ideas into fully formed designs and specs through natural collaborative dialogue. |
+| **`skills/compact-session/`** | **Context Management**: Creates session summaries to efficiently hand off context between sessions or agents. |
+| **`skills/create-cli/`** | **CLI Builder**: Specialized workflows for building command-line tools. |
+| **`skills/frontend-design/`** | **UI/UX Design**: Guidelines and workflows for creating distinctive, high-quality frontend interfaces. |
+| **`skills/gh-commit-push-pr/`** | **GitHub Automation**: Streamlined workflow to commit changes, push to a branch, and open a Pull Request in a single step. |
+| **`skills/gh-fix-issue/`** | **Issue Resolution**: End-to-end workflow for fixing GitHub issues. |
+| **`skills/gh-review-pr/`** | **Code Review**: Capabilities for reviewing Pull Requests and providing merge recommendations. |
+| **`skills/gh-triage-issues/`** | **Issue Triage**: Tools and instructions for triaging and labeling GitHub issues. |
+| **`skills/markdown-converter/`** | **Document Conversion**: Utilities to convert various document formats to and from Markdown. |
+| **`skills/nano-banana-pro/`** | **Image Generation**: Interface for generating images using Nano Banana Pro. |
+| **`skills/skill-creator/`** | **Meta-Skill**: A set of tools to initialize, validate, and package *new* skills. |
+| **`skills/template/`** | **Starter Template**: Scaffold directory for creating new skills from scratch. |
+| **`skills/theme-factory/`** | **Theming**: Tools for generating color themes and design tokens. |
+| **`skills/verify-before-complete/`** | **Quality Control**: Enforces a "verification before completion" protocol to ensure no work is marked done without evidence. |
 
 ## Creating a New Skill
 
@@ -49,10 +49,10 @@ You can use the `skill-creator` scripts to scaffold a new skill:
 
 ```bash
 # Create a new skill directory
-python skill-creator/scripts/init_skill.py <skill-name> --path ./
+python skills/skill-creator/scripts/init_skill.py <skill-name> --path ./
 
 # Validate your skill structure
-python skill-creator/scripts/quick_validate.py <skill-name>
+python skills/skill-creator/scripts/quick_validate.py <skill-name>
 ```
 
 ## Usage

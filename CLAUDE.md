@@ -27,19 +27,19 @@ skill-name/
 
 ### Create a new skill
 ```bash
-python skill-creator/scripts/init_skill.py <skill-name> --path <output-directory>
+python skills/skill-creator/scripts/init_skill.py <skill-name> --path <output-directory>
 ```
 Creates a skill directory with template SKILL.md and example resource directories.
 
 ### Validate a skill
 ```bash
-python skill-creator/scripts/quick_validate.py <path/to/skill-folder>
+python skills/skill-creator/scripts/quick_validate.py <path/to/skill-folder>
 ```
 Checks frontmatter format, required fields, naming conventions.
 
 ### Package a skill for distribution
 ```bash
-python skill-creator/scripts/package_skill.py <path/to/skill-folder> [output-directory]
+python skills/skill-creator/scripts/package_skill.py <path/to/skill-folder> [output-directory]
 ```
 Validates and creates a `.skill` file (zip format) for distribution.
 
@@ -57,22 +57,22 @@ Validates and creates a `.skill` file (zip format) for distribution.
 
 | Skill | Purpose |
 |-------|---------|
-| `algorithmic-art/` | Create generative art with p5.js |
-| `brainstorm/` | Explore ideas and design before implementation |
-| `compact-session/` | Create session summaries for context handoff |
-| `first-principles/` | First-principles reasoning for high-stakes technical tasks |
-| `create-cli/` | Build command-line tools |
-| `frontend-design/` | Create distinctive frontend interfaces |
-| `gh-commit-push-pr/` | Commit, push, and open a GitHub PR |
-| `gh-fix-issue/` | Fix GitHub issues end-to-end |
-| `gh-review-pr/` | Review GitHub PRs with merge recommendations |
-| `gh-triage-issues/` | Triage and label GitHub issues |
-| `markdown-converter/` | Convert markdown documents |
-| `nano-banana-pro/` | Image generation with Nano Banana Pro |
-| `skill-creator/` | Meta-skill for creating new skills |
-| `template/` | Starter template for new skills |
-| `theme-factory/` | Generate color themes |
-| `verify-before-complete/` | Enforce verification before claiming work is done |
+| `skills/algorithmic-art/` | Create generative art with p5.js |
+| `skills/brainstorm/` | Explore ideas and design before implementation |
+| `skills/compact-session/` | Create session summaries for context handoff |
+| `skills/first-principles/` | First-principles reasoning for high-stakes technical tasks |
+| `skills/create-cli/` | Build command-line tools |
+| `skills/frontend-design/` | Create distinctive frontend interfaces |
+| `skills/gh-commit-push-pr/` | Commit, push, and open a GitHub PR |
+| `skills/gh-fix-issue/` | Fix GitHub issues end-to-end |
+| `skills/gh-review-pr/` | Review GitHub PRs with merge recommendations |
+| `skills/gh-triage-issues/` | Triage and label GitHub issues |
+| `skills/markdown-converter/` | Convert markdown documents |
+| `skills/nano-banana-pro/` | Image generation with Nano Banana Pro |
+| `skills/skill-creator/` | Meta-skill for creating new skills |
+| `skills/template/` | Starter template for new skills |
+| `skills/theme-factory/` | Generate color themes |
+| `skills/verify-before-complete/` | Enforce verification before claiming work is done |
 
 ### Compound Engineering Plugin Skills (v2.30.0 Reference)
 
@@ -80,10 +80,10 @@ Skills and patterns extracted from the compound-engineering plugin for reference
 
 | Skill/Folder | Purpose |
 |--------------|---------|
-| `code-review-agents/` | 18 specialized code review agent skills (architecture, data-integrity, security, etc.) |
-| `autonomous-engineering/` | LFG and SLFG autonomous engineering workflows |
-| `agent-native-architecture/` | Patterns for building apps where agents are first-class citizens |
-| `compound-docs/` | 7-step workflow for documenting solved problems |
+| `skills/code-review-agents/` | 18 specialized code review agent skills (architecture, data-integrity, security, etc.) |
+| `skills/autonomous-engineering/` | LFG and SLFG autonomous engineering workflows |
+| `skills/agent-native-architecture/` | Patterns for building apps where agents are first-class citizens |
+| `skills/compound-docs/` | 7-step workflow for documenting solved problems |
 
 ## Specification
 
