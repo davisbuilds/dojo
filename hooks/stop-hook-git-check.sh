@@ -29,18 +29,18 @@ fi
 
 current_branch=$(git branch --show-current)
 if [[ -n "$current_branch" ]]; then
-  if git rev-parse "origin/$current_branch" >/dev/null 2>&1; then
-    # Branch exists on remote - compare against it
-    unpushed=$(git rev-list "origin/$current_branch..HEAD" --count 2>/dev/null) || unpushed=0
+  if upstream=$(git rev-parse --abbrev-ref '@{u}' 2>/dev/null); then
+    # Branch has an upstream tracking ref - compare against it
+    unpushed=$(git rev-list '@{u}..HEAD' --count 2>/dev/null) || unpushed=0
     if [[ "$unpushed" -gt 0 ]]; then
-      echo "There are $unpushed unpushed commit(s) on branch '$current_branch'. Please push these changes to the remote repository." >&2
+      echo "There are $unpushed unpushed commit(s) on branch '$current_branch' (tracking $upstream). Please push these changes to the remote repository." >&2
       exit 2
     fi
   else
-    # Branch doesn't exist on remote - compare against default branch
+    # No upstream configured - compare against default branch
     unpushed=$(git rev-list "origin/HEAD..HEAD" --count 2>/dev/null) || unpushed=0
     if [[ "$unpushed" -gt 0 ]]; then
-      echo "Branch '$current_branch' has $unpushed unpushed commit(s) and no remote branch. Please push these changes to the remote repository." >&2
+      echo "Branch '$current_branch' has $unpushed unpushed commit(s) and no upstream tracking branch. Please push these changes to the remote repository." >&2
       exit 2
     fi
   fi
