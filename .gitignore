@@ -29,6 +29,8 @@ yarn-debug.log*
 yarn-error.log*
 .npm
 .eslintcache
+.pnpm-debug.log*
+.pnpm-store/
 
 # Python
 __pycache__/
