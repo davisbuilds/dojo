@@ -6,9 +6,6 @@ allowed-tools:
   - Write # Create resolution docs
   - Bash # Create directories
   - Grep # Search existing docs
-preconditions:
-  - Problem has been solved (not in-progress)
-  - Solution has been verified working
 ---
 
 # compound-docs Skill
