@@ -27,21 +27,38 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 
 | Skill Directory | Description |
 |----------------|-------------|
-| **`skills/algorithmic-art/`** | **Generative Art**: Creating algorithmic art using p5.js with seeded randomness and interactive parameter exploration. |
-| **`skills/brainstorm/`** | **Brainstorming Ideas**: Helps turn ideas into fully formed designs and specs through natural collaborative dialogue. |
-| **`skills/compact-session/`** | **Context Management**: Creates session summaries to efficiently hand off context between sessions or agents. |
-| **`skills/create-cli/`** | **CLI Builder**: Specialized workflows for building command-line tools. |
-| **`skills/frontend-design/`** | **UI/UX Design**: Guidelines and workflows for creating distinctive, high-quality frontend interfaces. |
-| **`skills/gh-commit-push-pr/`** | **GitHub Automation**: Streamlined workflow to commit changes, push to a branch, and open a Pull Request in a single step. |
-| **`skills/gh-fix-issue/`** | **Issue Resolution**: End-to-end workflow for fixing GitHub issues. |
-| **`skills/gh-review-pr/`** | **Code Review**: Capabilities for reviewing Pull Requests and providing merge recommendations. |
-| **`skills/gh-triage-issues/`** | **Issue Triage**: Tools and instructions for triaging and labeling GitHub issues. |
-| **`skills/markdown-converter/`** | **Document Conversion**: Utilities to convert various document formats to and from Markdown. |
-| **`skills/nano-banana-pro/`** | **Image Generation**: Interface for generating images using Nano Banana Pro. |
-| **`skills/skill-creator/`** | **Meta-Skill**: A set of tools to initialize, validate, and package *new* skills. |
+| **`skills/agent-native-architecture/`** | **Agent-Native Architecture**: Build applications where agents are first-class and operate with tool/action parity. |
+| **`skills/algorithmic-art/`** | **Generative Art**: Create algorithmic art with p5.js and controlled randomness. |
+| **`skills/autonomous-engineering/`** | **Autonomous Delivery**: Run full end-to-end feature workflows (`/lfg`, `/slfg`). |
+| **`skills/brainstorm/`** | **Brainstorming Ideas**: Explore intent and shape solutions before implementation. |
+| **`skills/code-review-agents/`** | **Review Swarm**: Use specialized agents for architecture, security, data, performance, and deployment review. |
+| **`skills/compact-session/`** | **Context Management**: Create concise session summaries for reliable handoff. |
+| **`skills/compound-docs/`** | **Knowledge Capture**: Record solved problems as categorized, searchable documentation. |
+| **`skills/create-cli/`** | **CLI Builder**: Design and refine command-line interface UX and behavior. |
+| **`skills/find-skills/`** | **Skill Discovery**: Find installable skills for requested capabilities. |
+| **`skills/first-principles/`** | **Systems Reasoning**: Apply first-principles analysis for high-stakes technical decisions. |
+| **`skills/frontend-design/`** | **UI/UX Design**: Build distinctive, production-grade frontend interfaces. |
+| **`skills/gh-commit-push-pr/`** | **GitHub Automation**: Commit, push, and open a Pull Request in one guided flow. |
+| **`skills/gh-fix-issue/`** | **Issue Resolution**: Fix GitHub issues end-to-end from analysis through PR. |
+| **`skills/gh-review-pr/`** | **Code Review**: Review Pull Requests and provide merge recommendations. |
+| **`skills/gh-triage-issues/`** | **Issue Triage**: Label, prioritize, and de-duplicate GitHub issues. |
+| **`skills/imagegen/`** | **OpenAI Image API**: Generate and edit images with reproducible CLI workflows. |
+| **`skills/json-canvas/`** | **JSON Canvas**: Create and edit Obsidian-compatible `.canvas` files. |
+| **`skills/markdown-converter/`** | **Document Conversion**: Convert many file formats into Markdown for analysis. |
+| **`skills/nano-banana-pro/`** | **Nano Banana Pro**: Generate or edit images via Gemini 3 Pro Image. |
+| **`skills/obsidian-bases/`** | **Obsidian Bases**: Create and edit `.base` files with views, filters, formulas, and summaries. |
+| **`skills/obsidian-markdown/`** | **Obsidian Markdown**: Author Obsidian-flavored Markdown with wikilinks, embeds, callouts, and properties. |
+| **`skills/playwright/`** | **Browser Automation**: Drive real browser workflows from the terminal. |
+| **`skills/skill-creator/`** | **Meta-Skill**: Initialize, validate, and package new skills. |
+| **`skills/skill-installer/`** | **Skill Installation**: Install curated or repo-based Codex skills. |
 | **`skills/template/`** | **Starter Template**: Scaffold directory for creating new skills from scratch. |
-| **`skills/theme-factory/`** | **Theming**: Tools for generating color themes and design tokens. |
-| **`skills/verify-before-complete/`** | **Quality Control**: Enforces a "verification before completion" protocol to ensure no work is marked done without evidence. |
+| **`skills/theme-factory/`** | **Theming**: Apply preset or generated theme systems to artifacts. |
+| **`skills/vercel-composition-patterns/`** | **React Composition**: Use scalable composition patterns for reusable React APIs. |
+| **`skills/vercel-deploy/`** | **Vercel Deploy**: Deploy applications and websites to Vercel. |
+| **`skills/vercel-react-best-practices/`** | **React Performance**: Apply Vercel’s React/Next.js optimization guidelines. |
+| **`skills/vercel-react-native-skills/`** | **React Native Performance**: Apply Vercel best practices for React Native and Expo. |
+| **`skills/verify-before-complete/`** | **Quality Control**: Require verification evidence before completion claims. |
+| **`skills/web-design-guidelines/`** | **UI Guidelines Audit**: Review interfaces for web guideline compliance. |
 
 ## Creating a New Skill
 

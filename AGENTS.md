@@ -64,21 +64,38 @@ Validates and creates a `.skill` file (zip format) for distribution.
 
 | Skill                        | Purpose                                          |
 | ---------------------------- | ------------------------------------------------ |
-| `skills/algorithmic-art/`           | Create generative art with p5.js                 |
-| `skills/brainstorm/`                | Explore ideas and design before implementation   |
-| `skills/compact-session/`           | Create session summaries for context handoff      |
-| `skills/create-cli/`                | Build command-line tools                         |
-| `skills/frontend-design/`           | Create distinctive frontend interfaces           |
-| `skills/gh-commit-push-pr/`        | Commit, push, and open a GitHub PR               |
-| `skills/gh-fix-issue/`             | Fix GitHub issues end-to-end                     |
-| `skills/gh-review-pr/`             | Review GitHub PRs with merge recommendations     |
-| `skills/gh-triage-issues/`         | Triage and label GitHub issues                   |
-| `skills/markdown-converter/`       | Convert markdown documents                       |
-| `skills/nano-banana-pro/`          | Image generation with Nano Banana Pro            |
-| `skills/skill-creator/`            | Meta-skill for creating new skills               |
-| `skills/template/`                 | Starter template for new skills                  |
-| `skills/theme-factory/`            | Generate color themes                            |
-| `skills/verify-before-complete/`   | Enforce verification before claiming work is done |
+| `skills/agent-native-architecture/` | Build agent-native applications and MCP tool workflows |
+| `skills/algorithmic-art/` | Create generative art with p5.js |
+| `skills/autonomous-engineering/` | Run end-to-end autonomous feature workflows |
+| `skills/brainstorm/` | Explore requirements and design before implementation |
+| `skills/code-review-agents/` | Run specialized multi-agent code reviews and audits |
+| `skills/compact-session/` | Create session summaries for context handoff |
+| `skills/compound-docs/` | Capture solved problems as categorized documentation |
+| `skills/create-cli/` | Design and refine command-line interfaces |
+| `skills/find-skills/` | Discover and install relevant skills |
+| `skills/first-principles/` | Apply first-principles systems reasoning to tough technical problems |
+| `skills/frontend-design/` | Create distinctive frontend interfaces |
+| `skills/gh-commit-push-pr/` | Commit, push, and open a GitHub PR |
+| `skills/gh-fix-issue/` | Fix GitHub issues end-to-end |
+| `skills/gh-review-pr/` | Review GitHub PRs with merge recommendations |
+| `skills/gh-triage-issues/` | Triage and label GitHub issues |
+| `skills/imagegen/` | Generate and edit images via the OpenAI Image API |
+| `skills/json-canvas/` | Create and edit JSON Canvas (`.canvas`) files |
+| `skills/markdown-converter/` | Convert documents and files to Markdown |
+| `skills/nano-banana-pro/` | Generate and edit images with Nano Banana Pro |
+| `skills/obsidian-bases/` | Create and edit Obsidian Bases (`.base`) files |
+| `skills/obsidian-markdown/` | Create and edit Obsidian Flavored Markdown |
+| `skills/playwright/` | Automate real browser workflows from the terminal |
+| `skills/skill-creator/` | Meta-skill for creating and updating skills |
+| `skills/skill-installer/` | Install skills from curated lists or GitHub repos |
+| `skills/template/` | Starter template for new skills |
+| `skills/theme-factory/` | Generate and apply visual themes |
+| `skills/vercel-composition-patterns/` | Apply scalable React composition patterns |
+| `skills/vercel-deploy/` | Deploy applications and sites to Vercel |
+| `skills/vercel-react-best-practices/` | Apply React and Next.js performance best practices |
+| `skills/vercel-react-native-skills/` | Apply React Native and Expo best practices |
+| `skills/verify-before-complete/` | Require verification evidence before completion claims |
+| `skills/web-design-guidelines/` | Review UI code against web interface guidelines |
 
 ## Specification
 

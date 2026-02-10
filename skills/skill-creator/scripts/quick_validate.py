@@ -1,4 +1,10 @@
-#!/usr/bin/env python3
+#!/bin/sh
+""":"
+if command -v python >/dev/null 2>&1; then
+    exec python "$0" "$@"
+fi
+exec python3 "$0" "$@"
+":"""
 """
 Quick validation script for skills - minimal version
 """
@@ -87,7 +93,7 @@ def validate_skill(skill_path):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python quick_validate.py <skill_directory>")
+        print("Usage: quick_validate.py <skill_directory>")
         sys.exit(1)
     
     valid, message = validate_skill(sys.argv[1])
