@@ -68,9 +68,11 @@ You can use the `skill-creator` scripts to scaffold a new skill:
 # Create a new skill directory
 python skills/skill-creator/scripts/init_skill.py <skill-name> --path ./
 
-# Validate your skill structure
+# Validate your skill structure (works with both `python` and `python3`)
 python skills/skill-creator/scripts/quick_validate.py <skill-name>
 ```
+
+The validator uses a polyglot shebang so it can also be run directly and will work in environments that provide either `python` or `python3`.
 
 ## Usage
 
@@ -90,3 +92,7 @@ When working with an agent that supports these skills:
 - [superpowers](https://github.com/obra/superpowers)
 - [agent-scripts](https://github.com/steipete/agent-scripts)
 - [anthropics/skills](https://github.com/anthropics/skills)
+- [compound-engineering-plugin](https://github.com/everyinc/compound-engineering-plugin) — source of the code-review-agents, autonomous-engineering, agent-native-architecture, and compound-docs skills
+- [Vercel skills](https://github.com/vercel/next.js) — React, Next.js, and React Native best-practice rules and composition patterns
+- [Kepano's Obsidian skills](https://github.com/kepano) — Obsidian Markdown, Bases, and JSON Canvas skill references
+- [skills.sh](https://skills.sh) — community skill registry and discovery
