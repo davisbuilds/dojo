@@ -76,22 +76,21 @@ This repo uses hooks (in `hooks/`) to enforce skill quality and provide session 
 
 ### System tools
 
-The hook scripts rely on standard CLI tools that should be available on most development machines:
+The hooks require `git`, `jq`, `python3`, `sed`, and `grep`. These ship with most systems. Verify with:
 
-- **Python 3** (>= 3.8)
-- **git**
-- **jq**
-- **sed**, **grep** (used by some stop-hooks)
+```bash
+for cmd in git jq python3 sed grep; do command -v "$cmd" >/dev/null && echo "$cmd: ok" || echo "$cmd: MISSING"; done
+```
+
+If everything prints `ok`, skip ahead to [Python dependencies](#python-dependencies). Otherwise install the missing tool(s) via your package manager (e.g. `brew install jq`, `apt install jq`).
 
 ### Python dependencies
 
-Core Python dependencies are listed in `requirements.txt`. Install them with:
+Install the core Python dependencies (currently just **PyYAML**, used by the validation and manifest-generation scripts the hooks invoke):
 
 ```bash
 pip install -r requirements.txt
 ```
-
-This installs **PyYAML**, which is required by the validation and manifest-generation scripts that the hooks invoke.
 
 #### Optional (skill-specific)
 
