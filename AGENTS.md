@@ -50,6 +50,18 @@ python skills/skill-creator/scripts/package_skill.py <path/to/skill-folder> [out
 
 Validates and creates a `.skill` file (zip format) for distribution.
 
+## Dependencies
+
+Install the core Python dependencies before running hooks or skill-management scripts:
+
+```bash
+pip install -r requirements.txt
+```
+
+The hooks also require these system tools: `git`, `jq`, `python3`, `sed`, and `grep`.
+
+Some skills have additional optional dependencies (e.g. `openai`, `google-genai`, `Pillow`). See `requirements.txt` for details.
+
 ## Key Design Principles
 
 1. **Concise is key**: The context window is shared. Only add information the agent doesn't already have.
@@ -59,6 +71,18 @@ Validates and creates a `.skill` file (zip format) for distribution.
 3. **Degrees of freedom**: Match specificity to task fragility - high freedom for flexible tasks (text instructions), low freedom for fragile operations (specific scripts).
 
 4. **Description is the trigger**: The `description` field determines when the agent uses the skill. Include both what it does AND specific scenarios/triggers.
+
+## Hooks
+
+Scripts in `hooks/` enforce quality and inject context automatically. Configured in `.claude/settings.json` (and mirrored in `.agents/settings.json` for other harnesses).
+
+| Hook | Event | What it does |
+|------|-------|--------------|
+| `session-start-skill-catalog.sh` | SessionStart | Injects skill catalog from `skills.json`, recent git log, and a pointer to AGENTS.md |
+| `pre-tool-use-validate-skill.sh` | PreToolUse (Write\|Edit) | Runs `quick_validate.py` when a SKILL.md is written or edited; blocks on invalid frontmatter |
+| `post-tool-use-regen-manifest.sh` | PostToolUse (Write\|Edit) | Regenerates `skills.json` after a SKILL.md is modified |
+| `stop-hook-git-check.sh` | Stop | Blocks if there are uncommitted changes, untracked files, or unpushed commits |
+| `stop-hook-skill-structure.sh` | Stop | Validates that modified skill directories have SKILL.md and matching directory/frontmatter names |
 
 ## Existing Skills
 

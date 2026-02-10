@@ -1,0 +1,14 @@
+# Core dependencies — required by hooks and skill-management scripts
+# Install: pip install -r requirements.txt
+PyYAML>=6.0
+
+# Optional — only needed by specific skills
+# Uncomment the groups you need:
+
+# skills/imagegen (OpenAI image generation)
+# openai>=1.0.0
+# Pillow>=10.0.0
+
+# skills/nano-banana-pro (Google Gemini image generation)
+# google-genai>=1.0.0
+# Pillow>=10.0.0
