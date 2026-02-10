@@ -13,6 +13,13 @@
         "command": "bash hooks/pre-tool-use-validate-skill.sh"
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "type": "command",
+        "command": "bash hooks/post-tool-use-regen-manifest.sh"
+      }
+    ],
     "Stop": [
       {
         "type": "command",

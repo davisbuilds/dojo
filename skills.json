@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "skills": [
+    {
+      "name": "agent-native-architecture",
+      "description": "Build applications where agents are first-class citizens. Use this skill when designing autonomous agents, creating MCP tools, implementing self-modifying systems, or building apps where features are outcomes achieved by agents operating in a loop.",
+      "path": "skills/agent-native-architecture"
+    },
+    {
+      "name": "algorithmic-art",
+      "description": "Creating algorithmic art using p5.js with seeded randomness and interactive parameter exploration. Use this when users request creating art using code, generative art, algorithmic art, flow fields, or particle systems. Create original algorithmic art rather than copying existing artists' work to avoid copyright violations.",
+      "path": "skills/algorithmic-art",
+      "license": "Complete terms in LICENSE.txt"
+    },
+    {
+      "name": "autonomous-engineering",
+      "description": "Full autonomous engineering workflows that run a complete feature development cycle: plan, deepen, implement, review, resolve, test, and record. Use when asked to build a feature end-to-end, go autonomous, or when user says 'lfg' or 'slfg'. Includes a sequential variant (lfg) and a swarm-parallel variant (slfg) for faster execution of large features.",
+      "path": "skills/autonomous-engineering"
+    },
+    {
+      "name": "brainstorming",
+      "description": "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.",
+      "path": "skills/brainstorm"
+    },
+    {
+      "name": "code-review-agents",
+      "description": "Specialized code review and quality assurance agents covering architecture, data integrity, security, performance, language-specific conventions, and deployment safety. Use when reviewing PRs, auditing code quality, checking migrations, or running an agent-native architecture audit. Triggers on 'review code', 'audit architecture', 'check data integrity', 'security review', 'heal skill'.",
+      "path": "skills/code-review-agents"
+    },
+    {
+      "name": "compact-session",
+      "description": "Create comprehensive session summaries for context preservation and seamless handoff. Use when (1) conversation approaching context limits, (2) user requests session summary, (3) preparing handoff documentation to another agent or fresh instance, (4) archiving work for future reference.",
+      "path": "skills/compact-session"
+    },
+    {
+      "name": "compound-docs",
+      "description": "Capture solved problems as categorized documentation with YAML frontmatter for fast lookup",
+      "path": "skills/compound-docs",
+      "allowed-tools": [
+        "Read",
+        "Write",
+        "Bash",
+        "Grep"
+      ]
+    },
+    {
+      "name": "create-cli",
+      "description": "Design command-line interface parameters and UX: arguments, flags, subcommands, help text, output formats, error messages, exit codes, prompts, config/env precedence, and safe/dry-run behavior. Use when you\u2019re designing a CLI spec (before implementation) or refactoring an existing CLI\u2019s surface area for consistency, composability, and discoverability.",
+      "path": "skills/create-cli"
+    },
+    {
+      "name": "find-skills",
+      "description": "Helps users discover and install agent skills when they ask questions like \"how do I do X\", \"find a skill for X\", \"is there a skill that can...\", or express interest in extending capabilities. This skill should be used when the user is looking for functionality that might exist as an installable skill.",
+      "path": "skills/find-skills"
+    },
+    {
+      "name": "first-principles",
+      "description": "Guide agent into first-principles, systems-thinking reasoning for high-stakes technical tasks. Use when making architectural or design decisions, evaluating trade-offs between competing approaches, performing deep code review, debugging complex or unclear failures, planning non-mechanical refactors, or starting greenfield implementations. Triggers on: 'what approach should I take', 'help me decide', 'evaluate trade-offs', 'design review', 'why is this failing', 'architect', 'first principles', 'think through this', 'compare approaches', 'root cause', 'how should I structure this'.",
+      "path": "skills/first-principles"
+    },
+    {
+      "name": "frontend-design",
+      "description": "Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, or applications. Generates creative, polished code that avoids generic AI aesthetics.",
+      "path": "skills/frontend-design",
+      "license": "Complete terms in LICENSE.txt"
+    },
+    {
+      "name": "gh-commit-push-pr",
+      "description": "Commit staged changes, push branch, and open a GitHub PR. Use when user asks to commit and push, create a PR, ship changes, send for review, or open a pull request. Triggers on phrases like 'commit and push', 'create a PR', 'open a pull request', 'send this for review', 'ship it', 'push and PR'.",
+      "path": "skills/gh-commit-push-pr",
+      "allowed-tools": "Bash(git checkout:*), Bash(git add:*), Bash(git status:*), Bash(git push:*), Bash(git commit:*), Bash(git diff:*), Bash(git log:*), Bash(git branch:*), Bash(git stash:*), Bash(git remote:*), Bash(gh auth status:*), Bash(gh repo view:*), Bash(gh pr create:*), Bash(gh pr view:*)"
+    },
+    {
+      "name": "gh-fix-issue",
+      "description": "Fetch and fix GitHub issues using the gh CLI. Use when user asks to fix, resolve, or work on a GitHub issue by number or URL. Handles the full workflow from fetching issue details, cloning repo if needed, understanding context, implementing fixes, and creating PRs. Triggers on phrases like 'fix issue #N', 'resolve issue', 'work on github.com/.../issues/N', 'help with issue N in repo', 'close out issue'.",
+      "path": "skills/gh-fix-issue"
+    },
+    {
+      "name": "gh-review-pr",
+      "description": "Review GitHub pull requests using the gh CLI. Analyzes code changes, checks CI status, and posts a review comment with findings and a merge recommendation. Use when user asks to review a PR, check a pull request, or evaluate code changes. Triggers on phrases like 'review PR #N', 'check this pull request', 'review github.com/.../pull/N', 'should we merge PR #N', 'evaluate this PR'.",
+      "path": "skills/gh-review-pr"
+    },
+    {
+      "name": "gh-triage-issues",
+      "description": "Triage GitHub issues using the gh CLI. Analyzes new issues to apply labels, assess priority, detect duplicates, and optionally assign owners. Use when user asks to triage issues, label issues, check for duplicates, prioritize backlog, or process incoming issues. Triggers on phrases like 'triage issue #N', 'triage issues', 'label this issue', 'is this a duplicate', 'prioritize issue', 'process new issues in repo'.",
+      "path": "skills/gh-triage-issues"
+    },
+    {
+      "name": "imagegen",
+      "description": "Use when the user asks to generate or edit images via the OpenAI Image API (for example: generate image, edit/inpaint/mask, background removal or replacement, transparent background, product shots, concept art, covers, or batch variants); run the bundled CLI (`scripts/image_gen.py`) and require `OPENAI_API_KEY` for live calls.",
+      "path": "skills/imagegen"
+    },
+    {
+      "name": "json-canvas",
+      "description": "Create and edit JSON Canvas files (.canvas) with nodes, edges, groups, and connections. Use when working with .canvas files, creating visual canvases, mind maps, flowcharts, or when the user mentions Canvas files in Obsidian.",
+      "path": "skills/json-canvas"
+    },
+    {
+      "name": "markdown-converter",
+      "description": "Convert documents and files to Markdown using markitdown. Use when converting PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx, .xls), HTML, CSV, JSON, XML, images (with EXIF/OCR), audio (with transcription), ZIP archives, YouTube URLs, or EPubs to Markdown format for LLM processing or text analysis.",
+      "path": "skills/markdown-converter"
+    },
+    {
+      "name": "nano-banana-pro",
+      "description": "Generate/edit images with Nano Banana Pro (Gemini 3 Pro Image). Use for image create/modify requests incl. edits. Supports text-to-image + image-to-image; 1K/2K/4K; use --input-image.",
+      "path": "skills/nano-banana-pro"
+    },
+    {
+      "name": "obsidian-bases",
+      "description": "Create and edit Obsidian Bases (.base files) with views, filters, formulas, and summaries. Use when working with .base files, creating database-like views of notes, or when the user mentions Bases, table views, card views, filters, or formulas in Obsidian.",
+      "path": "skills/obsidian-bases"
+    },
+    {
+      "name": "obsidian-markdown",
+      "description": "Create and edit Obsidian Flavored Markdown with wikilinks, embeds, callouts, properties, and other Obsidian-specific syntax. Use when working with .md files in Obsidian, or when the user mentions wikilinks, callouts, frontmatter, tags, embeds, or Obsidian notes.",
+      "path": "skills/obsidian-markdown"
+    },
+    {
+      "name": "playwright",
+      "description": "Use when the task requires automating a real browser from the terminal (navigation, form filling, snapshots, screenshots, data extraction, UI-flow debugging) via `playwright-cli` or the bundled wrapper script.",
+      "path": "skills/playwright"
+    },
+    {
+      "name": "skill-creator",
+      "description": "Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Claude's capabilities with specialized knowledge, workflows, or tool integrations.",
+      "path": "skills/skill-creator",
+      "license": "Complete terms in LICENSE.txt"
+    },
+    {
+      "name": "skill-installer",
+      "description": "Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos).",
+      "path": "skills/skill-installer"
+    },
+    {
+      "name": "template-skill",
+      "description": "Replace with description of the skill and when the AI Agent should use it.",
+      "path": "skills/template"
+    },
+    {
+      "name": "theme-factory",
+      "description": "Toolkit for styling artifacts with a theme. These artifacts can be slides, docs, reportings, HTML landing pages, etc. There are 10 pre-set themes with colors/fonts that you can apply to any artifact that has been creating, or can generate a new theme on-the-fly.",
+      "path": "skills/theme-factory",
+      "license": "Complete terms in LICENSE.txt"
+    },
+    {
+      "name": "vercel-composition-patterns",
+      "description": "React composition patterns that scale. Use when refactoring components with boolean prop proliferation, building flexible component libraries, or designing reusable APIs. Triggers on tasks involving compound components, render props, context providers, or component architecture. Includes React 19 API changes.",
+      "path": "skills/vercel-composition-patterns",
+      "license": "MIT"
+    },
+    {
+      "name": "vercel-deploy",
+      "description": "Deploy applications and websites to Vercel. Use when the user requests deployment actions like \"deploy my app\", \"deploy and give me the link\", \"push this live\", or \"create a preview deployment\".",
+      "path": "skills/vercel-deploy"
+    },
+    {
+      "name": "vercel-react-best-practices",
+      "description": "React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when writing, reviewing, or refactoring React/Next.js code to ensure optimal performance patterns. Triggers on tasks involving React components, Next.js pages, data fetching, bundle optimization, or performance improvements.",
+      "path": "skills/vercel-react-best-practices",
+      "license": "MIT"
+    },
+    {
+      "name": "vercel-react-native-skills",
+      "description": "React Native and Expo best practices for building performant mobile apps. Use when building React Native components, optimizing list performance, implementing animations, or working with native modules. Triggers on tasks involving React Native, Expo, mobile performance, or native platform APIs.",
+      "path": "skills/vercel-react-native-skills",
+      "license": "MIT"
+    },
+    {
+      "name": "verification-before-completion",
+      "description": "Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always",
+      "path": "skills/verify-before-complete"
+    },
+    {
+      "name": "web-design-guidelines",
+      "description": "Review UI code for Web Interface Guidelines compliance. Use when asked to \"review my UI\", \"check accessibility\", \"audit design\", \"review UX\", or \"check my site against best practices\".",
+      "path": "skills/web-design-guidelines"
+    }
+  ]
+}
