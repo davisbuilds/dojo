@@ -50,6 +50,18 @@ python skills/skill-creator/scripts/package_skill.py <path/to/skill-folder> [out
 
 Validates and creates a `.skill` file (zip format) for distribution.
 
+## Dependencies
+
+Install the core Python dependencies before running hooks or skill-management scripts:
+
+```bash
+pip install -r requirements.txt
+```
+
+The hooks also require these system tools: `git`, `jq`, `python3`, `sed`, and `grep`.
+
+Some skills have additional optional dependencies (e.g. `openai`, `google-genai`, `Pillow`). See `requirements.txt` for details.
+
 ## Key Design Principles
 
 1. **Concise is key**: The context window is shared. Only add information the agent doesn't already have.

@@ -72,6 +72,38 @@ This repo uses hooks (in `hooks/`) to enforce skill quality and provide session 
 | **Stop — Git Check** | Session ends | Ensures all changes are committed and pushed |
 | **Stop — Skill Structure** | Session ends | Checks that modified skill directories have valid SKILL.md with matching names |
 
+## Prerequisites
+
+### System tools
+
+The hook scripts rely on standard CLI tools that should be available on most development machines:
+
+- **Python 3** (>= 3.8)
+- **git**
+- **jq**
+- **sed**, **grep** (used by some stop-hooks)
+
+### Python dependencies
+
+Core Python dependencies are listed in `requirements.txt`. Install them with:
+
+```bash
+pip install -r requirements.txt
+```
+
+This installs **PyYAML**, which is required by the validation and manifest-generation scripts that the hooks invoke.
+
+#### Optional (skill-specific)
+
+Some skills bundle their own dependencies. Uncomment the relevant sections in `requirements.txt` or install manually:
+
+| Skill | Extra packages |
+|-------|---------------|
+| `skills/imagegen/` | `openai>=1.0.0`, `Pillow>=10.0.0` |
+| `skills/nano-banana-pro/` | `google-genai>=1.0.0`, `Pillow>=10.0.0` |
+
+These skills also require API keys set as environment variables (`OPENAI_API_KEY`, `GEMINI_API_KEY`).
+
 ## Creating a New Skill
 
 You can use the `skill-creator` scripts to scaffold a new skill:
@@ -97,6 +129,7 @@ When working with an agent that supports these skills:
 
 - **`AGENTS.md`**: Guidance for AI agents on how to use this repository (single source of truth).
 - **`CLAUDE.md`**: Symlink to `AGENTS.md` so Claude Code picks up the same instructions.
+- **`requirements.txt`**: Python dependencies for hooks and scripts (core + optional per-skill extras).
 
 ## Acknowledgements
 
