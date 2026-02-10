@@ -83,8 +83,8 @@ When working with an agent that supports these skills:
 
 ## Resources
 
-- **`AGENTS.md`**: Detailed guidance for AI agents on how to use this repository.
-- **`CLAUDE.md`**: Specific guidance for Claude Code.
+- **`AGENTS.md`**: Guidance for AI agents on how to use this repository (single source of truth).
+- **`CLAUDE.md`**: Symlink to `AGENTS.md` so Claude Code picks up the same instructions.
 
 ## Acknowledgements
 
