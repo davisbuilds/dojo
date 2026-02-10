@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "bash hooks/session-start-skill-catalog.sh"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "type": "command",
+        "command": "bash hooks/pre-tool-use-validate-skill.sh"
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "bash hooks/stop-hook-git-check.sh"
+      },
+      {
+        "type": "command",
+        "command": "bash hooks/stop-hook-skill-structure.sh"
+      }
+    ]
+  }
+}
