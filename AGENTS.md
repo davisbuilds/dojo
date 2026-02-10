@@ -40,7 +40,7 @@ Creates a skill directory with template SKILL.md and example resource directorie
 python skills/skill-creator/scripts/quick_validate.py <path/to/skill-folder>
 ```
 
-Checks frontmatter format, required fields, naming conventions.
+Checks frontmatter format, required fields, naming conventions. The validator uses a polyglot shebang that works with both `python` and `python3`, so it can be invoked directly or with either interpreter.
 
 ### Package a skill for distribution
 
@@ -96,6 +96,15 @@ Validates and creates a `.skill` file (zip format) for distribution.
 | `skills/vercel-react-native-skills/` | Apply React Native and Expo best practices |
 | `skills/verify-before-complete/` | Require verification evidence before completion claims |
 | `skills/web-design-guidelines/` | Review UI code against web interface guidelines |
+
+## Provenance
+
+Several skill families in this repository were derived from or inspired by external projects:
+
+- **Compound Engineering skills** (`agent-native-architecture`, `autonomous-engineering`, `code-review-agents`, `compound-docs`): adapted from the [compound-engineering-plugin](https://github.com/everyinc/compound-engineering-plugin).
+- **Vercel skills** (`vercel-composition-patterns`, `vercel-deploy`, `vercel-react-best-practices`, `vercel-react-native-skills`): based on Vercel's React and Next.js best-practice rules.
+- **Obsidian skills** (`json-canvas`, `obsidian-bases`, `obsidian-markdown`): based on [Kepano's](https://github.com/kepano) Obsidian skill definitions.
+- **Skill registry**: browse and discover community skills at [skills.sh](https://skills.sh).
 
 ## Specification
 
