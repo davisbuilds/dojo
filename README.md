@@ -60,6 +60,17 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 | **`skills/verify-before-complete/`** | **Quality Control**: Require verification evidence before completion claims. |
 | **`skills/web-design-guidelines/`** | **UI Guidelines Audit**: Review interfaces for web guideline compliance. |
 
+## Hooks
+
+This repo uses hooks (in `hooks/`) to enforce skill quality and provide session context. Hooks are configured in `.claude/settings.json` and `.agents/settings.json`.
+
+| Hook | When it runs | Purpose |
+|------|-------------|---------|
+| **Session Start — Skill Catalog** | Session begins | Injects all skill metadata, recent git activity, and a pointer to AGENTS.md so any agent harness knows what's available |
+| **PreToolUse — Validate SKILL.md** | Before writing/editing a SKILL.md | Runs frontmatter validation and blocks the write if it fails |
+| **Stop — Git Check** | Session ends | Ensures all changes are committed and pushed |
+| **Stop — Skill Structure** | Session ends | Checks that modified skill directories have valid SKILL.md with matching names |
+
 ## Creating a New Skill
 
 You can use the `skill-creator` scripts to scaffold a new skill:
