@@ -49,3 +49,4 @@ temp/
 # Misc
 anthropic/
 downloads/
+**/archive/
