@@ -55,6 +55,7 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 | **`skills/theme-factory/`** | **Theming**: Apply preset or generated theme systems to artifacts. |
 | **`skills/vercel-composition-patterns/`** | **React Composition**: Use scalable composition patterns for reusable React APIs. |
 | **`skills/vercel-deploy/`** | **Vercel Deploy**: Deploy applications and websites to Vercel. |
+| **`skills/vercel-preview-logs/`** | **Vercel Preview Debugging**: Inspect preview deployments and collect build/runtime logs for failures. |
 | **`skills/vercel-react-best-practices/`** | **React Performance**: Apply Vercel’s React/Next.js optimization guidelines. |
 | **`skills/vercel-react-native-skills/`** | **React Native Performance**: Apply Vercel best practices for React Native and Expo. |
 | **`skills/verify-before-complete/`** | **Quality Control**: Require verification evidence before completion claims. |
@@ -137,6 +138,6 @@ When working with an agent that supports these skills:
 - [agent-scripts](https://github.com/steipete/agent-scripts)
 - [anthropics/skills](https://github.com/anthropics/skills)
 - [compound-engineering-plugin](https://github.com/everyinc/compound-engineering-plugin) — source of the code-review-agents, autonomous-engineering, agent-native-architecture, and compound-docs skills
-- [Vercel skills](https://github.com/vercel/next.js) — React, Next.js, and React Native best-practice rules and composition patterns
+- [Vercel skills](https://github.com/vercel/next.js) — React, Next.js, React Native best-practice rules and composition patterns, plus preview deployment debugging workflows
 - [Kepano's Obsidian skills](https://github.com/kepano) — Obsidian Markdown, Bases, and JSON Canvas skill references
 - [skills.sh](https://skills.sh) — community skill registry and discovery

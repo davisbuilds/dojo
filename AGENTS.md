@@ -116,6 +116,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 | `skills/theme-factory/` | Generate and apply visual themes |
 | `skills/vercel-composition-patterns/` | Apply scalable React composition patterns |
 | `skills/vercel-deploy/` | Deploy applications and sites to Vercel |
+| `skills/vercel-preview-logs/` | Inspect Vercel preview deployments and diagnose build/runtime failures via logs |
 | `skills/vercel-react-best-practices/` | Apply React and Next.js performance best practices |
 | `skills/vercel-react-native-skills/` | Apply React Native and Expo best practices |
 | `skills/verify-before-complete/` | Require verification evidence before completion claims |
@@ -126,7 +127,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 Several skill families in this repository were derived from or inspired by external projects:
 
 - **Compound Engineering skills** (`agent-native-architecture`, `autonomous-engineering`, `code-review-agents`, `compound-docs`): adapted from the [compound-engineering-plugin](https://github.com/everyinc/compound-engineering-plugin).
-- **Vercel skills** (`vercel-composition-patterns`, `vercel-deploy`, `vercel-react-best-practices`, `vercel-react-native-skills`): based on Vercel's React and Next.js best-practice rules.
+- **Vercel skills** (`vercel-composition-patterns`, `vercel-deploy`, `vercel-preview-logs`, `vercel-react-best-practices`, `vercel-react-native-skills`): based on Vercel's React and Next.js best-practice rules and Vercel deployment-debugging workflows.
 - **Obsidian skills** (`json-canvas`, `obsidian-bases`, `obsidian-markdown`): based on [Kepano's](https://github.com/kepano) Obsidian skill definitions.
 - **Skill registry**: browse and discover community skills at [skills.sh](https://skills.sh).
 
