@@ -1,0 +1,3 @@
+display_name: Vercel Preview Logs
+short_description: Inspect failed previews and fetch build/runtime logs.
+default_prompt: Check the latest Vercel preview deployment logs, identify the first concrete failure, and suggest a minimal fix.
