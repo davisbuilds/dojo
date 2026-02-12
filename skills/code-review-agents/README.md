@@ -70,7 +70,7 @@ code-review-agents/
 
 ## Usage
 
-These agents are designed to be invoked via the Task tool in Claude Code:
+These agents are designed to be invoked via the Task tool:
 
 ```
 Task(subagent_type: "review", prompt: "Review this PR for data integrity concerns")
