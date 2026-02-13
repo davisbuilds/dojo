@@ -16,6 +16,7 @@ Each skill is located in its own directory and follows this structure:
 ```
 skill-name/
 ├── SKILL.md           # Required: Frontmatter (YAML) + Instructions (Markdown)
+├── commands/          # Optional: command-wrapper docs for slash-style entrypoints
 ├── scripts/           # Optional: Executable scripts (Python/Bash)
 ├── references/        # Optional: Documentation files
 └── assets/            # Optional: Templates, images, or other assets
@@ -44,6 +45,7 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 | **`skills/gh-triage-issues/`** | **Issue Triage**: Label, prioritize, and de-duplicate GitHub issues. |
 | **`skills/imagegen/`** | **OpenAI Image API**: Generate and edit images with reproducible CLI workflows. |
 | **`skills/json-canvas/`** | **JSON Canvas**: Create and edit Obsidian-compatible `.canvas` files. |
+| **`skills/local-review/`** | **Local Review**: Run findings-first local code reviews on workspace diffs without posting to GitHub. |
 | **`skills/markdown-converter/`** | **Document Conversion**: Convert many file formats into Markdown for analysis. |
 | **`skills/nano-banana-pro/`** | **Nano Banana Pro**: Generate or edit images via Gemini 3 Pro Image. |
 | **`skills/obsidian-bases/`** | **Obsidian Bases**: Create and edit `.base` files with views, filters, formulas, and summaries. |
@@ -124,6 +126,19 @@ When working with an agent that supports these skills:
 1. **Trigger**: The agent will select a skill based on its `description` in `SKILL.md` when it matches your request.
 2. **Follow Instructions**: The agent will then follow the specific protocols defined in the skill's body.
 3. **Tools**: Some skills may require specific tools (like `gh` CLI or `python`) to be installed in your environment.
+
+### Command Wrappers
+
+Some skills include optional `commands/*.md` wrappers for consistent slash-style entrypoints in harnesses that support command files.
+
+Current wrappers:
+- `skills/local-review/commands/review.md`
+- `skills/gh-review-pr/commands/review-pr.md`
+- `skills/gh-fix-issue/commands/fix-issue.md`
+- `skills/gh-triage-issues/commands/triage-issue.md`
+- `skills/gh-commit-push-pr/commands/commit-push-pr.md`
+
+If a harness does not surface command files as slash commands, these wrappers still serve as canonical runbooks.
 
 ## Resources
 

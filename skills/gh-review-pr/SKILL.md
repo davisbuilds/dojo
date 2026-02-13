@@ -165,3 +165,7 @@ Ask user which depth they prefer if unclear.
 **PR has many commits**: Consider suggesting squash before merge.
 
 **Stale PR with conflicts**: Recommend rebasing before review proceeds.
+
+## Command Wrapper
+
+If the harness supports command files, use `commands/review-pr.md` as the canonical entrypoint for this skill.
