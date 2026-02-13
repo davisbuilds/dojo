@@ -13,6 +13,7 @@ Every skill follows this structure:
 ```
 skill-name/
 ├── SKILL.md           # Required: frontmatter + instructions
+├── commands/          # Optional: command-wrapper docs for slash-style entrypoints
 ├── scripts/           # Optional: executable Python/Bash code
 ├── references/        # Optional: documentation loaded into context as needed
 └── assets/            # Optional: templates, images, fonts for output
@@ -105,6 +106,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 | `skills/gh-triage-issues/` | Triage and label GitHub issues |
 | `skills/imagegen/` | Generate and edit images via the OpenAI Image API |
 | `skills/json-canvas/` | Create and edit JSON Canvas (`.canvas`) files |
+| `skills/local-review/` | Run findings-first local reviews on workspace diffs without GitHub side effects |
 | `skills/markdown-converter/` | Convert documents and files to Markdown |
 | `skills/nano-banana-pro/` | Generate and edit images with Nano Banana Pro |
 | `skills/obsidian-bases/` | Create and edit Obsidian Bases (`.base`) files |
@@ -134,3 +136,16 @@ Several skill families in this repository were derived from or inspired by exter
 ## Specification
 
 Full skill specification: https://agentskills.io/specification
+
+## Command Wrappers
+
+Some skills provide optional `commands/*.md` wrappers for deterministic, slash-style entrypoints in harnesses that support command files.
+
+Current wrappers:
+- `skills/local-review/commands/review.md`
+- `skills/gh-review-pr/commands/review-pr.md`
+- `skills/gh-fix-issue/commands/fix-issue.md`
+- `skills/gh-triage-issues/commands/triage-issue.md`
+- `skills/gh-commit-push-pr/commands/commit-push-pr.md`
+
+In harnesses that do not expose command files, these wrappers remain canonical runbooks.

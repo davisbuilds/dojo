@@ -132,3 +132,7 @@ Provide user with:
 **Repo requires fork**: Use `gh repo fork` then push to fork.
 
 **CI failures after PR**: Review logs with `gh pr checks` and iterate.
+
+## Command Wrapper
+
+If the harness supports command files, use `commands/fix-issue.md` as the canonical entrypoint for this skill.

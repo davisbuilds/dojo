@@ -127,3 +127,7 @@ After all steps complete, report:
 ## Tool Call Strategy
 
 You MUST call multiple tools in a single response when the calls are independent. For example, `git add` and `git status` can be parallel. But `git commit` must follow `git add`, and `git push` must follow `git commit`. Chain dependent operations sequentially.
+
+## Command Wrapper
+
+If the harness supports command files, use `commands/commit-push-pr.md` as the canonical entrypoint for this skill.

@@ -192,3 +192,7 @@ For large backlogs, summarize findings:
 **Author is first-time contributor**: Be welcoming in tone; they may not know repo conventions.
 
 **Contentious/heated issue**: Triage factually; don't engage in debates. Flag for maintainer attention if needed.
+
+## Command Wrapper
+
+If the harness supports command files, use `commands/triage-issue.md` as the canonical entrypoint for this skill.
