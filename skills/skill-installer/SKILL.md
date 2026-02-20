@@ -1,6 +1,6 @@
 ---
 name: skill-installer
-description: Install skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos).
+description: Install skills into Codex or Claude Code skills directories from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos).
 metadata:
   short-description: Install curated skills from openai/skills or other repos
 ---
@@ -35,8 +35,10 @@ All of these scripts use network, so when running in the sandbox, request escala
 
 - `scripts/list-skills.py` (prints skills list with installed annotations)
 - `scripts/list-skills.py --format json`
+- `scripts/list-skills.py --agent claude` (installed annotations from `~/.claude/skills`)
 - Example (experimental list): `scripts/list-skills.py --path skills/.experimental`
 - `scripts/install-skill-from-github.py --repo <owner>/<repo> --path <path/to/skill> [<path/to/skill> ...]`
+- `scripts/install-skill-from-github.py --agent claude --repo <owner>/<repo> --path <path/to/skill>`
 - `scripts/install-skill-from-github.py --url https://github.com/<owner>/<repo>/tree/<ref>/<path>`
 - Example (experimental skill): `scripts/install-skill-from-github.py --repo openai/skills --path skills/.experimental/<skill-name>`
 
@@ -45,9 +47,9 @@ All of these scripts use network, so when running in the sandbox, request escala
 - Defaults to direct download for public GitHub repos.
 - If download fails with auth/permission errors, falls back to git sparse checkout.
 - Aborts if the destination skill directory already exists.
-- Installs into `$CODEX_HOME/skills/<skill-name>` (defaults to `~/.codex/skills`).
+- Installs into selected agent home: `--agent codex` uses `$CODEX_HOME/skills` (default `~/.codex/skills`), `--agent claude` uses `$CLAUDE_HOME/skills` (default `~/.claude/skills`).
 - Multiple `--path` values install multiple skills in one run, each named from the path basename unless `--name` is supplied.
-- Options: `--ref <ref>` (default `main`), `--dest <path>`, `--method auto|download|git`.
+- Options: `--ref <ref>` (default `main`), `--agent codex|claude`, `--dest <path>`, `--method auto|download|git`.
 
 ## Notes
 
@@ -55,4 +57,4 @@ All of these scripts use network, so when running in the sandbox, request escala
 - Private GitHub repos can be accessed via existing git credentials or optional `GITHUB_TOKEN`/`GH_TOKEN` for download.
 - Git fallback tries HTTPS first, then SSH.
 - The skills at https://github.com/openai/skills/tree/main/skills/.system are preinstalled, so no need to help users install those. If they ask, just explain this. If they insist, you can download and overwrite.
-- Installed annotations come from `$CODEX_HOME/skills`.
+- Installed annotations come from the selected agent home (`$CODEX_HOME/skills` or `$CLAUDE_HOME/skills`) unless `--dest` is provided.

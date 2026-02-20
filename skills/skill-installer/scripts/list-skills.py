@@ -14,6 +14,15 @@ from github_utils import github_api_contents_url, github_request
 DEFAULT_REPO = "openai/skills"
 DEFAULT_PATH = "skills/.curated"
 DEFAULT_REF = "main"
+DEFAULT_AGENT = "codex"
+AGENT_HOME_ENV = {
+    "codex": "CODEX_HOME",
+    "claude": "CLAUDE_HOME",
+}
+AGENT_DEFAULT_HOME = {
+    "codex": "~/.codex",
+    "claude": "~/.claude",
+}
 
 
 class ListError(Exception):
@@ -24,6 +33,7 @@ class Args(argparse.Namespace):
     repo: str
     path: str
     ref: str
+    agent: str
     format: str
 
 
@@ -31,12 +41,14 @@ def _request(url: str) -> bytes:
     return github_request(url, "codex-skill-list")
 
 
-def _codex_home() -> str:
-    return os.environ.get("CODEX_HOME", os.path.expanduser("~/.codex"))
+def _agent_home(agent: str) -> str:
+    env_var = AGENT_HOME_ENV[agent]
+    default_home = os.path.expanduser(AGENT_DEFAULT_HOME[agent])
+    return os.environ.get(env_var, default_home)
 
 
-def _installed_skills() -> set[str]:
-    root = os.path.join(_codex_home(), "skills")
+def _installed_skills(agent: str) -> set[str]:
+    root = os.path.join(_agent_home(agent), "skills")
     if not os.path.isdir(root):
         return set()
     entries = set()
@@ -75,6 +87,12 @@ def _parse_args(argv: list[str]) -> Args:
     )
     parser.add_argument("--ref", default=DEFAULT_REF)
     parser.add_argument(
+        "--agent",
+        choices=sorted(AGENT_HOME_ENV),
+        default=DEFAULT_AGENT,
+        help="Target agent skills home for installed annotations (default: codex)",
+    )
+    parser.add_argument(
         "--format",
         choices=["text", "json"],
         default="text",
@@ -87,7 +105,7 @@ def main(argv: list[str]) -> int:
     args = _parse_args(argv)
     try:
         skills = _list_skills(args.repo, args.path, args.ref)
-        installed = _installed_skills()
+        installed = _installed_skills(args.agent)
         if args.format == "json":
             payload = [
                 {"name": name, "installed": name in installed} for name in skills

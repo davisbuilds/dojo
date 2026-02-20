@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install a skill from a GitHub repo path into $CODEX_HOME/skills."""
+"""Install a skill from a GitHub repo path into an agent skills directory."""
 
 from __future__ import annotations
 
@@ -16,6 +16,15 @@ import zipfile
 
 from github_utils import github_request
 DEFAULT_REF = "main"
+DEFAULT_AGENT = "codex"
+AGENT_HOME_ENV = {
+    "codex": "CODEX_HOME",
+    "claude": "CLAUDE_HOME",
+}
+AGENT_DEFAULT_HOME = {
+    "codex": "~/.codex",
+    "claude": "~/.claude",
+}
 
 
 @dataclass
@@ -24,6 +33,7 @@ class Args:
     repo: str | None = None
     path: list[str] | None = None
     ref: str = DEFAULT_REF
+    agent: str = DEFAULT_AGENT
     dest: str | None = None
     name: str | None = None
     method: str = "auto"
@@ -42,12 +52,14 @@ class InstallError(Exception):
     pass
 
 
-def _codex_home() -> str:
-    return os.environ.get("CODEX_HOME", os.path.expanduser("~/.codex"))
+def _agent_home(agent: str) -> str:
+    env_var = AGENT_HOME_ENV[agent]
+    default_home = os.path.expanduser(AGENT_DEFAULT_HOME[agent])
+    return os.environ.get(env_var, default_home)
 
 
 def _tmp_root() -> str:
-    base = os.path.join(tempfile.gettempdir(), "codex")
+    base = os.path.join(tempfile.gettempdir(), "skill-installer")
     os.makedirs(base, exist_ok=True)
     return base
 
@@ -240,8 +252,8 @@ def _resolve_source(args: Args) -> Source:
     )
 
 
-def _default_dest() -> str:
-    return os.path.join(_codex_home(), "skills")
+def _default_dest(agent: str) -> str:
+    return os.path.join(_agent_home(agent), "skills")
 
 
 def _parse_args(argv: list[str]) -> Args:
@@ -254,6 +266,12 @@ def _parse_args(argv: list[str]) -> Args:
         help="Path(s) to skill(s) inside repo",
     )
     parser.add_argument("--ref", default=DEFAULT_REF)
+    parser.add_argument(
+        "--agent",
+        choices=sorted(AGENT_HOME_ENV),
+        default=DEFAULT_AGENT,
+        help="Target agent skills home (default: codex)",
+    )
     parser.add_argument("--dest", help="Destination skills directory")
     parser.add_argument(
         "--name", help="Destination skill name (defaults to basename of path)"
@@ -275,7 +293,7 @@ def main(argv: list[str]) -> int:
             raise InstallError("No skill paths provided.")
         for path in source.paths:
             _validate_relative_path(path)
-        dest_root = args.dest or _default_dest()
+        dest_root = args.dest or _default_dest(args.agent)
         tmp_dir = tempfile.mkdtemp(prefix="skill-install-", dir=_tmp_root())
         try:
             repo_root = _prepare_repo(source, args.method, tmp_dir)

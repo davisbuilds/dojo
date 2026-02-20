@@ -52,7 +52,7 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 | **`skills/obsidian-markdown/`** | **Obsidian Markdown**: Author Obsidian-flavored Markdown with wikilinks, embeds, callouts, and properties. |
 | **`skills/playwright/`** | **Browser Automation**: Drive real browser workflows from the terminal. |
 | **`skills/skill-creator/`** | **Meta-Skill**: Initialize, validate, and package new skills. |
-| **`skills/skill-installer/`** | **Skill Installation**: Install curated or repo-based Codex skills. |
+| **`skills/skill-installer/`** | **Skill Installation**: Install curated or repo-based skills for Codex or Claude Code. |
 | **`skills/template/`** | **Starter Template**: Scaffold directory for creating new skills from scratch. |
 | **`skills/theme-factory/`** | **Theming**: Apply preset or generated theme systems to artifacts. |
 | **`skills/vercel-composition-patterns/`** | **React Composition**: Use scalable composition patterns for reusable React APIs. |
@@ -126,6 +126,18 @@ When working with an agent that supports these skills:
 1. **Trigger**: The agent will select a skill based on its `description` in `SKILL.md` when it matches your request.
 2. **Follow Instructions**: The agent will then follow the specific protocols defined in the skill's body.
 3. **Tools**: Some skills may require specific tools (like `gh` CLI or `python`) to be installed in your environment.
+
+### Skill Installer Targets
+
+`skills/skill-installer` supports both Codex and Claude Code destinations:
+
+```bash
+# Install to Claude Code skills (~/.claude/skills by default)
+python3 skills/skill-installer/scripts/install-skill-from-github.py \
+  --agent claude \
+  --repo openai/skills \
+  --path skills/.curated/create-cli
+```
 
 ### Command Wrappers
 
