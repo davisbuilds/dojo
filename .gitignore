@@ -51,5 +51,11 @@ temp/
 
 # Misc
 anthropic/
-downloads/
+**/downloads/
 **/archive/
+
+# Agents
+.agent/ 
+.agents/
+.claude/
+skills-lock.json
