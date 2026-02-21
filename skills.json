@@ -64,10 +64,10 @@
       "path": "skills/frontend-design",
       "license": "Complete terms in LICENSE.txt"
     },
-    {
-      "name": "gemini-imagegen",
-      "description": "Generate and edit images using the Gemini API (Nano Banana Pro). Use when creating images from text prompts, editing existing images, doing multi-turn iterative refinement, or generating images with specific aspect ratios and resolutions via Google's Gemini image models.",
-      "path": "skills/gemini-imagegen"
+{
+      "name": "gemini-imagen",
+      "description": "Generate, edit, and compose images via the Gemini API. Use when creating images from text, editing existing images, composing multiple images, or generating images with specific aspect ratios and resolutions.",
+      "path": "skills/gemini-imagen"
     },
     {
       "name": "gh-commit-push-pr",
@@ -109,11 +109,6 @@
       "name": "markdown-converter",
       "description": "Convert documents and files to Markdown using markitdown. Use when converting PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx, .xls), HTML, CSV, JSON, XML, images (with EXIF/OCR), audio (with transcription), ZIP archives, YouTube URLs, or EPubs to Markdown format for LLM processing or text analysis.",
       "path": "skills/markdown-converter"
-    },
-    {
-      "name": "nano-banana-pro",
-      "description": "Generate/edit images with Nano Banana Pro (Gemini 3 Pro Image). Use for image create/modify requests incl. edits. Supports text-to-image + image-to-image; 1K/2K/4K; use --input-image.",
-      "path": "skills/nano-banana-pro"
     },
     {
       "name": "obsidian-bases",
