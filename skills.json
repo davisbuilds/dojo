@@ -65,6 +65,11 @@
       "license": "Complete terms in LICENSE.txt"
     },
     {
+      "name": "gemini-imagegen",
+      "description": "Generate and edit images using the Gemini API (Nano Banana Pro). Use when creating images from text prompts, editing existing images, doing multi-turn iterative refinement, or generating images with specific aspect ratios and resolutions via Google's Gemini image models.",
+      "path": "skills/gemini-imagegen"
+    },
+    {
       "name": "gh-commit-push-pr",
       "description": "Commit staged changes, push branch, and open a GitHub PR. Use when user asks to commit and push, create a PR, ship changes, send for review, or open a pull request. Triggers on phrases like 'commit and push', 'create a PR', 'open a pull request', 'send this for review', 'ship it', 'push and PR'.",
       "path": "skills/gh-commit-push-pr",
@@ -132,7 +137,7 @@
     },
     {
       "name": "skill-installer",
-      "description": "Install skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos).",
+      "description": "Install skills into Codex or Claude Code skills directories from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos).",
       "path": "skills/skill-installer"
     },
     {
