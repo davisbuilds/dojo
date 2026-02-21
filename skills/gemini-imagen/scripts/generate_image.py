@@ -125,7 +125,7 @@ def cmd_generate(args: argparse.Namespace) -> None:
     output_path = Path(args.filename)
     config = build_config(args.resolution, args.aspect)
 
-    print(f"Generating image with resolution {args.resolution or '1K'}...")
+    print(f"Generating image with resolution {args.resolution}...")
 
     try:
         response = client.models.generate_content(
@@ -213,7 +213,7 @@ def cmd_compose(args: argparse.Namespace) -> None:
     contents = [args.prompt] + images
 
     config = build_config(args.resolution, args.aspect)
-    print(f"Composing {len(images)} image(s) with resolution {args.resolution or '1K'}...")
+    print(f"Composing {len(images)} image(s) with resolution {args.resolution}...")
 
     try:
         response = client.models.generate_content(
@@ -238,7 +238,7 @@ def _add_common_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--resolution", "-r",
         choices=RESOLUTION_CHOICES,
-        default=None,
+        default="1K",
         help="Output resolution: 1K (default), 2K, or 4K",
     )
     parser.add_argument(
@@ -265,6 +265,7 @@ def build_parser() -> argparse.ArgumentParser:
     # edit
     edit_parser = subparsers.add_parser("edit", help="Edit an existing image")
     _add_common_args(edit_parser)
+    edit_parser.set_defaults(resolution=None)  # auto-detect from input image
     edit_parser.add_argument(
         "--input-image", "-i", required=True,
         help="Path to the input image to edit",
