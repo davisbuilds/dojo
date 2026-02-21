@@ -92,7 +92,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 | `skills/agent-native-architecture/` | Build agent-native applications and MCP tool workflows |
 | `skills/algorithmic-art/` | Create generative art with p5.js |
 | `skills/autonomous-engineering/` | Run end-to-end autonomous feature workflows |
-| `skills/brainstorm/` | Explore requirements and design before implementation |
+| `skills/brainstorming/` | Explore requirements and design before implementation |
 | `skills/code-review-agents/` | Run specialized multi-agent code reviews and audits |
 | `skills/compact-session/` | Create session summaries for context handoff |
 | `skills/compound-docs/` | Capture solved problems as categorized documentation |
@@ -100,6 +100,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 | `skills/find-skills/` | Discover and install relevant skills |
 | `skills/first-principles/` | Apply first-principles systems reasoning to tough technical problems |
 | `skills/frontend-design/` | Create distinctive frontend interfaces |
+| `skills/gemini-imagen/` | Generate, edit, and compose images via the Gemini API |
 | `skills/gh-commit-push-pr/` | Commit, push, and open a GitHub PR |
 | `skills/gh-fix-issue/` | Fix GitHub issues end-to-end |
 | `skills/gh-review-pr/` | Review GitHub PRs with merge recommendations |
@@ -108,7 +109,6 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 | `skills/json-canvas/` | Create and edit JSON Canvas (`.canvas`) files |
 | `skills/local-review/` | Run findings-first local reviews on workspace diffs without GitHub side effects |
 | `skills/markdown-converter/` | Convert documents and files to Markdown |
-| `skills/nano-banana-pro/` | Generate and edit images with Nano Banana Pro |
 | `skills/obsidian-bases/` | Create and edit Obsidian Bases (`.base`) files |
 | `skills/obsidian-markdown/` | Create and edit Obsidian Flavored Markdown |
 | `skills/playwright/` | Automate real browser workflows from the terminal |
