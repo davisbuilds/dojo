@@ -54,8 +54,13 @@ anthropic/
 **/downloads/
 **/archive/
 
-# Agents
-.agent/ 
+# Agent dirs (fully user-specific)
+.agent/
 .agents/
-.claude/
+
+# Claude Code — ignore user-specific subdirs; settings.json is tracked
+.claude/skills/
+.claude/todos/
+.claude/projects/
+
 skills-lock.json
