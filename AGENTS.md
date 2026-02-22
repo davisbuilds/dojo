@@ -123,6 +123,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 | `skills/screenshot/` | Capture desktop/system screenshots, app windows, and regions across macOS/Linux/Windows |
 | `skills/skill-creator/` | Meta-skill for creating and updating skills |
 | `skills/skill-installer/` | Install skills from curated lists or GitHub repos |
+| `skills/skill-standardizer/` | Standardize and unify skill copies across canonical, global, and local directories |
 | `skills/template/` | Starter template for new skills |
 | `skills/theme-factory/` | Generate and apply visual themes |
 | `skills/vercel-composition-patterns/` | Apply scalable React composition patterns |
@@ -158,5 +159,6 @@ Current wrappers:
 - `skills/gh-triage-issues/commands/triage-issue.md`
 - `skills/gh-commit-push-pr/commands/commit-push-pr.md`
 - `skills/brainstorming/commands/workflows/brainstorm.md`
+- `skills/skill-standardizer/commands/standardize-skills.md`
 
 In harnesses that do not expose command files, these wrappers remain canonical runbooks.

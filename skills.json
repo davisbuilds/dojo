@@ -142,6 +142,11 @@
       "path": "skills/skill-installer"
     },
     {
+      "name": "skill-standardizer",
+      "description": "Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.",
+      "path": "skills/skill-standardizer"
+    },
+    {
       "name": "template-skill",
       "description": "Replace with description of the skill and when the AI Agent should use it.",
       "path": "skills/template"

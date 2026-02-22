@@ -54,6 +54,7 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 | **`skills/screenshot/`** | **Screenshot Capture**: Capture desktop/system screenshots, app windows, and regions across platforms. |
 | **`skills/skill-creator/`** | **Meta-Skill**: Initialize, validate, and package new skills. |
 | **`skills/skill-installer/`** | **Skill Installation**: Install curated or repo-based skills for Codex or Claude Code. |
+| **`skills/skill-standardizer/`** | **Skill Standardization**: Detect drift and safely unify skill copies across canonical, global, and local roots. |
 | **`skills/template/`** | **Starter Template**: Scaffold directory for creating new skills from scratch. |
 | **`skills/theme-factory/`** | **Theming**: Apply preset or generated theme systems to artifacts. |
 | **`skills/vercel-composition-patterns/`** | **React Composition**: Use scalable composition patterns for reusable React APIs. |
@@ -160,6 +161,7 @@ Current wrappers:
 - `skills/gh-triage-issues/commands/triage-issue.md`
 - `skills/gh-commit-push-pr/commands/commit-push-pr.md`
 - `skills/brainstorming/commands/workflows/brainstorm.md`
+- `skills/skill-standardizer/commands/standardize-skills.md`
 
 If a harness does not surface command files as slash commands, these wrappers still serve as canonical runbooks.
 
