@@ -26,57 +26,11 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 
 ## Available Skills
 
-| Skill Directory | Description |
-|----------------|-------------|
-| **`skills/agent-native-architecture/`** | **Agent-Native Architecture**: Build applications where agents are first-class and operate with tool/action parity. |
-| **`skills/algorithmic-art/`** | **Generative Art**: Create algorithmic art with p5.js and controlled randomness. |
-| **`skills/autonomous-engineering/`** | **Autonomous Delivery**: Run full end-to-end feature workflows (`/lfg`, `/slfg`). |
-| **`skills/brainstorming/`** | **Brainstorming Ideas**: Explore intent and shape solutions before implementation. |
-| **`skills/code-review-agents/`** | **Review Swarm**: Use specialized agents for architecture, security, data, performance, and deployment review. |
-| **`skills/compact-session/`** | **Context Management**: Create concise session summaries for reliable handoff. |
-| **`skills/compound-docs/`** | **Knowledge Capture**: Record solved problems as categorized, searchable documentation. |
-| **`skills/create-cli/`** | **CLI Builder**: Design and refine command-line interface UX and behavior. |
-| **`skills/find-skills/`** | **Skill Discovery**: Find installable skills for requested capabilities. |
-| **`skills/first-principles/`** | **Systems Reasoning**: Apply first-principles analysis for high-stakes technical decisions. |
-| **`skills/frontend-design/`** | **UI/UX Design**: Build distinctive, production-grade frontend interfaces. |
-| **`skills/gemini-imagen/`** | **Gemini Imagen**: Generate, edit, and compose images via the Gemini API. |
-| **`skills/gh-commit-push-pr/`** | **GitHub Automation**: Commit, push, and open a Pull Request in one guided flow. |
-| **`skills/gh-fix-issue/`** | **Issue Resolution**: Fix GitHub issues end-to-end from analysis through PR. |
-| **`skills/gh-review-pr/`** | **Code Review**: Review Pull Requests and provide merge recommendations. |
-| **`skills/gh-triage-issues/`** | **Issue Triage**: Label, prioritize, and de-duplicate GitHub issues. |
-| **`skills/gpt-imagen/`** | **OpenAI Image API**: Generate and edit images with reproducible CLI workflows. |
-| **`skills/json-canvas/`** | **JSON Canvas**: Create and edit Obsidian-compatible `.canvas` files. |
-| **`skills/local-review/`** | **Local Review**: Run findings-first local code reviews on workspace diffs without posting to GitHub. |
-| **`skills/markdown-converter/`** | **Document Conversion**: Convert many file formats into Markdown for analysis. |
-| **`skills/obsidian-bases/`** | **Obsidian Bases**: Create and edit `.base` files with views, filters, formulas, and summaries. |
-| **`skills/obsidian-markdown/`** | **Obsidian Markdown**: Author Obsidian-flavored Markdown with wikilinks, embeds, callouts, and properties. |
-| **`skills/playwright/`** | **Browser Automation**: Drive real browser workflows from the terminal. |
-| **`skills/screenshot/`** | **Screenshot Capture**: Capture desktop/system screenshots, app windows, and regions across platforms. |
-| **`skills/skill-creator/`** | **Meta-Skill**: Initialize, validate, and package new skills. |
-| **`skills/skill-installer/`** | **Skill Installation**: Install curated or repo-based skills for Codex or Claude Code. |
-| **`skills/skill-standardizer/`** | **Skill Standardization**: Detect drift and safely unify skill copies across canonical, global, and local roots. |
-| **`skills/template/`** | **Starter Template**: Scaffold directory for creating new skills from scratch. |
-| **`skills/theme-factory/`** | **Theming**: Apply preset or generated theme systems to artifacts. |
-| **`skills/vercel-composition-patterns/`** | **React Composition**: Use scalable composition patterns for reusable React APIs. |
-| **`skills/vercel-deploy/`** | **Vercel Deploy**: Deploy applications and websites to Vercel. |
-| **`skills/vercel-preview-logs/`** | **Vercel Preview Debugging**: Inspect preview deployments and collect build/runtime logs for failures. |
-| **`skills/vercel-react-best-practices/`** | **React Performance**: Apply Vercel’s React/Next.js optimization guidelines. |
-| **`skills/vercel-react-native-skills/`** | **React Native Performance**: Apply Vercel best practices for React Native and Expo. |
-| **`skills/verify-before-complete/`** | **Quality Control**: Require verification evidence before completion claims. |
-| **`skills/web-design-guidelines/`** | **UI Guidelines Audit**: Review interfaces for web guideline compliance. |
-| **`skills/writing-plans/`** | **Implementation Planning**: Create detailed, task-by-task implementation plans before coding. |
+37 skills across categories: GitHub workflows, code review, content creation, dev workflows, platform integrations, knowledge management, and meta/skill tooling. See [docs/FEATURES.md](docs/FEATURES.md) for the full catalog.
 
 ## Hooks
 
-This repo uses hooks (in `hooks/`) to enforce skill quality and provide session context. Hooks are configured in `.claude/settings.json` and `.agents/settings.json`.
-
-| Hook | When it runs | Purpose |
-|------|-------------|---------|
-| **Session Start — Skill Catalog** | Session begins | Injects skill catalog from `skills.json`, recent git activity, and a pointer to AGENTS.md so any agent harness knows what's available |
-| **PreToolUse — Validate SKILL.md** | Before writing/editing a SKILL.md | Runs frontmatter validation and blocks the write if it fails |
-| **PostToolUse — Regenerate Manifest** | After writing/editing a SKILL.md | Regenerates `skills.json` to keep the manifest in sync |
-| **Stop — Git Check** | Session ends | Ensures all changes are committed and pushed |
-| **Stop — Skill Structure** | Session ends | Checks that modified skill directories have valid SKILL.md with matching names |
+Five hooks in `hooks/` enforce skill quality and inject session context (skill catalog, frontmatter validation, manifest regeneration, git checks, structure checks). Configured in `.claude/settings.json` and `.agents/settings.json`. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for details.
 
 ## Prerequisites
 
@@ -152,24 +106,23 @@ python3 skills/skill-installer/scripts/install-skill-from-github.py \
 
 ### Command Wrappers
 
-Some skills include optional `commands/*.md` wrappers for consistent slash-style entrypoints in harnesses that support command files.
-
-Current wrappers:
-- `skills/local-review/commands/review.md`
-- `skills/gh-review-pr/commands/review-pr.md`
-- `skills/gh-fix-issue/commands/fix-issue.md`
-- `skills/gh-triage-issues/commands/triage-issue.md`
-- `skills/gh-commit-push-pr/commands/commit-push-pr.md`
-- `skills/brainstorming/commands/workflows/brainstorm.md`
-- `skills/skill-standardizer/commands/standardize-skills.md`
-
-If a harness does not surface command files as slash commands, these wrappers still serve as canonical runbooks.
+Some skills include optional `commands/*.md` wrappers for slash-style entrypoints. See [docs/FEATURES.md](docs/FEATURES.md) for the full list.
 
 ## Resources
 
 - **`AGENTS.md`**: Guidance for AI agents on how to use this repository (single source of truth).
 - **`CLAUDE.md`**: Symlink to `AGENTS.md` so Claude Code picks up the same instructions.
 - **`requirements.txt`**: Python dependencies for hooks and scripts (core + optional per-skill extras).
+
+## Documentation
+
+- Contributor workflow and PR expectations: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Agent implementation guidance: [AGENTS.md](AGENTS.md)
+- Architecture and skill structure: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Skills catalog and feature reference: [docs/FEATURES.md](docs/FEATURES.md)
+- Setup and operations: [docs/OPERATIONS.md](docs/OPERATIONS.md)
+- Product roadmap snapshot: [docs/ROADMAP.md](docs/ROADMAP.md)
+- Git history and branch policy: [docs/GIT_HISTORY_POLICY.md](docs/GIT_HISTORY_POLICY.md)
 
 ## Acknowledgements
 

@@ -95,70 +95,12 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 
 ## Existing Skills
 
-| Skill                        | Purpose                                          |
-| ---------------------------- | ------------------------------------------------ |
-| `skills/agent-native-architecture/` | Build agent-native applications and MCP tool workflows |
-| `skills/algorithmic-art/` | Create generative art with p5.js |
-| `skills/autonomous-engineering/` | Run end-to-end autonomous feature workflows |
-| `skills/brainstorming/` | Explore requirements and design before implementation |
-| `skills/code-review-agents/` | Run specialized multi-agent code reviews and audits |
-| `skills/compact-session/` | Create session summaries for context handoff |
-| `skills/compound-docs/` | Capture solved problems as categorized documentation |
-| `skills/create-cli/` | Design and refine command-line interfaces |
-| `skills/find-skills/` | Discover and install relevant skills |
-| `skills/first-principles/` | Apply first-principles systems reasoning to tough technical problems |
-| `skills/frontend-design/` | Create distinctive frontend interfaces |
-| `skills/gemini-imagen/` | Generate, edit, and compose images via the Gemini API |
-| `skills/gh-commit-push-pr/` | Commit, push, and open a GitHub PR |
-| `skills/gh-fix-issue/` | Fix GitHub issues end-to-end |
-| `skills/gh-review-pr/` | Review GitHub PRs with merge recommendations |
-| `skills/gh-triage-issues/` | Triage and label GitHub issues |
-| `skills/gpt-imagen/` | Generate and edit images via the OpenAI Image API |
-| `skills/json-canvas/` | Create and edit JSON Canvas (`.canvas`) files |
-| `skills/local-review/` | Run findings-first local reviews on workspace diffs without GitHub side effects |
-| `skills/markdown-converter/` | Convert documents and files to Markdown |
-| `skills/obsidian-bases/` | Create and edit Obsidian Bases (`.base`) files |
-| `skills/obsidian-markdown/` | Create and edit Obsidian Flavored Markdown |
-| `skills/playwright/` | Automate real browser workflows from the terminal |
-| `skills/screenshot/` | Capture desktop/system screenshots, app windows, and regions across macOS/Linux/Windows |
-| `skills/skill-creator/` | Meta-skill for creating and updating skills |
-| `skills/skill-installer/` | Install skills from curated lists or GitHub repos |
-| `skills/skill-standardizer/` | Standardize and unify skill copies across canonical, global, and local directories |
-| `skills/template/` | Starter template for new skills |
-| `skills/theme-factory/` | Generate and apply visual themes |
-| `skills/vercel-composition-patterns/` | Apply scalable React composition patterns |
-| `skills/vercel-deploy/` | Deploy applications and sites to Vercel |
-| `skills/vercel-preview-logs/` | Inspect Vercel preview deployments and diagnose build/runtime failures via logs |
-| `skills/vercel-react-best-practices/` | Apply React and Next.js performance best practices |
-| `skills/vercel-react-native-skills/` | Apply React Native and Expo best practices |
-| `skills/verify-before-complete/` | Require verification evidence before completion claims |
-| `skills/web-design-guidelines/` | Review UI code against web interface guidelines |
-| `skills/writing-plans/` | Create detailed, task-by-task implementation plans before code changes |
-
-## Provenance
-
-Several skill families in this repository were derived from or inspired by external projects:
-
-- **Compound Engineering skills** (`agent-native-architecture`, `autonomous-engineering`, `code-review-agents`, `compound-docs`): adapted from the [compound-engineering-plugin](https://github.com/everyinc/compound-engineering-plugin).
-- **Vercel skills** (`vercel-composition-patterns`, `vercel-deploy`, `vercel-preview-logs`, `vercel-react-best-practices`, `vercel-react-native-skills`): based on Vercel's React and Next.js best-practice rules and Vercel deployment-debugging workflows.
-- **Obsidian skills** (`json-canvas`, `obsidian-bases`, `obsidian-markdown`): based on [Kepano's](https://github.com/kepano) Obsidian skill definitions.
-- **Skill registry**: browse and discover community skills at [skills.sh](https://skills.sh).
+37 skills in `skills/`. The full catalog with descriptions is in `docs/FEATURES.md`. The auto-generated `skills.json` manifest is the runtime source of truth.
 
 ## Specification
 
-Full skill specification: https://agentskills.io/specification
+Full skill specification: `spec/agent-skills-spec.md`
 
 ## Command Wrappers
 
-Some skills provide optional `commands/*.md` wrappers for deterministic, slash-style entrypoints in harnesses that support command files.
-
-Current wrappers:
-- `skills/local-review/commands/review.md`
-- `skills/gh-review-pr/commands/review-pr.md`
-- `skills/gh-fix-issue/commands/fix-issue.md`
-- `skills/gh-triage-issues/commands/triage-issue.md`
-- `skills/gh-commit-push-pr/commands/commit-push-pr.md`
-- `skills/brainstorming/commands/workflows/brainstorm.md`
-- `skills/skill-standardizer/commands/standardize-skills.md`
-
-In harnesses that do not expose command files, these wrappers remain canonical runbooks.
+Some skills include `commands/*.md` wrappers for slash-style entrypoints. See `docs/FEATURES.md` for the current list. In harnesses that do not expose command files, these wrappers remain canonical runbooks.
