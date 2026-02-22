@@ -159,6 +159,7 @@ Current wrappers:
 - `skills/gh-fix-issue/commands/fix-issue.md`
 - `skills/gh-triage-issues/commands/triage-issue.md`
 - `skills/gh-commit-push-pr/commands/commit-push-pr.md`
+- `skills/brainstorming/commands/workflows/brainstorm.md`
 
 If a harness does not surface command files as slash commands, these wrappers still serve as canonical runbooks.
 

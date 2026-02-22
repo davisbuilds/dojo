@@ -19,7 +19,7 @@
     },
     {
       "name": "brainstorming",
-      "description": "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.",
+      "description": "Use this when requirements are ambiguous, multiple approaches are plausible, or trade-offs need discussion before planning or implementation. Clarifies WHAT to build through one-question-at-a-time collaboration. Can be skipped when requirements are already explicit and well constrained.",
       "path": "skills/brainstorming"
     },
     {
