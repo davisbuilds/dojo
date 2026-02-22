@@ -66,11 +66,8 @@ Tool: classify_and_organize_files(files)
 **More granular (empowers the agent):**
 ```
 Tools: read_file, write_file, move_file, list_directory, bash
-Prompt: "Organize the user's downloads folder. Analyze each file,
-        determine appropriate locations based on content and recency,
-        and move them there."
-Agent: Operates in a loop—reads files, makes judgments, moves things,
-       checks results—until the folder is organized.
+Prompt: "Organize the user's downloads folder. Analyze each file, determine appropriate locations based on content and recency, and move them there."
+Agent: Operates in a loop—reads files, makes judgments, moves things, checks results—until the folder is organized.
 → Agent makes the decisions
 → To change behavior, you edit the prompt
 ```

@@ -114,10 +114,18 @@ You can use the `skill-creator` scripts to scaffold a new skill:
 
 ```bash
 # Create a new skill directory
-python skills/skill-creator/scripts/init_skill.py <skill-name> --path ./
+python skills/skill-creator/scripts/init_skill.py <skill-name> --path ./ \
+  --resources scripts,references --examples
 
 # Validate your skill structure (works with both `python` and `python3`)
 python skills/skill-creator/scripts/quick_validate.py <skill-name>
+
+# Package a skill for distribution
+python skills/skill-creator/scripts/package_skill.py <skill-name> ./dist
+
+# Optional: generate OpenAI/Codex metadata add-on
+python skills/skill-creator/scripts/generate_openai_yaml.py <skill-name> \
+  --interface default_prompt="Use $<skill-name> to help with this task."
 ```
 
 The validator uses a polyglot shebang so it can also be run directly and will work in environments that provide either `python` or `python3`.

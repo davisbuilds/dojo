@@ -23,17 +23,17 @@ skill-name/
 
 - **Frontmatter** (YAML): Must include `name` (hyphen-case, max 64 chars) and `description` (max 1024 chars, no angle brackets)
 - **Body** (Markdown): Instructions loaded only after the skill triggers
-- Allowed frontmatter fields: `name`, `description`, `license`, `allowed-tools`, `metadata`
+- Allowed frontmatter fields: `name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility`
 
 ## Commands
 
 ### Create a new skill
 
 ```bash
-python skills/skill-creator/scripts/init_skill.py <skill-name> --path <output-directory>
+python skills/skill-creator/scripts/init_skill.py <skill-name> --path <output-directory> [--resources scripts,references,assets] [--examples] [--with-openai-agent]
 ```
 
-Creates a skill directory with template SKILL.md and example resource directories.
+Creates a skill directory with a template SKILL.md and optional resource/platform add-ons.
 
 ### Validate a skill
 
@@ -50,6 +50,14 @@ python skills/skill-creator/scripts/package_skill.py <path/to/skill-folder> [out
 ```
 
 Validates and creates a `.skill` file (zip format) for distribution.
+
+### Generate OpenAI metadata (optional add-on)
+
+```bash
+python skills/skill-creator/scripts/generate_openai_yaml.py <path/to/skill-folder> [--interface key=value]
+```
+
+Creates or updates `agents/openai.yaml` as optional platform-specific metadata.
 
 ## Dependencies
 

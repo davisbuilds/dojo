@@ -1,6 +1,7 @@
 ---
 name: skill-creator
 description: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends an AI agent's capabilities with specialized knowledge, workflows, or tool integrations.
+license: Complete terms in LICENSE.txt
 ---
 
 # Skill Creator
@@ -52,8 +53,14 @@ skill-name/
 ├── SKILL.md (required)
 │   ├── YAML frontmatter metadata (required)
 │   │   ├── name: (required)
-│   │   └── description: (required)
+│   │   ├── description: (required)
+│   │   ├── license: (optional)
+│   │   ├── metadata: (optional)
+│   │   ├── allowed-tools: (optional)
+│   │   └── compatibility: (optional, use sparingly)
 │   └── Markdown instructions (required)
+├── agents/ (optional, platform-specific metadata)
+│   └── openai.yaml (optional OpenAI/Codex UI metadata)
 └── Bundled Resources (optional)
     ├── scripts/          - Executable code (Python/Bash/etc.)
     ├── references/       - Documentation intended to be loaded into context as needed
@@ -64,8 +71,18 @@ skill-name/
 
 Every SKILL.md consists of:
 
-- **Frontmatter** (YAML): Contains `name` and `description` fields. These are the only fields that the agent reads to determine when the skill gets used, thus it is very important to be clear and comprehensive in describing what the skill is, and when it should be used.
+- **Frontmatter** (YAML): `name` and `description` are required. Optional fields are `license`, `allowed-tools`, `metadata`, and `compatibility`. Keep optional fields minimal and only when they improve behavior or portability.
 - **Body** (Markdown): Instructions and guidance for using the skill. Only loaded AFTER the skill triggers (if at all).
+
+#### Platform-specific add-ons (optional)
+
+- Keep core skill behavior model-agnostic in `SKILL.md` + generic scripts.
+- Put platform-specific metadata and helper scripts behind optional resources.
+- OpenAI/Codex add-on files:
+  - Metadata schema reference: `references/openai_yaml.md`
+  - Metadata generator: `scripts/generate_openai_yaml.py`
+  - Optional metadata output: `agents/openai.yaml`
+- If a platform add-on is not needed, do not create or update those files.
 
 #### Bundled Resources (optional)
 
@@ -258,7 +275,7 @@ At this point, it is time to actually create the skill.
 
 Skip this step only if the skill being developed already exists, and iteration or packaging is needed. In this case, continue to the next step.
 
-When creating a new skill from scratch, always run the `init_skill.py` script. The script conveniently generates a new template skill directory that automatically includes everything a skill requires, making the skill creation process much more efficient and reliable.
+When creating a new skill from scratch, run the `init_skill.py` script. It generates a template skill directory and lets you opt into only the resources you need.
 
 Usage:
 
@@ -270,10 +287,11 @@ The script:
 
 - Creates the skill directory at the specified path
 - Generates a SKILL.md template with proper frontmatter and TODO placeholders
-- Creates example resource directories: `scripts/`, `references/`, and `assets/`
-- Adds example files in each directory that can be customized or deleted
+- Optionally creates selected resource directories (`--resources scripts,references,assets`)
+- Optionally creates example files (`--examples`)
+- Optionally creates OpenAI/Codex metadata (`--with-openai-agent` or `--interface key=value`)
 
-After initialization, customize or remove the generated SKILL.md and example files as needed.
+After initialization, customize or remove generated examples and any optional platform metadata that isn't needed.
 
 ### Step 4: Edit the Skill
 
@@ -285,6 +303,7 @@ Consult these helpful guides based on your skill's needs:
 
 - **Multi-step processes**: See references/workflows.md for sequential workflows and conditional logic
 - **Specific output formats or quality standards**: See references/output-patterns.md for template and example patterns
+- **OpenAI/Codex metadata (optional)**: See references/openai_yaml.md for `agents/openai.yaml` fields and constraints
 
 These files contain established best practices for effective skill design.
 
@@ -302,7 +321,7 @@ Any example files and directories not needed for the skill should be deleted. Th
 
 ##### Frontmatter
 
-Write the YAML frontmatter with `name` and `description`:
+Write YAML frontmatter with `name` and `description`:
 
 - `name`: The skill name
 - `description`: This is the primary triggering mechanism for your skill, and helps the agent understand when to use the skill.
@@ -310,7 +329,7 @@ Write the YAML frontmatter with `name` and `description`:
   - Include all "when to use" information here - Not in the body. The body is only loaded after triggering, so "When to Use This Skill" sections in the body are not helpful to the agent.
   - Example description for a `docx` skill: "Comprehensive document creation, editing, and analysis with support for tracked changes, comments, formatting preservation, and text extraction. Use when the agent needs to work with professional documents (.docx files) for: (1) Creating new documents, (2) Modifying or editing content, (3) Working with tracked changes, (4) Adding comments, or any other document tasks"
 
-Do not include any other fields in YAML frontmatter.
+Optional fields are allowed when needed: `license`, `allowed-tools`, `metadata`, and `compatibility`.
 
 ##### Body
 
