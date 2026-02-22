@@ -1,10 +1,10 @@
 ---
-name: "imagegen"
+name: "gpt-imagen"
 description: "Use when the user asks to generate or edit images via the OpenAI Image API (for example: generate image, edit/inpaint/mask, background removal or replacement, transparent background, product shots, concept art, covers, or batch variants); run the bundled CLI (`scripts/image_gen.py`) and require `OPENAI_API_KEY` for live calls."
 ---
 
 
-# Image Generation Skill
+# GPT Imagen
 
 Generates or edits images for the current project (e.g., website assets, game assets, UI mockups, product mockups, wireframes, logo design, photorealistic images, infographics). Defaults to `gpt-image-1.5` and the OpenAI Image API, and prefers the bundled CLI for deterministic, reproducible runs.
 
@@ -29,8 +29,8 @@ Generates or edits images for the current project (e.g., website assets, game as
 8. Save/return final outputs and note the final prompt + flags used.
 
 ## Temp and output conventions
-- Use `tmp/imagegen/` for intermediate files (for example JSONL batches); delete when done.
-- Write final artifacts under `output/imagegen/` when working in this repo.
+- Use `tmp/gpt-imagen/` for intermediate files (for example JSONL batches); delete when done.
+- Write final artifacts under `output/gpt-imagen/` when working in this repo.
 - Use `--out` or `--out-dir` to control output paths; keep filenames stable and descriptive.
 
 ## Dependencies (install if missing)
@@ -63,7 +63,7 @@ If installation isn't possible in this environment, tell the user which dependen
 - Use the OpenAI Python SDK (`openai` package) for all API calls; do not use raw HTTP.
 - If the user requests edits, use `client.images.edit(...)` and include input images (and mask if provided).
 - Prefer the bundled CLI (`scripts/image_gen.py`) over writing new one-off scripts.
-- Never modify `scripts/image_gen.py`. If something is missing, ask the user before doing anything else.
+- Do not modify `scripts/image_gen.py` unless the user asks for a capability change or bug fix.
 - If the result isn’t clearly relevant or doesn’t satisfy constraints, iterate with small targeted prompt changes; only ask a question if a missing detail blocks success.
 
 ## Prompt augmentation

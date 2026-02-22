@@ -44,7 +44,7 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 | **`skills/gh-fix-issue/`** | **Issue Resolution**: Fix GitHub issues end-to-end from analysis through PR. |
 | **`skills/gh-review-pr/`** | **Code Review**: Review Pull Requests and provide merge recommendations. |
 | **`skills/gh-triage-issues/`** | **Issue Triage**: Label, prioritize, and de-duplicate GitHub issues. |
-| **`skills/imagegen/`** | **OpenAI Image API**: Generate and edit images with reproducible CLI workflows. |
+| **`skills/gpt-imagen/`** | **OpenAI Image API**: Generate and edit images with reproducible CLI workflows. |
 | **`skills/json-canvas/`** | **JSON Canvas**: Create and edit Obsidian-compatible `.canvas` files. |
 | **`skills/local-review/`** | **Local Review**: Run findings-first local code reviews on workspace diffs without posting to GitHub. |
 | **`skills/markdown-converter/`** | **Document Conversion**: Convert many file formats into Markdown for analysis. |
@@ -103,7 +103,7 @@ Some skills bundle their own dependencies. Uncomment the relevant sections in `r
 
 | Skill | Extra packages |
 |-------|---------------|
-| `skills/imagegen/` | `openai>=1.0.0`, `Pillow>=10.0.0` |
+| `skills/gpt-imagen/` | `openai>=1.0.0`, `Pillow>=10.0.0` |
 | `skills/gemini-imagen/` | `google-genai>=1.0.0`, `Pillow>=10.0.0` |
 
 These skills also require API keys set as environment variables (`OPENAI_API_KEY`, `GEMINI_API_KEY`).

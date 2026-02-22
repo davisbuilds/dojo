@@ -58,9 +58,11 @@ def save_image(pil_image, output_path: Path) -> None:
     if str(output_path).lower().endswith(".png"):
         pil_image.save(str(output_path), format="PNG")
     else:
+        from PIL import Image as PILImage
+
         # JPEG cannot handle RGBA
         if pil_image.mode == "RGBA":
-            rgb = pil_image.new("RGB", pil_image.size, (255, 255, 255))
+            rgb = PILImage.new("RGB", pil_image.size, (255, 255, 255))
             rgb.paste(pil_image, mask=pil_image.split()[3])
             pil_image = rgb
         elif pil_image.mode != "RGB":

@@ -105,7 +105,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 | `skills/gh-fix-issue/` | Fix GitHub issues end-to-end |
 | `skills/gh-review-pr/` | Review GitHub PRs with merge recommendations |
 | `skills/gh-triage-issues/` | Triage and label GitHub issues |
-| `skills/imagegen/` | Generate and edit images via the OpenAI Image API |
+| `skills/gpt-imagen/` | Generate and edit images via the OpenAI Image API |
 | `skills/json-canvas/` | Create and edit JSON Canvas (`.canvas`) files |
 | `skills/local-review/` | Run findings-first local reviews on workspace diffs without GitHub side effects |
 | `skills/markdown-converter/` | Convert documents and files to Markdown |

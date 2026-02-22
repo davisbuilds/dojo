@@ -14,7 +14,7 @@ Set a stable path to the skill CLI (default `CODEX_HOME` is `~/.codex`):
 
 ```
 export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
-export IMAGE_GEN="$CODEX_HOME/skills/imagegen/scripts/image_gen.py"
+export IMAGE_GEN="$CODEX_HOME/skills/gpt-imagen/scripts/image_gen.py"
 ```
 
 Dry-run (no API call; no network required; does not require the `openai` package):
@@ -38,7 +38,7 @@ python "$IMAGE_GEN" generate --prompt "A cozy alpine cabin at dawn" --size 1024x
 ## Guardrails (important)
 - Use `python "$IMAGE_GEN" ...` (or equivalent full path) for generations/edits/batch work.
 - Do **not** create one-off runners (e.g. `gen_images.py`) unless the user explicitly asks for a custom wrapper.
-- **Never modify** `scripts/image_gen.py`. If something is missing, ask the user before doing anything else.
+- Do not modify `scripts/image_gen.py` unless the user asks for a capability change or bug fix.
 
 ## Defaults (unless overridden by flags)
 - Model: `gpt-image-1.5`
@@ -97,16 +97,16 @@ python "$IMAGE_GEN" generate \
 Generate multiple prompts concurrently (async batch):
 
 ```
-mkdir -p tmp/imagegen
-cat > tmp/imagegen/prompts.jsonl << 'EOF'
+mkdir -p tmp/gpt-imagen
+cat > tmp/gpt-imagen/prompts.jsonl << 'EOF'
 {"prompt":"Cavernous hangar interior with a compact shuttle parked center-left, open bay door","use_case":"game concept art environment","composition":"wide-angle, low-angle, cinematic framing","lighting":"volumetric light rays through drifting fog","constraints":"no logos or trademarks; no watermark","size":"1536x1024"}
 {"prompt":"Gray wolf in profile in a snowy forest, crisp fur texture","use_case":"wildlife photography print","composition":"100mm, eye-level, shallow depth of field","constraints":"no logos or trademarks; no watermark","size":"1024x1024"}
 EOF
 
-python "$IMAGE_GEN" generate-batch --input tmp/imagegen/prompts.jsonl --out-dir out --concurrency 5
+python "$IMAGE_GEN" generate-batch --input tmp/gpt-imagen/prompts.jsonl --out-dir out --concurrency 5
 
 # Cleanup (recommended)
-rm -f tmp/imagegen/prompts.jsonl
+rm -f tmp/gpt-imagen/prompts.jsonl
 ```
 
 Notes:

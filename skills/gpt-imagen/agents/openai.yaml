@@ -1,0 +1,6 @@
+interface:
+  display_name: "GPT Imagen"
+  short_description: "Generate and edit images using the OpenAI Image API"
+  icon_small: "./assets/gpt-imagen-small.svg"
+  icon_large: "./assets/gpt-imagen.png"
+  default_prompt: "Generate or edit images for this task and return the final prompt plus selected outputs."
