@@ -64,7 +64,7 @@
       "path": "skills/frontend-design",
       "license": "Complete terms in LICENSE.txt"
     },
-{
+    {
       "name": "gemini-imagen",
       "description": "Generate, edit, and compose images via the Gemini API. Use when creating images from text, editing existing images, composing multiple images, or generating images with specific aspect ratios and resolutions.",
       "path": "skills/gemini-imagen"
@@ -126,6 +126,11 @@
       "path": "skills/playwright"
     },
     {
+      "name": "screenshot",
+      "description": "Use when the user explicitly asks for a desktop or system screenshot (full screen, specific app or window, or a pixel region), or when tool-specific capture capabilities are unavailable and an OS-level capture is needed.",
+      "path": "skills/screenshot"
+    },
+    {
       "name": "skill-creator",
       "description": "Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends an AI agent's capabilities with specialized knowledge, workflows, or tool integrations.",
       "path": "skills/skill-creator"
@@ -183,6 +188,11 @@
       "name": "web-design-guidelines",
       "description": "Review UI code for Web Interface Guidelines compliance. Use when asked to \"review my UI\", \"check accessibility\", \"audit design\", \"review UX\", or \"check my site against best practices\".",
       "path": "skills/web-design-guidelines"
+    },
+    {
+      "name": "writing-plans",
+      "description": "Use when you have a spec or requirements for a multi-step task, before touching code",
+      "path": "skills/writing-plans"
     }
   ]
 }

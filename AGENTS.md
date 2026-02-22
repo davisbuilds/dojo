@@ -112,6 +112,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 | `skills/obsidian-bases/` | Create and edit Obsidian Bases (`.base`) files |
 | `skills/obsidian-markdown/` | Create and edit Obsidian Flavored Markdown |
 | `skills/playwright/` | Automate real browser workflows from the terminal |
+| `skills/screenshot/` | Capture desktop/system screenshots, app windows, and regions across macOS/Linux/Windows |
 | `skills/skill-creator/` | Meta-skill for creating and updating skills |
 | `skills/skill-installer/` | Install skills from curated lists or GitHub repos |
 | `skills/template/` | Starter template for new skills |
@@ -123,6 +124,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 | `skills/vercel-react-native-skills/` | Apply React Native and Expo best practices |
 | `skills/verify-before-complete/` | Require verification evidence before completion claims |
 | `skills/web-design-guidelines/` | Review UI code against web interface guidelines |
+| `skills/writing-plans/` | Create detailed, task-by-task implementation plans before code changes |
 
 ## Provenance
 

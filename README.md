@@ -31,7 +31,7 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 | **`skills/agent-native-architecture/`** | **Agent-Native Architecture**: Build applications where agents are first-class and operate with tool/action parity. |
 | **`skills/algorithmic-art/`** | **Generative Art**: Create algorithmic art with p5.js and controlled randomness. |
 | **`skills/autonomous-engineering/`** | **Autonomous Delivery**: Run full end-to-end feature workflows (`/lfg`, `/slfg`). |
-| **`skills/brainstorm/`** | **Brainstorming Ideas**: Explore intent and shape solutions before implementation. |
+| **`skills/brainstorming/`** | **Brainstorming Ideas**: Explore intent and shape solutions before implementation. |
 | **`skills/code-review-agents/`** | **Review Swarm**: Use specialized agents for architecture, security, data, performance, and deployment review. |
 | **`skills/compact-session/`** | **Context Management**: Create concise session summaries for reliable handoff. |
 | **`skills/compound-docs/`** | **Knowledge Capture**: Record solved problems as categorized, searchable documentation. |
@@ -39,6 +39,7 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 | **`skills/find-skills/`** | **Skill Discovery**: Find installable skills for requested capabilities. |
 | **`skills/first-principles/`** | **Systems Reasoning**: Apply first-principles analysis for high-stakes technical decisions. |
 | **`skills/frontend-design/`** | **UI/UX Design**: Build distinctive, production-grade frontend interfaces. |
+| **`skills/gemini-imagen/`** | **Gemini Imagen**: Generate, edit, and compose images via the Gemini API. |
 | **`skills/gh-commit-push-pr/`** | **GitHub Automation**: Commit, push, and open a Pull Request in one guided flow. |
 | **`skills/gh-fix-issue/`** | **Issue Resolution**: Fix GitHub issues end-to-end from analysis through PR. |
 | **`skills/gh-review-pr/`** | **Code Review**: Review Pull Requests and provide merge recommendations. |
@@ -47,10 +48,10 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 | **`skills/json-canvas/`** | **JSON Canvas**: Create and edit Obsidian-compatible `.canvas` files. |
 | **`skills/local-review/`** | **Local Review**: Run findings-first local code reviews on workspace diffs without posting to GitHub. |
 | **`skills/markdown-converter/`** | **Document Conversion**: Convert many file formats into Markdown for analysis. |
-| **`skills/nano-banana-pro/`** | **Nano Banana Pro**: Generate or edit images via Gemini 3 Pro Image. |
 | **`skills/obsidian-bases/`** | **Obsidian Bases**: Create and edit `.base` files with views, filters, formulas, and summaries. |
 | **`skills/obsidian-markdown/`** | **Obsidian Markdown**: Author Obsidian-flavored Markdown with wikilinks, embeds, callouts, and properties. |
 | **`skills/playwright/`** | **Browser Automation**: Drive real browser workflows from the terminal. |
+| **`skills/screenshot/`** | **Screenshot Capture**: Capture desktop/system screenshots, app windows, and regions across platforms. |
 | **`skills/skill-creator/`** | **Meta-Skill**: Initialize, validate, and package new skills. |
 | **`skills/skill-installer/`** | **Skill Installation**: Install curated or repo-based skills for Codex or Claude Code. |
 | **`skills/template/`** | **Starter Template**: Scaffold directory for creating new skills from scratch. |
@@ -62,6 +63,7 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 | **`skills/vercel-react-native-skills/`** | **React Native Performance**: Apply Vercel best practices for React Native and Expo. |
 | **`skills/verify-before-complete/`** | **Quality Control**: Require verification evidence before completion claims. |
 | **`skills/web-design-guidelines/`** | **UI Guidelines Audit**: Review interfaces for web guideline compliance. |
+| **`skills/writing-plans/`** | **Implementation Planning**: Create detailed, task-by-task implementation plans before coding. |
 
 ## Hooks
 
@@ -102,7 +104,7 @@ Some skills bundle their own dependencies. Uncomment the relevant sections in `r
 | Skill | Extra packages |
 |-------|---------------|
 | `skills/imagegen/` | `openai>=1.0.0`, `Pillow>=10.0.0` |
-| `skills/nano-banana-pro/` | `google-genai>=1.0.0`, `Pillow>=10.0.0` |
+| `skills/gemini-imagen/` | `google-genai>=1.0.0`, `Pillow>=10.0.0` |
 
 These skills also require API keys set as environment variables (`OPENAI_API_KEY`, `GEMINI_API_KEY`).
 
