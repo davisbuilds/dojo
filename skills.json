@@ -136,6 +136,11 @@
       "path": "skills/screenshot"
     },
     {
+      "name": "secure-code",
+      "description": "Static analysis security scanning and architectural trifecta detection using semgrep. Use when reviewing code for security vulnerabilities, running SAST scans, checking for the lethal trifecta (private data + untrusted input + external comms co-occurrence), or when the user says 'scan', 'security scan', 'trifecta check', 'check for vulnerabilities', 'SAST', or 'secure this code'. On-demand via /scan and /trifecta-check commands.",
+      "path": "skills/secure-code"
+    },
+    {
       "name": "skill-creator",
       "description": "Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends an AI agent's capabilities with specialized knowledge, workflows, or tool integrations.",
       "path": "skills/skill-creator",

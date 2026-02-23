@@ -1,0 +1,134 @@
+rules:
+  # Python: HTTP handler with DB query + outbound HTTP call
+  - id: trifecta.python-handler-db-outbound
+    mode: taint
+    pattern-sources:
+      - patterns:
+          - pattern: request.$METHOD
+          - metavariable-regex:
+              metavariable: $METHOD
+              regex: (json|form|args|data|body|files|values|params|get_json|cookies|headers)
+    pattern-sinks:
+      - pattern: requests.$FUNC($URL, ...)
+    message: >-
+      Untrusted request data flows toward an outbound HTTP call. If this handler
+      also accesses private data (DB, secrets), it forms the lethal trifecta.
+      Separate input validation, data access, and external communication into
+      distinct modules.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      cwe: ["CWE-918", "CWE-200"]
+      category: security
+      trifecta: true
+      confidence: MEDIUM
+
+  # Python: Request data into subprocess
+  - id: trifecta.python-request-to-subprocess
+    mode: taint
+    pattern-sources:
+      - pattern: request.$METHOD
+    pattern-sinks:
+      - pattern: subprocess.$FUNC(...)
+    message: >-
+      Untrusted request data flows into a subprocess call. Combined with data
+      access, this creates a trifecta risk. Use allowlists and avoid shell=True.
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: ["CWE-78", "CWE-200"]
+      category: security
+      trifecta: true
+      confidence: HIGH
+
+  # JavaScript/TypeScript: req.body/params to fetch/axios
+  - id: trifecta.js-request-to-fetch
+    mode: taint
+    pattern-sources:
+      - patterns:
+          - pattern: req.$PROP
+          - metavariable-regex:
+              metavariable: $PROP
+              regex: (body|params|query|headers|cookies|files)
+    pattern-sinks:
+      - pattern-either:
+          - pattern: fetch($URL, ...)
+          - pattern: axios.$METHOD($URL, ...)
+          - pattern: axios($CONFIG)
+    message: >-
+      Untrusted request data flows toward an outbound HTTP call (fetch/axios).
+      If this handler also accesses a database or secrets, it forms the lethal
+      trifecta. Separate concerns into distinct modules.
+    languages: [javascript, typescript]
+    severity: WARNING
+    metadata:
+      cwe: ["CWE-918", "CWE-200"]
+      category: security
+      trifecta: true
+      confidence: MEDIUM
+
+  # JavaScript/TypeScript: req data to child_process
+  - id: trifecta.js-request-to-exec
+    mode: taint
+    pattern-sources:
+      - pattern: req.$PROP
+    pattern-sinks:
+      - pattern-either:
+          - pattern: child_process.exec($CMD, ...)
+          - pattern: child_process.execSync($CMD, ...)
+          - pattern: child_process.spawn($CMD, ...)
+    message: >-
+      Untrusted request data flows into a child process execution. This is a
+      command injection risk and a trifecta component. Use allowlists and
+      parameterized execution.
+    languages: [javascript, typescript]
+    severity: ERROR
+    metadata:
+      cwe: ["CWE-78", "CWE-200"]
+      category: security
+      trifecta: true
+      confidence: HIGH
+
+  # Python: Handler reading env secrets and making outbound calls
+  - id: trifecta.python-env-secret-outbound
+    patterns:
+      - pattern: |
+          os.environ[$SECRET_NAME]
+          ...
+          requests.$METHOD($URL, ...)
+      - metavariable-regex:
+          metavariable: $SECRET_NAME
+          regex: ".*(SECRET|KEY|TOKEN|PASSWORD|CREDENTIAL).*"
+    message: >-
+      Environment secret access and outbound HTTP call in the same scope.
+      If this code also processes untrusted input, it forms the lethal trifecta.
+      Move secret access to a dedicated service layer.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      cwe: ["CWE-200"]
+      category: security
+      trifecta: true
+      confidence: LOW
+
+  # JavaScript: process.env secrets near fetch
+  - id: trifecta.js-env-secret-outbound
+    patterns:
+      - pattern: |
+          process.env.$SECRET_NAME
+          ...
+          fetch($URL, ...)
+      - metavariable-regex:
+          metavariable: $SECRET_NAME
+          regex: ".*(SECRET|KEY|TOKEN|PASSWORD|CREDENTIAL).*"
+    message: >-
+      Environment secret access and outbound fetch call in the same scope.
+      If this code also processes untrusted input, it forms the lethal trifecta.
+      Move secret access to a dedicated service layer.
+    languages: [javascript, typescript]
+    severity: WARNING
+    metadata:
+      cwe: ["CWE-200"]
+      category: security
+      trifecta: true
+      confidence: LOW
