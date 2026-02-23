@@ -42,7 +42,7 @@ Product-surface reference for the Agent Skills Repository.
 | `autonomous-engineering` | Full end-to-end feature workflows (`/lfg`, `/slfg`) |
 | `brainstorming` | Explore requirements before implementation |
 | `first-principles` | Systems reasoning for high-stakes decisions |
-| `writing-plans` | Task-by-task implementation plans |
+| `writing-plans` | Structured implementation plans with explicit verification and handoff gates |
 | `create-cli` | CLI parameter and UX design |
 | `agent-native-architecture` | Build agent-native apps with tool/action parity |
 | `deep-research` | Web-backed research with conditional depth and evidence filtering |
@@ -83,6 +83,7 @@ Product-surface reference for the Agent Skills Repository.
 
 - SKILL.md frontmatter validated on every write/edit (pre-tool-use).
 - `skills.json` manifest regenerated after every SKILL.md change (post-tool-use).
+- `docs/plans/*-implementation.md` validated after every write/edit (post-tool-use).
 - Uncommitted changes and unpushed commits blocked at session stop.
 - Skill directory structure validated at session stop.
 
@@ -96,6 +97,7 @@ Slash-style entrypoints for harnesses that support command files:
 - `/triage-issue` — GitHub issue triage
 - `/commit-push-pr` — commit, push, PR flow
 - `/brainstorm` — brainstorming session
+- `/plan` — implementation planning workflow
 - `/standardize-skills` — skill standardization
 - `/deep-research` — route depth and filter evidence in one command
 

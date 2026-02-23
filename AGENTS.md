@@ -90,12 +90,13 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 | `session-start-skill-catalog.sh` | SessionStart | Injects skill catalog from `skills.json`, recent git log, and a pointer to AGENTS.md |
 | `pre-tool-use-validate-skill.sh` | PreToolUse (Write\|Edit) | Runs `quick_validate.py` when a SKILL.md is written or edited; blocks on invalid frontmatter |
 | `post-tool-use-regen-manifest.sh` | PostToolUse (Write\|Edit) | Regenerates `skills.json` after a SKILL.md is modified |
+| `post-tool-use-validate-implementation-plan.sh` | PostToolUse (Write\|Edit) | Validates `docs/plans/*-implementation.md` against `writing-plans` schema after write/edit |
 | `stop-hook-git-check.sh` | Stop | Blocks if there are uncommitted changes, untracked files, or unpushed commits |
 | `stop-hook-skill-structure.sh` | Stop | Validates that modified skill directories have SKILL.md and matching directory/frontmatter names |
 
 ## Existing Skills
 
-37 skills in `skills/`. The full catalog with descriptions is in `docs/FEATURES.md`. The auto-generated `skills.json` manifest is the runtime source of truth.
+38 skills in `skills/`. The full catalog with descriptions is in `docs/FEATURES.md`. The auto-generated `skills.json` manifest is the runtime source of truth.
 
 ## Specification
 

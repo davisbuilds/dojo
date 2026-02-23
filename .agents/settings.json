@@ -32,6 +32,10 @@
           {
             "type": "command",
             "command": "bash hooks/post-tool-use-regen-manifest.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/post-tool-use-validate-implementation-plan.sh"
           }
         ]
       }

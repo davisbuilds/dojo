@@ -1,116 +1,126 @@
 ---
 name: writing-plans
-description: Use when you have a spec or requirements for a multi-step task, before touching code
+description: Create robust, execution-ready implementation plans with explicit scope, task sequencing, dependencies, and verification commands before coding.
 ---
 
 # Writing Plans
 
-## Overview
+Create implementation plans that are executable, auditable, and easy for a zero-context engineer to follow.
 
-Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
+## When To Use
 
-Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
+Use this skill when:
+- requirements are clear enough to sequence implementation
+- the work spans multiple files or phases
+- explicit verification gates are needed before coding
 
-**Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
+Skip this skill when:
+- the change is a tiny mechanical edit
+- the user asks for immediate implementation and scope is trivial
+- requirements are still ambiguous (route to `brainstorming` first)
 
-**Context:** This should be run in a dedicated worktree (created by brainstorming skill).
+## Start Behavior
 
-**Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+Start with:
+`I'm using the writing-plans skill to create a robust implementation plan.`
 
-## Bite-Sized Task Granularity
+If key context is missing, ask focused questions before writing:
+- goal and non-goals
+- constraints
+- acceptance criteria
+- affected files or systems (if known)
 
-**Each step is one action (2-5 minutes):**
-- "Write the failing test" - step
-- "Run it to make sure it fails" - step
-- "Implement the minimal code to make the test pass" - step
-- "Run the tests and make sure they pass" - step
-- "Commit" - step
+## Output Path
 
-## Plan Document Header
+Save plan to:
+`docs/plans/YYYY-MM-DD-<topic>-implementation.md`
 
-**Every plan MUST start with this header:**
+If a brainstorm summary exists at `docs/plans/YYYY-MM-DD-<topic>-plan.md`, reuse its topic slug.
 
-```markdown
-# [Feature Name] Implementation Plan
+## Output Contract
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+Every implementation plan must include YAML frontmatter and the required sections below.
 
-**Goal:** [One sentence describing what this builds]
+### Required Frontmatter
 
-**Architecture:** [2-3 sentences about approach]
-
-**Tech Stack:** [Key technologies/libraries]
-
+```yaml
+---
+date: YYYY-MM-DD
+topic: <kebab-case-topic>
+stage: implementation-plan
+status: draft
+source: conversation
 ---
 ```
 
-## Task Structure
+### Required Sections
 
-````markdown
-### Task N: [Component Name]
+1. `# <Title> Implementation Plan`
+2. `## Goal`
+3. `## Scope`
+4. `## Assumptions And Constraints`
+5. `## Task Breakdown`
+6. `## Risks And Mitigations`
+7. `## Verification Matrix`
+8. `## Handoff`
 
-**Files:**
-- Create: `exact/path/to/file.py`
-- Modify: `exact/path/to/existing.py:123-145`
-- Test: `tests/exact/path/to/test.py`
+Use `assets/implementation-plan-template.md` as the default scaffold.
 
-**Step 1: Write the failing test**
+## Task Design Rules
 
-```python
-def test_specific_behavior():
-    result = function(input)
-    assert result == expected
-```
+Each task must be independently verifiable and include:
+- `### Task N: <name>`
+- `**Objective**`
+- `**Files**` with exact repository paths
+- `**Dependencies**` (or `None`)
+- `**Implementation Steps**` as ordered steps
+- `**Verification**` commands with expected signals
+- `**Done When**` acceptance bullets
 
-**Step 2: Run test to verify it fails**
+Granularity target:
+- one meaningful unit of behavior per task
+- usually 10-30 minutes of focused work
+- avoid over-fragmented 2-minute steps unless risk demands it
 
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: FAIL with "function not defined"
+## Verification Requirements
 
-**Step 3: Write minimal implementation**
+- Include at least one concrete verification command per task.
+- Include integration or end-to-end verification when applicable.
+- Add negative-path verification for risky logic.
+- Do not claim plan readiness until verification coverage is explicit.
 
-```python
-def function(input):
-    return expected
-```
+If available, apply the mindset from `verification-before-completion` when checking final plan quality.
 
-**Step 4: Run test to verify it passes**
+## Conditional Coordination
 
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: PASS
+Route to another skill only when needed:
+- requirements unclear: use `brainstorming`
+- architectural trade-off dominates risk: use `first-principles`
+- CLI contract design is central: use `create-cli`
+- user asks for autonomous execution after planning: use `autonomous-engineering` or manual execution
 
-**Step 5: Commit**
+If a named skill is unavailable, continue with manual fallback in this skill.
+
+## Plan Validation
+
+After writing a plan, run:
 
 ```bash
-git add tests/path/test.py src/path/file.py
-git commit -m "feat: add specific feature"
+python3 skills/writing-plans/scripts/validate_plan.py docs/plans/<filename>.md
 ```
-````
 
-## Remember
-- Exact file paths always
-- Complete code in plan (not "add validation")
-- Exact commands with expected output
-- Reference relevant skills with @ syntax
-- DRY, YAGNI, TDD, frequent commits
+Fix all reported issues before handoff.
 
-## Execution Handoff
+## Handoff
 
-After saving the plan, offer execution choice:
+End with:
+`Plan complete and saved to docs/plans/<filename>.md.`
 
-**"Plan complete and saved to `docs/plans/<filename>.md`. Two execution options:**
+Then offer:
+1. Execute in this session, task by task.
+2. Open a separate execution session.
+3. Refine the plan before implementation.
 
-**1. Subagent-Driven (this session)** - I dispatch fresh subagent per task, review between tasks, fast iteration
+## Command Wrapper
 
-**2. Parallel Session (separate)** - Open new session with executing-plans, batch execution with checkpoints
-
-**Which approach?"**
-
-**If Subagent-Driven chosen:**
-- **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
-- Stay in this session
-- Fresh subagent per task + code review
-
-**If Parallel Session chosen:**
-- Guide them to open new session in worktree
-- **REQUIRED SUB-SKILL:** New session uses superpowers:executing-plans
+If command files are supported, use `commands/workflows/plan.md` as the canonical `/workflows:plan` wrapper.

@@ -202,7 +202,7 @@
     },
     {
       "name": "writing-plans",
-      "description": "Use when you have a spec or requirements for a multi-step task, before touching code",
+      "description": "Create robust, execution-ready implementation plans with explicit scope, task sequencing, dependencies, and verification commands before coding.",
       "path": "skills/writing-plans"
     }
   ]

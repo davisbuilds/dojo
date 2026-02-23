@@ -1,223 +1,222 @@
-# Gemini Imagen Skill Implementation Plan
-
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
-**Goal:** Merge `nano-banana-pro` and `gemini-imagegen` into a single agent-agnostic `gemini-imagen` skill.
-
-**Architecture:** Single skill directory with one unified CLI script (`generate_image.py`) supporting three subcommands (generate, edit, compose). SKILL.md provides agent-agnostic operational instructions and API reference.
-
-**Tech Stack:** Python 3.10+, google-genai, Pillow, PEP 723 inline metadata, uv
-
+---
+date: 2026-02-21
+topic: gemini-imagen
+stage: implementation-plan
+status: migrated
+source: conversation
 ---
 
-### Task 1: Create skill directory and script
+# Gemini Imagen Implementation Plan
 
-**Files:**
+## Goal
+
+Merge `nano-banana-pro` and `gemini-imagegen` into a single, agent-agnostic `gemini-imagen` skill with one executable script and one canonical SKILL document.
+
+## Scope
+
+### In Scope
+
+- Build `skills/gemini-imagen/scripts/generate_image.py` with `generate`, `edit`, and `compose` subcommands.
+- Create canonical `skills/gemini-imagen/SKILL.md`.
+- Remove superseded skill folders.
+- Update catalog documentation and manifest outputs.
+
+### Out of Scope
+
+- Multi-provider abstraction beyond Gemini.
+- Non-image modalities and hosted runtime workflows.
+
+## Assumptions And Constraints
+
+- Runtime target is Python 3.10+.
+- Dependencies are declared in PEP 723 script metadata.
+- Output should be compatible across harnesses that can run local scripts.
+
+## Task Breakdown
+
+### Task 1: Create unified image script
+
+**Objective**
+
+Implement a single script entrypoint that supports generate/edit/compose and shared argument handling.
+
+**Files**
+
 - Create: `skills/gemini-imagen/scripts/generate_image.py`
 
-**Step 1: Create the directory**
+**Dependencies**
 
-```bash
-mkdir -p skills/gemini-imagen/scripts
-```
+None
 
-**Step 2: Write `generate_image.py`**
+**Implementation Steps**
 
-Create `skills/gemini-imagen/scripts/generate_image.py` with:
+1. Create the script with PEP 723 metadata (`google-genai`, `pillow`).
+2. Implement `generate`, `edit`, and `compose` subcommands via `argparse` subparsers.
+3. Implement shared helpers for API key resolution, config building, and format-aware image save.
+4. Implement edit-resolution autodetection and compose input count validation.
 
-- PEP 723 shebang and inline metadata:
-  ```python
-  #!/usr/bin/env python3
-  # /// script
-  # requires-python = ">=3.10"
-  # dependencies = [
-  #     "google-genai>=1.0.0",
-  #     "pillow>=10.0.0",
-  # ]
-  # ///
-  ```
+**Verification**
 
-- Three subcommands via `argparse` sub-parsers:
-  - `generate`: `--prompt` (required), `--filename` (required), `--resolution` (1K/2K/4K, default 1K), `--aspect` (aspect ratio choices), `--api-key`
-  - `edit`: same as generate plus `--input-image` (required)
-  - `compose`: same as generate but `--input-images` (nargs="+", required) instead of `--input-image`
+- Run: `uv run skills/gemini-imagen/scripts/generate_image.py generate --help`
+- Expect: help output includes required generate flags.
+- Run: `uv run skills/gemini-imagen/scripts/generate_image.py edit --help`
+- Expect: help output includes `--input-image`.
+- Run: `uv run skills/gemini-imagen/scripts/generate_image.py compose --help`
+- Expect: help output includes `--input-images`.
 
-- Shared helper functions:
-  - `get_api_key(provided_key)` — check arg then `GEMINI_API_KEY` env var
-  - `save_image(image_data, output_path)` — format-aware: if path ends `.png`, save with `format="PNG"`; otherwise save as JPEG with `format="JPEG"`. Handle RGBA→RGB conversion for JPEG.
-  - `build_config(resolution, aspect_ratio)` — build `GenerateContentConfig` with optional `ImageConfig`
+**Done When**
 
-- Model: hardcode `gemini-3-pro-image-preview` as default for all subcommands
+- All three subcommands parse and expose expected options.
+- Script exits with non-zero status when no image is returned.
 
-- Edit subcommand: auto-detect resolution from input image dimensions when `--resolution` not provided (from nano-banana-pro logic: >=3000px→4K, >=1500px→2K, else 1K)
+### Task 2: Create canonical skill documentation
 
-- Compose subcommand: validate 1-14 images, verify all exist
+**Objective**
 
-- Response processing: iterate `response.parts`, print text, save image. Exit 1 if no image generated.
+Publish one SKILL.md that combines operational workflow guidance and reference-quality API notes.
 
-**Step 3: Make script executable**
+**Files**
 
-```bash
-chmod +x skills/gemini-imagen/scripts/generate_image.py
-```
-
-**Step 4: Test the script parses correctly**
-
-```bash
-uv run skills/gemini-imagen/scripts/generate_image.py generate --help
-uv run skills/gemini-imagen/scripts/generate_image.py edit --help
-uv run skills/gemini-imagen/scripts/generate_image.py compose --help
-```
-
-Expected: each prints its help text with the correct arguments.
-
-**Step 5: Commit**
-
-```bash
-git add skills/gemini-imagen/scripts/generate_image.py
-git commit -m "feat(gemini-imagen): add unified generate_image.py script"
-```
-
----
-
-### Task 2: Write SKILL.md
-
-**Files:**
 - Create: `skills/gemini-imagen/SKILL.md`
 
-**Step 1: Write the SKILL.md**
+**Dependencies**
 
-Create `skills/gemini-imagen/SKILL.md` with these sections in order:
+Task 1
 
-1. **Frontmatter**: `name: gemini-imagen`, description covering generate/edit/compose/aspect ratios/resolutions
+**Implementation Steps**
 
-2. **Title + intro**: one line about GEMINI_API_KEY requirement
+1. Add valid frontmatter (`name`, `description`).
+2. Document usage examples for generate/edit/compose invocation.
+3. Document defaults, API key precedence, aspect ratios, and resolution guidance.
+4. Document preflight checks, prompt templates, and common failure handling.
 
-3. **Quick Reference table**: model, default resolution, default aspect ratio
+**Verification**
 
-4. **Usage**: agent-agnostic invocation examples for all three subcommands. Use relative path pattern: `uv run <skill-dir>/scripts/generate_image.py`. Explain the agent resolves `<skill-dir>` based on its harness.
+- Run: `python3 skills/skill-creator/scripts/quick_validate.py skills/gemini-imagen`
+- Expect: `Skill is valid!`
 
-5. **Default Workflow**: draft (1K) → iterate → final (4K) from nano-banana-pro
+**Done When**
 
-6. **Resolution Options**: 1K/2K/4K with natural language mapping (from nano-banana-pro)
+- SKILL.md is validator-compliant.
+- Script usage and behavior expectations are fully documented.
 
-7. **Aspect Ratios**: full list with use-case guidance (from gemini-imagegen)
+### Task 3: Remove superseded skills
 
-8. **API Key**: check order (--api-key, then env var)
+**Objective**
 
-9. **Preflight + Common Failures**: from nano-banana-pro
+Eliminate overlapping legacy skills after replacement is in place.
 
-10. **Filename Convention**: `yyyy-mm-dd-hh-mm-ss-name.jpg` pattern
+**Files**
 
-11. **Prompt Templates**: generation and editing templates from nano-banana-pro
+- Delete: `skills/nano-banana-pro/`
+- Delete: `skills/gemini-imagegen/`
 
-12. **Prompting Best Practices**: photorealistic, stylized, text, mockups from gemini-imagegen
+**Dependencies**
 
-13. **Advanced: Multi-Turn Refinement**: API pattern only (from gemini-imagegen), no script
+Tasks 1-2
 
-14. **Advanced: Google Search Grounding**: API pattern (from gemini-imagegen)
+**Implementation Steps**
 
-15. **Advanced: Multiple Reference Images**: note about compose subcommand + API pattern
+1. Remove `skills/nano-banana-pro/`.
+2. Remove `skills/gemini-imagegen/`.
+3. Regenerate or confirm manifest updates.
 
-16. **File Format Notes**: JPEG default, PNG conversion, format verification
+**Verification**
 
-**Step 2: Validate the skill**
+- Run: `ls skills/nano-banana-pro 2>&1`
+- Expect: `No such file or directory`.
+- Run: `ls skills/gemini-imagegen 2>&1`
+- Expect: `No such file or directory`.
+- Run: `python3 scripts/generate_skills_manifest.py`
+- Expect: manifest regenerates successfully.
 
-```bash
-python skills/skill-creator/scripts/quick_validate.py skills/gemini-imagen
-```
+**Done When**
 
-Expected: validation passes.
+- Legacy skill directories no longer exist.
+- `skills.json` contains `gemini-imagen` and excludes removed skills.
 
-**Step 3: Commit**
+### Task 4: Update repo documentation and manifest references
 
-```bash
-git add skills/gemini-imagen/SKILL.md
-git commit -m "feat(gemini-imagen): add SKILL.md with operational and reference docs"
-```
+**Objective**
 
----
+Ensure user-facing docs and machine-readable catalog reflect the merged skill.
 
-### Task 3: Delete old skills
+**Files**
 
-**Files:**
-- Delete: `skills/nano-banana-pro/` (entire directory)
-- Delete: `skills/gemini-imagegen/` (entire directory)
-
-**Step 1: Remove nano-banana-pro**
-
-```bash
-rm -rf skills/nano-banana-pro
-```
-
-**Step 2: Remove gemini-imagegen**
-
-```bash
-rm -rf skills/gemini-imagegen
-```
-
-**Step 3: Verify skills.json regenerates**
-
-The post-tool hook should regenerate `skills.json` when SKILL.md files change. If not triggered automatically:
-
-```bash
-python skills/skill-creator/scripts/quick_validate.py skills/gemini-imagen
-```
-
-Verify `skills.json` no longer contains `nano-banana-pro` or `gemini-imagegen` entries and does contain `gemini-imagen`.
-
-**Step 4: Commit**
-
-```bash
-git add -u skills/nano-banana-pro skills/gemini-imagegen skills.json
-git commit -m "refactor: remove nano-banana-pro and gemini-imagegen (replaced by gemini-imagen)"
-```
-
----
-
-### Task 4: Update CLAUDE.md skills table
-
-**Files:**
 - Modify: `CLAUDE.md`
+- Modify: `skills.json`
 
-**Step 1: Edit the skills table**
+**Dependencies**
 
-In the `## Existing Skills` table in `CLAUDE.md`:
-- Remove the `skills/nano-banana-pro/` row
-- Remove the `skills/gemini-imagegen/` row (if present)
-- Add: `| skills/gemini-imagen/ | Generate, edit, and compose images via the Gemini API |`
-- Keep alphabetical order
+Task 3
 
-**Step 2: Commit**
+**Implementation Steps**
 
-```bash
-git add CLAUDE.md
-git commit -m "docs: update skills table for gemini-imagen"
-```
+1. Update skills tables to include `skills/gemini-imagen/`.
+2. Remove stale references to removed skills.
+3. Regenerate `skills.json` after SKILL changes.
 
----
+**Verification**
 
-### Task 5: Push and verify
+- Run: `rg -n "gemini-imagen|nano-banana-pro|gemini-imagegen" CLAUDE.md skills.json`
+- Expect: `gemini-imagen` present; old skills absent.
 
-**Step 1: Push all commits**
+**Done When**
 
-```bash
-git push
-```
+- Documentation and manifest reflect only the new merged skill.
 
-**Step 2: Verify final state**
+### Task 5: Final validation and publish readiness check
 
-```bash
-ls skills/gemini-imagen/
-# Expected: SKILL.md  scripts/
+**Objective**
 
-ls skills/gemini-imagen/scripts/
-# Expected: generate_image.py
+Confirm merged skill structure is complete and operational before final handoff.
 
-# Verify old skills are gone
-ls skills/nano-banana-pro 2>&1
-# Expected: No such file or directory
+**Files**
 
-ls skills/gemini-imagegen 2>&1
-# Expected: No such file or directory
-```
+- Modify: `docs/plans/2026-02-21-gemini-imagen-implementation.md`
+
+**Dependencies**
+
+Tasks 1-4
+
+**Implementation Steps**
+
+1. Verify final folder layout and executable script presence.
+2. Re-run parser help checks for all subcommands.
+3. Validate this plan document under the new writing-plans schema.
+
+**Verification**
+
+- Run: `ls skills/gemini-imagen/`
+- Expect: includes `SKILL.md` and `scripts/`.
+- Run: `ls skills/gemini-imagen/scripts/`
+- Expect: includes `generate_image.py`.
+- Run: `python3 skills/writing-plans/scripts/validate_plan.py docs/plans/2026-02-21-gemini-imagen-implementation.md --strict-filename`
+- Expect: PASS.
+
+**Done When**
+
+- Skill directory is complete and script is discoverable.
+- Plan validates under the current writing-plans contract.
+
+## Risks And Mitigations
+
+- Risk: behavioral regressions during merge remove useful features.
+  Mitigation: explicit task coverage for generate/edit/compose parity and docs validation.
+- Risk: stale references remain in docs/manifest.
+  Mitigation: grep-based checks and manifest regeneration step.
+
+## Verification Matrix
+
+| Requirement | Proof command | Expected signal |
+| --- | --- | --- |
+| Implementation plan schema compliance | `python3 skills/writing-plans/scripts/validate_plan.py docs/plans/2026-02-21-gemini-imagen-implementation.md --strict-filename` | PASS |
+| Skill docs are valid | `python3 skills/skill-creator/scripts/quick_validate.py skills/gemini-imagen` | `Skill is valid!` |
+| Legacy skills removed | `ls skills/nano-banana-pro 2>&1 && ls skills/gemini-imagegen 2>&1` | Both report missing directories |
+| Merged skill is discoverable | `rg -n "gemini-imagen" skills.json` | At least one manifest entry |
+
+## Handoff
+
+1. Execute implementation tasks in this session.
+2. Open a separate execution session for implementation.
+3. Refine task details before coding.
