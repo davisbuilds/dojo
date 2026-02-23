@@ -1,6 +1,7 @@
 ---
 name: skill-installer
 description: Install skills into Codex or Claude Code skills directories from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos).
+compatibility: "Requires python3, requests package. Requires network access for GitHub API."
 metadata:
   short-description: Install curated skills from openai/skills or other repos
 ---

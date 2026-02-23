@@ -1,6 +1,7 @@
 ---
 name: vercel-deploy
 description: Deploy applications and websites to Vercel. Use when the user requests deployment actions like "deploy my app", "deploy and give me the link", "push this live", or "create a preview deployment".
+compatibility: "Requires Vercel CLI (npm i -g vercel). Requires network access for deployment."
 ---
 
 # Vercel Deploy

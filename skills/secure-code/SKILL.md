@@ -6,7 +6,7 @@ description: >-
   the lethal trifecta (private data + untrusted input + external comms co-occurrence),
   or when the user says 'scan', 'security scan', 'trifecta check', 'check for vulnerabilities',
   'SAST', or 'secure this code'. On-demand via /scan and /trifecta-check commands.
-compatibility: "Requires semgrep CLI (brew install semgrep), python3"
+compatibility: "Requires semgrep CLI (brew install semgrep), python3, PyYAML. Semgrep rule downloads require network on first run."
 ---
 
 # secure-code

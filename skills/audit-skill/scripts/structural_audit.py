@@ -108,7 +108,9 @@ def allowed_tools_blast_radius(skill_path: Path) -> list[dict]:
             }
         ]
 
-    if not isinstance(tools, list):
+    if isinstance(tools, str):
+        tools = [t.strip() for t in tools.split(",") if t.strip()]
+    elif not isinstance(tools, list):
         tools = [tools]
 
     findings = []
@@ -117,9 +119,12 @@ def allowed_tools_blast_radius(skill_path: Path) -> list[dict]:
         # Check exact matches first, then prefix matches
         severity = None
         for pattern, risk in TOOL_RISK.items():
-            if tool_str == pattern or (
-                pattern.endswith("*)") and tool_str.startswith(pattern[:-2])
-            ):
+            if tool_str == pattern:
+                severity = risk
+                break
+            # Prefix match: Bash(git:*) should match Bash(git checkout:*) etc.
+            # But skip Bash(*) — it should only match exactly.
+            if pattern.endswith("*)") and pattern != "Bash(*)" and tool_str.startswith(pattern[:-2]):
                 severity = risk
                 break
         # Check for generic Bash(*) — unrestricted shell
@@ -257,6 +262,8 @@ def network_inference(skill_path: Path) -> list[dict]:
 
     for fpath in scripts_dir.rglob("*"):
         if not fpath.is_file():
+            continue
+        if any(part == "__pycache__" for part in fpath.parts):
             continue
         try:
             text = fpath.read_text(encoding="utf-8", errors="replace")

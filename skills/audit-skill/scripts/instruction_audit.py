@@ -75,8 +75,8 @@ EXFILTRATION_PATTERNS = [
 OVERREACH_PATTERNS = [
     # Modifying agent config
     (r"\.claude/settings", "config-modification"),
-    (r"\bCLAUDE\.md\b", "config-modification"),
-    (r"\bAGENTS\.md\b", "config-modification"),
+    (r"(?:modify|edit|change|update|write\s+to|add\s+to|overwrite|delete|remove)\s+.*\bCLAUDE\.md\b", "config-modification"),
+    (r"(?:modify|edit|change|update|write\s+to|add\s+to|overwrite|delete|remove)\s+.*\bAGENTS\.md\b", "config-modification"),
     # Disabling protections
     (r"\bdisable hook\b", "protection-bypass"),
     (r"\bskip validation\b", "protection-bypass"),

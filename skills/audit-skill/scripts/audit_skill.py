@@ -56,6 +56,8 @@ def run_code_audit_regex(skill_path: Path) -> list[dict]:
     for fpath in scripts_dir.rglob("*"):
         if not fpath.is_file() or fpath.suffix not in (".py", ".sh", ".bash", ".js", ".ts"):
             continue
+        if any(part == "__pycache__" for part in fpath.parts):
+            continue
         try:
             content = fpath.read_text(encoding="utf-8", errors="replace")
         except OSError:

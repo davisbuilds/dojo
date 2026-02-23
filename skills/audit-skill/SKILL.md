@@ -8,7 +8,7 @@ description: >-
   Use when reviewing a skill for security, auditing a skill before installation,
   checking for prompt injection, or when the user says 'audit skill', 'check skill security',
   'trust score', 'is this skill safe', or 'audit-skill'. On-demand via /audit-skill command.
-compatibility: "Requires python3, PyYAML. Layer 3 code audit requires semgrep CLI (brew install semgrep)."
+compatibility: "Requires python3, PyYAML. Layer 3 code audit requires semgrep CLI (brew install semgrep). Semgrep rule downloads require network on first run."
 ---
 
 # audit-skill

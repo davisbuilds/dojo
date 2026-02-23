@@ -50,12 +50,13 @@ rules:
 
   # Python: hardcoded secrets
   - id: skill-audit.python-hardcoded-secret
-    pattern-either:
-      - pattern: $KEY = "..."
-      - pattern: $KEY = '...'
-    metavariable-regex:
-      metavariable: $KEY
-      regex: ".*(api_key|apikey|secret|token|password|passwd|credential|auth_token).*"
+    patterns:
+      - pattern-either:
+          - pattern: $KEY = "..."
+          - pattern: $KEY = '...'
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: "(?i).*(api_key|apikey|api_secret|secret_key|secret|token|password|passwd|credential|auth_token|private_key|access_key).*"
     message: >-
       Potential hardcoded secret in variable assignment. Use environment variables
       or a secrets manager instead.
