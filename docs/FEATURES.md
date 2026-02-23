@@ -4,7 +4,7 @@ Product-surface reference for the Agent Skills Repository.
 
 ## Skills Catalog
 
-37 skills organized by category:
+38 skills organized by category:
 
 ### GitHub Workflows
 
@@ -45,6 +45,7 @@ Product-surface reference for the Agent Skills Repository.
 | `writing-plans` | Task-by-task implementation plans |
 | `create-cli` | CLI parameter and UX design |
 | `agent-native-architecture` | Build agent-native apps with tool/action parity |
+| `deep-research` | Web-backed research with conditional depth and evidence filtering |
 
 ### Platform Integrations
 
@@ -96,6 +97,7 @@ Slash-style entrypoints for harnesses that support command files:
 - `/commit-push-pr` — commit, push, PR flow
 - `/brainstorm` — brainstorming session
 - `/standardize-skills` — skill standardization
+- `/deep-research` — route depth and filter evidence in one command
 
 ## Skill Packaging
 

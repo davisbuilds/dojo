@@ -49,6 +49,11 @@
       "path": "skills/create-cli"
     },
     {
+      "name": "deep-research",
+      "description": "Use when a task needs web-backed research with controlled depth, relevance filtering, and citation-ready synthesis. Routes work to quick, standard, or deep tiers, filters low-signal context, and returns a compact packet with key findings, citations, discarded context, confidence gaps, and next queries.",
+      "path": "skills/deep-research"
+    },
+    {
       "name": "find-skills",
       "description": "Helps users discover and install agent skills when they ask questions like \"how do I do X\", \"find a skill for X\", \"is there a skill that can...\", or express interest in extending capabilities. This skill should be used when the user is looking for functionality that might exist as an installable skill.",
       "path": "skills/find-skills"

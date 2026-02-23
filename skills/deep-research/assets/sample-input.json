@@ -1,0 +1,47 @@
+{
+  "research_brief": "Evaluate incident response platforms for HIPAA-aligned healthcare SOC teams, focusing on evidence quality, deployment model, and audit-readiness.",
+  "task_context": {
+    "high_stakes": true,
+    "requires_current_info": true,
+    "multi_entity_comparison": true,
+    "unknown_scope": false
+  },
+  "findings": [
+    {
+      "title": "NIST Computer Security Incident Handling Guide (SP 800-61 Rev. 2)",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r2/final",
+      "summary": "Defines incident response lifecycle phases and emphasizes preparation, detection, analysis, containment, eradication, and recovery.",
+      "source_type": "government",
+      "published_at": "2012-08-06"
+    },
+    {
+      "title": "HHS HIPAA Security Rule Guidance",
+      "url": "https://www.hhs.gov/hipaa/for-professionals/security/guidance/index.html",
+      "summary": "Explains administrative, physical, and technical safeguards relevant for healthcare security operations and audit controls.",
+      "source_type": "government",
+      "published_at": "2024-12-01"
+    },
+    {
+      "title": "Vendor X Healthcare Compliance Overview",
+      "url": "https://example.com/vendor-x/healthcare-compliance",
+      "summary": "Describes SOC 2 controls, audit log exports, and HIPAA control mapping for healthcare SOC teams.",
+      "source_type": "official",
+      "published_at": "2026-01-15"
+    },
+    {
+      "title": "Vendor X Compliance Overview (Mirror)",
+      "url": "https://example.com/vendor-x/healthcare-compliance",
+      "summary": "Repeated coverage of the same compliance page with minor wording differences.",
+      "source_type": "official",
+      "published_at": "2026-01-15"
+    },
+    {
+      "title": "Playoff Predictions Weekly",
+      "url": "https://example.org/sports/playoff-predictions",
+      "summary": "Sports predictions and team rankings for the upcoming playoffs.",
+      "source_type": "news",
+      "published_at": "2026-02-20"
+    }
+  ],
+  "now": "2026-02-23"
+}
