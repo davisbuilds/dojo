@@ -1,0 +1,124 @@
+rules:
+  # Python: eval/exec with non-literal arguments
+  - id: skill-audit.python-eval-exec
+    patterns:
+      - pattern: eval($ARG)
+      - pattern: exec($ARG)
+    fix: |
+      Use ast.literal_eval() for data parsing, or restructure to avoid dynamic code execution.
+    message: >-
+      eval()/exec() with dynamic arguments allows arbitrary code execution.
+      Use ast.literal_eval() for safe data parsing or avoid dynamic execution entirely.
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: ["CWE-94"]
+      category: security
+      confidence: HIGH
+
+  # Python: dangerous subprocess patterns
+  - id: skill-audit.python-dangerous-subprocess
+    pattern-either:
+      - pattern: subprocess.$FUNC(..., shell=True, ...)
+      - pattern: os.system($CMD)
+      - pattern: os.popen($CMD)
+    message: >-
+      Shell execution with shell=True or os.system/popen enables command injection.
+      Use subprocess.run() with a list of arguments and shell=False.
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: ["CWE-78"]
+      category: security
+      confidence: HIGH
+
+  # Python: unvalidated network requests with variable URL
+  - id: skill-audit.python-unvalidated-network
+    pattern-either:
+      - pattern: requests.$METHOD($URL, ...)
+      - pattern: httpx.$METHOD($URL, ...)
+      - pattern: urllib.request.urlopen($URL)
+    message: >-
+      Network request with a variable URL. Ensure the URL is validated against
+      an allowlist to prevent SSRF.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      cwe: ["CWE-918"]
+      category: security
+      confidence: MEDIUM
+
+  # Python: hardcoded secrets
+  - id: skill-audit.python-hardcoded-secret
+    pattern-either:
+      - pattern: $KEY = "..."
+      - pattern: $KEY = '...'
+    metavariable-regex:
+      metavariable: $KEY
+      regex: ".*(api_key|apikey|secret|token|password|passwd|credential|auth_token).*"
+    message: >-
+      Potential hardcoded secret in variable assignment. Use environment variables
+      or a secrets manager instead.
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: ["CWE-798"]
+      category: security
+      confidence: MEDIUM
+
+  # Python: sensitive file access
+  - id: skill-audit.python-sensitive-file-access
+    pattern-either:
+      - pattern: open("=~/.../.ssh/...", ...)
+      - pattern: open("=~/.../.aws/...", ...)
+      - pattern: open("=~/.../.env", ...)
+      - pattern: |
+          Path("=~/.../.ssh/...")
+      - pattern: |
+          Path("=~/.../.aws/...")
+    message: >-
+      Access to sensitive system files (.ssh, .aws, .env). Skills should not
+      read or modify user credential files.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      cwe: ["CWE-538"]
+      category: security
+      confidence: MEDIUM
+
+  # Bash: dangerous patterns
+  - id: skill-audit.bash-dangerous-patterns
+    pattern-either:
+      - pattern: rm -rf $PATH
+      - pattern: curl ... | bash
+      - pattern: wget ... | bash
+      - pattern: eval $CMD
+      - pattern: chmod 777 $PATH
+    message: >-
+      Dangerous shell pattern detected. Avoid rm -rf, piping URLs to bash,
+      eval with variables, or overly permissive chmod.
+    languages: [bash]
+    severity: ERROR
+    metadata:
+      cwe: ["CWE-78"]
+      category: security
+      confidence: HIGH
+
+  # Python: runtime package installation
+  - id: skill-audit.python-runtime-install
+    pattern-either:
+      - pattern: subprocess.$FUNC(["pip", "install", ...], ...)
+      - pattern: subprocess.$FUNC(["pip3", "install", ...], ...)
+      - pattern: subprocess.$FUNC(["npm", "install", ...], ...)
+      - pattern: os.system("pip install ...")
+      - pattern: os.system("pip3 install ...")
+      - pattern: os.system("npm install ...")
+    message: >-
+      Runtime package installation via subprocess. This is a supply chain risk.
+      Declare dependencies in requirements.txt or package.json instead.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      cwe: ["CWE-829"]
+      category: security
+      confidence: HIGH
