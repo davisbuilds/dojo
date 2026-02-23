@@ -41,6 +41,12 @@ Default local policy is `prefer-global-link`:
 - If local differs, back it up before relinking.
 - Allow explicit keep-local exceptions when needed.
 
+Default global policy is `prefer-primary-link`:
+- Keep a concrete copy in the primary global root (`~/.agents/skills` by default).
+- Keep secondary globals (`~/.codex/skills`, `~/.claude/skills`) as symlinks to that primary copy.
+- This avoids duplicate skill entries in clients that aggregate multiple global roots.
+- Use `--global-policy mirror-copy` when fully independent per-global copies are required.
+
 Preferred global precedence:
 1. `~/.agents/skills`
 2. `~/.codex/skills`
@@ -70,7 +76,9 @@ python3 skills/skill-standardizer/scripts/discover.py
 ### 2) Audit (dry run)
 
 ```bash
-python3 skills/skill-standardizer/scripts/audit.py --format text
+python3 skills/skill-standardizer/scripts/audit.py \
+  --global-policy prefer-primary-link \
+  --format text
 ```
 
 Optional JSON report:
@@ -84,14 +92,31 @@ python3 skills/skill-standardizer/scripts/audit.py \
 ### 3) Apply Synchronization
 
 ```bash
-python3 skills/skill-standardizer/scripts/sync.py --apply
+python3 skills/skill-standardizer/scripts/sync.py \
+  --global-policy prefer-primary-link \
+  --apply
 ```
 
 ### 4) Verify
 
 ```bash
-python3 skills/skill-standardizer/scripts/audit.py --format text
+python3 skills/skill-standardizer/scripts/audit.py \
+  --global-policy prefer-primary-link \
+  --format text
 ```
+
+## Fix Duplicate Global Skill Entries
+
+When a skill appears multiple times in a client catalog, normalize globals to primary+links:
+
+```bash
+python3 skills/skill-standardizer/scripts/sync.py \
+  --global-policy prefer-primary-link \
+  --enforce-mirror \
+  --apply
+```
+
+For targeted fixes, provide a scoped canonical root containing only the affected skills.
 
 ## Safety Rules
 

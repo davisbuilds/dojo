@@ -20,6 +20,7 @@ class Args(argparse.Namespace):
     root: list[str] | None
     include_plugin_caches: bool
     local_policy: str
+    global_policy: str
     keep_local_skill: list[str] | None
     enforce_mirror: bool
     format: str
@@ -47,6 +48,12 @@ def parse_args(argv: list[str]) -> Args:
         choices=["prefer-global-link", "keep-local"],
         default="prefer-global-link",
         help="How to treat local duplicates when global copy exists.",
+    )
+    parser.add_argument(
+        "--global-policy",
+        choices=["prefer-primary-link", "mirror-copy"],
+        default="prefer-primary-link",
+        help="How to treat duplicate global copies: symlink secondary roots or keep independent copies.",
     )
     parser.add_argument(
         "--keep-local-skill",
@@ -82,6 +89,7 @@ def main(argv: list[str]) -> int:
     report = build_audit_report(
         context=context,
         local_policy=args.local_policy,
+        global_policy=args.global_policy,
         keep_local_skills=set(args.keep_local_skill or []),
         enforce_mirror=args.enforce_mirror,
     )

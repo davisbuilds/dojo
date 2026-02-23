@@ -13,13 +13,20 @@ This reference defines default policy for `skill-standardizer`.
 
 - `CONTENT_DRIFT`: same skill name, different content hash
 - `GLOBAL_DRIFT`: global roots disagree without canonical alignment
+- `GLOBAL_DUPLICATE_PRIMARY*`: secondary global copy should be linked to primary global source
+- `GLOBAL_DUPLICATE_PREFERRED*`: secondary global copy should be linked to preferred existing global source
 - `LOCAL_DUPLICATE_GLOBAL`: local copy duplicates global and should be linked
 - `INVALID_SKILL_DIR`: directory under skills root missing `SKILL.md`
 - `MISSING_GLOBAL_MIRROR`: canonical skill missing in global (only when `--enforce-mirror`)
+- `MISSING_GLOBAL_LINK`: canonical skill missing as a secondary global link (only when `--enforce-mirror` and link policy)
 
 ## Resolution Defaults
 
 - Local policy default: `prefer-global-link`
+- Global policy default: `prefer-primary-link`
+  - Keep primary global root as the concrete copy
+  - Link secondary global roots to the primary copy
+  - Use `--global-policy mirror-copy` to keep independent copies in each global root
 - Global precedence:
   1. `~/.agents/skills`
   2. `~/.codex/skills`

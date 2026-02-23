@@ -252,6 +252,7 @@ def _to_jsonable_issue(issue: dict[str, Any]) -> dict[str, Any]:
 def build_audit_report(
     context: Context,
     local_policy: str,
+    global_policy: str,
     keep_local_skills: set[str] | None,
     enforce_mirror: bool,
 ) -> dict[str, Any]:
@@ -259,7 +260,14 @@ def build_audit_report(
 
     inventories = [scan_root(root) for root in context.roots]
     by_path = {inv.root.path: inv for inv in inventories}
+    by_kind = {inv.root.kind: inv for inv in inventories}
     canonical_inventory = by_path.get(context.canonical_root) if context.canonical_root else None
+    primary_global_inventory: RootInventory | None = None
+    for kind in _preferred_global_kinds():
+        candidate = by_kind.get(kind)
+        if candidate:
+            primary_global_inventory = candidate
+            break
 
     issues: list[dict[str, Any]] = []
     actions: list[dict[str, Any]] = []
@@ -286,8 +294,14 @@ def build_audit_report(
 
     for skill in sorted(all_skill_names):
         entries = [(inv.root, inv.skills[skill]) for inv in inventories if skill in inv.skills]
+        canonical_has_skill = bool(canonical_inventory and skill in canonical_inventory.skills)
+        primary_global_root = primary_global_inventory.root if primary_global_inventory else None
+        primary_global_entry = (
+            primary_global_inventory.skills.get(skill) if primary_global_inventory else None
+        )
+        primary_global_target = primary_global_root.path / skill if primary_global_root else None
 
-        if canonical_inventory and skill in canonical_inventory.skills:
+        if canonical_has_skill:
             canonical_entry = canonical_inventory.skills[skill]
             for root, entry in entries:
                 if root.kind == "canonical":
@@ -300,6 +314,46 @@ def build_audit_report(
                     and preferred_global_for_skill(skill, inventories)
                 ):
                     continue
+
+                if (
+                    root.kind.startswith("global-")
+                    and global_policy == "prefer-primary-link"
+                    and primary_global_root
+                    and root.kind != primary_global_root.kind
+                ):
+                    if primary_global_entry or enforce_mirror:
+                        already_linked = (
+                            entry.is_symlink
+                            and primary_global_target is not None
+                            and entry.path.resolve() == primary_global_target
+                        )
+                        if already_linked:
+                            continue
+
+                        code = "GLOBAL_DUPLICATE_PRIMARY"
+                        message = "Secondary global should symlink to preferred global source"
+                        severity = "warning"
+                        if entry.dir_hash == canonical_entry.dir_hash:
+                            code = "GLOBAL_DUPLICATE_PRIMARY_IDENTICAL"
+                            message = "Secondary global matches canonical; symlink to preferred global recommended"
+                            severity = "info"
+
+                        add_issue(
+                            severity=severity,
+                            code=code,
+                            skill=skill,
+                            root=root.path,
+                            global_root=primary_global_target,
+                            message=message,
+                        )
+                        add_action(
+                            action="relink_to_global",
+                            skill=skill,
+                            source=primary_global_target,
+                            dest=root.path / skill,
+                            reason="Prefer linking secondary globals to primary global root",
+                        )
+                        continue
 
                 if entry.dir_hash != canonical_entry.dir_hash:
                     add_issue(
@@ -324,6 +378,27 @@ def build_audit_report(
                         continue
                     if skill in inv.skills:
                         continue
+                    if (
+                        global_policy == "prefer-primary-link"
+                        and primary_global_root
+                        and inv.root.kind != primary_global_root.kind
+                    ):
+                        add_issue(
+                            severity="info",
+                            code="MISSING_GLOBAL_LINK",
+                            skill=skill,
+                            root=inv.root.path,
+                            global_root=primary_global_target,
+                            message="Secondary global missing link to preferred global source",
+                        )
+                        add_action(
+                            action="relink_to_global",
+                            skill=skill,
+                            source=primary_global_target,
+                            dest=inv.root.path / skill,
+                            reason="Create missing secondary global link to preferred root",
+                        )
+                        continue
                     add_issue(
                         severity="info",
                         code="MISSING_GLOBAL_MIRROR",
@@ -346,12 +421,46 @@ def build_audit_report(
             for root, entry in entries
             if root.kind.startswith("global-")
         ]
-        if len(global_entries) > 1:
+        if len(global_entries) > 1 and not (
+            global_policy == "prefer-primary-link" and canonical_has_skill
+        ):
             preferred = preferred_global_for_skill(skill, inventories)
             if preferred:
                 _, preferred_entry = preferred
+                preferred_target = preferred_entry.path.resolve()
                 for root, entry in global_entries:
                     if entry.path == preferred_entry.path:
+                        continue
+                    if global_policy == "prefer-primary-link":
+                        already_linked = (
+                            entry.is_symlink and entry.path.resolve() == preferred_target
+                        )
+                        if already_linked:
+                            continue
+
+                        code = "GLOBAL_DUPLICATE_PREFERRED"
+                        message = "Secondary global should symlink to preferred global source"
+                        severity = "warning"
+                        if entry.dir_hash == preferred_entry.dir_hash:
+                            code = "GLOBAL_DUPLICATE_PREFERRED_IDENTICAL"
+                            message = "Secondary global matches preferred source; symlink recommended"
+                            severity = "info"
+
+                        add_issue(
+                            severity=severity,
+                            code=code,
+                            skill=skill,
+                            root=root.path,
+                            global_root=preferred_entry.path,
+                            message=message,
+                        )
+                        add_action(
+                            action="relink_to_global",
+                            skill=skill,
+                            source=preferred_entry.path,
+                            dest=root.path / skill,
+                            reason="Prefer linking global duplicates to preferred source",
+                        )
                         continue
                     if entry.dir_hash == preferred_entry.dir_hash:
                         continue
@@ -438,6 +547,7 @@ def build_audit_report(
             for inv in inventories
         ],
         "local_policy": local_policy,
+        "global_policy": global_policy,
         "keep_local_skills": sorted(keep_local_skills),
         "enforce_mirror": enforce_mirror,
         "issues": [_to_jsonable_issue(issue) for issue in issues],

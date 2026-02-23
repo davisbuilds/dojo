@@ -17,16 +17,21 @@ python3 skills/skill-standardizer/scripts/discover.py
 2. Audit drift:
 
 ```bash
-python3 skills/skill-standardizer/scripts/audit.py --format text
+python3 skills/skill-standardizer/scripts/audit.py \
+  --global-policy prefer-primary-link \
+  --format text
 ```
 
 3. If user confirms apply, synchronize:
 
 ```bash
-python3 skills/skill-standardizer/scripts/sync.py --apply
+python3 skills/skill-standardizer/scripts/sync.py \
+  --global-policy prefer-primary-link \
+  --apply
 ```
 
 4. Re-audit and summarize final status.
 
 Default local policy is `prefer-global-link`.
+Default global policy is `prefer-primary-link` to avoid duplicate catalog entries across aggregated global roots.
 Use `--keep-local-skill <name>` for local-only exceptions.
