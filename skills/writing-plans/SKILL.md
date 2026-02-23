@@ -89,7 +89,7 @@ Granularity target:
 - Add negative-path verification for risky logic.
 - Do not claim plan readiness until verification coverage is explicit.
 
-If available, apply the mindset from `verification-before-completion` when checking final plan quality.
+If available, apply the mindset from `verify-before-complete` when checking final plan quality.
 
 ## Conditional Coordination
 
