@@ -26,11 +26,11 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 
 ## Available Skills
 
-37 skills across categories: GitHub workflows, code review, content creation, dev workflows, platform integrations, knowledge management, and meta/skill tooling. See [docs/FEATURES.md](docs/FEATURES.md) for the full catalog.
+37 skills across categories: GitHub workflows, code review, content creation, dev workflows, platform integrations, knowledge management, and meta/skill tooling. See [docs/system/FEATURES.md](docs/system/FEATURES.md) for the full catalog.
 
 ## Hooks
 
-Five hooks in `hooks/` enforce skill quality and inject session context (skill catalog, frontmatter validation, manifest regeneration, git checks, structure checks). Configured in `.claude/settings.json` and `.agents/settings.json`. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for details.
+Five hooks in `hooks/` enforce skill quality and inject session context (skill catalog, frontmatter validation, manifest regeneration, git checks, structure checks). Configured in `.claude/settings.json` and `.agents/settings.json`. See [docs/system/ARCHITECTURE.md](docs/system/ARCHITECTURE.md) for details.
 
 ## Prerequisites
 
@@ -106,7 +106,7 @@ python3 skills/skill-installer/scripts/install-skill-from-github.py \
 
 ### Command Wrappers
 
-Some skills include optional `commands/*.md` wrappers for slash-style entrypoints. See [docs/FEATURES.md](docs/FEATURES.md) for the full list.
+Some skills include optional `commands/*.md` wrappers for slash-style entrypoints. See [docs/system/FEATURES.md](docs/system/FEATURES.md) for the full list.
 
 ## Resources
 
@@ -118,11 +118,11 @@ Some skills include optional `commands/*.md` wrappers for slash-style entrypoint
 
 - Contributor workflow and PR expectations: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Agent implementation guidance: [AGENTS.md](AGENTS.md)
-- Architecture and skill structure: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- Skills catalog and feature reference: [docs/FEATURES.md](docs/FEATURES.md)
-- Setup and operations: [docs/OPERATIONS.md](docs/OPERATIONS.md)
-- Product roadmap snapshot: [docs/ROADMAP.md](docs/ROADMAP.md)
-- Git history and branch policy: [docs/GIT_HISTORY_POLICY.md](docs/GIT_HISTORY_POLICY.md)
+- Architecture and skill structure: [docs/system/ARCHITECTURE.md](docs/system/ARCHITECTURE.md)
+- Skills catalog and feature reference: [docs/system/FEATURES.md](docs/system/FEATURES.md)
+- Setup and operations: [docs/system/OPERATIONS.md](docs/system/OPERATIONS.md)
+- Product roadmap snapshot: [docs/project/ROADMAP.md](docs/project/ROADMAP.md)
+- Git history and branch policy: [docs/project/GIT_HISTORY_POLICY.md](docs/project/GIT_HISTORY_POLICY.md)
 
 ## Acknowledgements
 

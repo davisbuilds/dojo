@@ -247,7 +247,7 @@ Enforce safe sandbox policy combinations and add static audit tooling.
 - Create: `harness/sandbox/docker_adapter.py`
 - Create: `scripts/harness_security_audit.py`
 - Create: `tests/harness/test_sandbox_policy.py`
-- Modify: `docs/OPERATIONS.md`
+- Modify: `docs/system/OPERATIONS.md`
 
 **Dependencies**
 
@@ -283,7 +283,7 @@ Support safe multi-agent orchestration with per-lane serialization and validated
 - Create: `harness/orchestration/handoff.py`
 - Create: `tests/harness/test_queue_serialization.py`
 - Create: `tests/harness/test_handoffs.py`
-- Modify: `docs/ARCHITECTURE.md`
+- Modify: `docs/system/ARCHITECTURE.md`
 
 **Dependencies**
 
@@ -318,7 +318,7 @@ Add an offline, gated recursive improvement loop with mandatory eval checks and 
 - Create: `harness/improvement/canary.py`
 - Create: `harness/evals/cases/regression.yaml`
 - Create: `tests/harness/test_improvement_pipeline.py`
-- Modify: `docs/ROADMAP.md`
+- Modify: `docs/project/ROADMAP.md`
 
 **Dependencies**
 
@@ -353,7 +353,7 @@ Apply objective split thresholds and publish a documented repo strategy decision
 - Create: `docs/plans/2026-02-23-dojo-harness-split-plan.md`
 - Create: `docs/archive/harness-migration-checklist.md`
 - Modify: `README.md`
-- Modify: `docs/ARCHITECTURE.md`
+- Modify: `docs/system/ARCHITECTURE.md`
 
 **Dependencies**
 

@@ -96,7 +96,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 
 ## Existing Skills
 
-38 skills in `skills/`. The full catalog with descriptions is in `docs/FEATURES.md`. The auto-generated `skills.json` manifest is the runtime source of truth.
+38 skills in `skills/`. The full catalog with descriptions is in `docs/system/FEATURES.md`. The auto-generated `skills.json` manifest is the runtime source of truth.
 
 ## Specification
 
@@ -104,4 +104,4 @@ Full skill specification: `spec/agent-skills-spec.md`
 
 ## Command Wrappers
 
-Some skills include `commands/*.md` wrappers for slash-style entrypoints. See `docs/FEATURES.md` for the current list. In harnesses that do not expose command files, these wrappers remain canonical runbooks.
+Some skills include `commands/*.md` wrappers for slash-style entrypoints. See `docs/system/FEATURES.md` for the current list. In harnesses that do not expose command files, these wrappers remain canonical runbooks.
