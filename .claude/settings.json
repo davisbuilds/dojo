@@ -52,6 +52,14 @@
             "command": "bash hooks/stop-hook-skill-structure.sh"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/stop-hook-session-learnings.sh"
+          }
+        ]
       }
     ]
   }
