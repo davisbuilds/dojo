@@ -26,11 +26,11 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 
 ## Available Skills
 
-37 skills across categories: GitHub workflows, code review, content creation, dev workflows, platform integrations, knowledge management, and meta/skill tooling. See [docs/system/FEATURES.md](docs/system/FEATURES.md) for the full catalog.
+42 skills across categories: GitHub workflows, code review, content creation, dev workflows, platform integrations, knowledge management, and meta/skill tooling. See [docs/system/FEATURES.md](docs/system/FEATURES.md) for the full catalog.
 
 ## Hooks
 
-Five hooks in `hooks/` enforce skill quality and inject session context (skill catalog, frontmatter validation, manifest regeneration, git checks, structure checks). Configured in `.claude/settings.json` and `.agents/settings.json`. See [docs/system/ARCHITECTURE.md](docs/system/ARCHITECTURE.md) for details.
+Seven hooks in `hooks/` enforce skill quality, inject session context, and nudge agents to capture learnings (skill catalog, frontmatter validation, manifest regeneration, git checks, structure checks, session learnings reminder). Configured in `.claude/settings.json` and `.agents/settings.json`. See [docs/system/ARCHITECTURE.md](docs/system/ARCHITECTURE.md) for details.
 
 ## Prerequisites
 

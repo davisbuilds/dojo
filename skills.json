@@ -106,6 +106,11 @@
       "path": "skills/gpt-imagen"
     },
     {
+      "name": "hookify",
+      "description": "Create and manage lightweight guard-rail hooks from markdown rule files. Harness-agnostic \u2014 works with Claude Code, Agents SDK, or any harness supporting stdin/stdout hooks. Use when the user says \"hookify\", \"create a hook\", \"prevent this behavior\", \"add a guard rail\", or wants to analyze conversation for unwanted patterns. Commands - /hookify, /hookify:list, /hookify:configure, /hookify:help.",
+      "path": "skills/hookify"
+    },
+    {
       "name": "json-canvas",
       "description": "Create and edit JSON Canvas files (.canvas) with nodes, edges, groups, and connections. Use when working with .canvas files, creating visual canvases, mind maps, flowcharts, or when the user mentions Canvas files in Obsidian.",
       "path": "skills/json-canvas"
@@ -144,6 +149,11 @@
       "name": "secure-code",
       "description": "Static analysis security scanning and architectural trifecta detection using semgrep. Use when reviewing code for security vulnerabilities, running SAST scans, checking for the lethal trifecta (private data + untrusted input + external comms co-occurrence), or when the user says 'scan', 'security scan', 'trifecta check', 'check for vulnerabilities', 'SAST', or 'secure this code'. On-demand via /scan and /trifecta-check commands.",
       "path": "skills/secure-code"
+    },
+    {
+      "name": "session-learnings",
+      "description": "Update project reference docs (AGENTS.md, CLAUDE.md) with non-obvious learnings from the current session. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on \"/learnings\", \"update docs with learnings\", \"save what we learned\", or proactively at session end.",
+      "path": "skills/session-learnings"
     },
     {
       "name": "skill-creator",
