@@ -121,6 +121,7 @@ Some skills include optional `commands/*.md` wrappers for slash-style entrypoint
 - Architecture and skill structure: [docs/system/ARCHITECTURE.md](docs/system/ARCHITECTURE.md)
 - Skills catalog and feature reference: [docs/system/FEATURES.md](docs/system/FEATURES.md)
 - Setup and operations: [docs/system/OPERATIONS.md](docs/system/OPERATIONS.md)
+- Product vision and principles: [docs/project/VISION.md](docs/project/VISION.md)
 - Product roadmap snapshot: [docs/project/ROADMAP.md](docs/project/ROADMAP.md)
 - Git history and branch policy: [docs/project/GIT_HISTORY_POLICY.md](docs/project/GIT_HISTORY_POLICY.md)
 
