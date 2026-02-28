@@ -4,7 +4,9 @@ encoding tricks, exfiltration, and overreach detection."""
 
 import re
 import sys
+import math
 from pathlib import Path
+from typing import Callable
 
 # --- Code block stripping ---
 
@@ -52,8 +54,6 @@ PROMPT_INJECTION_PATTERNS = [
 ]
 
 ENCODING_PATTERNS = [
-    # Base64 blobs (>50 chars of base64 alphabet)
-    (r"[A-Za-z0-9+/]{50,}={0,2}", "base64-blob"),
     # Zero-width Unicode
     (r"[\u200b\u200c\u200d\ufeff]", "zero-width-unicode"),
     # HTML comments with suspicious content
@@ -61,6 +61,19 @@ ENCODING_PATTERNS = [
     # Repeated hex sequences (potential obfuscation)
     (r"(\\x[0-9a-fA-F]{2}){10,}", "hex-sequence"),
 ]
+
+BASE64_BLOB_RE = re.compile(r"(?<![A-Za-z0-9+/=])(?:[A-Za-z0-9+/]{4}){16,}(?:==|=)?(?![A-Za-z0-9+/=])")
+BASE64_SHORT_RE = re.compile(r"(?<![A-Za-z0-9+/=])[A-Za-z0-9+/]{12,}={0,2}(?![A-Za-z0-9+/=])")
+BASE64_DECODE_HINTS = (
+    "base64",
+    "decode",
+    "b64decode",
+    "frombase64string",
+    "atob",
+    "powershell -enc",
+    "eval(",
+    "exec(",
+)
 
 EXFILTRATION_PATTERNS = [
     # Send/post/upload near URL patterns
@@ -73,15 +86,18 @@ EXFILTRATION_PATTERNS = [
 ]
 
 OVERREACH_PATTERNS = [
-    # Modifying agent config
-    (r"\.claude/settings", "config-modification"),
+    # Modifying agent/harness config
+    (
+        r"(?:modify|edit|change|update|write\s+to|add\s+to|overwrite|delete|remove|tamper\s+with)\b.{0,120}(?:\.claude|\.agents|\.codex)/settings(?:\.json)?\b",
+        "config-modification",
+    ),
     (r"(?:modify|edit|change|update|write\s+to|add\s+to|overwrite|delete|remove)\s+.*\bCLAUDE\.md\b", "config-modification"),
     (r"(?:modify|edit|change|update|write\s+to|add\s+to|overwrite|delete|remove)\s+.*\bAGENTS\.md\b", "config-modification"),
     # Disabling protections
     (r"\bdisable hook\b", "protection-bypass"),
     (r"\bskip validation\b", "protection-bypass"),
     (r"--no-verify\b", "protection-bypass"),
-    (r"\bdisable.{0,20}(check|guard|hook|validation)\b", "protection-bypass"),
+    (r"\b(?:disable|turn off|bypass|skip)\b.{0,30}\b(?:hook|guard|validation|safety|protection)\b", "protection-bypass"),
     # Cross-skill access
     (r"\.\./skills/", "cross-skill-access"),
     # Sensitive paths
@@ -122,6 +138,7 @@ def _scan_patterns(
     severity: str,
     category: str,
     file_rel: str,
+    line_filter: Callable[[str], bool] | None = None,
 ) -> list[dict]:
     """Scan stripped text against a pattern list, returning findings."""
     findings = []
@@ -135,6 +152,8 @@ def _scan_patterns(
             continue
         for i, line in enumerate(lines, 1):
             if regex.search(line):
+                if line_filter and not line_filter(line):
+                    continue
                 key = (file_rel, i, subcategory)
                 if key in seen:
                     continue
@@ -149,6 +168,82 @@ def _scan_patterns(
                         "file": file_rel,
                         "line": i,
                         "remediation": f"Review and remove or justify this {category} pattern.",
+                    }
+                )
+    return findings
+
+
+PROTECTIVE_GUIDANCE_RE = re.compile(
+    r"\b(?:never|must not|should not|do not|don't|avoid|prevent)\b.{0,60}\b"
+    r"(?:modify|edit|change|update|write|add|overwrite|delete|remove|disable|skip|bypass)\b",
+    re.IGNORECASE,
+)
+
+
+def _is_path_like_token(token: str) -> bool:
+    """Heuristic: slash-heavy tokens without padding/operators are usually paths, not payloads."""
+    return "/" in token and "+" not in token and "=" not in token
+
+
+def _shannon_entropy(token: str) -> float:
+    if not token:
+        return 0.0
+    counts = {c: token.count(c) for c in set(token)}
+    total = len(token)
+    entropy = 0.0
+    for count in counts.values():
+        p = count / total
+        entropy -= p * math.log2(p)
+    return entropy
+
+
+def _base64_findings(skill_path: Path, files: list[tuple[Path, str]]) -> list[dict]:
+    findings = []
+    seen = set()
+    for fpath, content in files:
+        rel = str(fpath.relative_to(skill_path))
+        lines = content.split("\n")
+        for i, line in enumerate(lines, 1):
+            context_lines = lines[max(0, i - 2):min(len(lines), i + 1)]
+            context = " ".join(context_lines).lower()
+            has_decode_hint = any(h in context for h in BASE64_DECODE_HINTS)
+            pattern = BASE64_SHORT_RE if has_decode_hint else BASE64_BLOB_RE
+            for match in pattern.finditer(line):
+                blob = match.group(0)
+                key = (rel, i, blob[:32])
+                if key in seen:
+                    continue
+                seen.add(key)
+
+                if _is_path_like_token(blob) and not has_decode_hint:
+                    continue
+                # In decode-heavy prose/code, short alphabetic identifiers are common noise.
+                if has_decode_hint and re.fullmatch(r"[A-Za-z]+", blob) and len(blob) < 24:
+                    continue
+
+                entropy = _shannon_entropy(blob)
+                if has_decode_hint:
+                    sev = "HIGH"
+                    mode = "decode-context"
+                elif ("+" in blob or "=" in blob) and len(blob) >= 80 and entropy >= 2.4:
+                    sev = "HIGH"
+                    mode = "high-entropy"
+                elif len(blob) >= 140 and entropy >= 3.0:
+                    sev = "LOW"
+                    mode = "ambiguous"
+                else:
+                    continue
+
+                findings.append(
+                    {
+                        "id": "INSTR-010",
+                        "severity": sev,
+                        "layer": 2,
+                        "category": "encoding-trick",
+                        "message": f"base64-blob ({mode}): {line.strip()[:120]}",
+                        "file": rel,
+                        "line": i,
+                        "remediation": "Review and remove or justify this encoding-trick pattern.",
                     }
                 )
     return findings
@@ -178,6 +273,7 @@ def prompt_injection_scan(
 def encoding_scan(skill_path: Path, files: list[tuple[Path, str]]) -> list[dict]:
     """Scan for encoding tricks and obfuscation."""
     findings = []
+    findings.extend(_base64_findings(skill_path, files))
     for fpath, content in files:
         rel = str(fpath.relative_to(skill_path))
         findings.extend(
@@ -220,16 +316,30 @@ def overreach_scan(skill_path: Path, files: list[tuple[Path, str]]) -> list[dict
     for fpath, content in files:
         stripped = strip_code_blocks(content)
         rel = str(fpath.relative_to(skill_path))
-        findings.extend(
-            _scan_patterns(
-                stripped,
-                OVERREACH_PATTERNS,
-                "INSTR-030",
-                "HIGH",
-                "overreach",
-                rel,
-            )
+        file_findings = _scan_patterns(
+            stripped,
+            OVERREACH_PATTERNS,
+            "INSTR-030",
+            "HIGH",
+            "overreach",
+            rel,
         )
+        lines = stripped.split("\n")
+        for f in file_findings:
+            ln = f.get("line")
+            if not ln or ln < 1 or ln > len(lines):
+                findings.append(f)
+                continue
+
+            line_text = lines[ln - 1]
+            if PROTECTIVE_GUIDANCE_RE.search(line_text):
+                f["severity"] = "LOW"
+                f["category"] = "overreach-protective-guidance"
+                f["message"] = f"protective-guidance mention: {line_text.strip()[:120]}"
+                f["remediation"] = (
+                    "Informational guidance only. Ensure wording remains prohibitive and not actionable bypass instructions."
+                )
+            findings.append(f)
     return findings
 
 
