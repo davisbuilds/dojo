@@ -61,7 +61,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash hooks/stop-hook-session-learnings.sh"
+            "command": "bash hooks/stop-hook-session-retro.sh"
           }
         ]
       }

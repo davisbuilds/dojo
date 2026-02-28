@@ -151,9 +151,9 @@
       "path": "skills/secure-code"
     },
     {
-      "name": "session-learnings",
-      "description": "Update project reference docs (AGENTS.md, CLAUDE.md) with non-obvious learnings from the current session. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on \"/learnings\", \"update docs with learnings\", \"save what we learned\", or proactively at session end.",
-      "path": "skills/session-learnings"
+      "name": "session-retro",
+      "description": "Update project reference docs (AGENTS.md, CLAUDE.md) with non-obvious learnings from the current session. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on \"/retro\", \"update docs with learnings\", \"save what we learned\", or proactively at session end.",
+      "path": "skills/session-retro"
     },
     {
       "name": "skill-creator",

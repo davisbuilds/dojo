@@ -1,9 +1,9 @@
 ---
-name: session-learnings
-description: Update project reference docs (AGENTS.md, CLAUDE.md) with non-obvious learnings from the current session. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on "/learnings", "update docs with learnings", "save what we learned", or proactively at session end.
+name: session-retro
+description: Update project reference docs (AGENTS.md, CLAUDE.md) with non-obvious learnings from the current session. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on "/retro", "update docs with learnings", "save what we learned", or proactively at session end.
 ---
 
-# Session Learnings
+# Session Retro
 
 Append non-obvious learnings from this session to the project's reference docs. Every edit must be a single-line addition — no rewrites, no reorganization.
 

@@ -93,7 +93,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 | `post-tool-use-validate-implementation-plan.sh` | PostToolUse (Write\|Edit) | Validates `docs/plans/*-implementation.md` against `writing-plans` schema after write/edit |
 | `stop-hook-git-check.sh` | Stop | Blocks if there are uncommitted changes, untracked files, or unpushed commits |
 | `stop-hook-skill-structure.sh` | Stop | Validates that modified skill directories have SKILL.md and matching directory/frontmatter names |
-| `stop-hook-session-learnings.sh` | Stop | Reminds agent to run `/learnings` to capture non-obvious session learnings before ending |
+| `stop-hook-session-retro.sh` | Stop | Reminds agent to run `/retro` to capture non-obvious session learnings before ending |
 
 ## Existing Skills
 
