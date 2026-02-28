@@ -23,6 +23,7 @@ class Args(argparse.Namespace):
     global_policy: str
     keep_local_skill: list[str] | None
     enforce_mirror: bool
+    codex_agents_dedupe: bool
     format: str
     report_out: str | None
 
@@ -66,6 +67,15 @@ def parse_args(argv: list[str]) -> Args:
         help="Treat missing canonical skills in globals as drift and propose creation.",
     )
     parser.add_argument(
+        "--codex-agents-dedupe",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help=(
+            "When enabled, keep ~/.agents/skills as authoritative and relink "
+            "~/.codex/skills duplicates to avoid Codex duplicate catalog entries."
+        ),
+    )
+    parser.add_argument(
         "--format",
         choices=["text", "json"],
         default="text",
@@ -92,6 +102,7 @@ def main(argv: list[str]) -> int:
         global_policy=args.global_policy,
         keep_local_skills=set(args.keep_local_skill or []),
         enforce_mirror=args.enforce_mirror,
+        codex_agents_dedupe=args.codex_agents_dedupe,
     )
 
     if args.report_out:

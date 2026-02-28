@@ -255,6 +255,7 @@ def build_audit_report(
     global_policy: str,
     keep_local_skills: set[str] | None,
     enforce_mirror: bool,
+    codex_agents_dedupe: bool = True,
 ) -> dict[str, Any]:
     keep_local_skills = keep_local_skills or set()
 
@@ -263,6 +264,8 @@ def build_audit_report(
     by_kind = {inv.root.kind: inv for inv in inventories}
     canonical_inventory = by_path.get(context.canonical_root) if context.canonical_root else None
     primary_global_inventory: RootInventory | None = None
+    agents_global_inventory: RootInventory | None = by_kind.get("global-agents")
+    codex_global_inventory: RootInventory | None = by_kind.get("global-codex")
     for kind in _preferred_global_kinds():
         candidate = by_kind.get(kind)
         if candidate:
@@ -315,9 +318,18 @@ def build_audit_report(
                 ):
                     continue
 
+                prefer_link_secondary_globals = (
+                    global_policy == "prefer-primary-link"
+                    or (
+                        codex_agents_dedupe
+                        and root.kind == "global-codex"
+                        and primary_global_root is not None
+                        and primary_global_root.kind == "global-agents"
+                    )
+                )
                 if (
                     root.kind.startswith("global-")
-                    and global_policy == "prefer-primary-link"
+                    and prefer_link_secondary_globals
                     and primary_global_root
                     and root.kind != primary_global_root.kind
                 ):
@@ -378,8 +390,17 @@ def build_audit_report(
                         continue
                     if skill in inv.skills:
                         continue
-                    if (
+                    prefer_link_missing_secondary = (
                         global_policy == "prefer-primary-link"
+                        or (
+                            codex_agents_dedupe
+                            and inv.root.kind == "global-codex"
+                            and primary_global_root is not None
+                            and primary_global_root.kind == "global-agents"
+                        )
+                    )
+                    if (
+                        prefer_link_missing_secondary
                         and primary_global_root
                         and inv.root.kind != primary_global_root.kind
                     ):
@@ -421,6 +442,73 @@ def build_audit_report(
             for root, entry in entries
             if root.kind.startswith("global-")
         ]
+        if (
+            not canonical_has_skill
+            and codex_agents_dedupe
+            and agents_global_inventory is not None
+            and codex_global_inventory is not None
+        ):
+            agents_entry = next(
+                (entry for root, entry in global_entries if root.kind == "global-agents"),
+                None,
+            )
+            codex_entry = next(
+                (entry for root, entry in global_entries if root.kind == "global-codex"),
+                None,
+            )
+
+            if agents_entry and codex_entry:
+                already_linked = (
+                    codex_entry.is_symlink
+                    and codex_entry.path.resolve() == agents_entry.path.resolve()
+                )
+                if not already_linked:
+                    code = "CODEX_AGENTS_DUPLICATE"
+                    message = (
+                        "Codex and Agents roots are aggregated by Codex; "
+                        "Codex copy should symlink to Agents source to avoid duplicate catalog entries"
+                    )
+                    severity = "warning"
+                    if codex_entry.dir_hash == agents_entry.dir_hash:
+                        code = "CODEX_AGENTS_DUPLICATE_IDENTICAL"
+                        message = (
+                            "Codex copy matches Agents source; symlink recommended "
+                            "to avoid duplicate catalog entries"
+                        )
+                        severity = "info"
+
+                    add_issue(
+                        severity=severity,
+                        code=code,
+                        skill=skill,
+                        root=codex_global_inventory.root.path,
+                        global_root=agents_entry.path,
+                        message=message,
+                    )
+                    add_action(
+                        action="relink_to_global",
+                        skill=skill,
+                        source=agents_entry.path,
+                        dest=codex_global_inventory.root.path / skill,
+                        reason="Codex dedupe: prefer Agents source for aggregated catalogs",
+                    )
+            elif agents_entry and not codex_entry and enforce_mirror:
+                agents_target = agents_global_inventory.root.path / skill
+                add_issue(
+                    severity="info",
+                    code="MISSING_CODEX_LINK_TO_AGENTS",
+                    skill=skill,
+                    root=codex_global_inventory.root.path,
+                    global_root=agents_target,
+                    message="Codex global missing link to Agents source",
+                )
+                add_action(
+                    action="relink_to_global",
+                    skill=skill,
+                    source=agents_target,
+                    dest=codex_global_inventory.root.path / skill,
+                    reason="Create missing Codex link to Agents source",
+                )
         if len(global_entries) > 1 and not (
             global_policy == "prefer-primary-link" and canonical_has_skill
         ):
@@ -548,6 +636,7 @@ def build_audit_report(
         ],
         "local_policy": local_policy,
         "global_policy": global_policy,
+        "codex_agents_dedupe": codex_agents_dedupe,
         "keep_local_skills": sorted(keep_local_skills),
         "enforce_mirror": enforce_mirror,
         "issues": [_to_jsonable_issue(issue) for issue in issues],

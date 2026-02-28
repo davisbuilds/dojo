@@ -34,4 +34,5 @@ python3 skills/skill-standardizer/scripts/sync.py \
 
 Default local policy is `prefer-global-link`.
 Default global policy is `prefer-primary-link` to avoid duplicate catalog entries across aggregated global roots.
+Codex/Agents dedupe is enabled by default (`--codex-agents-dedupe`) so `~/.agents/skills` remains authoritative and `~/.codex/skills` is relinked to avoid Codex duplicate entries.
 Use `--keep-local-skill <name>` for local-only exceptions.

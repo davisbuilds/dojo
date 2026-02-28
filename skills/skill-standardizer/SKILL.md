@@ -47,6 +47,11 @@ Default global policy is `prefer-primary-link`:
 - This avoids duplicate skill entries in clients that aggregate multiple global roots.
 - Use `--global-policy mirror-copy` when fully independent per-global copies are required.
 
+Codex/Agents dedupe guard (enabled by default):
+- `--codex-agents-dedupe` keeps `~/.agents/skills` authoritative for Codex-facing catalogs.
+- When enabled, `~/.codex/skills/<skill>` is relinked to `~/.agents/skills/<skill>` to avoid duplicate entries in Codex dropdowns.
+- Use `--no-codex-agents-dedupe` only if you explicitly need separate Codex copies.
+
 Preferred global precedence:
 1. `~/.agents/skills`
 2. `~/.codex/skills`
