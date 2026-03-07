@@ -1,6 +1,6 @@
 ---
 name: compound-docs
-description: Capture solved problems as categorized documentation with YAML frontmatter for fast lookup
+description: Capture solved problems as categorized documentation with YAML frontmatter for fast lookup. Use when a solution is confirmed and should be preserved for future retrieval.
 allowed-tools:
   - Read # Parse conversation context
   - Write # Create resolution docs

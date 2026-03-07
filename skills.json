@@ -39,7 +39,7 @@
     },
     {
       "name": "compound-docs",
-      "description": "Capture solved problems as categorized documentation with YAML frontmatter for fast lookup",
+      "description": "Capture solved problems as categorized documentation with YAML frontmatter for fast lookup. Use when a solution is confirmed and should be preserved for future retrieval.",
       "path": "skills/compound-docs",
       "allowed-tools": [
         "Read",
@@ -57,6 +57,11 @@
       "name": "deep-research",
       "description": "Use when a task needs web-backed research with controlled depth, relevance filtering, and citation-ready synthesis. Routes work to quick, standard, or deep tiers, filters low-signal context, and returns a compact packet with key findings, citations, discarded context, confidence gaps, and next queries.",
       "path": "skills/deep-research"
+    },
+    {
+      "name": "fetchmd",
+      "description": "Fetch webpages or local HTML and convert to clean, token-efficient markdown. Use when you need to ingest web content for summarization, RAG, research, or any AI workflow that requires readable text from URLs or HTML files.",
+      "path": "skills/fetchmd"
     },
     {
       "name": "find-skills",
@@ -162,6 +167,11 @@
       "license": "Complete terms in LICENSE.txt"
     },
     {
+      "name": "skill-evals",
+      "description": "Evaluate skill quality and routing reliability with deterministic checks. Use when creating/updating skills, validating trigger behavior (explicit/implicit/contextual/negative), applying SKILL.md contract checklists, or generating cross-skill compliance reports.",
+      "path": "skills/skill-evals"
+    },
+    {
       "name": "skill-installer",
       "description": "Install skills into Codex or Claude Code skills directories from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos).",
       "path": "skills/skill-installer"
@@ -172,13 +182,13 @@
       "path": "skills/skill-standardizer"
     },
     {
-      "name": "template-skill",
-      "description": "Replace with description of the skill and when the AI Agent should use it.",
+      "name": "template",
+      "description": "Skill starter template. Use when creating a new skill and you need a minimal scaffold with trigger language, workflow steps, and output expectations.",
       "path": "skills/template"
     },
     {
       "name": "theme-factory",
-      "description": "Toolkit for styling artifacts with a theme. These artifacts can be slides, docs, reportings, HTML landing pages, etc. There are 10 pre-set themes with colors/fonts that you can apply to any artifact that has been creating, or can generate a new theme on-the-fly.",
+      "description": "Toolkit for styling artifacts with a theme. Use when users ask to theme slides, docs, reports, or HTML pages using curated font/color systems or a generated custom theme.",
       "path": "skills/theme-factory",
       "license": "Complete terms in LICENSE.txt"
     },
@@ -212,7 +222,7 @@
     },
     {
       "name": "verify-before-complete",
-      "description": "Enforce evidence-based completion claims by running appropriate verification before stating work is fixed, passing, or complete.",
+      "description": "Enforce evidence-based completion claims. Use when you are about to state work is fixed, passing, done, or complete, and run verification first.",
       "path": "skills/verify-before-complete"
     },
     {
@@ -222,7 +232,7 @@
     },
     {
       "name": "writing-plans",
-      "description": "Create robust, execution-ready implementation plans with explicit scope, task sequencing, dependencies, and verification commands before coding.",
+      "description": "Create robust, execution-ready implementation plans with explicit scope, task sequencing, dependencies, and verification commands. Use when planning non-trivial implementation work before coding.",
       "path": "skills/writing-plans"
     }
   ]

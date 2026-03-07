@@ -1,6 +1,23 @@
 ---
-name: template-skill
-description: Replace with description of the skill and when the AI Agent should use it.
+name: template
+description: Skill starter template. Use when creating a new skill and you need a minimal scaffold with trigger language, workflow steps, and output expectations.
 ---
 
-# Insert instructions below
+# Skill Template
+
+## When To Use
+
+Use this template when bootstrapping a new skill directory and drafting first-pass instructions.
+
+## Workflow
+
+1. Replace frontmatter name/description with the target skill.
+2. Add core instructions for scope, execution, and boundaries.
+3. Add `scripts/`, `references/`, and `assets/` only if needed.
+4. Validate with `python3 skills/skill-creator/scripts/quick_validate.py <skill-path>`.
+
+## Output Contract
+
+- A valid `SKILL.md` with trigger-ready description
+- Lean instructions with clear execution anchors
+- Optional resource folders only where justified

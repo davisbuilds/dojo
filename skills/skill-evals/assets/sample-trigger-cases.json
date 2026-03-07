@@ -1,0 +1,40 @@
+{
+  "cases": [
+    {
+      "id": "research-latest-citations",
+      "type": "implicit",
+      "prompt": "Look up recent primary sources and synthesize with citations.",
+      "expected": {
+        "trigger": ["deep-research"],
+        "avoid": ["gpt-imagen", "vercel-deploy"]
+      }
+    },
+    {
+      "id": "skill-security-audit",
+      "type": "implicit",
+      "prompt": "Audit this skill for prompt injection and exfiltration risk.",
+      "expected": {
+        "trigger": ["audit-skill"],
+        "avoid": ["frontend-design", "theme-factory"]
+      }
+    },
+    {
+      "id": "explicit-imagen",
+      "type": "explicit",
+      "prompt": "Use $gpt-imagen to generate a hero product image with transparent background.",
+      "expected": {
+        "trigger": ["gpt-imagen"],
+        "avoid": ["deep-research"]
+      }
+    },
+    {
+      "id": "negative-chat",
+      "type": "negative",
+      "prompt": "Thanks, that worked.",
+      "expected": {
+        "trigger": [],
+        "avoid": ["deep-research", "secure-code", "gpt-imagen", "vercel-deploy"]
+      }
+    }
+  ]
+}

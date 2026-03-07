@@ -1,6 +1,6 @@
 ---
 name: verify-before-complete
-description: Enforce evidence-based completion claims by running appropriate verification before stating work is fixed, passing, or complete.
+description: Enforce evidence-based completion claims. Use when you are about to state work is fixed, passing, done, or complete, and run verification first.
 ---
 
 # Verify Before Complete
