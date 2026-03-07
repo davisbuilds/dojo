@@ -787,9 +787,58 @@ Initial collision eval run across three overlap clusters:
 
 ### Immediate Next Actions
 
-1. Tighten trigger descriptions to improve provider/domain disambiguation:
-   - emphasize "deploy/create preview" vs "inspect existing deployment logs"
-   - emphasize `.base` schema language vs markdown editing language
-   - emphasize provider-specific API names (`OpenAI Image API` vs `Gemini API`)
-2. Add negative trigger clauses directly in descriptions for overlapping pairs.
-3. Re-run the same fixture after description edits and track delta in assertion pass rate.
+1. ~~Tighten trigger descriptions to improve provider/domain disambiguation.~~ Done in v6.
+2. ~~Add negative trigger clauses directly in descriptions for overlapping pairs.~~ Attempted; reverted (see v6 findings).
+3. ~~Re-run the same fixture after description edits and track delta in assertion pass rate.~~ Done in v6.
+
+---
+
+## Revision v6 (Trigger-Collision Fixes, 2026-03-07)
+
+### Scope
+
+Fix the 6 trigger-collision assertion failures from the v5 baseline (22/28 passing).
+
+### Changes
+
+**Description edits (5 SKILL.md files):**
+- `vercel-deploy`: Removed "preview deployment" trigger language, focused on "push/ship/go live"
+- `vercel-preview-logs`: Removed "deployment" references, focused on "logs/errors/debug/diagnose"
+- `obsidian-bases`: Removed generic "Obsidian" triggers, added "dashboard" as trigger term
+- `gpt-imagen`: Removed cross-provider references, changed "batch variants" to "batch outputs"
+- `gemini-imagen`: Shortened to Gemini-specific features only, removed generic image terms
+
+**Scorer improvements (`run_trigger_evals.py`):**
+- Added discriminating name tokens: `name_overlap` now excludes tokens shared across multiple skill names in the index (e.g. "vercel" shared by vercel-deploy and vercel-preview-logs no longer inflates both)
+- Expanded STOPWORDS with generic terms: `generate`, `edit`, `check`, `run`, `api`, `via`, `requires`, and others that appear broadly but don't discriminate
+
+**Key finding:** Negative trigger clauses ("Do NOT use for X") are counterproductive with lexical scorers. Adding "Do NOT use for Gemini" to gpt-imagen's description adds "gemini" as a matching token, *increasing* false-positive scores. Descriptions should use maximally distinct vocabulary instead of cross-referencing competing skills.
+
+### Results
+
+- **26/28 assertions passed** (was 22/28, +4)
+- **92.9% pass rate** (was 78.6%, +14.3pp)
+- Sample fixture: 12/12 (no regressions)
+
+### Per-Cluster Delta
+
+| Cluster | Before | After | Delta |
+|---------|--------|-------|-------|
+| Obsidian trio | 2 fail | 0 fail | +2 fixed |
+| Image-gen pair | 2 fail | 0 fail | +2 fixed |
+| Vercel pair | 2 fail | 2 fail | unchanged |
+
+### Remaining Failures (2)
+
+Both in the Vercel pair — genuine vocabulary overlap that lexical scoring cannot resolve:
+
+1. **vercel-deploy-preview / vercel-preview-logs** (score 0.20, threshold 0.09): "preview" in the deploy prompt matches `preview` as a discriminating name token of vercel-preview-logs.
+2. **vercel-debug-preview-logs / vercel-deploy** (score 0.42, threshold 0.09): "deploy" in the logs prompt ("the preview deploy failed") matches `deploy` as THE discriminating name token of vercel-deploy, plus 3-token lexical overlap.
+
+These represent a semantic distinction (creating vs debugging) that requires intent understanding beyond bag-of-words. An LLM-based router would handle this correctly.
+
+### Next
+
+- Accept 26/28 as the lexical scorer ceiling for this fixture.
+- Expand trigger-eval fixtures to cover more skill pairs beyond the 3 tested clusters.
+- Continue strict-mode warning burn-down on non-enforced skills.

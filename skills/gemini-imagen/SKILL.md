@@ -1,6 +1,6 @@
 ---
 name: gemini-imagen
-description: "Generate, edit, and compose images via the Gemini API. Use when creating images from text, editing existing images, composing multiple images, or generating images with specific aspect ratios and resolutions."
+description: "Generate, edit, and compose images via Google's Gemini API. Use when the user mentions Gemini or wants multi-image composition and aspect-ratio control. Requires `GEMINI_API_KEY`."
 ---
 
 # Gemini Imagen

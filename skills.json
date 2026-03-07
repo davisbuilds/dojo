@@ -81,7 +81,7 @@
     },
     {
       "name": "gemini-imagen",
-      "description": "Generate, edit, and compose images via the Gemini API. Use when creating images from text, editing existing images, composing multiple images, or generating images with specific aspect ratios and resolutions.",
+      "description": "Generate, edit, and compose images via Google's Gemini API. Use when the user mentions Gemini or wants multi-image composition and aspect-ratio control. Requires `GEMINI_API_KEY`.",
       "path": "skills/gemini-imagen"
     },
     {
@@ -107,7 +107,7 @@
     },
     {
       "name": "gpt-imagen",
-      "description": "Use when the user asks to generate or edit images via the OpenAI Image API (for example: generate image, edit/inpaint/mask, background removal or replacement, transparent background, product shots, concept art, covers, or batch variants); run the bundled CLI (`scripts/image_gen.py`) and require `OPENAI_API_KEY` for live calls.",
+      "description": "Generate or edit images via the OpenAI Image API (gpt-image-1, DALL-E). Use when the user asks to generate, edit, inpaint, mask, remove backgrounds, or create product shots, concept art, covers, or batch outputs using OpenAI. Runs the bundled CLI (`scripts/image_gen.py`) and requires `OPENAI_API_KEY`.",
       "path": "skills/gpt-imagen"
     },
     {
@@ -132,7 +132,7 @@
     },
     {
       "name": "obsidian-bases",
-      "description": "Create and edit Obsidian Bases (.base files) with views, filters, formulas, and summaries. Use when working with .base files, creating database-like views of notes, or when the user mentions Bases, table views, card views, filters, or formulas in Obsidian.",
+      "description": "Create and edit Obsidian Bases (.base files) with database-style views, filters, formulas, and summaries. Use when working with .base files, building table/card/dashboard views over a vault, or when the user mentions Bases, filters, or formulas in Obsidian.",
       "path": "skills/obsidian-bases"
     },
     {
@@ -200,12 +200,12 @@
     },
     {
       "name": "vercel-deploy",
-      "description": "Deploy applications and websites to Vercel. Use when the user requests deployment actions like \"deploy my app\", \"deploy and give me the link\", \"push this live\", or \"create a preview deployment\".",
+      "description": "Create and push new Vercel deployments. Use when the user wants to deploy, ship, go live, or create a preview \u2014 e.g. \"deploy my app\", \"push this live\", \"ship it\".",
       "path": "skills/vercel-deploy"
     },
     {
       "name": "vercel-preview-logs",
-      "description": "Inspect Vercel preview deployments and retrieve build/runtime logs for failed or unhealthy previews. Use when the user asks to check Vercel preview errors, inspect deployment logs, debug failed builds, or correlate PR/commit deployments with log output.",
+      "description": "Retrieve and diagnose Vercel build/runtime logs. Use when the user asks to check errors, inspect logs, debug a failed build, or correlate a PR/commit with log output from an existing environment.",
       "path": "skills/vercel-preview-logs"
     },
     {

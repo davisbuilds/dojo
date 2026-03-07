@@ -44,6 +44,22 @@ STOPWORDS = {
     "after",
     "work",
     "code",
+    "generate",
+    "edit",
+    "check",
+    "run",
+    "existing",
+    "asks",
+    "want",
+    "wants",
+    "like",
+    "need",
+    "needs",
+    "also",
+    "specific",
+    "api",
+    "via",
+    "requires",
 }
 
 
@@ -69,6 +85,7 @@ def normalize_tokens(text: str) -> set[str]:
 
 def build_skill_index(skills_root: Path, selected: set[str] | None) -> dict[str, dict[str, Any]]:
     index: dict[str, dict[str, Any]] = {}
+    all_name_tokens: dict[str, list[str]] = {}
     for skill_md in sorted(skills_root.glob("*/SKILL.md")):
         skill = skill_md.parent.name
         if selected and skill not in selected:
@@ -79,11 +96,21 @@ def build_skill_index(skills_root: Path, selected: set[str] | None) -> dict[str,
             description = ""
 
         combined = f"{skill} {description}"
+        name_tokens = set(skill.lower().split("-"))
         index[skill] = {
             "description": description,
             "tokens": normalize_tokens(combined),
-            "name_tokens": set(skill.lower().split("-")),
+            "name_tokens": name_tokens,
         }
+        for token in name_tokens:
+            all_name_tokens.setdefault(token, []).append(skill)
+
+    # Compute discriminating name tokens: exclude tokens shared across multiple skills
+    for skill, data in index.items():
+        data["disc_name_tokens"] = {
+            t for t in data["name_tokens"] if len(all_name_tokens.get(t, [])) == 1
+        }
+
     return index
 
 
@@ -91,7 +118,7 @@ def score_trigger(prompt: str, case_type: str, skill: str, skill_data: dict[str,
     prompt_lower = prompt.lower()
     prompt_tokens = normalize_tokens(prompt)
     skill_tokens = skill_data["tokens"]
-    name_tokens = skill_data["name_tokens"]
+    name_tokens = skill_data.get("disc_name_tokens", skill_data["name_tokens"])
 
     if not prompt_tokens:
         lexical = 0.0

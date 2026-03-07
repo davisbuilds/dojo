@@ -1,6 +1,6 @@
 ---
 name: vercel-preview-logs
-description: Inspect Vercel preview deployments and retrieve build/runtime logs for failed or unhealthy previews. Use when the user asks to check Vercel preview errors, inspect deployment logs, debug failed builds, or correlate PR/commit deployments with log output.
+description: Retrieve and diagnose Vercel build/runtime logs. Use when the user asks to check errors, inspect logs, debug a failed build, or correlate a PR/commit with log output from an existing environment.
 ---
 
 # Vercel Preview Logs

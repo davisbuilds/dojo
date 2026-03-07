@@ -1,6 +1,6 @@
 ---
 name: "gpt-imagen"
-description: "Use when the user asks to generate or edit images via the OpenAI Image API (for example: generate image, edit/inpaint/mask, background removal or replacement, transparent background, product shots, concept art, covers, or batch variants); run the bundled CLI (`scripts/image_gen.py`) and require `OPENAI_API_KEY` for live calls."
+description: "Generate or edit images via the OpenAI Image API (gpt-image-1, DALL-E). Use when the user asks to generate, edit, inpaint, mask, remove backgrounds, or create product shots, concept art, covers, or batch outputs using OpenAI. Runs the bundled CLI (`scripts/image_gen.py`) and requires `OPENAI_API_KEY`."
 compatibility: "Requires python3, openai package, OPENAI_API_KEY. Requires network access for OpenAI API calls."
 ---
 
