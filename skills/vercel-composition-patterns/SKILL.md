@@ -87,3 +87,23 @@ Each rule file contains:
 ## Full Compiled Document
 
 For the complete guide with all rules expanded: `AGENTS.md`
+
+## Boundaries
+
+- Not for general React performance optimization — use `vercel-react-best-practices` instead
+- Not for React Native components — use `vercel-react-native-skills` instead
+- Not for state management library selection (Redux, Zustand, etc.)
+- Skip when the component is simple enough that a single props interface suffices
+
+## Output
+
+- Refactored components using compound component or composition patterns
+- Context providers with generic state/actions/meta interfaces
+- Explicit variant components replacing boolean prop switches
+
+## Verification
+
+- No boolean props added to customize component behavior — composition used instead
+- Provider is the only place that knows how state is managed
+- Components use `children` for composition rather than `renderX` props
+- React 19 APIs (`use()`) used only when project targets React 19+

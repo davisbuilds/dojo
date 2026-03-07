@@ -106,6 +106,13 @@ Do not:
 - claim global completion from partial checks
 - skip reruns after new edits
 
+## Output
+
+- Verification level used (quick/standard/high-risk)
+- Command(s) run with exit codes
+- Scope covered and key signal (e.g. "12 passed, 0 failed")
+- Residual risk or uncovered areas
+
 ## Bottom Line
 
 Run the right checks, read the results, then claim only what the evidence proves.

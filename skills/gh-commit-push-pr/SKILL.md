@@ -4,6 +4,26 @@ allowed-tools: Bash(git checkout:*), Bash(git add:*), Bash(git status:*), Bash(g
 description: "Commit staged changes, push branch, and open a GitHub PR. Use when user asks to commit and push, create a PR, ship changes, send for review, or open a pull request. Triggers on phrases like 'commit and push', 'create a PR', 'open a pull request', 'send this for review', 'ship it', 'push and PR'."
 ---
 
+## When To Use
+
+- User asks to commit and push changes, create a PR, or ship/send work for review
+- Triggers on phrases like "commit and push", "create a PR", "open a pull request", "ship it"
+- Changes are staged or unstaged in the working tree and need to reach a remote branch with a PR
+
+## Boundaries
+
+- Not for rebasing, merging, or resolving conflicts; those require user-directed decisions
+- Do not force push or amend existing commits unless the user explicitly requests it
+- Never commit files that look like secrets (.env, *.pem, *.key, credentials.json)
+- Skip when `git status` shows a clean working tree with nothing to commit
+
+## Verification
+
+- Branch is pushed to origin and `git status` shows no unpushed commits
+- PR is created with a summary and test plan; `gh pr view` returns a valid URL
+- No duplicate PR exists for the same branch (checked before creation)
+- Sensitive files are excluded from the commit and flagged to the user if detected
+
 # Commit, Push, and Open a Pull Request
 
 ## Context

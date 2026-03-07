@@ -7,6 +7,27 @@ description: Create comprehensive session summaries for context preservation and
 
 Create summaries that enable a fresh instance to continue work seamlessly with no prior context.
 
+## When To Use
+
+- Conversation is approaching context window limits and work must continue
+- User explicitly requests a session summary or handoff document
+- Preparing to transfer work to another agent instance or a fresh session
+- Archiving a complex session for future reference or resumption
+
+## Boundaries
+
+- Not for generating project documentation, READMEs, or changelogs
+- Not for summarizing external documents or articles unrelated to the session
+- Skip when the session is trivial (single question-answer with no ongoing state)
+- Do not include sensitive credentials or secrets in the summary file
+
+## Verification
+
+- Summary is written to `docs/sessions/COMPACT_{SESSION-NAME}_{YYYY-MM-DD}.md`
+- All 9 numbered sections are present (use "None" for inapplicable sections)
+- File paths are absolute and code snippets include language identifiers
+- A fresh agent instance could resume work from the summary without clarifying questions
+
 ## Core Goal
 
 Answer: "If I were dropped into this conversation cold, what would I need to pick up exactly where we left off?"

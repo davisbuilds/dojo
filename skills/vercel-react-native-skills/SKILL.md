@@ -119,3 +119,23 @@ Each rule file contains:
 ## Full Compiled Document
 
 For the complete guide with all rules expanded: `AGENTS.md`
+
+## Boundaries
+
+- Not for React web or Next.js apps — use `vercel-react-best-practices` instead
+- Not for component composition patterns — use `vercel-composition-patterns` instead
+- Not for backend/API performance or server-side concerns
+- Skip Reanimated animation rules when using CSS-only animations or Lottie
+
+## Output
+
+- Optimized React Native components following priority-ranked rules
+- FlashList implementations replacing FlatList for large lists
+- Native navigators and native modals replacing JS-based equivalents
+
+## Verification
+
+- Large lists use FlashList with memoized item components and stable callbacks
+- Animations target only `transform` and `opacity` properties
+- Native stack and native tabs used over JS-based navigators
+- Text content wrapped in `<Text>` components — no bare strings in JSX

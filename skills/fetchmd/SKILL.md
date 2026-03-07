@@ -10,6 +10,12 @@ description: >
 
 Convert webpages and HTML to clean markdown optimized for LLM context windows.
 
+## When To Use
+
+- Ingesting web content for summarization, RAG pipelines, or research
+- Converting local HTML exports to clean markdown
+- Getting token-efficient text from URLs before sending to an LLM
+
 ## Install
 
 ```bash
@@ -91,6 +97,12 @@ fetchmd --render https://spa.example.com
 # Raw HTML when Readability strips too much
 fetchmd --raw https://example.com
 ```
+
+## Verification
+
+- Output is valid markdown (no raw HTML tags leaked)
+- Exit code 0 for successful fetches
+- `--stats` token count is within expected range for the source
 
 ## Constraints
 

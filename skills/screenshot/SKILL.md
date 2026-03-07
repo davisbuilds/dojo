@@ -12,6 +12,33 @@ Follow these save-location rules every time:
 2) If the user asks for a screenshot without a path, save to the OS default screenshot location.
 3) If Codex needs a screenshot for its own inspection, save to the temp directory.
 
+## When To Use
+
+- User explicitly asks for a desktop or system screenshot
+- A visual inspection of a running app or window is needed and no tool-specific capture is available
+- Capturing a full screen, specific app/window, or pixel region on macOS, Linux, or Windows
+- Agent needs a temp screenshot for its own visual analysis of on-screen content
+
+## Boundaries
+
+- Not for browser-only captures when Playwright or agent-browser tools are available
+- Not for Figma design captures when a Figma MCP/skill is present
+- Skip when the user only needs a file or image that already exists on disk
+- Do not manipulate captured images unless the user explicitly requests it
+
+## Output
+
+- One or more PNG files saved to the user-specified path, OS default location, or temp directory
+- Script prints the absolute path of each saved file (one per line)
+- Multi-window or multi-display captures produce separate files with `-w<id>` or `-d<display>` suffixes
+
+## Verification
+
+- Every printed path points to a valid, non-zero-byte PNG file
+- macOS Screen Recording permission was granted (preflight script exits cleanly)
+- On Linux, at least one capture tool (`scrot`, `gnome-screenshot`, or ImageMagick `import`) is available
+- The saved file path is reported in the agent's response to the user
+
 ## Tool priority
 
 - Prefer tool-specific screenshot capabilities when available (for example: a Figma MCP/skill for Figma files, or Playwright/agent-browser tools for browsers and Electron apps).

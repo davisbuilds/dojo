@@ -167,6 +167,17 @@ Asset-type templates (website assets, game assets, wireframes, logo) are consoli
 - API parameter quick reference: `references/image-api.md`
 - If network approvals / sandbox settings are getting in the way: `references/codex-network.md`
 
+## Output
+
+- Generated or edited image files saved to `output/gpt-imagen/` (or user-specified path)
+- Final prompt and CLI flags used, logged for reproducibility
+
+## Verification
+
+- Output image exists and is a valid PNG/JPEG
+- Subject, style, and text match the prompt spec
+- Invariants (for edits) are preserved; avoid items are absent
+
 ## Reference map
 - **`references/cli.md`**: how to *run* image generation/edits/batches via `scripts/image_gen.py` (commands, flags, recipes).
 - **`references/image-api.md`**: what knobs exist at the API level (parameters, sizes, quality, background, edit-only fields).

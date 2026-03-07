@@ -8,6 +8,26 @@ allowed-tools:
   - Grep # Search existing docs
 ---
 
+## When To Use
+
+- A non-trivial problem has been confirmed solved and the solution should be preserved
+- User says "that worked", "it's fixed", or similar confirmation phrases
+- User runs `/doc-fix` to manually trigger documentation capture
+- Solution involved multiple investigation attempts or a non-obvious root cause
+
+## Boundaries
+
+- Not for documenting simple typos, obvious syntax errors, or trivial one-line fixes
+- Not for writing project READMEs, API docs, or user-facing documentation
+- Do not auto-promote patterns to Required Reading without explicit user approval
+- Skip when the conversation lacks enough context to populate required YAML fields
+
+## Output
+
+- Single markdown file at `docs/solutions/[category]/[filename].md` with validated YAML frontmatter
+- Cross-references added to related existing docs when similar issues are found
+- Decision menu presented to user for follow-up actions (continue, promote, link, etc.)
+
 # compound-docs Skill
 
 **Purpose:** Automatically document solved problems to build searchable institutional knowledge with category-based organization (enum-validated problem types).

@@ -3,6 +3,28 @@ name: first-principles
 description: "Guide agent into first-principles, systems-thinking reasoning for high-stakes technical tasks. Use when making architectural or design decisions, evaluating trade-offs between competing approaches, performing deep code review, debugging complex or unclear failures, planning non-mechanical refactors, or starting greenfield implementations. Triggers on: 'what approach should I take', 'help me decide', 'evaluate trade-offs', 'design review', 'why is this failing', 'architect', 'first principles', 'think through this', 'compare approaches', 'root cause', 'how should I structure this'."
 ---
 
+## When To Use
+
+- Making architectural or design decisions with multiple valid approaches
+- Debugging complex failures where root cause is unclear or intermittent
+- Evaluating trade-offs between competing concerns (performance vs. readability, etc.)
+- Planning non-mechanical refactors or greenfield implementations
+- Deep code review that needs to surface hidden assumptions and trade-offs
+
+## Boundaries
+
+- Not for mechanical tasks (rename, format, move files) that need no analysis
+- Not for clear bugs with obvious root causes and isolated fixes
+- Skip full decomposition when a single approach is clearly correct and well-scoped
+- Do not apply to routine code changes that follow established patterns without ambiguity
+
+## Output
+
+- Problem decomposition with identified sub-problems, dependencies, and assumptions
+- Trade-off analysis naming alternatives with explicit costs and recommendations
+- Decision matrix mapping signals to analysis level (full, lightweight, skip)
+- Verification criteria defined before or alongside implementation
+
 # First Principles
 
 ## Self-Check Gate

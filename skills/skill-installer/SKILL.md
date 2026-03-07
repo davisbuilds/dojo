@@ -52,6 +52,33 @@ All of these scripts use network, so when running in the sandbox, request escala
 - Multiple `--path` values install multiple skills in one run, each named from the path basename unless `--name` is supplied.
 - Options: `--ref <ref>` (default `main`), `--agent codex|claude`, `--dest <path>`, `--method auto|download|git`.
 
+## When To Use
+
+- User asks to list available or installable skills (curated or experimental)
+- User requests installation of a skill by name from the curated/experimental catalog
+- User provides a GitHub repo path or URL to install a skill from an external source
+- User asks what skills are already installed
+
+## Boundaries
+
+- Not for creating or authoring new skills (use skill-creator instead)
+- Not for validating or packaging existing skills
+- Skip when the user asks about `.system` preinstalled skills (explain they are already present)
+- Do not overwrite an existing skill directory unless the user explicitly insists
+
+## Output
+
+- A formatted list of available skills with installed/not-installed annotations
+- Skill files installed into the correct agent skills directory (`~/.codex/skills` or `~/.claude/skills`)
+- Post-install message telling the user to restart their agent
+
+## Verification
+
+- `scripts/list-skills.py` exits cleanly and lists skills with correct annotations
+- Installed skill directory contains a valid `SKILL.md` with required frontmatter
+- No existing skill directories were overwritten without explicit user confirmation
+- Network errors are reported clearly rather than silently swallowed
+
 ## Notes
 
 - Curated listing is fetched from `https://github.com/openai/skills/tree/main/skills/.curated` via the GitHub API. If it is unavailable, explain the error and exit.

@@ -132,6 +132,11 @@ Use this routing logic:
 When proposing a transition, explain why in one sentence and ask for confirmation.
 If the target skill is unavailable in the current harness, use the closest manual fallback and continue.
 
+## Output
+
+- A design summary document at `docs/plans/YYYY-MM-DD-<topic>-plan.md`
+- Clear next-step recommendation (plan, refine, or stop)
+
 ## Principles
 
 - One question per turn

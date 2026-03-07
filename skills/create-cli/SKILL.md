@@ -8,6 +8,26 @@ description: >
   consistency, composability, and discoverability.
 ---
 
+## When To Use
+
+- Designing a new CLI's arguments, flags, subcommands, and help text before implementation
+- Refactoring an existing CLI's surface area for consistency or composability
+- User asks to spec out command-line UX, exit codes, output formats, or config precedence
+
+## Boundaries
+
+- Not for implementing CLI code; this skill produces a design spec, not source files
+- Not for designing REST APIs, GraphQL schemas, or non-CLI interfaces
+- Do not recommend specific parsing libraries unless the user explicitly asks
+- Skip when the user already has a finalized spec and just needs implementation
+
+## Verification
+
+- Deliverable includes a command tree, args/flags table, exit code map, and example invocations
+- Output and error contracts specify stdout vs stderr, TTY detection, and machine-output flags
+- Safety rules (dry-run, confirmations, force) are defined for any destructive operations
+- Spec is language-agnostic unless the user specifies a runtime
+
 # Create CLI
 
 Design CLI surface area (syntax + behavior), human-first, script-friendly.

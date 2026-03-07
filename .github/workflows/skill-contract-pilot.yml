@@ -39,7 +39,6 @@ jobs:
         run: |
           python3 skills/skill-evals/scripts/validate_skill_contract.py \
             --skills-root skills \
-            --skills secure-code,audit-skill,gh-fix-issue,vercel-deploy,vercel-preview-logs,deep-research,hookify,skill-creator,writing-plans,playwright,gh-review-pr,gh-triage-issues,code-review-agents \
             --strict \
             --json > strict-skill-contract-report.json
 

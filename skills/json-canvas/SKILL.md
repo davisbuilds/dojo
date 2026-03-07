@@ -654,3 +654,22 @@ This format is a 16-character lowercase hex string (64-bit random value).
 
 - [JSON Canvas Spec 1.0](https://jsoncanvas.org/spec/1.0/)
 - [JSON Canvas GitHub](https://github.com/obsidianmd/jsoncanvas)
+
+## When To Use
+
+- When creating or editing `.canvas` files for Obsidian or compatible apps
+- When building visual canvases, mind maps, flowcharts, or project boards
+- When the user mentions Canvas files, infinite canvas, or Obsidian canvas
+
+## Boundaries
+
+- Not for general JSON editing unrelated to the JSON Canvas spec
+- Not for Mermaid, PlantUML, or other diagram-as-code formats
+- Not for Obsidian plugin development or vault configuration
+- Skip when the user needs interactive canvas editing — this skill produces static `.canvas` files
+
+## Output
+
+- Valid `.canvas` files conforming to JSON Canvas Spec 1.0
+- Nodes with unique 16-character hex IDs positioned on a coordinate grid
+- Edges referencing valid node IDs with optional labels, colors, and side/end attributes

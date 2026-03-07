@@ -136,3 +136,23 @@ Keep core policy and decision logic model-agnostic in `SKILL.md` and scripts.
 Platform-specific command syntax or orchestration belongs in optional wrappers or references.
 
 See `references/policy.md` for policy details and tradeoffs.
+
+## When To Use
+
+- When skill copies drift across repository, global, and local directories
+- When duplicate skill entries appear in agent client catalogs
+- When uncertainty exists about which copy of a skill is canonical
+- After adding or updating skills that exist in multiple roots
+
+## Output
+
+- A drift audit report (text or JSON) listing all discovered skills and their sync status
+- Backup copies of any files replaced during synchronization
+- Symlinks replacing duplicate copies to point at the canonical or primary source
+
+## Verification
+
+- Post-sync audit exits with code `0` (no drift remaining)
+- All symlinks resolve to valid targets
+- No plugin cache directories were mutated unless explicitly included
+- Canonical and target roots are printed before any apply operation

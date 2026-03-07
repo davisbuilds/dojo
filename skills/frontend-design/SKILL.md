@@ -40,3 +40,38 @@ Interpret creatively and make unexpected choices that feel genuinely designed fo
 **IMPORTANT**: Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details. Elegance comes from executing the vision well.
 
 Remember: AI agents are capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
+
+## When To Use
+
+- User asks to build a web component, page, application, or UI interface
+- A frontend needs visual polish, a distinctive aesthetic, or a design refresh
+- Building HTML/CSS/JS, React, or Vue artifacts that must avoid generic AI aesthetics
+- User requests a landing page, dashboard, card layout, hero section, or navigation component
+
+## Boundaries
+
+- Not for backend-only work, APIs, or services with no visual output
+- Not for theming existing artifacts with a curated palette (use theme-factory instead)
+- Skip when the user only needs wireframes, mockups, or design-system tokens without implementation
+- Do not reuse the same font/color/layout across generations; each design must be distinctive
+
+## Output
+
+- Production-grade, functional frontend code (HTML/CSS/JS or framework components)
+- A cohesive aesthetic direction with intentional typography, color, motion, and layout choices
+- Code that is visually striking and avoids generic AI patterns (Inter, purple gradients, cookie-cutter layouts)
+
+## Verification
+
+- Rendered output matches the chosen aesthetic direction and is visually distinctive
+- No banned generic fonts (Inter, Roboto, Arial, system-ui) or cliched color schemes appear
+- Animations and interactions are functional and enhance the design
+- Code is valid, renders without errors, and is production-ready
+
+## Resources
+
+- `references/anti-patterns.md` -- common AI design pitfalls to avoid
+- `references/color-palettes.md` -- curated color palette options
+- `references/font-pairings.md` -- distinctive font pairing suggestions
+- `assets/component-templates/` -- starter HTML templates (hero, card grid, nav)
+- `scripts/scaffold_page.py` -- scaffolds a new page with boilerplate

@@ -54,3 +54,23 @@ Append non-obvious learnings from this session to the project's reference docs. 
 - **Never add comments like `// added by agent` or timestamps.** The git log is the audit trail.
 - **Max 5 learnings per session.** If you have more, keep only the highest-signal ones.
 - **Be specific.** "Use `--legacy-peer-deps` with npm install" not "npm install may need flags."
+
+## When To Use
+
+- At the end of a coding session when non-obvious learnings were discovered
+- After solving a tricky problem that cost significant debugging time
+- When new CLI commands or features were added that aren't yet documented
+- When triggered by `/retro` or explicit request to capture learnings
+
+## Output
+
+- One to five single-line additions appended to the project's `AGENTS.md` or `CLAUDE.md`
+- Each learning follows the project's existing formatting conventions
+- A diff preview shown to the user before any file writes
+
+## Verification
+
+- Every learning passes the "would this save the next agent 5+ minutes?" filter
+- No existing content is rewritten or reorganized — append only
+- Each addition is a single line with no sub-bullets or paragraphs
+- The target reference doc exists and the correct section is identified before appending

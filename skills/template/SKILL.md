@@ -16,8 +16,19 @@ Use this template when bootstrapping a new skill directory and drafting first-pa
 3. Add `scripts/`, `references/`, and `assets/` only if needed.
 4. Validate with `python3 skills/skill-creator/scripts/quick_validate.py <skill-path>`.
 
+## Boundaries
+
+- This template is a starting point; do not ship it unmodified as a real skill
+- Do not add resource folders unless the skill genuinely needs them
+
 ## Output Contract
 
 - A valid `SKILL.md` with trigger-ready description
 - Lean instructions with clear execution anchors
 - Optional resource folders only where justified
+
+## Verification
+
+- `quick_validate.py` passes on the generated skill directory
+- Frontmatter name matches directory name
+- Description includes trigger-ready language

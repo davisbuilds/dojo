@@ -609,6 +609,33 @@ Internal notes:
 %%
 ````
 
+## When To Use
+
+- Creating or editing `.md` files intended for an Obsidian vault
+- User mentions wikilinks, callouts, embeds, frontmatter properties, or Obsidian-specific syntax
+- Building notes with Mermaid diagrams, LaTeX math, or block references
+- Adding or updating YAML frontmatter properties on Obsidian notes
+
+## Boundaries
+
+- Not for Obsidian Bases / `.base` files (use obsidian-bases skill instead)
+- Not for plain/GitHub Flavored Markdown that will never live in Obsidian
+- Skip when the task is purely about Obsidian plugin configuration (e.g., community plugin settings JSON)
+- Do not generate Dataview or Templater syntax unless the user explicitly requests it
+
+## Output
+
+- Valid Obsidian Flavored Markdown ready to save as a `.md` file in a vault
+- Frontmatter uses correct YAML types (text, number, list, date, checkbox)
+- Wikilinks, embeds, callouts, and block IDs follow documented syntax
+
+## Verification
+
+- Frontmatter parses as valid YAML between `---` fences
+- Internal links use `[[...]]` syntax with proper heading/block anchors
+- Callout types are from the supported set (note, tip, warning, etc.) or clearly marked as custom
+- No raw HTML is used where an Obsidian Markdown equivalent exists
+
 ## References
 
 - [Basic formatting syntax](https://help.obsidian.md/syntax)

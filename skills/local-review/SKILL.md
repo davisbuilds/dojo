@@ -99,6 +99,18 @@ bash scripts/collect_review_context.sh --mode branch --base origin/main
 
 If the harness supports command files, use `commands/review.md` as the canonical `/review` wrapper for this skill.
 
+## Boundaries
+
+- Do not post reviews to GitHub or call the GitHub API (use `gh-review-pr` for that)
+- Do not modify source code; this skill is read-only analysis
+- Do not review files outside the git diff scope
+
+## Verification
+
+- All findings reference specific files and line numbers from the diff
+- Severity ratings are justified by stated risk
+- Residual risks section is present even when no findings exist
+
 ## Notes
 
 - Prefer precise, evidence-backed findings over broad advice.

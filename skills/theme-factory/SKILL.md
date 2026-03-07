@@ -57,3 +57,37 @@ After a preferred theme is selected:
 
 ## Create your Own Theme
 To handle cases where none of the existing themes work for an artifact, create a custom theme. Based on provided inputs, generate a new theme similar to the ones above. Give the theme a similar name describing what the font/color combinations represent. Use any basic description provided to choose appropriate colors/fonts. After generating the theme, show it for review and verification. Following that, apply the theme as described above.
+
+## When To Use
+
+- User asks to theme, style, or brand a slide deck, document, report, or HTML page
+- User wants to choose from curated font/color systems for an artifact
+- User needs a custom theme generated from a description or brand guidelines
+- Applying consistent colors, fonts, and visual identity across multiple slides or pages
+
+## Boundaries
+
+- Not for building frontend components or full web applications (use frontend-design instead)
+- Not for editing slide content, structure, or narrative; only visual styling
+- Skip when the user needs accessibility audits or UX reviews rather than theming
+- Do not modify `theme-showcase.pdf`; it is read-only for user preview
+
+## Output
+
+- The target artifact restyled with the selected or generated theme's colors and fonts
+- Consistent application of the theme across all slides/pages in the artifact
+- Proper contrast and readability maintained throughout
+
+## Verification
+
+- All slides/pages use only colors and fonts from the selected theme
+- Text maintains readable contrast ratios against its background
+- Font pairings are applied correctly (display font for headers, body font for text)
+- The theme's visual identity is cohesive across the entire artifact
+
+## Resources
+
+- `themes/` -- 10 curated theme definitions (`.json` + `.md` per theme)
+- `assets/theme-template.html` -- HTML template for theme preview
+- `scripts/generate_css.py` -- generates CSS from a theme definition
+- `scripts/preview_theme.py` -- renders a visual preview of a theme

@@ -18,6 +18,25 @@ Use this skill when the user:
 - Wants to search for tools, templates, or workflows
 - Mentions they wish they had help with a specific domain (design, testing, deployment, etc.)
 
+## Boundaries
+
+- Not for creating, editing, or publishing skills; use `skill-creator` for that
+- Not for general web searches or package manager lookups (npm, pip, etc.)
+- Do not install skills without presenting options to the user first
+- Skip when the user already knows the exact skill and just needs the install command
+
+## Output
+
+- List of matching skills with name, description, and install command
+- Link to skills.sh for each result so the user can learn more
+- When no skills match, an acknowledgment plus an offer to help directly or create a new skill
+
+## Verification
+
+- Search results come from `npx skills find` and reflect the live skills ecosystem
+- Each presented skill includes a working `npx skills add` install command
+- If the user chooses to install, confirm the skill is present after installation
+
 ## What is the Skills CLI?
 
 The Skills CLI (`npx skills`) is the package manager for the open agent skills ecosystem. Skills are modular packages that extend agent capabilities with specialized knowledge, workflows, and tools.

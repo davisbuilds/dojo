@@ -65,3 +65,30 @@ uvx markitdown scan.pdf -d -e "https://your-resource.cognitiveservices.azure.com
 - Output preserves document structure: headings, tables, lists, links
 - First run caches dependencies; subsequent runs are faster
 - For complex PDFs with poor extraction, use `-d` with Azure Document Intelligence
+
+## When To Use
+
+- When converting PDF, Word, PowerPoint, Excel, HTML, or other supported formats to Markdown
+- When preparing documents for LLM processing or text analysis pipelines
+- When extracting text content from images (OCR), audio (transcription), or ZIP archives
+- When converting YouTube URLs or EPubs to readable Markdown
+
+## Boundaries
+
+- Not for Markdown-to-other-format conversion (e.g., Markdown to PDF)
+- Not for editing or reformatting existing Markdown files
+- Not for web scraping or crawling — operates on local files, stdin, or single URLs
+- Skip Azure Document Intelligence (`-d`) unless standard PDF extraction is insufficient
+
+## Output
+
+- Markdown text preserving document structure: headings, tables, lists, and links
+- Written to stdout by default, or to a file with `-o` flag
+- One Markdown output per input file or URL
+
+## Verification
+
+- Output contains recognizable document structure (headings, tables) matching the source
+- `uvx` is available in the environment (no pre-installation required)
+- For Azure Document Intelligence, endpoint is reachable and credentials are valid
+- Output file is non-empty when `-o` is used

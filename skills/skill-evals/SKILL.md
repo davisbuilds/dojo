@@ -46,6 +46,12 @@ Provide:
 - Do not auto-edit skills unless explicitly requested.
 - Keep recommendations deterministic and reproducible.
 
+## Verification
+
+- All assertions in the fixture file pass (exit code 0)
+- No regressions in previously-passing skills
+- Persisted report matches live validation output
+
 ## References
 
 - `references/contracts.md` - input/output schemas

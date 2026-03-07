@@ -383,6 +383,26 @@ To achieve the best results, trust creativity and let the philosophy guide the i
 
 ---
 
+## When To Use
+
+- User requests generative art, algorithmic art, or code-based visual art
+- Prompt involves flow fields, particle systems, noise-based visuals, or p5.js sketches
+- User wants interactive, seed-driven visual exploration in a self-contained HTML artifact
+
+## Boundaries
+
+- Not for static image editing, photo manipulation, or pixel-art spriting
+- Not for data visualization, charts, or dashboards
+- Not for 3D rendering or WebGL shaders outside p5.js
+- Do not copy existing artists' signatures or named works
+
+## Verification
+
+- Output includes both an algorithmic philosophy (.md) and a self-contained HTML artifact
+- HTML loads in any browser with no external dependencies beyond p5.js CDN
+- Seed controls produce deterministic, reproducible output (same seed = same image)
+- Parameter sliders update the canvas in real time without page reload
+
 ## RESOURCES
 
 This skill includes helpful templates and documentation:

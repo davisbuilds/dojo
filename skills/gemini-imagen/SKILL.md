@@ -191,3 +191,30 @@ The API supports up to 14 input images per request.
 - To convert to PNG: use `--filename` with a `.png` extension.
 - Verification: run `file image.jpg` to check the actual format on disk.
 - All generated images include SynthID watermarks embedded by the Gemini API.
+
+## When To Use
+
+- When the user requests image generation, editing, or composition via Gemini
+- When multi-image composition or specific aspect-ratio control is needed
+- When the user mentions Gemini by name for image tasks
+- When iterative prompt refinement with draft-iterate-final workflow is appropriate
+
+## Boundaries
+
+- Not for non-Gemini image APIs (DALL-E, Stable Diffusion, Midjourney)
+- Not for video generation or animation
+- Not for image analysis or captioning without generation
+- Skip 4K resolution during drafting — use 1K until the prompt is locked
+
+## Output
+
+- Image files saved to the user's working directory with timestamped filenames (`yyyy-mm-dd-hh-mm-ss-name.jpg`)
+- JPEG format by default; PNG when `.png` extension is specified
+- One file per generation/edit/compose call
+
+## Verification
+
+- `GEMINI_API_KEY` is set or `--api-key` is provided before any API call
+- Output filename follows the `yyyy-mm-dd-hh-mm-ss-name.jpg` convention
+- For edits, the `--input-image` path exists and is accessible
+- Final deliverables use `--resolution 4K`; drafts use 1K

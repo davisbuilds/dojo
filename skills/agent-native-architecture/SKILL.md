@@ -3,6 +3,20 @@ name: agent-native-architecture
 description: Build applications where agents are first-class citizens. Use this skill when designing autonomous agents, creating MCP tools, implementing self-modifying systems, or building apps where features are outcomes achieved by agents operating in a loop.
 ---
 
+## When To Use
+
+- Designing a new agent-native system from scratch
+- Adding agent capabilities (MCP tools, system prompts) to an existing app
+- Reviewing architecture for parity, granularity, or composability gaps
+- Refactoring traditional code toward prompt-native patterns
+
+## Output
+
+- Architecture plan addressing the checklist (parity, granularity, composability, emergent capability)
+- Tool inventory with CRUD completeness assessment
+- System prompt draft or refinement
+- Identified gaps and recommended next steps
+
 <why_now>
 ## Why Now
 

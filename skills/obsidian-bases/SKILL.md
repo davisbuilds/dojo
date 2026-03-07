@@ -643,6 +643,33 @@ filters:
         - 'due != ""'
 ```
 
+## When To Use
+
+- Creating or editing `.base` files for Obsidian vaults
+- Building table, cards, list, or map views over vault notes
+- Writing filters, formulas, or summaries for Bases
+- User mentions Obsidian Bases, database views, or `.base` file syntax
+
+## Boundaries
+
+- Not for editing standard Obsidian Markdown (use obsidian-markdown skill instead)
+- Not for Dataview plugin queries; Bases uses its own YAML schema
+- Skip when the user needs a community plugin that is not Bases (e.g., Kanban, Calendar)
+- Do not generate Base files that reference plugins or properties the vault does not have
+
+## Output
+
+- A valid `.base` YAML file or YAML code block ready to paste into Obsidian
+- Includes views, filters, formulas, properties, and summaries as needed
+- Uses correct quoting rules (single quotes for expressions containing double quotes)
+
+## Verification
+
+- Output is valid YAML that Obsidian Bases can parse without errors
+- All referenced properties, formulas, and summary names are internally consistent
+- Filter expressions use only documented operators and functions
+- Duration arithmetic accesses numeric fields (`.days`, `.hours`) before applying `.round()`
+
 ## References
 
 - [Bases Syntax](https://help.obsidian.md/bases/syntax)

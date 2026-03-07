@@ -134,3 +134,23 @@ Each rule file contains:
 ## Full Compiled Document
 
 For the complete guide with all rules expanded: `AGENTS.md`
+
+## Boundaries
+
+- Not for React Native or mobile-specific patterns — use `vercel-react-native-skills` instead
+- Not for component architecture or composition patterns — use `vercel-composition-patterns` instead
+- Not for non-React frameworks (Vue, Svelte, Angular)
+- Skip micro-optimizations (JS performance category) when profiling shows no bottleneck
+
+## Output
+
+- Optimized React/Next.js components following priority-ranked rules
+- Parallel data fetching patterns replacing request waterfalls
+- Properly code-split bundles with dynamic imports and deferred third-party scripts
+
+## Verification
+
+- No request waterfalls — independent fetches use `Promise.all()` or Suspense boundaries
+- No barrel file imports in bundles — direct imports used instead
+- Server components minimize data serialized to client components
+- Auth checks present in all server actions
