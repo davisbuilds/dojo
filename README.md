@@ -26,7 +26,7 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 
 ## Available Skills
 
-42 skills across categories: GitHub workflows, code review, content creation, dev workflows, platform integrations, knowledge management, and meta/skill tooling. See [docs/system/FEATURES.md](docs/system/FEATURES.md) for the full catalog.
+44 skills across categories: GitHub workflows, code review, content creation, dev workflows, platform integrations, knowledge management, and meta/skill tooling. See [docs/system/FEATURES.md](docs/system/FEATURES.md) for the full catalog.
 
 ## Hooks
 

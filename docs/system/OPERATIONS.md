@@ -57,7 +57,17 @@ Hooks are configured in `.claude/settings.json` and `.agents/settings.json`. No 
 
 ## CI
 
-No CI pipeline. Quality is enforced at edit-time and session-stop via hooks:
+GitHub Actions enforces a strict contract set via:
+
+- `.github/workflows/skill-contract-pilot.yml`
+
+Current enforcement is a strict subset (pilot/phase rollout) validated by:
+
+```bash
+python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --skills <comma-separated-skill-list> --strict
+```
+
+Hooks still enforce quality at edit-time and session-stop:
 
 - Pre-tool-use hook validates SKILL.md on every write.
 - Stop hooks verify git state and skill structure.

@@ -4,7 +4,11 @@ Product-surface reference for the Agent Skills Repository.
 
 ## Skills Catalog
 
-38 skills organized by category:
+Catalog snapshot by category. For canonical runtime inventory, use `skills.json` (currently 44 skills):
+
+```bash
+jq '.skills | length' skills.json
+```
 
 ### GitHub Workflows
 
@@ -74,6 +78,7 @@ Product-surface reference for the Agent Skills Repository.
 | Skill | Purpose |
 |-------|---------|
 | `skill-creator` | Initialize, validate, and package new skills |
+| `skill-evals` | Validate SKILL contract compliance and run trigger-eval scaffolds |
 | `skill-installer` | Install skills from curated lists or GitHub repos |
 | `skill-standardizer` | Detect drift and unify skill copies |
 | `find-skills` | Discover installable skills |
