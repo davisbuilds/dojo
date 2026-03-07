@@ -740,3 +740,56 @@ This section records what was implemented after the original analysis so session
 
 - Continue warning burn-down on non-enforced skills.
 - Add trigger-collision eval fixtures for overlap clusters before consolidation decisions.
+
+---
+
+## Revision v5 (Trigger-Collision Baseline, 2026-03-07)
+
+### Scope
+
+Initial collision eval run across three overlap clusters:
+- Vercel pair: `vercel-deploy` vs `vercel-preview-logs`
+- Obsidian trio: `obsidian-markdown`, `obsidian-bases`, `json-canvas`
+- Image-gen pair: `gpt-imagen` vs `gemini-imagen`
+
+### Artifacts
+
+- Fixture: `skills/skill-evals/assets/trigger-collision-cases-2026-03-07.json`
+- Results: `docs/project/skill-trigger-collision-evals-2026-03-07.json`
+
+### Baseline Result
+
+- **12 cases**
+- **28 assertions**
+- **22 passed / 6 failed** (78.6% assertion pass rate)
+
+### Notable Collision Findings
+
+1. **Vercel pair cross-triggers**
+   - Deploy prompt still triggers preview-logs.
+   - Logs/debug prompt still triggers deploy.
+2. **Obsidian trio ambiguity**
+   - `obsidian-bases` false-positive on markdown-edit case.
+   - `obsidian-bases` false-negative on multi-artifact contextual case.
+3. **Image-gen provider overlap**
+   - OpenAI prompt false-triggers Gemini.
+   - Gemini prompt false-triggers OpenAI skill.
+
+### Per-Skill Snapshot (Collision Eval)
+
+- `json-canvas`: precision 1.0, recall 1.0
+- `obsidian-markdown`: precision 1.0, recall 1.0
+- `gemini-imagen`: precision 0.67, recall 1.0
+- `gpt-imagen`: precision 0.67, recall 1.0
+- `vercel-deploy`: precision 0.5, recall 1.0
+- `vercel-preview-logs`: precision 0.5, recall 1.0
+- `obsidian-bases`: precision 0.5, recall 0.5
+
+### Immediate Next Actions
+
+1. Tighten trigger descriptions to improve provider/domain disambiguation:
+   - emphasize "deploy/create preview" vs "inspect existing deployment logs"
+   - emphasize `.base` schema language vs markdown editing language
+   - emphasize provider-specific API names (`OpenAI Image API` vs `Gemini API`)
+2. Add negative trigger clauses directly in descriptions for overlapping pairs.
+3. Re-run the same fixture after description edits and track delta in assertion pass rate.
