@@ -18,11 +18,25 @@ Integrate semgrep as a deterministic SAST oracle into the agent workflow. Two ca
 1. **Security scanning** (`/scan`): Run semgrep on target files, parse findings into severity-grouped markdown.
 2. **Trifecta detection** (`/trifecta-check`): Detect architectural anti-patterns where private data access, untrusted input processing, and external communication co-occur in a single file.
 
+## When To Use
+
+Use this skill when:
+- reviewing code for security vulnerabilities
+- running deterministic SAST scans
+- checking lethal trifecta co-occurrence in architecture
+- the user asks for `/scan` or `/trifecta-check`
+
 ## Principles
 
 - **Conservative posture**: Present findings with context. Do not auto-fix security issues without explicit user approval.
 - **Deterministic first**: semgrep provides ground truth. LLM analysis supplements but never overrides tool output.
 - **Minimal context**: Load references only when remediating specific vulnerability classes.
+
+## Boundaries
+
+- Do not claim vulnerabilities are fixed without rerunning validation.
+- Do not auto-apply security patches without explicit user approval.
+- Do not treat LLM reasoning as higher authority than semgrep output.
 
 ## Setup
 
@@ -56,6 +70,13 @@ python3 skills/secure-code/scripts/trifecta_audit.py <targets>
 2. For flagged files, explain which three legs are present and where.
 3. Load `references/lethal-trifecta.md` for separation guidance.
 4. Recommend architectural refactoring to isolate legs into separate modules.
+
+## Output Requirements
+
+Report findings with:
+- severity grouping (CRITICAL > HIGH > MEDIUM > LOW)
+- rule ID/CWE (when present), file:line, and message
+- minimal remediation direction and whether merge should be blocked
 
 ## Custom Rules
 

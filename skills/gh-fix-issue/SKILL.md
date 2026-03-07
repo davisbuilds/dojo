@@ -123,6 +123,14 @@ Provide user with:
 - Summary of changes made
 - Any concerns or follow-up items
 
+## Output Requirements
+
+Always include:
+- issue reference (`owner/repo#number`)
+- PR URL (or clear reason no PR was created)
+- concise summary of code changes
+- test results or verification method used
+
 ## Edge Cases
 
 **Issue already has a linked PR**: Note this and ask user how to proceed.
@@ -132,6 +140,19 @@ Provide user with:
 **Repo requires fork**: Use `gh repo fork` then push to fork.
 
 **CI failures after PR**: Review logs with `gh pr checks` and iterate.
+
+## Boundaries
+
+- Do not force-push or rewrite shared history unless explicitly requested.
+- Do not close issues directly unless user asks.
+- Do not claim issue resolved without implementation + verification evidence.
+
+## Verification
+
+Before reporting completion:
+- confirm issue context was fetched for the intended repo/number
+- confirm tests or manual checks were executed
+- confirm push/PR creation succeeded when requested
 
 ## Command Wrapper
 

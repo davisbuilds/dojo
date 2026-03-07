@@ -23,12 +23,26 @@ Three-layer security audit for agent skills, producing a trust score with action
 | 2. Instructions | Prompt injection, encoding tricks, exfiltration, overreach | 35% |
 | 3. Code | Secrets, dangerous patterns, semgrep SAST, trifecta detection | 40% |
 
+## When To Use
+
+Use this skill when:
+- auditing an external or local skill before use
+- evaluating prompt-injection or exfiltration risk in skill instructions
+- producing a trust score for skill governance decisions
+- the user asks for `/audit-skill`
+
 ## Principles
 
 - **Deterministic first**: Pattern matching and static analysis provide ground truth. LLM analysis supplements but never overrides tool output.
 - **Fully offline**: No cloud APIs or network calls required. Semgrep uses local rules.
 - **Composable**: Each layer runs independently. Reuses `secure-code` skill for Layer 3 SAST.
 - **Graceful degradation**: If semgrep is unavailable, Layer 3 still runs regex-based checks.
+
+## Boundaries
+
+- Do not certify a skill as safe solely from score; include concrete findings.
+- Do not skip CRITICAL findings because weighted score is otherwise high.
+- Do not mutate target skills automatically during audit runs.
 
 ## Workflow
 
@@ -57,6 +71,14 @@ python3 skills/audit-skill/scripts/audit_skill.py <skill-directory> --layer 1
 python3 skills/audit-skill/scripts/audit_skill.py <skill-directory> --layer 2
 python3 skills/audit-skill/scripts/audit_skill.py <skill-directory> --layer 3
 ```
+
+## Output Requirements
+
+Return:
+- trust grade and numeric score
+- per-layer findings summary
+- explicit CRITICAL/HIGH findings with file paths
+- recommended remediation order
 
 ## Trust Score Interpretation
 

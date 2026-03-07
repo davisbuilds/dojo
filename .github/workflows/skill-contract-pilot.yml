@@ -1,0 +1,51 @@
+name: Skill Contract Pilot
+
+on:
+  pull_request:
+    paths:
+      - 'skills/**'
+      - 'docs/system/skill-contract-v1.md'
+      - 'requirements.txt'
+      - '.github/workflows/skill-contract-pilot.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'skills/**'
+      - 'docs/system/skill-contract-v1.md'
+      - 'requirements.txt'
+      - '.github/workflows/skill-contract-pilot.yml'
+
+jobs:
+  validate-pilot:
+    name: Validate Pilot Skills (Strict)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run strict contract checks on pilot skills
+        run: |
+          python3 skills/skill-evals/scripts/validate_skill_contract.py \
+            --skills-root skills \
+            --skills secure-code,audit-skill,vercel-deploy,vercel-preview-logs,gh-fix-issue \
+            --strict \
+            --json > pilot-skill-contract-report.json
+
+      - name: Upload pilot report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pilot-skill-contract-report
+          path: pilot-skill-contract-report.json

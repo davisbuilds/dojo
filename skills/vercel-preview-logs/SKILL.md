@@ -80,6 +80,19 @@ If multiple failures exist, prioritize:
 2. missing env/config
 3. runtime exceptions
 
+## Boundaries
+
+- This skill is for diagnosis and log inspection, not deployment actions.
+- Do not fabricate root causes when logs are inconclusive; report uncertainty.
+- Do not leak credentials or raw sensitive values from logs.
+
+## Verification
+
+Before finalizing diagnosis:
+- verify deployment identifier and state from CLI output
+- verify at least one concrete log signal supports the root-cause statement
+- include exact command(s) used for traceability
+
 ## Notes
 
 - This skill focuses on inspection and diagnosis, not deploying.

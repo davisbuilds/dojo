@@ -681,3 +681,29 @@ This section records what was implemented after the original analysis so session
 - Implementation commits:
   - `0da2084` (research-backed addendum)
   - `7892fa0` (contract/evals framework + catalog application)
+
+---
+
+## Revision v3 (Pilot Strict CI, 2026-03-07)
+
+### Implemented
+
+- Added GitHub Actions workflow for strict pilot enforcement:
+  - `.github/workflows/skill-contract-pilot.yml`
+- Pilot strict set:
+  - `secure-code`
+  - `audit-skill`
+  - `vercel-deploy`
+  - `vercel-preview-logs`
+  - `gh-fix-issue`
+- Added missing strict anchors (scope/boundaries/output/verification) to those pilot SKILL.md files.
+
+### Verified
+
+- Local strict validation result for pilot set:
+  - **5 total / 5 pass / 0 fail** (`--strict`)
+
+### Next
+
+- Keep pilot CI required on PRs touching skills.
+- Burn down global warnings, then expand CI strict scope beyond pilot set.

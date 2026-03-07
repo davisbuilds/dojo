@@ -56,6 +56,12 @@ Show the user the deployment URL. For fallback deployments, also show the claim 
 
 **Do not** curl or fetch the deployed URL to verify it works. Just return the link.
 
+## Boundaries
+
+- Default to preview deploys; do not deploy to production unless explicitly requested.
+- Do not expose tokens, credentials, or environment secrets in output.
+- Do not run destructive project changes as part of deployment troubleshooting.
+
 ## Troubleshooting
 
 ### Escalated Network Access
@@ -67,3 +73,10 @@ Example guidance to the user:
 ```
 The deploy needs escalated network access to deploy to Vercel. I can rerun the command with escalated permissions—want me to proceed?
 ```
+
+## Verification
+
+Before reporting success:
+- confirm CLI returned a deployment URL
+- confirm command exit status was successful
+- include preview URL (and claim URL when present)
