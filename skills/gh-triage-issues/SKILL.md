@@ -158,6 +158,14 @@ Provide user with:
 - Assignment (if made)
 - Any questions/blockers
 
+## Output Requirements
+
+Include:
+- labels applied and rationale
+- priority decision and supporting signals
+- duplicate outcome (found/not found, linked issue if found)
+- assignment/comment actions taken
+
 ## Batch Triage Mode
 
 To triage multiple issues:
@@ -192,6 +200,19 @@ For large backlogs, summarize findings:
 **Author is first-time contributor**: Be welcoming in tone; they may not know repo conventions.
 
 **Contentious/heated issue**: Triage factually; don't engage in debates. Flag for maintainer attention if needed.
+
+## Boundaries
+
+- Do not close issues as duplicate without evidence and explicit user confirmation.
+- Do not assign owners arbitrarily when ownership is unclear.
+- Do not expose sensitive security details in public issue comments.
+
+## Verification
+
+Before reporting completion:
+- confirm issue/repo identifiers match user request
+- confirm labels and priority changes succeeded via CLI response
+- confirm any comment/assignment/closure action actually executed
 
 ## Command Wrapper
 

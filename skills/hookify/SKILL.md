@@ -7,6 +7,13 @@ description: Create and manage lightweight guard-rail hooks from markdown rule f
 
 Markdown-driven guard rails. Define rules as `.local.md` files, hookify enforces them at tool-use time.
 
+## When To Use
+
+Use this skill when:
+- a user asks to add or tune guard rails/hooks
+- recurring unsafe behavior should be warned or blocked
+- you need markdown-managed policy rules across harnesses
+
 ## How It Works
 
 1. Hook scripts (Python) run on PreToolUse, PostToolUse, Stop, UserPromptSubmit events
@@ -76,3 +83,23 @@ Dangerous rm command detected. Verify the path.
 ## Examples
 
 See `assets/examples/` for ready-to-copy rule files.
+
+## Output Requirements
+
+Return:
+- created/updated rule filenames
+- event + pattern + action summary per rule
+- minimal activation instructions for the target harness
+
+## Boundaries
+
+- Do not deploy blocking rules without clearly communicating impact.
+- Do not add over-broad regex patterns that trigger on common safe actions.
+- Do not claim enforcement is active unless hook wiring is configured.
+
+## Verification
+
+Before completion:
+- validate rule frontmatter and required fields
+- run at least one representative test input per new/edited rule
+- confirm the configured harness path references the expected hook script

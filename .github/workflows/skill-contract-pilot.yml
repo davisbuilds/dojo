@@ -1,4 +1,4 @@
-name: Skill Contract Pilot
+name: Skill Contract Strict Set
 
 on:
   pull_request:
@@ -18,7 +18,7 @@ on:
 
 jobs:
   validate-pilot:
-    name: Validate Pilot Skills (Strict)
+    name: Validate Strict Skill Set
     runs-on: ubuntu-latest
 
     steps:
@@ -35,17 +35,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run strict contract checks on pilot skills
+      - name: Run strict contract checks on enforced skill set
         run: |
           python3 skills/skill-evals/scripts/validate_skill_contract.py \
             --skills-root skills \
-            --skills secure-code,audit-skill,vercel-deploy,vercel-preview-logs,gh-fix-issue \
+            --skills secure-code,audit-skill,gh-fix-issue,vercel-deploy,vercel-preview-logs,deep-research,hookify,skill-creator,writing-plans,playwright,gh-review-pr,gh-triage-issues,code-review-agents \
             --strict \
-            --json > pilot-skill-contract-report.json
+            --json > strict-skill-contract-report.json
 
-      - name: Upload pilot report
+      - name: Upload strict set report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pilot-skill-contract-report
-          path: pilot-skill-contract-report.json
+          name: strict-skill-contract-report
+          path: strict-skill-contract-report.json

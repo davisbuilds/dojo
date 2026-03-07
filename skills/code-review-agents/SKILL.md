@@ -7,6 +7,13 @@ description: "Specialized code review and quality assurance agents covering arch
 
 A collection of specialized review agents, each focused on a specific quality dimension. Invoke individually via the Task tool or use the `/agent-native-audit` command to run a comprehensive scored review with parallel sub-agents.
 
+## When To Use
+
+Use this skill when:
+- reviewing PRs or local diffs across multiple quality dimensions
+- auditing architecture, security, data integrity, or deployment risk
+- selecting specialized reviewers for language/domain-specific feedback
+
 ## Commands
 
 - `/agent-native-audit` — Comprehensive agent-native architecture review with scored principles (8 parallel sub-agents)
@@ -56,3 +63,23 @@ Invoke a specific agent via the Task tool:
 ```
 Task(subagent_type: "review", prompt: "Review this PR for data integrity concerns")
 ```
+
+## Output Requirements
+
+Provide:
+- findings first, ordered by severity
+- file/line references for each actionable finding
+- explicit merge recommendation or risk summary
+
+## Boundaries
+
+- Do not present style-only nits as blocking defects.
+- Do not merge overlapping agent findings without deduplication.
+- Do not claim code is safe or correct without evidence from reviewed artifacts.
+
+## Verification
+
+Before finalizing:
+- confirm findings are grounded in current diff/context
+- confirm each blocking finding includes concrete evidence
+- confirm recommendation aligns with observed risk, not default posture

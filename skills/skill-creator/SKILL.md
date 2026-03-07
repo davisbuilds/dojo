@@ -8,6 +8,33 @@ license: Complete terms in LICENSE.txt
 
 This skill provides guidance for creating effective skills.
 
+## When To Use
+
+Use this skill when:
+- creating a new skill from scratch
+- refactoring or upgrading an existing skill
+- packaging/validating skills for distribution
+
+## Boundaries
+
+- Do not over-specify SKILL.md with generic knowledge the model already has.
+- Do not add auxiliary docs that are not part of the skill structure.
+- Do not publish or package skills that fail validation.
+
+## Output Requirements
+
+Deliver:
+- a valid skill directory structure
+- a trigger-ready SKILL.md with concise instructions
+- only the required scripts/references/assets for the workflow
+
+## Verification
+
+Before completion:
+- run `quick_validate.py` on the target skill
+- run representative script checks when new scripts are added
+- run packaging when distribution is requested
+
 ## About Skills
 
 Skills are modular, self-contained packages that extend an AI agent's capabilities by providing

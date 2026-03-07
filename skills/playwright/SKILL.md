@@ -145,3 +145,23 @@ Open only what you need:
 - Use `--headed` when a visual check will help.
 - When capturing artifacts in this repo, use `output/playwright/` and avoid introducing new top-level artifact folders.
 - Default to CLI commands and workflows, not Playwright test specs.
+
+## Output Requirements
+
+Provide:
+- exact commands executed (or ready to run)
+- resulting artifacts/paths (screenshots, traces, etc.)
+- concise outcome summary and any blockers
+
+## Boundaries
+
+- Do not invent element refs; use fresh snapshots when refs are stale.
+- Do not switch to Playwright test-file generation unless explicitly requested.
+- Do not claim UI flow success without concrete terminal/browser evidence.
+
+## Verification
+
+Before finalizing:
+- confirm commands ran without terminal errors
+- confirm artifacts exist when they were requested
+- confirm post-action state using a fresh snapshot after major UI changes

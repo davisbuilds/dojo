@@ -707,3 +707,36 @@ This section records what was implemented after the original analysis so session
 
 - Keep pilot CI required on PRs touching skills.
 - Burn down global warnings, then expand CI strict scope beyond pilot set.
+
+---
+
+## Revision v4 (Expanded Strict Set, 2026-03-07)
+
+### Implemented
+
+- Expanded strict CI enforcement set from 5 skills to 13 skills:
+  - `secure-code`, `audit-skill`, `gh-fix-issue`, `vercel-deploy`, `vercel-preview-logs`
+  - `deep-research`, `hookify`, `skill-creator`, `writing-plans`, `playwright`
+  - `gh-review-pr`, `gh-triage-issues`, `code-review-agents`
+- Updated strict-anchor sections on failing phase-2 skills:
+  - `skills/code-review-agents/SKILL.md`
+  - `skills/gh-review-pr/SKILL.md`
+  - `skills/gh-triage-issues/SKILL.md`
+  - `skills/hookify/SKILL.md`
+  - `skills/playwright/SKILL.md`
+  - `skills/skill-creator/SKILL.md`
+- Updated CI workflow:
+  - `.github/workflows/skill-contract-pilot.yml` now enforces the expanded strict set.
+
+### Verified
+
+- Expanded strict set validation:
+  - **13 total / 13 pass / 0 fail** (`--strict`)
+- Persisted reports:
+  - `docs/project/skill-contract-strict-set-2026-03-07.json`
+  - `docs/project/skill-contract-strict-set-2026-03-07.md`
+
+### Next
+
+- Continue warning burn-down on non-enforced skills.
+- Add trigger-collision eval fixtures for overlap clusters before consolidation decisions.

@@ -1,0 +1,739 @@
+{
+  "summary": {
+    "total": 13,
+    "pass": 13,
+    "warn": 0,
+    "fail": 0,
+    "strict": true
+  },
+  "skills": [
+    {
+      "skill": "audit-skill",
+      "path": "/Users/dg-mac-mini/Dev/dojo/skills/audit-skill/SKILL.md",
+      "status": "pass",
+      "line_count": 107,
+      "required_failures": [],
+      "warnings": [],
+      "optional_failures": [],
+      "checks": {
+        "frontmatter_valid": {
+          "status": "pass",
+          "required": true,
+          "message": "Skill is valid!"
+        },
+        "description_trigger_ready": {
+          "status": "pass",
+          "required": true,
+          "message": "Description includes trigger-ready language"
+        },
+        "execution_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Execution anchor present"
+        },
+        "scope_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Scope anchor present"
+        },
+        "boundaries_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Boundaries anchor present"
+        },
+        "output_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Output anchor present"
+        },
+        "verification_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Verification anchor present"
+        },
+        "resource_map_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Resource map present"
+        },
+        "context_budget": {
+          "status": "pass",
+          "required": true,
+          "message": "SKILL.md is within context budget (107 lines)"
+        }
+      }
+    },
+    {
+      "skill": "code-review-agents",
+      "path": "/Users/dg-mac-mini/Dev/dojo/skills/code-review-agents/SKILL.md",
+      "status": "pass",
+      "line_count": 86,
+      "required_failures": [],
+      "warnings": [],
+      "optional_failures": [],
+      "checks": {
+        "frontmatter_valid": {
+          "status": "pass",
+          "required": true,
+          "message": "Skill is valid!"
+        },
+        "description_trigger_ready": {
+          "status": "pass",
+          "required": true,
+          "message": "Description includes trigger-ready language"
+        },
+        "execution_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Execution anchor present"
+        },
+        "scope_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Scope anchor present"
+        },
+        "boundaries_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Boundaries anchor present"
+        },
+        "output_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Output anchor present"
+        },
+        "verification_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Verification anchor present"
+        },
+        "resource_map_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Resource map present"
+        },
+        "context_budget": {
+          "status": "pass",
+          "required": true,
+          "message": "SKILL.md is within context budget (86 lines)"
+        }
+      }
+    },
+    {
+      "skill": "deep-research",
+      "path": "/Users/dg-mac-mini/Dev/dojo/skills/deep-research/SKILL.md",
+      "status": "pass",
+      "line_count": 139,
+      "required_failures": [],
+      "warnings": [],
+      "optional_failures": [],
+      "checks": {
+        "frontmatter_valid": {
+          "status": "pass",
+          "required": true,
+          "message": "Skill is valid!"
+        },
+        "description_trigger_ready": {
+          "status": "pass",
+          "required": true,
+          "message": "Description includes trigger-ready language"
+        },
+        "execution_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Execution anchor present"
+        },
+        "scope_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Scope anchor present"
+        },
+        "boundaries_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Boundaries anchor present"
+        },
+        "output_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Output anchor present"
+        },
+        "verification_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Verification anchor present"
+        },
+        "resource_map_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Resource map present"
+        },
+        "context_budget": {
+          "status": "pass",
+          "required": true,
+          "message": "SKILL.md is within context budget (139 lines)"
+        }
+      }
+    },
+    {
+      "skill": "gh-fix-issue",
+      "path": "/Users/dg-mac-mini/Dev/dojo/skills/gh-fix-issue/SKILL.md",
+      "status": "pass",
+      "line_count": 160,
+      "required_failures": [],
+      "warnings": [],
+      "optional_failures": [],
+      "checks": {
+        "frontmatter_valid": {
+          "status": "pass",
+          "required": true,
+          "message": "Skill is valid!"
+        },
+        "description_trigger_ready": {
+          "status": "pass",
+          "required": true,
+          "message": "Description includes trigger-ready language"
+        },
+        "execution_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Execution anchor present"
+        },
+        "scope_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Scope anchor present"
+        },
+        "boundaries_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Boundaries anchor present"
+        },
+        "output_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Output anchor present"
+        },
+        "verification_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Verification anchor present"
+        },
+        "resource_map_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Resource map present"
+        },
+        "context_budget": {
+          "status": "pass",
+          "required": true,
+          "message": "SKILL.md is within context budget (160 lines)"
+        }
+      }
+    },
+    {
+      "skill": "gh-review-pr",
+      "path": "/Users/dg-mac-mini/Dev/dojo/skills/gh-review-pr/SKILL.md",
+      "status": "pass",
+      "line_count": 185,
+      "required_failures": [],
+      "warnings": [],
+      "optional_failures": [],
+      "checks": {
+        "frontmatter_valid": {
+          "status": "pass",
+          "required": true,
+          "message": "Skill is valid!"
+        },
+        "description_trigger_ready": {
+          "status": "pass",
+          "required": true,
+          "message": "Description includes trigger-ready language"
+        },
+        "execution_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Execution anchor present"
+        },
+        "scope_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Scope anchor present"
+        },
+        "boundaries_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Boundaries anchor present"
+        },
+        "output_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Output anchor present"
+        },
+        "verification_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Verification anchor present"
+        },
+        "resource_map_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Resource map present"
+        },
+        "context_budget": {
+          "status": "pass",
+          "required": true,
+          "message": "SKILL.md is within context budget (185 lines)"
+        }
+      }
+    },
+    {
+      "skill": "gh-triage-issues",
+      "path": "/Users/dg-mac-mini/Dev/dojo/skills/gh-triage-issues/SKILL.md",
+      "status": "pass",
+      "line_count": 220,
+      "required_failures": [],
+      "warnings": [],
+      "optional_failures": [],
+      "checks": {
+        "frontmatter_valid": {
+          "status": "pass",
+          "required": true,
+          "message": "Skill is valid!"
+        },
+        "description_trigger_ready": {
+          "status": "pass",
+          "required": true,
+          "message": "Description includes trigger-ready language"
+        },
+        "execution_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Execution anchor present"
+        },
+        "scope_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Scope anchor present"
+        },
+        "boundaries_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Boundaries anchor present"
+        },
+        "output_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Output anchor present"
+        },
+        "verification_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Verification anchor present"
+        },
+        "resource_map_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Resource map present"
+        },
+        "context_budget": {
+          "status": "pass",
+          "required": true,
+          "message": "SKILL.md is within context budget (220 lines)"
+        }
+      }
+    },
+    {
+      "skill": "hookify",
+      "path": "/Users/dg-mac-mini/Dev/dojo/skills/hookify/SKILL.md",
+      "status": "pass",
+      "line_count": 106,
+      "required_failures": [],
+      "warnings": [],
+      "optional_failures": [],
+      "checks": {
+        "frontmatter_valid": {
+          "status": "pass",
+          "required": true,
+          "message": "Skill is valid!"
+        },
+        "description_trigger_ready": {
+          "status": "pass",
+          "required": true,
+          "message": "Description includes trigger-ready language"
+        },
+        "execution_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Execution anchor present"
+        },
+        "scope_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Scope anchor present"
+        },
+        "boundaries_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Boundaries anchor present"
+        },
+        "output_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Output anchor present"
+        },
+        "verification_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Verification anchor present"
+        },
+        "resource_map_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Resource map present"
+        },
+        "context_budget": {
+          "status": "pass",
+          "required": true,
+          "message": "SKILL.md is within context budget (106 lines)"
+        }
+      }
+    },
+    {
+      "skill": "playwright",
+      "path": "/Users/dg-mac-mini/Dev/dojo/skills/playwright/SKILL.md",
+      "status": "pass",
+      "line_count": 168,
+      "required_failures": [],
+      "warnings": [],
+      "optional_failures": [],
+      "checks": {
+        "frontmatter_valid": {
+          "status": "pass",
+          "required": true,
+          "message": "Skill is valid!"
+        },
+        "description_trigger_ready": {
+          "status": "pass",
+          "required": true,
+          "message": "Description includes trigger-ready language"
+        },
+        "execution_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Execution anchor present"
+        },
+        "scope_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Scope anchor present"
+        },
+        "boundaries_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Boundaries anchor present"
+        },
+        "output_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Output anchor present"
+        },
+        "verification_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Verification anchor present"
+        },
+        "resource_map_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Resource map present"
+        },
+        "context_budget": {
+          "status": "pass",
+          "required": true,
+          "message": "SKILL.md is within context budget (168 lines)"
+        }
+      }
+    },
+    {
+      "skill": "secure-code",
+      "path": "/Users/dg-mac-mini/Dev/dojo/skills/secure-code/SKILL.md",
+      "status": "pass",
+      "line_count": 103,
+      "required_failures": [],
+      "warnings": [],
+      "optional_failures": [],
+      "checks": {
+        "frontmatter_valid": {
+          "status": "pass",
+          "required": true,
+          "message": "Skill is valid!"
+        },
+        "description_trigger_ready": {
+          "status": "pass",
+          "required": true,
+          "message": "Description includes trigger-ready language"
+        },
+        "execution_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Execution anchor present"
+        },
+        "scope_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Scope anchor present"
+        },
+        "boundaries_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Boundaries anchor present"
+        },
+        "output_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Output anchor present"
+        },
+        "verification_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Verification anchor present"
+        },
+        "resource_map_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Resource map present"
+        },
+        "context_budget": {
+          "status": "pass",
+          "required": true,
+          "message": "SKILL.md is within context budget (103 lines)"
+        }
+      }
+    },
+    {
+      "skill": "skill-creator",
+      "path": "/Users/dg-mac-mini/Dev/dojo/skills/skill-creator/SKILL.md",
+      "status": "pass",
+      "line_count": 402,
+      "required_failures": [],
+      "warnings": [],
+      "optional_failures": [],
+      "checks": {
+        "frontmatter_valid": {
+          "status": "pass",
+          "required": true,
+          "message": "Skill is valid!"
+        },
+        "description_trigger_ready": {
+          "status": "pass",
+          "required": true,
+          "message": "Description includes trigger-ready language"
+        },
+        "execution_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Execution anchor present"
+        },
+        "scope_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Scope anchor present"
+        },
+        "boundaries_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Boundaries anchor present"
+        },
+        "output_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Output anchor present"
+        },
+        "verification_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Verification anchor present"
+        },
+        "resource_map_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Resource map present"
+        },
+        "context_budget": {
+          "status": "pass",
+          "required": true,
+          "message": "SKILL.md is within context budget (402 lines)"
+        }
+      }
+    },
+    {
+      "skill": "vercel-deploy",
+      "path": "/Users/dg-mac-mini/Dev/dojo/skills/vercel-deploy/SKILL.md",
+      "status": "pass",
+      "line_count": 83,
+      "required_failures": [],
+      "warnings": [],
+      "optional_failures": [],
+      "checks": {
+        "frontmatter_valid": {
+          "status": "pass",
+          "required": true,
+          "message": "Skill is valid!"
+        },
+        "description_trigger_ready": {
+          "status": "pass",
+          "required": true,
+          "message": "Description includes trigger-ready language"
+        },
+        "execution_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Execution anchor present"
+        },
+        "scope_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Scope anchor present"
+        },
+        "boundaries_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Boundaries anchor present"
+        },
+        "output_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Output anchor present"
+        },
+        "verification_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Verification anchor present"
+        },
+        "resource_map_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Resource map present"
+        },
+        "context_budget": {
+          "status": "pass",
+          "required": true,
+          "message": "SKILL.md is within context budget (83 lines)"
+        }
+      }
+    },
+    {
+      "skill": "vercel-preview-logs",
+      "path": "/Users/dg-mac-mini/Dev/dojo/skills/vercel-preview-logs/SKILL.md",
+      "status": "pass",
+      "line_count": 100,
+      "required_failures": [],
+      "warnings": [],
+      "optional_failures": [],
+      "checks": {
+        "frontmatter_valid": {
+          "status": "pass",
+          "required": true,
+          "message": "Skill is valid!"
+        },
+        "description_trigger_ready": {
+          "status": "pass",
+          "required": true,
+          "message": "Description includes trigger-ready language"
+        },
+        "execution_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Execution anchor present"
+        },
+        "scope_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Scope anchor present"
+        },
+        "boundaries_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Boundaries anchor present"
+        },
+        "output_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Output anchor present"
+        },
+        "verification_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Verification anchor present"
+        },
+        "resource_map_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Resource map present"
+        },
+        "context_budget": {
+          "status": "pass",
+          "required": true,
+          "message": "SKILL.md is within context budget (100 lines)"
+        }
+      }
+    },
+    {
+      "skill": "writing-plans",
+      "path": "/Users/dg-mac-mini/Dev/dojo/skills/writing-plans/SKILL.md",
+      "status": "pass",
+      "line_count": 127,
+      "required_failures": [],
+      "warnings": [],
+      "optional_failures": [],
+      "checks": {
+        "frontmatter_valid": {
+          "status": "pass",
+          "required": true,
+          "message": "Skill is valid!"
+        },
+        "description_trigger_ready": {
+          "status": "pass",
+          "required": true,
+          "message": "Description includes trigger-ready language"
+        },
+        "execution_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Execution anchor present"
+        },
+        "scope_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Scope anchor present"
+        },
+        "boundaries_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Boundaries anchor present"
+        },
+        "output_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Output anchor present"
+        },
+        "verification_anchor_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Verification anchor present"
+        },
+        "resource_map_present": {
+          "status": "pass",
+          "required": true,
+          "message": "Resource map present"
+        },
+        "context_budget": {
+          "status": "pass",
+          "required": true,
+          "message": "SKILL.md is within context budget (127 lines)"
+        }
+      }
+    }
+  ]
+}

@@ -166,6 +166,19 @@ Ask user which depth they prefer if unclear.
 
 **Stale PR with conflicts**: Recommend rebasing before review proceeds.
 
+## Boundaries
+
+- Do not approve PRs with unresolved critical security or correctness issues.
+- Do not post speculative findings without linking to concrete diff evidence.
+- Do not claim CI is healthy unless check status was retrieved in this run.
+
+## Verification
+
+Before posting review:
+- confirm PR metadata and CI status were fetched successfully
+- confirm each blocking issue includes file/diff evidence
+- confirm recommendation (APPROVE/REQUEST_CHANGES/COMMENT) matches findings
+
 ## Command Wrapper
 
 If the harness supports command files, use `commands/review-pr.md` as the canonical entrypoint for this skill.
