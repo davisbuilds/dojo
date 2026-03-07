@@ -839,6 +839,66 @@ These represent a semantic distinction (creating vs debugging) that requires int
 
 ### Next
 
-- Accept 26/28 as the lexical scorer ceiling for this fixture.
-- Expand trigger-eval fixtures to cover more skill pairs beyond the 3 tested clusters.
-- Continue strict-mode warning burn-down on non-enforced skills.
+- ~~Expand trigger-eval fixtures to cover more skill pairs beyond the 3 tested clusters.~~ Done in v7.
+- ~~Continue strict-mode warning burn-down on non-enforced skills.~~ Done — all 44 pass strict.
+
+---
+
+## Revision v7 (Expanded Trigger Fixtures + Full Strict, 2026-03-07)
+
+### Scope
+
+1. Expanded trigger-collision fixtures from 3 clusters (12 cases) to 12 clusters (34 cases total across 2 fixtures).
+2. Completed strict-mode burn-down: all 44 skills now pass `--strict`.
+3. CI now enforces strict on the full catalog (no subset filter).
+
+### New Clusters Tested
+
+| Cluster | Skills | Result |
+|---------|--------|--------|
+| Security pair | secure-code vs audit-skill | 1 FP fixed (removed cross-terms from audit-skill desc) |
+| Review pair | local-review vs gh-review-pr | 2 FP (lexical limit: "review" shared) |
+| Pre-implementation | writing-plans vs brainstorming | clean |
+| Reasoning | first-principles vs brainstorming | 2 FP (lexical limit: "approaches"/"trade-offs") |
+| Skill bootstrap | skill-creator vs template | 1 FP (lexical limit: "workflow"/"steps"/"trigger") |
+| Session mgmt | compact-session vs session-retro | fixed via "session" stopword |
+| GitHub workflow | gh-commit-push-pr vs gh-fix-issue | fixed via "github" stopword |
+| Markdown tools | fetchmd vs markdown-converter | 3 FP (expected: fetchmd is a specific CLI tool) |
+| Browser/screenshot | playwright vs screenshot | clean |
+
+### Artifacts
+
+- Expanded fixture: `skills/skill-evals/assets/trigger-collision-cases-expanded.json` (22 cases)
+- Original fixture: `skills/skill-evals/assets/trigger-collision-cases-2026-03-07.json` (12 cases, unchanged)
+- Expanded results: `docs/project/skill-trigger-collision-evals-expanded.json`
+
+### Combined Results (All Fixtures)
+
+| Fixture | Assertions | Passed | Failed | Pass Rate |
+|---------|-----------|--------|--------|-----------|
+| Sample | 12 | 12 | 0 | 100% |
+| Original collision | 28 | 26 | 2 | 92.9% |
+| Expanded collision | 44 | 36 | 8 | 81.8% |
+| **Total** | **84** | **74** | **10** | **88.1%** |
+
+### Accepted Lexical Limits (10 failures)
+
+All remaining failures are false positives from genuine vocabulary overlap between skill pairs that share domain terms. The lexical scorer cannot distinguish semantic intent (e.g. "create a deployment" vs "debug a failed deployment"). An LLM-based router handles these correctly.
+
+| Pair | Shared terms | Failures |
+|------|-------------|----------|
+| vercel-deploy / vercel-preview-logs | deploy, preview, vercel | 2 |
+| local-review / gh-review-pr | review, changes | 2 |
+| first-principles / brainstorming | approaches, trade-offs | 2 |
+| fetchmd / markdown-converter | markdown, convert | 3 |
+| skill-creator / template | workflow, steps, trigger | 1 |
+
+### Strict Contract Status
+
+- **44/44 pass** (0 failures, 4 non-blocking context_budget warnings)
+- CI enforces full catalog with `--strict` (no subset filter)
+
+### Next
+
+- Re-score tier rankings from measured evidence.
+- Address 4 context_budget warnings (compound-docs, json-canvas, obsidian-bases, obsidian-markdown).

@@ -1,0 +1,202 @@
+{
+  "cases": [
+    {
+      "id": "security-sast-scan",
+      "type": "implicit",
+      "prompt": "Run a semgrep SAST scan on this codebase and check for the lethal trifecta.",
+      "expected": {
+        "trigger": ["secure-code"],
+        "avoid": ["audit-skill"]
+      }
+    },
+    {
+      "id": "security-audit-skill",
+      "type": "implicit",
+      "prompt": "Audit this skill for prompt injection, exfiltration risks, and give it a trust score.",
+      "expected": {
+        "trigger": ["audit-skill"],
+        "avoid": ["secure-code"]
+      }
+    },
+    {
+      "id": "security-negative",
+      "type": "negative",
+      "prompt": "Explain what OWASP top 10 vulnerabilities are.",
+      "expected": {
+        "trigger": [],
+        "avoid": ["secure-code", "audit-skill"]
+      }
+    },
+    {
+      "id": "review-local-diff",
+      "type": "implicit",
+      "prompt": "Review my staged changes and give me findings with severity ratings.",
+      "expected": {
+        "trigger": ["local-review"],
+        "avoid": ["gh-review-pr"]
+      }
+    },
+    {
+      "id": "review-github-pr",
+      "type": "implicit",
+      "prompt": "Review PR #42 on GitHub, check CI status, and post your review comment.",
+      "expected": {
+        "trigger": ["gh-review-pr"],
+        "avoid": ["local-review"]
+      }
+    },
+    {
+      "id": "review-negative",
+      "type": "negative",
+      "prompt": "What are best practices for code review processes?",
+      "expected": {
+        "trigger": [],
+        "avoid": ["local-review", "gh-review-pr"]
+      }
+    },
+    {
+      "id": "plan-implementation",
+      "type": "implicit",
+      "prompt": "Create an implementation plan with task sequencing, dependencies, and verification commands for this feature.",
+      "expected": {
+        "trigger": ["writing-plans"],
+        "avoid": ["brainstorming"]
+      }
+    },
+    {
+      "id": "brainstorm-ambiguous",
+      "type": "implicit",
+      "prompt": "I have a vague idea for a new feature. Help me clarify what to build before we start planning.",
+      "expected": {
+        "trigger": ["brainstorming"],
+        "avoid": ["writing-plans"]
+      }
+    },
+    {
+      "id": "first-principles-architecture",
+      "type": "implicit",
+      "prompt": "Help me think through the architectural trade-offs between these two competing approaches from first principles.",
+      "expected": {
+        "trigger": ["first-principles"],
+        "avoid": ["brainstorming"]
+      }
+    },
+    {
+      "id": "brainstorm-not-first-principles",
+      "type": "implicit",
+      "prompt": "Requirements are unclear and I need to explore multiple directions. Ask me questions to clarify what we should build.",
+      "expected": {
+        "trigger": ["brainstorming"],
+        "avoid": ["first-principles"]
+      }
+    },
+    {
+      "id": "skill-creator-guide",
+      "type": "implicit",
+      "prompt": "I want to create a new skill with proper trigger design, workflow steps, and resource bundling. Guide me through it.",
+      "expected": {
+        "trigger": ["skill-creator"],
+        "avoid": ["template"]
+      }
+    },
+    {
+      "id": "template-scaffold",
+      "type": "implicit",
+      "prompt": "Give me a minimal skill scaffold with a SKILL.md template I can fill in.",
+      "expected": {
+        "trigger": ["template"],
+        "avoid": ["skill-creator"]
+      }
+    },
+    {
+      "id": "compact-session-summary",
+      "type": "implicit",
+      "prompt": "Context is getting long. Create a session summary for handoff to a fresh instance.",
+      "expected": {
+        "trigger": ["compact-session"],
+        "avoid": ["session-retro"]
+      }
+    },
+    {
+      "id": "session-retro-learnings",
+      "type": "implicit",
+      "prompt": "Update AGENTS.md and CLAUDE.md with non-obvious learnings from this session.",
+      "expected": {
+        "trigger": ["session-retro"],
+        "avoid": ["compact-session"]
+      }
+    },
+    {
+      "id": "gh-commit-push",
+      "type": "implicit",
+      "prompt": "Commit these changes, push the branch, and open a PR for review.",
+      "expected": {
+        "trigger": ["gh-commit-push-pr"],
+        "avoid": ["gh-fix-issue"]
+      }
+    },
+    {
+      "id": "gh-fix-issue",
+      "type": "implicit",
+      "prompt": "Fix GitHub issue #23 by implementing the requested change and creating a PR.",
+      "expected": {
+        "trigger": ["gh-fix-issue"],
+        "avoid": ["gh-commit-push-pr"]
+      }
+    },
+    {
+      "id": "fetchmd-webpage",
+      "type": "implicit",
+      "prompt": "Fetch this webpage and convert it to clean markdown for my LLM pipeline.",
+      "expected": {
+        "trigger": ["fetchmd"],
+        "avoid": ["markdown-converter"]
+      }
+    },
+    {
+      "id": "markdown-converter-pdf",
+      "type": "implicit",
+      "prompt": "Convert this PDF document to markdown so I can analyze the text.",
+      "expected": {
+        "trigger": ["markdown-converter"],
+        "avoid": ["fetchmd"]
+      }
+    },
+    {
+      "id": "markdown-converter-docx",
+      "type": "implicit",
+      "prompt": "Convert this Word .docx file and this Excel spreadsheet to markdown.",
+      "expected": {
+        "trigger": ["markdown-converter"],
+        "avoid": ["fetchmd"]
+      }
+    },
+    {
+      "id": "screenshot-desktop",
+      "type": "implicit",
+      "prompt": "Take a screenshot of my desktop right now.",
+      "expected": {
+        "trigger": ["screenshot"],
+        "avoid": ["playwright"]
+      }
+    },
+    {
+      "id": "playwright-browser-automation",
+      "type": "implicit",
+      "prompt": "Automate the browser to navigate to the login page, fill the form, and take a snapshot.",
+      "expected": {
+        "trigger": ["playwright"],
+        "avoid": ["screenshot"]
+      }
+    },
+    {
+      "id": "screenshot-negative",
+      "type": "negative",
+      "prompt": "Show me the contents of the image file at output/hero.png.",
+      "expected": {
+        "trigger": [],
+        "avoid": ["screenshot", "playwright"]
+      }
+    }
+  ]
+}

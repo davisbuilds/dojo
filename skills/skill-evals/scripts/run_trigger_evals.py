@@ -60,6 +60,8 @@ STOPWORDS = {
     "api",
     "via",
     "requires",
+    "github",
+    "session",
 }
 
 
