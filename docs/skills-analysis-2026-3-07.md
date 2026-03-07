@@ -63,7 +63,7 @@ Comprehensive analysis of all 44 skills in `dojo/skills/`. Each skill is rated 1
 | 42 | first-principles | 4.5 | D | Behavioral |
 | 43 | template | 2 | D | Meta |
 
-**Note:** `algorithmic-art` has no `SKILL.md` file visible in some checks but has strong template assets; score reflects content quality where found.
+**Note:** Rankings above reflect the pre-implementation snapshot from 2026-03-07. Post-analysis implementation updates are tracked in the revision section at the end of this document.
 
 ---
 
@@ -620,3 +620,64 @@ Identify current best practices and power-user patterns for AI agent skills (ski
 [10] Anthropic, "The Complete Guide to Building Skill for Claude" (2026): https://resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf  
 [11] "PolySkill" (arXiv 2510.15863): https://arxiv.org/abs/2510.15863  
 [12] Agent Skills Specification: https://agentskills.io/specification
+
+---
+
+## Revision v2 (Post-Implementation, 2026-03-07)
+
+This section records what was implemented after the original analysis so session compaction retains current operational context.
+
+### Implemented Since Original Analysis
+
+- Added new `skill-evals` skill with:
+  - deterministic contract validator (`skills/skill-evals/scripts/validate_skill_contract.py`)
+  - deterministic trigger-eval scaffold (`skills/skill-evals/scripts/run_trigger_evals.py`)
+  - contracts + sample fixture (`skills/skill-evals/references/contracts.md`, `skills/skill-evals/assets/sample-trigger-cases.json`)
+- Added repo-wide SKILL contract reference:
+  - `docs/system/skill-contract-v1.md`
+- Applied contract across all skills and generated reports:
+  - `docs/project/skill-contract-application-2026-03-07.md`
+  - `docs/project/skill-contract-application-2026-03-07.json`
+  - `docs/project/skill-trigger-evals-sample-2026-03-07.json`
+- Updated affected SKILL frontmatter/content to remove required contract failures:
+  - `skills/compound-docs/SKILL.md`
+  - `skills/theme-factory/SKILL.md`
+  - `skills/verify-before-complete/SKILL.md`
+  - `skills/writing-plans/SKILL.md`
+  - `skills/template/SKILL.md`
+- Regenerated `skills.json` manifest.
+
+### Measured Outcomes
+
+- Contract application (default mode): **44 total / 0 fail / 42 warn / 2 pass**.
+- Sample trigger eval fixture: **12/12 assertions passed**.
+- All skills pass `quick_validate.py` structural checks.
+
+### Roadmap Status Update
+
+#### Completed
+
+1. Create shared `skill-evals` harness.
+2. Standardize SKILL.md authoring contract (v1) and apply across catalog.
+3. Establish baseline trigger-eval fixture and reporting artifacts.
+
+#### Partially Completed
+
+4. Deterministic invocation guidance exists in research roadmap, but not yet enforced uniformly in high-risk skills.
+5. Governance is in place via committed contract/report artifacts, but CI enforcement gates are not yet wired.
+
+#### Still Open (High Leverage Next)
+
+6. Burn down warnings from contract report in priority order (scope/boundary/output/verification anchors).
+7. Add strict mode path (`--strict`) to CI for selected skill subsets, then full catalog.
+8. Use trigger-collision evals to drive merge decisions for overlapping skills (Vercel pair, Obsidian trio, image-gen pair).
+9. Re-score rankings with `skill-evals` included and update tier table from measured evidence.
+
+### Compaction-Safe Working Context
+
+- Canonical contract doc: `docs/system/skill-contract-v1.md`
+- Canonical compliance snapshot: `docs/project/skill-contract-application-2026-03-07.md`
+- Canonical trigger baseline: `docs/project/skill-trigger-evals-sample-2026-03-07.json`
+- Implementation commits:
+  - `0da2084` (research-backed addendum)
+  - `7892fa0` (contract/evals framework + catalog application)
