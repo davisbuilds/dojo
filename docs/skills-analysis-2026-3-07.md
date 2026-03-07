@@ -522,3 +522,101 @@ The improvements directly match recommendations from the previous analysis, vali
 12. **Add rule testing to hookify** -- Let users validate rules before activation
 13. **Add example plans to writing-plans** -- Show what good plans look like
 14. **Merge Obsidian skills** -- One `obsidian` skill with markdown, bases, and canvas sub-references
+
+---
+
+## External Research Addendum (2026-03-07)
+
+This addendum incorporates web-backed findings using the `deep-research` workflow (standard depth routing, scored/deduplicated evidence filtering), with a focus on **recent (2025-2026)** guidance and relevant arXiv literature.
+
+### Research Brief
+
+Identify current best practices and power-user patterns for AI agent skills (skill files, trigger design, resource bundling, orchestration), prioritizing 2025-2026 sources and supplementing with arXiv literature.
+
+### Key Findings (Filtered Packet)
+
+1. **Progressive disclosure + narrow scope are now converging norms**  
+   OpenAI and Anthropic both formalize metadata-first loading with on-demand resource expansion, and both stress single-purpose, composable skills over broad "do-everything" bundles [1][6][9].
+
+2. **Trigger quality is a first-class quality dimension, not a docs nicety**  
+   Recent guidance emphasizes routing-style descriptions, explicit "not for" boundaries, and negative trigger examples to reduce false activations and skill collision [1][3][6][10].
+
+3. **Eval-driven skill development is becoming the default for mature teams**  
+   The strongest recent pattern is to treat skill behavior as testable: explicit/implicit/contextual trigger tests, negative controls (`should_trigger=false`), and regression tracking across traces/artifacts [4][6].
+
+4. **Power-user pattern: deterministic vs opportunistic invocation should be explicit**  
+   For high-stakes or pipeline-critical work, explicit skill invocation is recommended for determinism; for discovery-heavy workflows, implicit routing can remain enabled [1][3].
+
+5. **Long-running agent workflows need operational scaffolding, not just better prompts**  
+   The newest power-user playbooks prioritize container/session reuse, compaction checkpoints, artifact handoff conventions, and network/security constraints [3].
+
+6. **Org-level adoption depends on governance of instruction files**  
+   Instruction/skill docs are most effective when versioned in-repo, included in onboarding, and treated as governed operational assets (not ad-hoc local notes) [7].
+
+7. **Literature trend supports skill libraries and abstraction layers, but evaluation maturity is still uneven**  
+   Recent preprints point to gains from iterative skill discovery and polymorphic abstraction, while ecosystem-scale benchmarking is still emerging and security/performance ceilings remain visible [2][5][8][11].
+
+### Implications for This Analysis
+
+- The original report correctly emphasized **conciseness**, but external evidence suggests moving from a generic "trim verbosity" rule to a **hard design contract**:
+  - single responsibility
+  - explicit trigger boundary
+  - negative trigger examples
+  - measurable eval checks
+- "Instruction-only skills" are not inherently weak; they become weak when they lack:
+  - clear routing cues
+  - task I/O contract
+  - validation/eval loop
+- Overlap issues (Vercel pairs, Obsidian trio, imaging pair) should be judged by **routing ambiguity and eval outcomes**, not only by conceptual overlap.
+
+### Revised Priority Roadmap (Research-Aligned)
+
+#### High Impact
+
+1. **Create a shared `skill-evals` harness**  
+   Add trigger tests (explicit/implicit/contextual + negatives), success criteria, and regression snapshots for top 15 skills [4][6].
+2. **Standardize SKILL.md authoring contract across repo**  
+   Enforce single-responsibility scope, trigger boundaries, "not-for" section, and concise body length targets [1][6][9].
+3. **Add deterministic-invocation guidance to high-risk skills**  
+   Security, deployment, and migration-adjacent skills should default to explicit invocation recommendations [1][3].
+4. **Operationalize long-running workflows**  
+   Codify compaction checkpoints, artifact boundary formats, and network/tool constraints in autonomous/multi-step skills [3].
+5. **Keep instruction files under governance**  
+   Version, review, and onboard around AGENTS/skill docs as operational interface contracts [7].
+
+#### Medium Impact
+
+6. **Refactor overlapping skills using trigger-collision tests before merging**  
+   Prioritize merges where false activation or duplicate activation is observable in evals.
+7. **Add "power-user patterns" reference pack**  
+   Include templates for explicit invocation, artifact schemas, and handoff protocols.
+8. **Add security/robustness checks to scripts**  
+   Hard-fail unsafe defaults and add dry-run modes for script-backed skills.
+
+#### Low Impact
+
+9. **Explore adaptive/self-improving skill discovery experimentally**  
+   Trial literature-backed patterns (iterative skill mining/polymorphic abstraction) behind flags, not as default behavior [8][11].
+10. **Track ecosystem-scale benchmarks as they stabilize**  
+   Revisit when benchmarking frameworks mature and peer-reviewed results accumulate [2][5].
+
+### Confidence Gaps
+
+- Some ecosystem guidance is still fragmented across vendor docs and fast-moving blogs.
+- Several literature inputs are new arXiv preprints (valuable signals, not peer-reviewed consensus).
+- Limited contradictory evidence found against progressive-disclosure + eval-driven approaches.
+
+### Sources
+
+[1] OpenAI, "Agent Skills (Codex docs)": https://developers.openai.com/codex/skills  
+[2] "Organizing, Orchestrating, and Benchmarking Agent Skills at Ecosystem Scale" (arXiv 2603.02176): https://arxiv.org/abs/2603.02176  
+[3] OpenAI, "Shell + Skills + Compaction" (2026-02-11): https://developers.openai.com/blog/skills-shell-tips  
+[4] OpenAI, "Testing Agent Skills Systematically with Evals" (2026-01-22): https://developers.openai.com/blog/eval-skills  
+[5] "Agent Skills for Large Language Models: Architecture, Acquisition, Security, and the Path Forward" (arXiv 2602.12430): https://arxiv.org/abs/2602.12430  
+[6] Anthropic, "Skill authoring best practices": https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices  
+[7] Anthropic, "Scaling agentic coding across your organization": https://resources.anthropic.com/hubfs/Scaling%20agentic%20coding%20across%20your%20organization.pdf  
+[8] "SkillWeaver" (arXiv 2504.07079): https://arxiv.org/abs/2504.07079  
+[9] Anthropic, "Skills overview": https://claude.com/docs/skills/overview  
+[10] Anthropic, "The Complete Guide to Building Skill for Claude" (2026): https://resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf  
+[11] "PolySkill" (arXiv 2510.15863): https://arxiv.org/abs/2510.15863  
+[12] Agent Skills Specification: https://agentskills.io/specification
