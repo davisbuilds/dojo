@@ -57,20 +57,20 @@ Hooks are configured in `.claude/settings.json` and `.agents/settings.json`. No 
 
 ## CI
 
-GitHub Actions enforces a strict contract set via:
+GitHub Actions enforces strict contract compliance on the full 44-skill catalog via:
 
 - `.github/workflows/skill-contract-pilot.yml`
 
-Current enforcement is a strict subset (pilot/phase rollout) validated by:
-
 ```bash
-python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --skills <comma-separated-skill-list> --strict
+python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
 ```
 
-Hooks still enforce quality at edit-time and session-stop:
+Hooks enforce quality at edit-time and session-stop:
 
 - Pre-tool-use hook validates SKILL.md on every write.
 - Stop hooks verify git state and skill structure.
+
+See `docs/system/skill-contract-v1.md` for the contract checklist and `docs/system/SKILL-BEST-PRACTICES.md` for authoring guidance.
 
 ## Optional Skill Dependencies
 

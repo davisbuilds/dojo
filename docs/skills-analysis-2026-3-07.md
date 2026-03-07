@@ -429,61 +429,11 @@ Minimal placeholder with frontmatter skeleton only.
 
 ## Cross-Cutting Findings
 
-### Verbosity Issues
+Moved to dedicated system docs:
 
-| Skill | Lines | Problem |
-|-------|-------|---------|
-| obsidian-bases | 652 | Function catalog belongs in external docs, not context window |
-| obsidian-markdown | 621 | Standard Markdown syntax is redundant -- agent already knows it |
-| first-principles | ~200 | Abstract methodology without concrete examples |
-| compound-docs | ~150 | 7-step process with redundant validation gates |
-| agent-native-architecture | 14 refs | Reference sprawl -- some files overlap |
-
-**Recommendation:** The Obsidian skills together consume ~1,300 lines of context for what is essentially syntax reference. Trim to Obsidian-specific extensions only and cut 60%+ of content.
-
-### Overly Strict Language
-
-| Skill | Example | Impact |
-|-------|---------|--------|
-| compound-docs | "STRICT ENFORCEMENT", 7-step mandatory workflow | Discourages casual documentation |
-| verify-before-complete | "Iron Law", "NEVER claim completion" | Appropriate for its purpose |
-| brainstorming | "MUST use this before any creative work" | Too broad -- simple changes don't need brainstorming |
-| autonomous-engineering | Chains 7+ skills sequentially | Fragile -- one failure cascades |
-
-**Recommendation:** Compound-docs and brainstorming should soften their language. A skill that demands strict compliance for every interaction creates friction. Use "should" over "MUST" for advisory skills; reserve "MUST" for safety-critical behaviors.
-
-### Gaps and Missing Skills
-
-| Gap | Description | Suggested Skill |
-|-----|-------------|----------------|
-| Testing | No skill for test strategy, test generation, or coverage analysis | `test-strategy` |
-| Database | No skill for schema design, migration planning, or query optimization | `db-design` |
-| API Design | No skill for REST/GraphQL API design patterns | `api-design` |
-| Documentation | No skill for README generation, API docs, or changelog management | `docs-generator` |
-| Accessibility | Mentioned in web-design-guidelines but no dedicated skill | `a11y-audit` |
-| Performance Profiling | vercel-react-best-practices covers React perf but no general profiling | `perf-profiler` |
-| Dependency Management | No skill for auditing, updating, or managing dependencies | `dep-audit` |
-| Vercel Consolidation | vercel-deploy + vercel-preview-logs could merge | Single `vercel` skill |
-| Image Gen Consolidation | gpt-imagen + gemini-imagen have overlapping patterns | Shared prompt/workflow layer |
-
-### Duplicate/Overlapping Concerns
-
-1. **gh-fix-issue + gh-triage-issues**: Both bundle `fetch_issue.sh` separately. Should share a common script.
-2. **gpt-imagen + gemini-imagen**: Same workflow pattern (generate/edit, resolution tiers, prompt structure) with different APIs. Could share a common skill layer with provider-specific scripts.
-3. **code-review-agents**: dhh-rails-reviewer and kieran-rails-reviewer overlap in domain. Consider merging or clearly differentiating (philosophy vs. patterns).
-4. **vercel-deploy + vercel-preview-logs**: Could be one skill with deploy + diagnose commands.
-5. **obsidian-markdown + obsidian-bases + json-canvas**: Three Obsidian-related reference skills. Could consolidate into one `obsidian` skill with sub-references.
-
-### Resource Distribution
-
-| Resource Type | Count | Skills With | Skills Without |
-|---------------|-------|-------------|----------------|
-| Scripts | 30+ | 16 skills | 28 skills |
-| References | 40+ | 18 skills | 26 skills |
-| Templates/Assets | 20+ | 11 skills | 33 skills |
-| Commands | 15+ | 10 skills | 34 skills |
-
-Many skills are instruction-only with no supporting resources. The highest-rated skills consistently have scripts, references, and templates.
+- **Findings, gaps, overlaps, and priority improvements** → [`docs/system/ROADMAP.md`](system/ROADMAP.md)
+- **Research-backed best practices and sources** → [`docs/system/SKILL-BEST-PRACTICES.md`](system/SKILL-BEST-PRACTICES.md)
+- **Contract specification** → [`docs/system/skill-contract-v1.md`](system/skill-contract-v1.md)
 
 ### Quality Trends Since Previous Analysis
 
@@ -494,409 +444,49 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 | theme-factory | 7/10 | 7/10 | 0 | Added JSON + scripts (matching previous recommendations) |
 | brainstorming | 6/10 | 7.5/10 | +1.5 | Added platform mapping, improved routing |
 
-The improvements directly match recommendations from the previous analysis, validating the feedback loop.
-
 ---
 
-## Priority Improvements
-
-### High Impact (address first)
-
-1. **Trim Obsidian skills** -- Cut 60%+ of obsidian-markdown and obsidian-bases by removing standard syntax the agent already knows
-2. **Add worked examples to first-principles** -- Transform from abstract methodology to concrete decision tool
-3. **Merge Vercel deploy skills** -- Combine vercel-deploy and vercel-preview-logs
-4. **Add test strategy skill** -- Most common gap across all projects
-5. **Deduplicate fetch_issue.sh** -- Share between gh-fix-issue and gh-triage-issues
-
-### Medium Impact
-
-6. **Soften compound-docs enforcement** -- Reduce 7 steps to 4, soften mandatory language
-7. **Bring gemini-imagen to parity with gpt-imagen** -- Add sample prompts, use-case taxonomy
-8. **Add auto-detection to code-review-agents** -- Select relevant reviewers based on tech stack
-9. **Bundle guidelines in web-design-guidelines** -- Don't depend on external URL fetch
-10. **Upgrade template** -- Add commented examples and variant templates
-
-### Low Impact
-
-11. **Add caching to deep-research** -- Avoid re-researching previously answered questions
-12. **Add rule testing to hookify** -- Let users validate rules before activation
-13. **Add example plans to writing-plans** -- Show what good plans look like
-14. **Merge Obsidian skills** -- One `obsidian` skill with markdown, bases, and canvas sub-references
-
----
-
-## External Research Addendum (2026-03-07)
-
-This addendum incorporates web-backed findings using the `deep-research` workflow (standard depth routing, scored/deduplicated evidence filtering), with a focus on **recent (2025-2026)** guidance and relevant arXiv literature.
-
-### Research Brief
-
-Identify current best practices and power-user patterns for AI agent skills (skill files, trigger design, resource bundling, orchestration), prioritizing 2025-2026 sources and supplementing with arXiv literature.
-
-### Key Findings (Filtered Packet)
-
-1. **Progressive disclosure + narrow scope are now converging norms**  
-   OpenAI and Anthropic both formalize metadata-first loading with on-demand resource expansion, and both stress single-purpose, composable skills over broad "do-everything" bundles [1][6][9].
-
-2. **Trigger quality is a first-class quality dimension, not a docs nicety**  
-   Recent guidance emphasizes routing-style descriptions, explicit "not for" boundaries, and negative trigger examples to reduce false activations and skill collision [1][3][6][10].
-
-3. **Eval-driven skill development is becoming the default for mature teams**  
-   The strongest recent pattern is to treat skill behavior as testable: explicit/implicit/contextual trigger tests, negative controls (`should_trigger=false`), and regression tracking across traces/artifacts [4][6].
-
-4. **Power-user pattern: deterministic vs opportunistic invocation should be explicit**  
-   For high-stakes or pipeline-critical work, explicit skill invocation is recommended for determinism; for discovery-heavy workflows, implicit routing can remain enabled [1][3].
-
-5. **Long-running agent workflows need operational scaffolding, not just better prompts**  
-   The newest power-user playbooks prioritize container/session reuse, compaction checkpoints, artifact handoff conventions, and network/security constraints [3].
-
-6. **Org-level adoption depends on governance of instruction files**  
-   Instruction/skill docs are most effective when versioned in-repo, included in onboarding, and treated as governed operational assets (not ad-hoc local notes) [7].
-
-7. **Literature trend supports skill libraries and abstraction layers, but evaluation maturity is still uneven**  
-   Recent preprints point to gains from iterative skill discovery and polymorphic abstraction, while ecosystem-scale benchmarking is still emerging and security/performance ceilings remain visible [2][5][8][11].
-
-### Implications for This Analysis
-
-- The original report correctly emphasized **conciseness**, but external evidence suggests moving from a generic "trim verbosity" rule to a **hard design contract**:
-  - single responsibility
-  - explicit trigger boundary
-  - negative trigger examples
-  - measurable eval checks
-- "Instruction-only skills" are not inherently weak; they become weak when they lack:
-  - clear routing cues
-  - task I/O contract
-  - validation/eval loop
-- Overlap issues (Vercel pairs, Obsidian trio, imaging pair) should be judged by **routing ambiguity and eval outcomes**, not only by conceptual overlap.
-
-### Revised Priority Roadmap (Research-Aligned)
-
-#### High Impact
-
-1. **Create a shared `skill-evals` harness**  
-   Add trigger tests (explicit/implicit/contextual + negatives), success criteria, and regression snapshots for top 15 skills [4][6].
-2. **Standardize SKILL.md authoring contract across repo**  
-   Enforce single-responsibility scope, trigger boundaries, "not-for" section, and concise body length targets [1][6][9].
-3. **Add deterministic-invocation guidance to high-risk skills**  
-   Security, deployment, and migration-adjacent skills should default to explicit invocation recommendations [1][3].
-4. **Operationalize long-running workflows**  
-   Codify compaction checkpoints, artifact boundary formats, and network/tool constraints in autonomous/multi-step skills [3].
-5. **Keep instruction files under governance**  
-   Version, review, and onboard around AGENTS/skill docs as operational interface contracts [7].
-
-#### Medium Impact
-
-6. **Refactor overlapping skills using trigger-collision tests before merging**  
-   Prioritize merges where false activation or duplicate activation is observable in evals.
-7. **Add "power-user patterns" reference pack**  
-   Include templates for explicit invocation, artifact schemas, and handoff protocols.
-8. **Add security/robustness checks to scripts**  
-   Hard-fail unsafe defaults and add dry-run modes for script-backed skills.
-
-#### Low Impact
-
-9. **Explore adaptive/self-improving skill discovery experimentally**  
-   Trial literature-backed patterns (iterative skill mining/polymorphic abstraction) behind flags, not as default behavior [8][11].
-10. **Track ecosystem-scale benchmarks as they stabilize**  
-   Revisit when benchmarking frameworks mature and peer-reviewed results accumulate [2][5].
-
-### Confidence Gaps
-
-- Some ecosystem guidance is still fragmented across vendor docs and fast-moving blogs.
-- Several literature inputs are new arXiv preprints (valuable signals, not peer-reviewed consensus).
-- Limited contradictory evidence found against progressive-disclosure + eval-driven approaches.
-
-### Sources
-
-[1] OpenAI, "Agent Skills (Codex docs)": https://developers.openai.com/codex/skills  
-[2] "Organizing, Orchestrating, and Benchmarking Agent Skills at Ecosystem Scale" (arXiv 2603.02176): https://arxiv.org/abs/2603.02176  
-[3] OpenAI, "Shell + Skills + Compaction" (2026-02-11): https://developers.openai.com/blog/skills-shell-tips  
-[4] OpenAI, "Testing Agent Skills Systematically with Evals" (2026-01-22): https://developers.openai.com/blog/eval-skills  
-[5] "Agent Skills for Large Language Models: Architecture, Acquisition, Security, and the Path Forward" (arXiv 2602.12430): https://arxiv.org/abs/2602.12430  
-[6] Anthropic, "Skill authoring best practices": https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices  
-[7] Anthropic, "Scaling agentic coding across your organization": https://resources.anthropic.com/hubfs/Scaling%20agentic%20coding%20across%20your%20organization.pdf  
-[8] "SkillWeaver" (arXiv 2504.07079): https://arxiv.org/abs/2504.07079  
-[9] Anthropic, "Skills overview": https://claude.com/docs/skills/overview  
-[10] Anthropic, "The Complete Guide to Building Skill for Claude" (2026): https://resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf  
-[11] "PolySkill" (arXiv 2510.15863): https://arxiv.org/abs/2510.15863  
-[12] Agent Skills Specification: https://agentskills.io/specification
-
----
-
-## Revision v2 (Post-Implementation, 2026-03-07)
-
-This section records what was implemented after the original analysis so session compaction retains current operational context.
-
-### Implemented Since Original Analysis
-
-- Added new `skill-evals` skill with:
-  - deterministic contract validator (`skills/skill-evals/scripts/validate_skill_contract.py`)
-  - deterministic trigger-eval scaffold (`skills/skill-evals/scripts/run_trigger_evals.py`)
-  - contracts + sample fixture (`skills/skill-evals/references/contracts.md`, `skills/skill-evals/assets/sample-trigger-cases.json`)
-- Added repo-wide SKILL contract reference:
-  - `docs/system/skill-contract-v1.md`
-- Applied contract across all skills and generated reports:
-  - `docs/project/skill-contract-application-2026-03-07.md`
-  - `docs/project/skill-contract-application-2026-03-07.json`
-  - `docs/project/skill-trigger-evals-sample-2026-03-07.json`
-- Updated affected SKILL frontmatter/content to remove required contract failures:
-  - `skills/compound-docs/SKILL.md`
-  - `skills/theme-factory/SKILL.md`
-  - `skills/verify-before-complete/SKILL.md`
-  - `skills/writing-plans/SKILL.md`
-  - `skills/template/SKILL.md`
-- Regenerated `skills.json` manifest.
-
-### Measured Outcomes
-
-- Contract application (default mode): **44 total / 0 fail / 42 warn / 2 pass**.
-- Sample trigger eval fixture: **12/12 assertions passed**.
-- All skills pass `quick_validate.py` structural checks.
-
-### Roadmap Status Update
-
-#### Completed
-
-1. Create shared `skill-evals` harness.
-2. Standardize SKILL.md authoring contract (v1) and apply across catalog.
-3. Establish baseline trigger-eval fixture and reporting artifacts.
-
-#### Partially Completed
-
-4. Deterministic invocation guidance exists in research roadmap, but not yet enforced uniformly in high-risk skills.
-5. Governance is in place via committed contract/report artifacts, but CI enforcement gates are not yet wired.
-
-#### Still Open (High Leverage Next)
-
-6. Burn down warnings from contract report in priority order (scope/boundary/output/verification anchors).
-7. Add strict mode path (`--strict`) to CI for selected skill subsets, then full catalog.
-8. Use trigger-collision evals to drive merge decisions for overlapping skills (Vercel pair, Obsidian trio, image-gen pair).
-9. Re-score rankings with `skill-evals` included and update tier table from measured evidence.
-
-### Compaction-Safe Working Context
-
-- Canonical contract doc: `docs/system/skill-contract-v1.md`
-- Canonical compliance snapshot: `docs/project/skill-contract-application-2026-03-07.md`
-- Canonical trigger baseline: `docs/project/skill-trigger-evals-sample-2026-03-07.json`
-- Implementation commits:
-  - `0da2084` (research-backed addendum)
-  - `7892fa0` (contract/evals framework + catalog application)
-
----
-
-## Revision v3 (Pilot Strict CI, 2026-03-07)
-
-### Implemented
-
-- Added GitHub Actions workflow for strict pilot enforcement:
-  - `.github/workflows/skill-contract-pilot.yml`
-- Pilot strict set:
-  - `secure-code`
-  - `audit-skill`
-  - `vercel-deploy`
-  - `vercel-preview-logs`
-  - `gh-fix-issue`
-- Added missing strict anchors (scope/boundaries/output/verification) to those pilot SKILL.md files.
-
-### Verified
-
-- Local strict validation result for pilot set:
-  - **5 total / 5 pass / 0 fail** (`--strict`)
-
-### Next
-
-- Keep pilot CI required on PRs touching skills.
-- Burn down global warnings, then expand CI strict scope beyond pilot set.
-
----
-
-## Revision v4 (Expanded Strict Set, 2026-03-07)
-
-### Implemented
-
-- Expanded strict CI enforcement set from 5 skills to 13 skills:
-  - `secure-code`, `audit-skill`, `gh-fix-issue`, `vercel-deploy`, `vercel-preview-logs`
-  - `deep-research`, `hookify`, `skill-creator`, `writing-plans`, `playwright`
-  - `gh-review-pr`, `gh-triage-issues`, `code-review-agents`
-- Updated strict-anchor sections on failing phase-2 skills:
-  - `skills/code-review-agents/SKILL.md`
-  - `skills/gh-review-pr/SKILL.md`
-  - `skills/gh-triage-issues/SKILL.md`
-  - `skills/hookify/SKILL.md`
-  - `skills/playwright/SKILL.md`
-  - `skills/skill-creator/SKILL.md`
-- Updated CI workflow:
-  - `.github/workflows/skill-contract-pilot.yml` now enforces the expanded strict set.
-
-### Verified
-
-- Expanded strict set validation:
-  - **13 total / 13 pass / 0 fail** (`--strict`)
-- Persisted reports:
-  - `docs/project/skill-contract-strict-set-2026-03-07.json`
-  - `docs/project/skill-contract-strict-set-2026-03-07.md`
-
-### Next
-
-- Continue warning burn-down on non-enforced skills.
-- Add trigger-collision eval fixtures for overlap clusters before consolidation decisions.
-
----
-
-## Revision v5 (Trigger-Collision Baseline, 2026-03-07)
-
-### Scope
-
-Initial collision eval run across three overlap clusters:
-- Vercel pair: `vercel-deploy` vs `vercel-preview-logs`
-- Obsidian trio: `obsidian-markdown`, `obsidian-bases`, `json-canvas`
-- Image-gen pair: `gpt-imagen` vs `gemini-imagen`
-
-### Artifacts
-
-- Fixture: `skills/skill-evals/assets/trigger-collision-cases-2026-03-07.json`
-- Results: `docs/project/skill-trigger-collision-evals-2026-03-07.json`
-
-### Baseline Result
-
-- **12 cases**
-- **28 assertions**
-- **22 passed / 6 failed** (78.6% assertion pass rate)
-
-### Notable Collision Findings
-
-1. **Vercel pair cross-triggers**
-   - Deploy prompt still triggers preview-logs.
-   - Logs/debug prompt still triggers deploy.
-2. **Obsidian trio ambiguity**
-   - `obsidian-bases` false-positive on markdown-edit case.
-   - `obsidian-bases` false-negative on multi-artifact contextual case.
-3. **Image-gen provider overlap**
-   - OpenAI prompt false-triggers Gemini.
-   - Gemini prompt false-triggers OpenAI skill.
-
-### Per-Skill Snapshot (Collision Eval)
-
-- `json-canvas`: precision 1.0, recall 1.0
-- `obsidian-markdown`: precision 1.0, recall 1.0
-- `gemini-imagen`: precision 0.67, recall 1.0
-- `gpt-imagen`: precision 0.67, recall 1.0
-- `vercel-deploy`: precision 0.5, recall 1.0
-- `vercel-preview-logs`: precision 0.5, recall 1.0
-- `obsidian-bases`: precision 0.5, recall 0.5
-
-### Immediate Next Actions
-
-1. ~~Tighten trigger descriptions to improve provider/domain disambiguation.~~ Done in v6.
-2. ~~Add negative trigger clauses directly in descriptions for overlapping pairs.~~ Attempted; reverted (see v6 findings).
-3. ~~Re-run the same fixture after description edits and track delta in assertion pass rate.~~ Done in v6.
-
----
-
-## Revision v6 (Trigger-Collision Fixes, 2026-03-07)
-
-### Scope
-
-Fix the 6 trigger-collision assertion failures from the v5 baseline (22/28 passing).
-
-### Changes
-
-**Description edits (5 SKILL.md files):**
-- `vercel-deploy`: Removed "preview deployment" trigger language, focused on "push/ship/go live"
-- `vercel-preview-logs`: Removed "deployment" references, focused on "logs/errors/debug/diagnose"
-- `obsidian-bases`: Removed generic "Obsidian" triggers, added "dashboard" as trigger term
-- `gpt-imagen`: Removed cross-provider references, changed "batch variants" to "batch outputs"
-- `gemini-imagen`: Shortened to Gemini-specific features only, removed generic image terms
-
-**Scorer improvements (`run_trigger_evals.py`):**
-- Added discriminating name tokens: `name_overlap` now excludes tokens shared across multiple skill names in the index (e.g. "vercel" shared by vercel-deploy and vercel-preview-logs no longer inflates both)
-- Expanded STOPWORDS with generic terms: `generate`, `edit`, `check`, `run`, `api`, `via`, `requires`, and others that appear broadly but don't discriminate
-
-**Key finding:** Negative trigger clauses ("Do NOT use for X") are counterproductive with lexical scorers. Adding "Do NOT use for Gemini" to gpt-imagen's description adds "gemini" as a matching token, *increasing* false-positive scores. Descriptions should use maximally distinct vocabulary instead of cross-referencing competing skills.
-
-### Results
-
-- **26/28 assertions passed** (was 22/28, +4)
-- **92.9% pass rate** (was 78.6%, +14.3pp)
-- Sample fixture: 12/12 (no regressions)
-
-### Per-Cluster Delta
-
-| Cluster | Before | After | Delta |
-|---------|--------|-------|-------|
-| Obsidian trio | 2 fail | 0 fail | +2 fixed |
-| Image-gen pair | 2 fail | 0 fail | +2 fixed |
-| Vercel pair | 2 fail | 2 fail | unchanged |
-
-### Remaining Failures (2)
-
-Both in the Vercel pair — genuine vocabulary overlap that lexical scoring cannot resolve:
-
-1. **vercel-deploy-preview / vercel-preview-logs** (score 0.20, threshold 0.09): "preview" in the deploy prompt matches `preview` as a discriminating name token of vercel-preview-logs.
-2. **vercel-debug-preview-logs / vercel-deploy** (score 0.42, threshold 0.09): "deploy" in the logs prompt ("the preview deploy failed") matches `deploy` as THE discriminating name token of vercel-deploy, plus 3-token lexical overlap.
-
-These represent a semantic distinction (creating vs debugging) that requires intent understanding beyond bag-of-words. An LLM-based router would handle this correctly.
-
-### Next
-
-- ~~Expand trigger-eval fixtures to cover more skill pairs beyond the 3 tested clusters.~~ Done in v7.
-- ~~Continue strict-mode warning burn-down on non-enforced skills.~~ Done — all 44 pass strict.
-
----
-
-## Revision v7 (Expanded Trigger Fixtures + Full Strict, 2026-03-07)
-
-### Scope
-
-1. Expanded trigger-collision fixtures from 3 clusters (12 cases) to 12 clusters (34 cases total across 2 fixtures).
-2. Completed strict-mode burn-down: all 44 skills now pass `--strict`.
-3. CI now enforces strict on the full catalog (no subset filter).
-
-### New Clusters Tested
-
-| Cluster | Skills | Result |
-|---------|--------|--------|
-| Security pair | secure-code vs audit-skill | 1 FP fixed (removed cross-terms from audit-skill desc) |
-| Review pair | local-review vs gh-review-pr | 2 FP (lexical limit: "review" shared) |
-| Pre-implementation | writing-plans vs brainstorming | clean |
-| Reasoning | first-principles vs brainstorming | 2 FP (lexical limit: "approaches"/"trade-offs") |
-| Skill bootstrap | skill-creator vs template | 1 FP (lexical limit: "workflow"/"steps"/"trigger") |
-| Session mgmt | compact-session vs session-retro | fixed via "session" stopword |
-| GitHub workflow | gh-commit-push-pr vs gh-fix-issue | fixed via "github" stopword |
-| Markdown tools | fetchmd vs markdown-converter | 3 FP (expected: fetchmd is a specific CLI tool) |
-| Browser/screenshot | playwright vs screenshot | clean |
-
-### Artifacts
-
-- Expanded fixture: `skills/skill-evals/assets/trigger-collision-cases-expanded.json` (22 cases)
-- Original fixture: `skills/skill-evals/assets/trigger-collision-cases-2026-03-07.json` (12 cases, unchanged)
-- Expanded results: `docs/project/skill-trigger-collision-evals-expanded.json`
-
-### Combined Results (All Fixtures)
-
-| Fixture | Assertions | Passed | Failed | Pass Rate |
-|---------|-----------|--------|--------|-----------|
-| Sample | 12 | 12 | 0 | 100% |
-| Original collision | 28 | 26 | 2 | 92.9% |
-| Expanded collision | 44 | 36 | 8 | 81.8% |
-| **Total** | **84** | **74** | **10** | **88.1%** |
+## Implementation History
+
+Summary of post-analysis implementation work. Full details in git history.
+
+| Revision | Scope | Key Outcome |
+|----------|-------|-------------|
+| v2 | Contract/evals framework | `skill-evals` skill, contract v1, 44/0-fail/42-warn/2-pass |
+| v3 | Pilot strict CI | 5 skills strict-enforced via GitHub Actions |
+| v4 | Expanded strict set | 13 skills strict-enforced |
+| v5 | Trigger-collision baseline | 12 cases, 22/28 passed (78.6%) across 3 clusters |
+| v6 | Collision fixes + scorer | 26/28 passed (92.9%), disc_name_tokens, expanded stopwords |
+| v7 | Expanded fixtures + full strict | 34 cases across 12 clusters, 44/44 strict, CI full catalog |
+
+### Current Status
+
+- **Strict contract**: 44/44 pass (4 non-blocking context_budget warnings)
+- **Trigger evals**: 74/84 assertions pass (88.1%) across 3 fixtures
+- **CI**: enforces `--strict` on full catalog (`.github/workflows/skill-contract-pilot.yml`)
 
 ### Accepted Lexical Limits (10 failures)
 
-All remaining failures are false positives from genuine vocabulary overlap between skill pairs that share domain terms. The lexical scorer cannot distinguish semantic intent (e.g. "create a deployment" vs "debug a failed deployment"). An LLM-based router handles these correctly.
+All remaining trigger-eval failures are false positives from genuine vocabulary overlap. The lexical scorer cannot distinguish semantic intent. An LLM-based router handles these correctly. See [`docs/system/SKILL-BEST-PRACTICES.md`](system/SKILL-BEST-PRACTICES.md) for guidance on explicit invocation for these pairs.
 
 | Pair | Shared terms | Failures |
 |------|-------------|----------|
-| vercel-deploy / vercel-preview-logs | deploy, preview, vercel | 2 |
+| vercel-deploy / vercel-preview-logs | deploy, preview | 2 |
 | local-review / gh-review-pr | review, changes | 2 |
 | first-principles / brainstorming | approaches, trade-offs | 2 |
 | fetchmd / markdown-converter | markdown, convert | 3 |
 | skill-creator / template | workflow, steps, trigger | 1 |
 
-### Strict Contract Status
+### Key Artifacts
 
-- **44/44 pass** (0 failures, 4 non-blocking context_budget warnings)
-- CI enforces full catalog with `--strict` (no subset filter)
+| Artifact | Path |
+|----------|------|
+| Contract spec | `docs/system/skill-contract-v1.md` |
+| Best practices | `docs/system/SKILL-BEST-PRACTICES.md` |
+| Roadmap | `docs/system/ROADMAP.md` |
+| Contract report | `docs/project/skill-contract-application-2026-03-07.md` |
+| Collision fixtures | `skills/skill-evals/assets/trigger-collision-cases-*.json` |
+| Collision results | `docs/project/skill-trigger-collision-evals-*.json` |
 
 ### Next
 

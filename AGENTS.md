@@ -99,6 +99,16 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 
 44 skills in `skills/`. The full catalog with descriptions is in `docs/system/FEATURES.md`. The auto-generated `skills.json` manifest is the runtime source of truth.
 
+## System Docs
+
+| Doc | Purpose |
+|-----|---------|
+| `docs/system/FEATURES.md` | Skills catalog and command wrappers |
+| `docs/system/OPERATIONS.md` | Setup, commands, CI, dependencies |
+| `docs/system/skill-contract-v1.md` | SKILL.md quality contract (enforced by CI) |
+| `docs/system/SKILL-BEST-PRACTICES.md` | Research-backed authoring guidance |
+| `docs/system/ROADMAP.md` | Improvement backlog and cross-cutting findings |
+
 ## Specification
 
 Full skill specification: `spec/agent-skills-spec.md`
