@@ -1,0 +1,112 @@
+{
+  "cases": [
+    {
+      "id": "vercel-deploy-preview",
+      "type": "implicit",
+      "prompt": "Deploy this Next.js project to Vercel and share the preview URL.",
+      "expected": {
+        "trigger": ["vercel-deploy"],
+        "avoid": ["vercel-preview-logs"]
+      }
+    },
+    {
+      "id": "vercel-debug-preview-logs",
+      "type": "implicit",
+      "prompt": "The preview deploy failed. Pull Vercel build/runtime logs and diagnose root cause.",
+      "expected": {
+        "trigger": ["vercel-preview-logs"],
+        "avoid": ["vercel-deploy"]
+      }
+    },
+    {
+      "id": "vercel-negative-general",
+      "type": "negative",
+      "prompt": "What is Vercel and how does it compare to other platforms?",
+      "expected": {
+        "trigger": [],
+        "avoid": ["vercel-deploy", "vercel-preview-logs"]
+      }
+    },
+    {
+      "id": "obsidian-markdown-edit",
+      "type": "implicit",
+      "prompt": "Fix wikilinks, callouts, and frontmatter in this Obsidian markdown note.",
+      "expected": {
+        "trigger": ["obsidian-markdown"],
+        "avoid": ["obsidian-bases", "json-canvas"]
+      }
+    },
+    {
+      "id": "obsidian-bases-view",
+      "type": "implicit",
+      "prompt": "Create a .base file with filters, formulas, and a table/card view for my notes.",
+      "expected": {
+        "trigger": ["obsidian-bases"],
+        "avoid": ["obsidian-markdown", "json-canvas"]
+      }
+    },
+    {
+      "id": "obsidian-canvas-map",
+      "type": "implicit",
+      "prompt": "Generate a .canvas mind map with positioned nodes, groups, and edges.",
+      "expected": {
+        "trigger": ["json-canvas"],
+        "avoid": ["obsidian-markdown", "obsidian-bases"]
+      }
+    },
+    {
+      "id": "obsidian-multi-artifact",
+      "type": "contextual",
+      "prompt": "Create both a .base dashboard and a linked .canvas map for this vault.",
+      "expected": {
+        "trigger": ["obsidian-bases", "json-canvas"],
+        "avoid": ["obsidian-markdown"]
+      }
+    },
+    {
+      "id": "image-openai-generate",
+      "type": "implicit",
+      "prompt": "Generate a transparent-background product hero using the OpenAI image API.",
+      "expected": {
+        "trigger": ["gpt-imagen"],
+        "avoid": ["gemini-imagen"]
+      }
+    },
+    {
+      "id": "image-gemini-generate",
+      "type": "implicit",
+      "prompt": "Use Gemini to generate 4K landscape variants for ad concepts.",
+      "expected": {
+        "trigger": ["gemini-imagen"],
+        "avoid": ["gpt-imagen"]
+      }
+    },
+    {
+      "id": "image-explicit-gpt",
+      "type": "explicit",
+      "prompt": "Use $gpt-imagen to edit this image and keep subject identity unchanged.",
+      "expected": {
+        "trigger": ["gpt-imagen"],
+        "avoid": ["gemini-imagen"]
+      }
+    },
+    {
+      "id": "image-explicit-gemini",
+      "type": "explicit",
+      "prompt": "Use $gemini-imagen and produce 2K and 4K outputs.",
+      "expected": {
+        "trigger": ["gemini-imagen"],
+        "avoid": ["gpt-imagen"]
+      }
+    },
+    {
+      "id": "image-negative-analysis",
+      "type": "negative",
+      "prompt": "Read this PNG metadata and summarize color palette only.",
+      "expected": {
+        "trigger": [],
+        "avoid": ["gpt-imagen", "gemini-imagen"]
+      }
+    }
+  ]
+}
