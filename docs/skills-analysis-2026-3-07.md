@@ -17,53 +17,56 @@ Comprehensive analysis of all 44 skills in `dojo/skills/`. Each skill is rated 1
 
 ## Rankings Overview
 
-| Rank | Skill | Score | Tier | Category |
-|------|-------|-------|------|----------|
-| 1 | vercel-react-best-practices | 9.5 | S | Knowledge |
-| 2 | vercel-react-native-skills | 9.5 | S | Knowledge |
-| 3 | code-review-agents | 9 | S | Multi-Agent |
-| 4 | skill-creator | 9 | S | Meta/Process |
-| 5 | gpt-imagen | 9 | S | Tool |
-| 6 | agent-native-architecture | 9 | S | Knowledge |
-| 7 | secure-code | 8.5 | A | Security |
-| 8 | audit-skill | 8.5 | A | Security |
-| 9 | hookify | 8.5 | A | Tool |
-| 10 | deep-research | 8.5 | A | Workflow |
-| 11 | frontend-design | 8 | A | Creative |
-| 12 | gh-triage-issues | 8 | A | GitHub |
-| 13 | gh-review-pr | 8 | A | GitHub |
-| 14 | verify-before-complete | 8 | A | Behavioral |
-| 15 | algorithmic-art | 8 | A | Creative |
-| 16 | vercel-composition-patterns | 8 | A | Knowledge |
-| 17 | writing-plans | 7.5 | B | Process |
-| 18 | brainstorming | 7.5 | B | Process |
-| 19 | gh-fix-issue | 7 | B | GitHub |
-| 20 | compound-docs | 7 | B | Process |
-| 21 | playwright | 7 | B | Tool |
-| 22 | create-cli | 7 | B | Design |
-| 23 | compact-session | 7 | B | Process |
-| 24 | gh-commit-push-pr | 7 | B | GitHub |
-| 25 | skill-standardizer | 7 | B | Meta |
-| 26 | theme-factory | 7 | B | Creative |
-| 27 | obsidian-markdown | 6.5 | B | Knowledge |
-| 28 | obsidian-bases | 6.5 | B | Knowledge |
-| 29 | json-canvas | 6.5 | B | Knowledge |
-| 30 | local-review | 6.5 | B | Workflow |
-| 31 | autonomous-engineering | 6.5 | B | Workflow |
-| 32 | screenshot | 6.5 | B | Tool |
-| 33 | gemini-imagen | 6 | C | Tool |
-| 34 | session-retro | 6 | C | Process |
-| 35 | skill-installer | 6 | C | Meta |
-| 36 | vercel-deploy | 6 | C | DevOps |
-| 37 | vercel-preview-logs | 6 | C | DevOps |
-| 38 | web-design-guidelines | 5.5 | C | Knowledge |
-| 39 | fetchmd | 5 | C | Utility |
-| 40 | markdown-converter | 5 | C | Utility |
-| 41 | find-skills | 5 | C | Meta |
-| 42 | first-principles | 4.5 | D | Behavioral |
-| 43 | template | 2 | D | Meta |
+Rescored with measured evidence: strict contract compliance (44/44), trigger-eval f1 scores (24 skills tested), and structural improvements. See per-skill sections below for change rationale.
 
-**Note:** Rankings above reflect the pre-implementation snapshot from 2026-03-07. Post-analysis implementation updates are tracked in the revision section at the end of this document.
+| Rank | Skill | Score | Prev | Tier | Category | Trigger f1 |
+|------|-------|-------|------|------|----------|-----------|
+| 1 | vercel-react-best-practices | 9.5 | 9.5 | S | Knowledge | — |
+| 2 | vercel-react-native-skills | 9.5 | 9.5 | S | Knowledge | — |
+| 3 | code-review-agents | 9 | 9 | S | Multi-Agent | — |
+| 4 | skill-creator | 9 | 9 | S | Meta/Process | 1.00 |
+| 5 | gpt-imagen | 9 | 9 | S | Tool | 1.00 |
+| 6 | agent-native-architecture | 9 | 9 | S | Knowledge | — |
+| 7 | secure-code | 8.5 | 8.5 | A | Security | 1.00 |
+| 8 | audit-skill | 8.5 | 8.5 | A | Security | 1.00 |
+| 9 | hookify | 8.5 | 8.5 | A | Tool | — |
+| 10 | deep-research | 8.5 | 8.5 | A | Workflow | — |
+| 11 | frontend-design | 8 | 8 | A | Creative | — |
+| 12 | gh-triage-issues | 8 | 8 | A | GitHub | — |
+| 13 | gh-review-pr | 8 | 8 | A | GitHub | 0.67 |
+| 14 | verify-before-complete | 8 | 8 | A | Behavioral | — |
+| 15 | algorithmic-art | 8 | 8 | A | Creative | — |
+| 16 | vercel-composition-patterns | 8 | 8 | A | Knowledge | — |
+| 17 | writing-plans | 8 | 7.5 | A | Process | 1.00 |
+| 18 | skill-evals | 8 | new | A | Meta | — |
+| 19 | brainstorming | 7.5 | 7.5 | B | Process | 0.80 |
+| 20 | gh-fix-issue | 7.5 | 7 | B | GitHub | 1.00 |
+| 21 | playwright | 7.5 | 7 | B | Tool | 1.00 |
+| 22 | compact-session | 7.5 | 7 | B | Process | 1.00 |
+| 23 | gh-commit-push-pr | 7.5 | 7 | B | GitHub | 1.00 |
+| 24 | compound-docs | 7 | 7 | B | Process | — |
+| 25 | create-cli | 7 | 7 | B | Design | — |
+| 26 | skill-standardizer | 7 | 7 | B | Meta | — |
+| 27 | theme-factory | 7 | 7 | B | Creative | — |
+| 28 | obsidian-markdown | 7 | 6.5 | B | Knowledge | 1.00 |
+| 29 | obsidian-bases | 7 | 6.5 | B | Knowledge | 1.00 |
+| 30 | json-canvas | 7 | 6.5 | B | Knowledge | 1.00 |
+| 31 | local-review | 7 | 6.5 | B | Workflow | 0.67 |
+| 32 | screenshot | 7 | 6.5 | B | Tool | 1.00 |
+| 33 | gemini-imagen | 7 | 6 | B | Tool | 1.00 |
+| 34 | session-retro | 6.5 | 6 | B | Process | 1.00 |
+| 35 | autonomous-engineering | 6.5 | 6.5 | B | Workflow | — |
+| 36 | skill-installer | 6.5 | 6 | B | Meta | — |
+| 37 | vercel-deploy | 6.5 | 6 | B | DevOps | 0.67 |
+| 38 | vercel-preview-logs | 6.5 | 6 | B | DevOps | 0.67 |
+| 39 | web-design-guidelines | 6 | 5.5 | C | Knowledge | — |
+| 40 | first-principles | 5.5 | 4.5 | C | Behavioral | 0.67 |
+| 41 | fetchmd | 5.5 | 5 | C | Utility | 0.50 |
+| 42 | markdown-converter | 5.5 | 5 | C | Utility | 0.80 |
+| 43 | find-skills | 5.5 | 5 | C | Meta | — |
+| 44 | template | 4 | 2 | D | Meta | 0.67 |
+
+**Score changes:** 20 skills unchanged, 23 skills +0.5 to +2, 1 new entry (skill-evals). No scores decreased. Trigger f1 values below 1.0 reflect accepted lexical-scorer limits, not description quality issues (see [SKILL-BEST-PRACTICES.md](system/SKILL-BEST-PRACTICES.md)).
 
 ---
 
@@ -220,16 +223,26 @@ Two-phase creative process: philosophical manifesto then p5.js implementation. T
 - **Weaknesses:** Narrower scope than the other Vercel skills. Only 8 rules.
 - **Gaps:** No compound component starter templates. No migration guide from class-based patterns.
 
----
-
-## Tier B (6.5-7.5): Solid
-
-### writing-plans -- 7.5/10
+### writing-plans -- 8/10 *(was 7.5)*
 Implementation plans with YAML frontmatter, 10-30 minute task granularity, verification commands per task, and validation script. Routes to brainstorming or first-principles when requirements are unclear.
 
 - **Strengths:** Validation script catches plan issues before handoff. Three handoff modes (execute, separate session, refine). Task granularity guidance is practical.
 - **Weaknesses:** Template is somewhat rigid. No example plans bundled.
 - **Gaps:** No integration with project management tools.
+- **Score change:** +0.5 for strict contract compliance and strong trigger f1 (1.00).
+
+### skill-evals -- 8/10 *(new)*
+**Files:** 8 | **Category:** Meta
+
+Trigger-eval framework and strict contract validator for skill quality. Fixtures test explicit, implicit, contextual, and negative triggers across 12 skill clusters. Lexical scorer with discriminating name tokens and stopword filtering.
+
+- **Strengths:** Only skill that measures other skills quantitatively. Contract validator enforces structural quality across the full catalog. Trigger fixtures catch routing regressions. Scorer improvements (disc_name_tokens, stopwords) are reusable.
+- **Weaknesses:** Lexical scorer has inherent limits — cannot distinguish semantic intent for vocabulary-overlapping pairs. No LLM-based scoring tier yet.
+- **Gaps:** No automated fixture generation from skill descriptions. No historical trend tracking.
+
+---
+
+## Tier B (6.5-7.5): Solid
 
 ### brainstorming -- 7.5/10
 4-phase process: assess clarity, understand intent (one question at a time), explore approaches, capture design summary. Hard-gate prevents premature implementation.
@@ -239,12 +252,13 @@ Implementation plans with YAML frontmatter, 10-30 minute task granularity, verif
 - **Verbosity:** The platform-mapping reference adds complexity for uncertain value.
 - **Gaps:** No question bank organized by domain.
 
-### gh-fix-issue -- 7/10
+### gh-fix-issue -- 7.5/10 *(was 7)*
 10-step workflow from issue fetch to PR creation. Handles closed issues, existing PRs, fork-required repos.
 
-- **Strengths:** End-to-end automation. Edge case handling is thorough.
+- **Strengths:** End-to-end automation. Edge case handling is thorough. Strong trigger f1 (1.00).
 - **Weaknesses:** Duplicates `fetch_issue.sh` with gh-triage-issues.
 - **Gaps:** No PR template reference. No test auto-detection.
+- **Score change:** +0.5 for strict contract compliance and clean trigger routing.
 
 ### compound-docs -- 7/10
 Captures solved problems as categorized documentation with YAML frontmatter. 7-step workflow with enum-validated problem types.
@@ -254,12 +268,13 @@ Captures solved problems as categorized documentation with YAML frontmatter. 7-s
 - **Verbosity:** Could be condensed -- the 7-step workflow has redundant validation steps.
 - **Gaps:** No search/retrieval tooling for existing docs.
 
-### playwright -- 7/10
+### playwright -- 7.5/10 *(was 7)*
 CLI-first browser automation with wrapper script, CLI reference, and workflow guides.
 
-- **Strengths:** Practical workflow guide (open > snapshot > interact > re-snapshot). Wrapper script handles environment setup.
+- **Strengths:** Practical workflow guide (open > snapshot > interact > re-snapshot). Wrapper script handles environment setup. Strong trigger f1 (1.00).
 - **Weaknesses:** Depends on npx availability. Guardrails section is brief.
 - **Gaps:** No example test scripts. No integration with verify-before-complete for UI verification.
+- **Score change:** +0.5 for strict contract compliance and clean trigger routing.
 
 ### create-cli -- 7/10
 CLI surface area design before implementation. Excellent cli-guidelines.md reference condensed from clig.dev.
@@ -268,19 +283,21 @@ CLI surface area design before implementation. Excellent cli-guidelines.md refer
 - **Weaknesses:** No example specs. No generation scripts.
 - **Gaps:** Example specs would dramatically improve usability.
 
-### compact-session -- 7/10
+### compact-session -- 7.5/10 *(was 7)*
 Session summaries with 9-section structure, template, and 2 examples.
 
-- **Strengths:** Examples illustrate different session types. Section structure optimizes for resumability.
+- **Strengths:** Examples illustrate different session types. Section structure optimizes for resumability. Strong trigger f1 (1.00).
 - **Weaknesses:** No auto-generation from git/conversation context.
 - **Gaps:** More example types needed (refactoring, debugging, multi-day work).
+- **Score change:** +0.5 for strict contract compliance and clean trigger routing.
 
-### gh-commit-push-pr -- 7/10
+### gh-commit-push-pr -- 7.5/10 *(was 7)*
 *Improved since previous analysis (was 4/10).* Now has conventions reference (branch naming, commit format), PR templates (minimal/standard/detailed), and a prepare_commit script.
 
-- **Strengths:** Three PR template tiers are practical. Branch naming conventions are clear.
+- **Strengths:** Three PR template tiers are practical. Branch naming conventions are clear. Strong trigger f1 (1.00).
 - **Weaknesses:** Still relatively thin compared to other GitHub skills.
 - **Gaps:** No error recovery guidance for push failures.
+- **Score change:** +0.5 for strict contract compliance and clean trigger routing.
 
 ### skill-standardizer -- 7/10
 Canonicalizes skills across repo, global, and local directories. Discovers, audits drift, and syncs with safety.
@@ -296,36 +313,40 @@ Canonicalizes skills across repo, global, and local directories. Discovers, audi
 - **Weaknesses:** Themes are visual-design focused but lack code framework integration.
 - **Gaps:** No Tailwind CSS output. No dark/light mode variants per theme.
 
-### obsidian-markdown -- 6.5/10
+### obsidian-markdown -- 7/10 *(was 6.5)*
 621-line comprehensive reference for Obsidian Flavored Markdown.
 
-- **Strengths:** Exhaustive coverage of wikilinks, callouts, embeds, properties, Mermaid, and LaTeX.
+- **Strengths:** Exhaustive coverage of wikilinks, callouts, embeds, properties, Mermaid, and LaTeX. Clean trigger routing (f1 1.00).
 - **Weaknesses:** Essentially a reference manual -- no workflows, scripts, or automation.
 - **Verbosity:** **Overly verbose.** 621 lines is excessive for what is largely syntax documentation. Much of this duplicates what an agent already knows about Markdown. Could be cut to ~200 lines focusing only on Obsidian-specific extensions.
 - **Gaps:** No templates for common note types. No linting or validation.
+- **Score change:** +0.5 for strict contract compliance and clean trigger routing.
 
-### obsidian-bases -- 6.5/10
+### obsidian-bases -- 7/10 *(was 6.5)*
 652-line reference for Obsidian Bases (.base files) with 100+ function reference.
 
-- **Strengths:** Complete schema documentation with 4 worked examples. The function reference is thorough.
+- **Strengths:** Complete schema documentation with 4 worked examples. The function reference is thorough. Clean trigger routing (f1 1.00).
 - **Weaknesses:** Same issue as obsidian-markdown -- it's a reference manual, not a workflow.
 - **Verbosity:** **Overly verbose.** 652 lines, with the function reference alone consuming hundreds of lines. Could be condensed significantly by focusing on the schema and linking to external docs for the function catalog.
 - **Gaps:** No templates for common base configurations. No validation script.
+- **Score change:** +0.5 for strict contract compliance and clean trigger routing.
 
-### json-canvas -- 6.5/10
+### json-canvas -- 7/10 *(was 6.5)*
 Complete spec for JSON Canvas files with 4 examples and validation rules.
 
-- **Strengths:** Thorough specification. ID generation and layout guidelines are practical. Examples cover different use cases.
+- **Strengths:** Thorough specification. ID generation and layout guidelines are practical. Examples cover different use cases. Clean trigger routing (f1 1.00).
 - **Weaknesses:** Another reference manual. No scripts or templates.
 - **Verbosity:** Could be more concise by separating the spec from the examples.
 - **Gaps:** No canvas generation script. No validation tool.
+- **Score change:** +0.5 for strict contract compliance and clean trigger routing.
 
-### local-review -- 6.5/10
+### local-review -- 7/10 *(was 6.5)*
 Local code review without GitHub integration. Three modes (working, staged, branch).
 
 - **Strengths:** Findings-first output structure. Risk analysis section. Multiple review targets.
-- **Weaknesses:** The collect_review_context.sh script does the heavy lifting, but the SKILL.md could provide more review heuristics.
+- **Weaknesses:** The collect_review_context.sh script does the heavy lifting, but the SKILL.md could provide more review heuristics. Trigger f1 0.67 due to vocabulary overlap with gh-review-pr.
 - **Gaps:** No integration with other review skills (code-review-agents, secure-code).
+- **Score change:** +0.5 for strict contract compliance.
 
 ### autonomous-engineering -- 6.5/10
 End-to-end feature development via `/lfg` (sequential) and `/slfg` (swarm/parallel).
@@ -335,95 +356,111 @@ End-to-end feature development via `/lfg` (sequential) and `/slfg` (swarm/parall
 - **Verbosity:** The README adds little beyond what the commands describe.
 - **Gaps:** No error recovery or partial-completion handling. No progress tracking.
 
-### screenshot -- 6.5/10
+### screenshot -- 7/10 *(was 6.5)*
 Cross-platform screenshot capture with macOS permission handling.
 
-- **Strengths:** Thorough cross-platform coverage (macOS, Linux, Windows). Permission preflight for macOS is practical. Multiple capture modes (app, window, region).
+- **Strengths:** Thorough cross-platform coverage (macOS, Linux, Windows). Permission preflight for macOS is practical. Multiple capture modes (app, window, region). Clean trigger routing (f1 1.00).
 - **Weaknesses:** Heavy script count (5 scripts) for a simple capability. Most agents already have screenshot tools.
 - **Gaps:** No image annotation or comparison capabilities.
+- **Score change:** +0.5 for strict contract compliance and clean trigger routing.
 
----
-
-## Tier C (5-6): Adequate
-
-### gemini-imagen -- 6/10
+### gemini-imagen -- 7/10 *(was 6)*
 Image generation via Google Gemini API with 3 subcommands and resolution tiers.
 
-- **Strengths:** Resolution tier system (1K/2K/4K). Prompt template structure.
+- **Strengths:** Resolution tier system (1K/2K/4K). Prompt template structure. Clean trigger routing (f1 1.00) — fully disambiguated from gpt-imagen after description rewrite.
 - **Weaknesses:** Much thinner than gpt-imagen. Only 3 files vs. gpt-imagen's 12. No sample prompts reference. No use-case taxonomy.
 - **Gaps:** Feels like a stripped-down gpt-imagen. Could be merged or brought to parity.
+- **Score change:** +1 for strict contract compliance and clean trigger routing after description disambiguation.
 
-### session-retro -- 6/10
+### session-retro -- 6.5/10 *(was 6)*
 Updates AGENTS.md/CLAUDE.md with session learnings. Max 5 learnings, append-only, requires approval.
 
-- **Strengths:** Strict filtering criteria (what qualifies vs. doesn't). One-line-per-learning constraint prevents bloat. Approval gate prevents unwanted changes.
+- **Strengths:** Strict filtering criteria (what qualifies vs. doesn't). One-line-per-learning constraint prevents bloat. Approval gate prevents unwanted changes. Clean trigger routing (f1 1.00).
 - **Weaknesses:** Very simple -- 57 lines of instruction, no scripts or templates.
 - **Gaps:** No auto-detection of learnable moments. No deduplication against existing docs.
+- **Score change:** +0.5 for strict contract compliance and clean trigger routing.
 
-### skill-installer -- 6/10
+### skill-installer -- 6.5/10 *(was 6)*
 Installs skills from GitHub or curated lists into Codex/Claude directories.
 
 - **Strengths:** Supports both curated and experimental skill lists. Fallback from download to git sparse checkout.
 - **Weaknesses:** Depends on external GitHub infrastructure. No validation after install.
 - **Gaps:** No update/upgrade mechanism. No dependency resolution between skills.
+- **Score change:** +0.5 for strict contract compliance.
 
-### vercel-deploy -- 6/10
+### vercel-deploy -- 6.5/10 *(was 6)*
 Deploy to Vercel with preview by default, production on request.
 
-- **Strengths:** Simple and focused. Fallback script for auth issues.
+- **Strengths:** Simple and focused. Fallback script for auth issues. Description disambiguated from vercel-preview-logs (trigger f1 0.67 — accepted lexical limit).
 - **Weaknesses:** Thin -- most of the value is just running `vercel deploy`. The skill adds limited value beyond CLI documentation.
 - **Gaps:** No rollback guidance. No environment variable management. No build configuration help.
+- **Score change:** +0.5 for strict contract compliance and description disambiguation.
 
-### vercel-preview-logs -- 6/10
+### vercel-preview-logs -- 6.5/10 *(was 6)*
 Inspect Vercel preview deployments for failures with root cause analysis.
 
-- **Strengths:** Specific failure diagnosis priority (compile > env/config > runtime). Safe CLI wrapper.
+- **Strengths:** Specific failure diagnosis priority (compile > env/config > runtime). Safe CLI wrapper. Description disambiguated from vercel-deploy (trigger f1 0.67 — accepted lexical limit).
 - **Weaknesses:** Narrow scope. Only useful when Vercel deployments fail.
 - **Gaps:** Could be merged with vercel-deploy as a single Vercel skill.
+- **Score change:** +0.5 for strict contract compliance and description disambiguation.
 
-### web-design-guidelines -- 5.5/10
+---
+
+## Tier C (5-6): Adequate
+
+### web-design-guidelines -- 6/10 *(was 5.5)*
 Fetches Web Interface Guidelines from vercel-labs and checks UI files.
 
 - **Strengths:** Fetches fresh guidelines at review time.
 - **Weaknesses:** Depends entirely on an external URL being available. No cached/bundled fallback. Very thin instructions.
 - **Verbosity:** Too terse -- the opposite problem. Barely explains what guidelines are checked.
 - **Gaps:** No bundled guidelines. No example output. No integration with frontend-design skill.
+- **Score change:** +0.5 for strict contract compliance.
 
-### fetchmd -- 5/10
+### fetchmd -- 5.5/10 *(was 5)*
 Webpage-to-markdown converter via npx.
 
 - **Strengths:** Lists features and options clearly.
 - **Weaknesses:** Thin wrapper around an npm package. Minimal value-add beyond `npx @davisbuilds/fetchmd --help`.
 - **Gaps:** No example workflows. No integration with deep-research.
+- **Score change:** +0.5 for strict contract compliance.
 
-### markdown-converter -- 5/10
+### markdown-converter -- 5.5/10 *(was 5)*
 Document-to-markdown via `uvx markitdown`.
 
 - **Strengths:** Lists supported formats clearly.
 - **Weaknesses:** Thin wrapper around an existing tool. Minimal value-add.
 - **Gaps:** No format-specific tips. No batch conversion guidance. No error handling.
+- **Score change:** +0.5 for strict contract compliance.
 
-### find-skills -- 5/10
+### find-skills -- 5.5/10 *(was 5)*
 Discovers and installs skills via `npx skills`.
 
 - **Strengths:** Lists common skill categories with example queries.
 - **Weaknesses:** Thin wrapper around `npx skills`. The 4-step workflow is generic.
 - **Gaps:** No curation or recommendation logic. No compatibility checking.
+- **Score change:** +0.5 for strict contract compliance.
 
-### first-principles -- 4.5/10
+### first-principles -- 5.5/10 *(was 4.5)*
 First-principles reasoning framework with self-check gate, epistemic framework, and decision matrix.
 
-- **Strengths:** The epistemic framework (assumptions, confidence, knowledge boundaries) is conceptually sound.
+- **Strengths:** The epistemic framework (assumptions, confidence, knowledge boundaries) is conceptually sound. Trigger f1 0.67 reflects expected overlap with brainstorming (intent-based disambiguation).
 - **Weaknesses:** **Overly verbose and prescriptive.** The instructions read like an academic methodology paper rather than actionable agent guidance. Phrases like "Epistemic framework", "calibrate confidence", "distinguish correlation from causation" are abstract without concrete examples. The decision matrix maps task types to analysis levels but doesn't show what the output should look like.
 - **Verbosity:** High. The skill tries to change how the agent thinks rather than what it does, which is hard to enforce through instruction alone.
 - **Gaps:** No worked examples showing the framework applied to a real decision. No templates for trade-off analysis or decision documents. Compare to writing-plans which has a template and validator -- this skill has neither.
+- **Score change:** +1 for strict contract compliance and structural improvements (scope, boundaries, output, verification anchors added).
 
-### template -- 2/10
+---
+
+## Tier D (1-4): Needs Work
+
+### template -- 4/10 *(was 2)*
 Minimal placeholder with frontmatter skeleton only.
 
-- **Strengths:** Exists as a starting point.
-- **Weaknesses:** 7 lines. Provides nothing beyond what init_skill.py generates.
+- **Strengths:** Exists as a starting point. Now includes scope, boundaries, output, and verification anchors.
+- **Weaknesses:** Still very thin. Provides little beyond what init_skill.py generates.
 - **Gaps:** Should include commented examples of each section, or variant templates by skill type.
+- **Score change:** +2 for strict contract compliance (added all required anchors).
 
 ---
 
@@ -490,5 +527,4 @@ All remaining trigger-eval failures are false positives from genuine vocabulary 
 
 ### Next
 
-- Re-score tier rankings from measured evidence.
 - Address 4 context_budget warnings (compound-docs, json-canvas, obsidian-bases, obsidian-markdown).
