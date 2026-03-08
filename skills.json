@@ -116,11 +116,6 @@
       "path": "skills/hookify"
     },
     {
-      "name": "json-canvas",
-      "description": "Create and edit JSON Canvas files (.canvas) with nodes, edges, groups, and connections. Use when working with .canvas files, creating visual canvases, mind maps, flowcharts, or when the user mentions Canvas files in Obsidian.",
-      "path": "skills/json-canvas"
-    },
-    {
       "name": "local-review",
       "description": "Perform local code reviews on workspace changes without posting to GitHub. Use for requests like /review, review this diff, audit staged changes, or check branch changes. Collects git context and produces findings-first reports with severity, file line references, risks, and test gaps.",
       "path": "skills/local-review"
@@ -134,6 +129,11 @@
       "name": "obsidian-bases",
       "description": "Create and edit Obsidian Bases (.base files) with database-style views, filters, formulas, and summaries. Use when working with .base files, building table/card/dashboard views over a vault, or when the user mentions Bases, filters, or formulas in Obsidian.",
       "path": "skills/obsidian-bases"
+    },
+    {
+      "name": "obsidian-canvas",
+      "description": "Create and edit Obsidian Canvas files (.canvas) with nodes, edges, groups, and connections. Use when working with .canvas files, creating visual canvases, mind maps, flowcharts, or when the user mentions Canvas files in Obsidian.",
+      "path": "skills/obsidian-canvas"
     },
     {
       "name": "obsidian-markdown",

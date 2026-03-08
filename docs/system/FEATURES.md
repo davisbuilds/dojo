@@ -68,7 +68,7 @@ jq '.skills | length' skills.json
 |-------|---------|
 | `obsidian-markdown` | Obsidian Flavored Markdown with wikilinks and callouts |
 | `obsidian-bases` | Obsidian Bases with views, filters, and formulas |
-| `json-canvas` | JSON Canvas files for visual canvases |
+| `obsidian-canvas` | Obsidian Canvas files for visual canvases |
 | `markdown-converter` | Convert file formats to Markdown |
 | `compact-session` | Session summaries for context handoff |
 | `compound-docs` | Capture solved problems as documentation |

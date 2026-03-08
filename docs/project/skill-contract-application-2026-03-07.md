@@ -36,7 +36,7 @@ Mode: default
 | gh-triage-issues | warn | 0 | 3 | 199 |
 | gpt-imagen | warn | 0 | 2 | 176 |
 | hookify | warn | 0 | 4 | 79 |
-| json-canvas | warn | 0 | 4 | 657 |
+| obsidian-canvas | warn | 0 | 4 | 657 |
 | local-review | warn | 0 | 2 | 106 |
 | markdown-converter | warn | 0 | 4 | 68 |
 | obsidian-bases | warn | 0 | 5 | 652 |
@@ -163,7 +163,7 @@ Mode: default
 - `output_anchor_present`: Add output expectations section
 - `verification_anchor_present`: Add verification/quality criteria section
 
-### json-canvas
+### obsidian-canvas
 - `scope_anchor_present`: Add a scope section (When to use / Prerequisites)
 - `boundaries_anchor_present`: Add boundaries/non-goals section (Not for / Constraints)
 - `output_anchor_present`: Add output expectations section

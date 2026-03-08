@@ -1264,8 +1264,8 @@
       }
     },
     {
-      "skill": "json-canvas",
-      "path": "/Users/dg-mac-mini/Dev/dojo/skills/json-canvas/SKILL.md",
+      "skill": "obsidian-canvas",
+      "path": "/Users/dg-mac-mini/Dev/dojo/skills/obsidian-canvas/SKILL.md",
       "status": "warn",
       "line_count": 657,
       "required_failures": [],

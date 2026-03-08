@@ -33,7 +33,7 @@
       "prompt": "Fix wikilinks, callouts, and frontmatter in this Obsidian markdown note.",
       "expected": {
         "trigger": ["obsidian-markdown"],
-        "avoid": ["obsidian-bases", "json-canvas"]
+        "avoid": ["obsidian-bases", "obsidian-canvas"]
       }
     },
     {
@@ -42,7 +42,7 @@
       "prompt": "Create a .base file with filters, formulas, and a table/card view for my notes.",
       "expected": {
         "trigger": ["obsidian-bases"],
-        "avoid": ["obsidian-markdown", "json-canvas"]
+        "avoid": ["obsidian-markdown", "obsidian-canvas"]
       }
     },
     {
@@ -50,7 +50,7 @@
       "type": "implicit",
       "prompt": "Generate a .canvas mind map with positioned nodes, groups, and edges.",
       "expected": {
-        "trigger": ["json-canvas"],
+        "trigger": ["obsidian-canvas"],
         "avoid": ["obsidian-markdown", "obsidian-bases"]
       }
     },
@@ -59,7 +59,7 @@
       "type": "contextual",
       "prompt": "Create both a .base dashboard and a linked .canvas map for this vault.",
       "expected": {
-        "trigger": ["obsidian-bases", "json-canvas"],
+        "trigger": ["obsidian-bases", "obsidian-canvas"],
         "avoid": ["obsidian-markdown"]
       }
     },

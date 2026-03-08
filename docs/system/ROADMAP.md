@@ -45,7 +45,7 @@ Actionable improvement backlog for the skills catalog. Extracted from the [skill
 2. **gpt-imagen + gemini-imagen**: Same workflow pattern with different APIs. Could share a common skill layer with provider-specific scripts.
 3. **code-review-agents**: dhh-rails-reviewer and kieran-rails-reviewer overlap in domain. Consider merging or clearly differentiating.
 4. **vercel-deploy + vercel-preview-logs**: Could be one skill with deploy + diagnose commands.
-5. **obsidian-markdown + obsidian-bases + json-canvas**: Three Obsidian-related reference skills. Could consolidate into one `obsidian` skill.
+5. **obsidian-markdown + obsidian-bases + obsidian-canvas**: Three Obsidian-related reference skills. Could consolidate into one `obsidian` skill.
 
 ### Resource Distribution
 

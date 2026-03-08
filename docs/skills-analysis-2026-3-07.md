@@ -50,7 +50,7 @@ Rescored with measured evidence: strict contract compliance (44/44), trigger-eva
 | 27 | theme-factory | 7 | 7 | B | Creative | — |
 | 28 | obsidian-markdown | 7 | 6.5 | B | Knowledge | 1.00 |
 | 29 | obsidian-bases | 7 | 6.5 | B | Knowledge | 1.00 |
-| 30 | json-canvas | 7 | 6.5 | B | Knowledge | 1.00 |
+| 30 | obsidian-canvas | 7 | 6.5 | B | Knowledge | 1.00 |
 | 31 | local-review | 7 | 6.5 | B | Workflow | 0.67 |
 | 32 | screenshot | 7 | 6.5 | B | Tool | 1.00 |
 | 33 | gemini-imagen | 7 | 6 | B | Tool | 1.00 |
@@ -331,7 +331,7 @@ Canonicalizes skills across repo, global, and local directories. Discovers, audi
 - **Gaps:** No templates for common base configurations. No validation script.
 - **Score change:** +0.5 for strict contract compliance and clean trigger routing.
 
-### json-canvas -- 7/10 *(was 6.5)*
+### obsidian-canvas -- 7/10 *(was 6.5)*
 Complete spec for JSON Canvas files with 4 examples and validation rules.
 
 - **Strengths:** Thorough specification. ID generation and layout guidelines are practical. Examples cover different use cases. Clean trigger routing (f1 1.00).
