@@ -1,31 +1,30 @@
 # Skills Roadmap
 
-Actionable improvement backlog for the skills catalog. Extracted from the [skills analysis](../skills-analysis-2026-3-07.md) (2026-03-07).
+Actionable improvement backlog for the skills catalog. Extracted from the [skills analysis](../skills-analysis-2026-3-07.md) (2026-03-07), updated 2026-03-08.
 
 ## Cross-Cutting Findings
 
 ### Verbosity Issues
 
-| Skill | Lines | Problem |
-|-------|-------|---------|
-| obsidian-bases | 652 | Function catalog belongs in external docs, not context window |
-| obsidian-markdown | 621 | Standard Markdown syntax is redundant -- agent already knows it |
-| first-principles | ~200 | Abstract methodology without concrete examples |
-| compound-docs | ~150 | 7-step process with redundant validation gates |
-| agent-native-architecture | 14 refs | Reference sprawl -- some files overlap |
-
-**Recommendation:** The Obsidian skills together consume ~1,300 lines of context for what is essentially syntax reference. Trim to Obsidian-specific extensions only and cut 60%+ of content.
+| Skill | Status | Notes |
+|-------|--------|-------|
+| ~~obsidian-bases~~ | Done | 678→259 lines, function catalog extracted to `references/functions.md` |
+| ~~obsidian-markdown~~ | Done | 647→284 lines, removed standard Markdown syntax |
+| ~~compound-docs~~ | Done | 527→119 lines, stripped XML ceremony and redundant sections |
+| ~~obsidian-canvas~~ | Done | 675→192 lines, examples extracted to `references/examples.md` |
+| first-principles | Open | ~200 lines of abstract methodology without concrete examples |
+| agent-native-architecture | Open | 14 reference files -- some overlap between architecture-patterns.md and agent-execution-patterns.md |
 
 ### Overly Strict Language
 
-| Skill | Example | Impact |
+| Skill | Example | Status |
 |-------|---------|--------|
-| compound-docs | "STRICT ENFORCEMENT", 7-step mandatory workflow | Discourages casual documentation |
-| verify-before-complete | "Iron Law", "NEVER claim completion" | Appropriate for its purpose |
-| brainstorming | "MUST use this before any creative work" | Too broad -- simple changes don't need brainstorming |
-| autonomous-engineering | Chains 7+ skills sequentially | Fragile -- one failure cascades |
+| ~~compound-docs~~ | "STRICT ENFORCEMENT", 7-step mandatory workflow | Done -- rewritten without XML ceremony |
+| verify-before-complete | "Iron Law", "NEVER claim completion" | Keep -- appropriate for its purpose |
+| brainstorming | "MUST use this before any creative work" | Open -- too broad for simple changes |
+| autonomous-engineering | Chains 7+ skills sequentially | Open -- fragile, one failure cascades |
 
-**Recommendation:** Use "should" over "MUST" for advisory skills; reserve "MUST" for safety-critical behaviors.
+**Guidance:** Use "should" over "MUST" for advisory skills; reserve "MUST" for safety-critical behaviors.
 
 ### Gaps and Missing Skills
 
@@ -45,14 +44,14 @@ Actionable improvement backlog for the skills catalog. Extracted from the [skill
 2. **gpt-imagen + gemini-imagen**: Same workflow pattern with different APIs. Could share a common skill layer with provider-specific scripts.
 3. **code-review-agents**: dhh-rails-reviewer and kieran-rails-reviewer overlap in domain. Consider merging or clearly differentiating.
 4. **vercel-deploy + vercel-preview-logs**: Could be one skill with deploy + diagnose commands.
-5. **obsidian-markdown + obsidian-bases + obsidian-canvas**: Three Obsidian-related reference skills. Could consolidate into one `obsidian` skill.
+5. **obsidian-markdown + obsidian-bases + obsidian-canvas**: Three separate reference skills. Already trimmed and disambiguated; merging is low priority since trigger routing works (f1 1.00 for all three).
 
 ### Resource Distribution
 
 | Resource Type | Count | Skills With | Skills Without |
 |---------------|-------|-------------|----------------|
 | Scripts | 30+ | 16 skills | 28 skills |
-| References | 40+ | 18 skills | 26 skills |
+| References | 40+ | 20 skills | 24 skills |
 | Templates/Assets | 20+ | 11 skills | 33 skills |
 | Commands | 15+ | 10 skills | 34 skills |
 
@@ -62,23 +61,36 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 
 ### High Impact
 
-1. **Trim Obsidian skills** -- Cut 60%+ of obsidian-markdown and obsidian-bases by removing standard syntax the agent already knows
-2. **Add worked examples to first-principles** -- Transform from abstract methodology to concrete decision tool
-3. **Merge Vercel deploy skills** -- Combine vercel-deploy and vercel-preview-logs
-4. **Add test strategy skill** -- Most common gap across all projects
-5. **Deduplicate fetch_issue.sh** -- Share between gh-fix-issue and gh-triage-issues
+1. **Add worked examples to first-principles** -- Transform from abstract methodology to concrete decision tool (currently 5.5/10)
+2. **Add test strategy skill** -- Most common gap across all projects
+3. **Merge Vercel deploy skills** -- Combine vercel-deploy and vercel-preview-logs into one skill with deploy + diagnose commands
+4. **Deduplicate fetch_issue.sh** -- Share between gh-fix-issue and gh-triage-issues
 
 ### Medium Impact
 
-6. **Soften compound-docs enforcement** -- Reduce 7 steps to 4, soften mandatory language
-7. **Bring gemini-imagen to parity with gpt-imagen** -- Add sample prompts, use-case taxonomy
-8. **Add auto-detection to code-review-agents** -- Select relevant reviewers based on tech stack
-9. **Bundle guidelines in web-design-guidelines** -- Don't depend on external URL fetch
-10. **Upgrade template** -- Add commented examples and variant templates
+5. **Bring gemini-imagen to parity with gpt-imagen** -- Add sample prompts, use-case taxonomy
+6. **Add auto-detection to code-review-agents** -- Select relevant reviewers based on tech stack
+7. **Bundle guidelines in web-design-guidelines** -- Don't depend on external URL fetch
+8. **Upgrade template** -- Add commented examples and variant templates (currently 4/10)
+9. **Soften brainstorming language** -- "MUST use before any creative work" is too broad
 
 ### Low Impact
 
-11. **Add caching to deep-research** -- Avoid re-researching previously answered questions
-12. **Add rule testing to hookify** -- Let users validate rules before activation
-13. **Add example plans to writing-plans** -- Show what good plans look like
-14. **Merge Obsidian skills** -- One `obsidian` skill with markdown, bases, and canvas sub-references
+10. **Add caching to deep-research** -- Avoid re-researching previously answered questions
+11. **Add rule testing to hookify** -- Let users validate rules before activation
+12. **Add example plans to writing-plans** -- Show what good plans look like
+13. **Consolidate agent-native-architecture references** -- Reduce overlap between architecture-patterns.md and agent-execution-patterns.md
+14. **LLM-based trigger scoring** -- Add semantic scoring tier for the 10 accepted lexical-limit pairs
+
+## Completed
+
+| Item | What Changed |
+|------|-------------|
+| Trim Obsidian skills | obsidian-markdown 647→284, obsidian-bases 678→259, obsidian-canvas 675→192 |
+| Soften compound-docs | 527→119 lines, removed XML tags and redundant sections |
+| Strict contract enforcement | 44/44 pass, 0 warnings, CI enforces full catalog |
+| Trigger collision fixes | 78.6%→92.9%, discriminating name tokens, expanded stopwords |
+| Expanded trigger fixtures | 12→34 cases across 12 skill clusters |
+| Rescore all skills | 23 skills bumped, 1 new entry (skill-evals), measured evidence |
+| Rename json-canvas | → obsidian-canvas, updated all references |
+| Extract system docs | Best practices, roadmap, contract extracted from analysis doc |
