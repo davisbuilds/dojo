@@ -495,10 +495,11 @@ Summary of post-analysis implementation work. Full details in git history.
 | v5 | Trigger-collision baseline | 12 cases, 22/28 passed (78.6%) across 3 clusters |
 | v6 | Collision fixes + scorer | 26/28 passed (92.9%), disc_name_tokens, expanded stopwords |
 | v7 | Expanded fixtures + full strict | 34 cases across 12 clusters, 44/44 strict, CI full catalog |
+| v8 | Context budget + rescoring | 4 verbose skills trimmed (2527→854 lines), 23 skills rescored, 0 warnings |
 
 ### Current Status
 
-- **Strict contract**: 44/44 pass (4 non-blocking context_budget warnings)
+- **Strict contract**: 44/44 pass, 0 warnings
 - **Trigger evals**: 74/84 assertions pass (88.1%) across 3 fixtures
 - **CI**: enforces `--strict` on full catalog (`.github/workflows/skill-contract-pilot.yml`)
 
@@ -527,4 +528,5 @@ All remaining trigger-eval failures are false positives from genuine vocabulary 
 
 ### Next
 
-- Address 4 context_budget warnings (compound-docs, json-canvas, obsidian-bases, obsidian-markdown).
+- All context_budget warnings resolved (v8).
+- Consider LLM-based trigger scoring tier for the 10 accepted lexical-limit pairs.
