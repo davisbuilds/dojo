@@ -1,34 +1,78 @@
 ---
 name: template
-description: Skill starter template. Use when creating a new skill and you need a minimal scaffold with trigger language, workflow steps, and output expectations.
+description: Skill starter template with commented guidance for every contract section. Use when creating a new skill and you need a scaffold that passes strict contract validation. Covers frontmatter, scope, workflow, boundaries, output, verification, and resource mapping.
 ---
 
 # Skill Template
 
+Copy this file to `skills/<your-skill>/SKILL.md` and replace each section.
+
+<!-- DELETE everything between « » after filling in. These are authoring hints. -->
+
 ## When To Use
 
-Use this template when bootstrapping a new skill directory and drafting first-pass instructions.
+<!-- «Scope anchor — required by contract. List 3-5 concrete situations.» -->
 
-## Workflow
-
-1. Replace frontmatter name/description with the target skill.
-2. Add core instructions for scope, execution, and boundaries.
-3. Add `scripts/`, `references/`, and `assets/` only if needed.
-4. Validate with `python3 skills/skill-creator/scripts/quick_validate.py <skill-path>`.
+- «Situation where this skill adds value over general agent capability»
+- «Second trigger scenario»
+- «Third trigger scenario»
 
 ## Boundaries
 
-- This template is a starting point; do not ship it unmodified as a real skill
-- Do not add resource folders unless the skill genuinely needs them
+<!-- «Non-goals — required by contract. What this skill does NOT do.» -->
 
-## Output Contract
+- «Task type this skill should not be used for»
+- «Adjacent skill or workflow that handles the excluded case»
+- Do not «specific anti-pattern to avoid»
 
-- A valid `SKILL.md` with trigger-ready description
-- Lean instructions with clear execution anchors
-- Optional resource folders only where justified
+## Workflow
+
+<!-- «Execution anchor — required by contract. Numbered steps or headed phases.» -->
+
+1. «First step — what the agent does and with what input»
+2. «Second step»
+3. «Third step»
+4. «Final step — what the agent produces or hands off»
+
+## Output
+
+<!-- «Output anchor — required by contract. What the user gets.» -->
+
+- «Primary deliverable (file, report, code, etc.)»
+- «Secondary deliverable if any»
 
 ## Verification
 
-- `quick_validate.py` passes on the generated skill directory
-- Frontmatter name matches directory name
-- Description includes trigger-ready language
+<!-- «Verification anchor — required by contract. How to confirm quality.» -->
+
+- «Testable criterion for the primary output»
+- «Second quality check»
+- `quick_validate.py` passes on the skill directory
+
+## Resources
+
+<!-- «Resource map — required by contract IF the skill bundles scripts/, references/, assets/, or commands/. Delete this section if no resources exist.» -->
+
+- `scripts/«name».sh` — «what it does»
+- `references/«name».md` — «what it contains»
+
+---
+
+## Authoring Checklist
+
+Use this checklist before shipping. All items are enforced by `validate_skill_contract.py --strict`:
+
+- [ ] Frontmatter `name` is hyphen-case, matches directory name, max 64 chars
+- [ ] Frontmatter `description` includes trigger language (`Use when...`, `Triggers on...`)
+- [ ] Description is under 1024 chars, no angle brackets
+- [ ] `When To Use` section present (scope anchor)
+- [ ] `Boundaries` section present (boundaries anchor)
+- [ ] Numbered steps or workflow heading present (execution anchor)
+- [ ] `Output` section present (output anchor)
+- [ ] `Verification` section present (verification anchor)
+- [ ] `Resources` section present if skill has scripts/, references/, assets/, or commands/
+- [ ] SKILL.md is under 500 lines (501-700 warns, >700 requires decomposition)
+- [ ] All `«placeholder»` text replaced
+- [ ] All `<!-- comments -->` removed
+- [ ] Validated: `python3 skills/skill-creator/scripts/quick_validate.py <skill-path>`
+- [ ] Strict pass: `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills <name> --strict`

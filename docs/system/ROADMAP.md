@@ -71,7 +71,7 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 5. **Bring gemini-imagen to parity with gpt-imagen** -- Add sample prompts, use-case taxonomy
 6. **Add auto-detection to code-review-agents** -- Select relevant reviewers based on tech stack
 7. **Bundle guidelines in web-design-guidelines** -- Don't depend on external URL fetch
-8. **Upgrade template** -- Add commented examples and variant templates (currently 4/10)
+8. ~~**Upgrade template**~~ -- Done, added commented guidance for all contract sections + authoring checklist
 9. ~~**Soften brainstorming language**~~ -- Done, XML hard-gate removed, boundaries added
 
 ### Low Impact
@@ -98,3 +98,4 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 | Soften brainstorming | Removed XML hard-gate, added Boundaries/Verification/Resources |
 | Enhance first-principles | Added engineering principles, tension resolution table, verification (110→141 lines) |
 | Deduplicate fetch_issue.sh | Unified to `scripts/fetch_issue.sh`, symlinked from both skills |
+| Upgrade template | Commented scaffold with all contract sections + authoring checklist (35→78 lines) |
