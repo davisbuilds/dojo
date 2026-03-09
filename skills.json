@@ -187,6 +187,11 @@
       "path": "skills/template"
     },
     {
+      "name": "test-strategy",
+      "description": "Guide agents to follow preferred testing methodology \u2014 red/green TDD, real dependencies over mocks, behavior-based tests. Use when writing tests, planning test coverage, deciding between TDD and test-after, or when the agent defaults to excessive mocking. Triggers on 'write tests', 'add test coverage', 'how should I test this', 'TDD', 'test strategy', 'test plan'.",
+      "path": "skills/test-strategy"
+    },
+    {
       "name": "theme-factory",
       "description": "Toolkit for styling artifacts with a theme. Use when users ask to theme slides, docs, reports, or HTML pages using curated font/color systems or a generated custom theme.",
       "path": "skills/theme-factory",
