@@ -15,14 +15,12 @@ Use brainstorming when:
 - Trade-offs have not been discussed
 - Scope and success criteria are unclear
 
-You can skip brainstorming when:
-- Requirements are explicit and testable
-- Scope is narrow and well-defined
-- The user asks for direct implementation with clear constraints
+## Boundaries
 
-<HARD-GATE>
-If this skill is active, do not write code, modify files, or invoke implementation skills until the user has approved the design summary (or explicitly chooses to stop brainstorming).
-</HARD-GATE>
+- Skip when requirements are already explicit, testable, and well-scoped
+- Skip when the user asks for direct implementation with clear constraints
+- Do not write code, modify files, or invoke implementation skills until the user has approved the design summary (or explicitly stops brainstorming)
+- Stay on WHAT to build; implementation details belong to planning
 
 ## Core Process
 
@@ -112,39 +110,34 @@ Offer explicit next actions:
 2. Refine brainstorming further
 3. Stop here for now
 
-### Conditional Skill Coordination
+When a handoff is appropriate, suggest which skill should take over:
+- Implementation steps or task sequencing needed → `writing-plans`
+- CLI UX decisions (flags, args, output contracts) → `create-cli`
+- UI/UX direction or visual systems → `frontend-design` or `web-design-guidelines`
+- Deep architectural trade-off analysis → `first-principles`
 
-After the design summary is approved, decide whether another skill should take over.
-
-Use this routing logic:
-
-- If implementation steps, file-by-file sequencing, or execution order are needed:
-  transition to a planning skill (for example, `writing-plans` if available).
-- If the design hinges on CLI UX decisions (flags, args, output contracts):
-  transition to a CLI design skill (for example, `create-cli` if available).
-- If the design hinges on UI/UX direction, accessibility, or visual systems:
-  transition to a frontend/design-review skill (for example, `frontend-design` or `web-design-guidelines` if available).
-- If the user needs deep trade-off analysis before choosing a direction:
-  transition to a systems reasoning skill (for example, `first-principles` if available).
-- If the request is already explicit and implementation-ready:
-  skip additional brainstorming and proceed directly to planning/implementation.
-
-When proposing a transition, explain why in one sentence and ask for confirmation.
-If the target skill is unavailable in the current harness, use the closest manual fallback and continue.
+Explain why in one sentence and ask for confirmation. If the target skill is unavailable, use the closest manual fallback.
 
 ## Output
 
 - A design summary document at `docs/plans/YYYY-MM-DD-<topic>-plan.md`
 - Clear next-step recommendation (plan, refine, or stop)
 
+## Verification
+
+- Design summary has YAML frontmatter with `stage: brainstorm`
+- Success criteria are specific enough to test against
+- At least one approach was evaluated with pros/cons before choosing
+- User explicitly approved the design direction
+
+## Resources
+
+- `references/platform-mapping.md` — platform-specific handoff and coordination mappings
+- `commands/workflows/brainstorm.md` — slash-command wrapper for harnesses that support it
+
 ## Principles
 
 - One question per turn
-- Keep outputs concise (about 200-300 words per section when nuanced)
+- Keep outputs concise (~200-300 words per section when nuanced)
 - YAGNI: avoid speculative complexity
-- Stay on WHAT; implementation details belong to planning
 - Validate alignment incrementally before moving forward
-
-## Optional Platform Add-ons
-
-Platform-specific wrappers, commands, and tool mappings are optional. See `references/platform-mapping.md` and `commands/workflows/brainstorm.md` when running in environments that support slash-command workflows.
