@@ -61,10 +61,10 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 
 ### High Impact
 
-1. **Add worked examples to first-principles** -- Transform from abstract methodology to concrete decision tool (currently 5.5/10)
+1. ~~**Add engineering principles to first-principles**~~ -- Done, added YAGNI/KISS/DRY/SOLID lenses and tension resolution table
 2. ~~**Add test strategy skill**~~ -- Done, see `test-strategy`
 3. **Merge Vercel deploy skills** -- Combine vercel-deploy and vercel-preview-logs into one skill with deploy + diagnose commands
-4. **Deduplicate fetch_issue.sh** -- Share between gh-fix-issue and gh-triage-issues
+4. ~~**Deduplicate fetch_issue.sh**~~ -- Done, unified to `scripts/fetch_issue.sh` with symlinks
 
 ### Medium Impact
 
@@ -96,3 +96,5 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 | Extract system docs | Best practices, roadmap, contract extracted from analysis doc |
 | Add test-strategy skill | Methodology skill with verification checklist, 45th skill |
 | Soften brainstorming | Removed XML hard-gate, added Boundaries/Verification/Resources |
+| Enhance first-principles | Added engineering principles, tension resolution table, verification (110→141 lines) |
+| Deduplicate fetch_issue.sh | Unified to `scripts/fetch_issue.sh`, symlinked from both skills |
