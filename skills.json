@@ -183,7 +183,7 @@
     },
     {
       "name": "template",
-      "description": "Skill starter template. Use when creating a new skill and you need a minimal scaffold with trigger language, workflow steps, and output expectations.",
+      "description": "Skill starter template with commented guidance for every contract section. Use when creating a new skill and you need a scaffold that passes strict contract validation. Covers frontmatter, scope, workflow, boundaries, output, verification, and resource mapping.",
       "path": "skills/template"
     },
     {
