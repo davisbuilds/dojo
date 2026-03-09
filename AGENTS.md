@@ -97,7 +97,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 
 ## Existing Skills
 
-44 skills in `skills/`. The full catalog with descriptions is in `docs/system/FEATURES.md`. The auto-generated `skills.json` manifest is the runtime source of truth.
+45 skills in `skills/`. The full catalog with descriptions is in `docs/system/FEATURES.md`. The auto-generated `skills.json` manifest is the runtime source of truth.
 
 ## System Docs
 

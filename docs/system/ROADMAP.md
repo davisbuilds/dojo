@@ -62,7 +62,7 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 ### High Impact
 
 1. **Add worked examples to first-principles** -- Transform from abstract methodology to concrete decision tool (currently 5.5/10)
-2. **Add test strategy skill** -- Most common gap across all projects
+2. ~~**Add test strategy skill**~~ -- Done, see `test-strategy`
 3. **Merge Vercel deploy skills** -- Combine vercel-deploy and vercel-preview-logs into one skill with deploy + diagnose commands
 4. **Deduplicate fetch_issue.sh** -- Share between gh-fix-issue and gh-triage-issues
 
@@ -72,7 +72,7 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 6. **Add auto-detection to code-review-agents** -- Select relevant reviewers based on tech stack
 7. **Bundle guidelines in web-design-guidelines** -- Don't depend on external URL fetch
 8. **Upgrade template** -- Add commented examples and variant templates (currently 4/10)
-9. **Soften brainstorming language** -- "MUST use before any creative work" is too broad
+9. ~~**Soften brainstorming language**~~ -- Done, XML hard-gate removed, boundaries added
 
 ### Low Impact
 
@@ -88,9 +88,11 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 |------|-------------|
 | Trim Obsidian skills | obsidian-markdown 647→284, obsidian-bases 678→259, obsidian-canvas 675→192 |
 | Soften compound-docs | 527→119 lines, removed XML tags and redundant sections |
-| Strict contract enforcement | 44/44 pass, 0 warnings, CI enforces full catalog |
+| Strict contract enforcement | 45/45 pass, 0 warnings, CI enforces full catalog |
 | Trigger collision fixes | 78.6%→92.9%, discriminating name tokens, expanded stopwords |
 | Expanded trigger fixtures | 12→34 cases across 12 skill clusters |
 | Rescore all skills | 23 skills bumped, 1 new entry (skill-evals), measured evidence |
 | Rename json-canvas | → obsidian-canvas, updated all references |
 | Extract system docs | Best practices, roadmap, contract extracted from analysis doc |
+| Add test-strategy skill | Methodology skill with verification checklist, 45th skill |
+| Soften brainstorming | Removed XML hard-gate, added Boundaries/Verification/Resources |
