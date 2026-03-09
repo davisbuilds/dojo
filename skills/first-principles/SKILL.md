@@ -85,13 +85,37 @@ Tie reasoning to evidence, not theory:
 - **Close the loop.** Implementation is not the last step. The cycle is: implement → verify → reassess. If results don't match expectations, that's information — revisit your assumptions rather than explaining away the discrepancy.
 - **Scale verification to the task.** Full first-principles tasks: define success criteria upfront, test each sub-problem independently, validate integration. Lightweight tasks: run existing tests, confirm no regressions.
 
+## Engineering Principles
+
+Apply these as lenses during analysis — not as rules to follow mechanically, but as forces to weigh:
+
+- **YAGNI (You Aren't Gonna Need It).** Default stance. Don't build for hypothetical future requirements. The cost of removing speculative code later is almost always lower than the cost of maintaining it now. Only add complexity when a concrete, current need demands it.
+- **KISS (Keep It Simple).** Prefer the simplest solution that satisfies current requirements. Complexity is a cost — justify every layer of indirection, every abstraction, every configuration option.
+- **Separation of Concerns.** Each module, function, or component should have one reason to change. When concerns are tangled, changes cascade unpredictably.
+- **DRY (Don't Repeat Yourself) — with judgment.** Eliminate duplication of *knowledge* (business rules, invariants, data definitions). But do not DRY away *incidental similarity* — two blocks of code that happen to look alike but serve different purposes should stay separate. Three similar lines are better than a premature abstraction.
+- **SOLID — selectively.** Single Responsibility and Dependency Inversion are almost always worth applying. Open/Closed and Interface Segregation matter at API boundaries. Liskov Substitution matters when inheritance is in play. Don't force all five onto every class.
+- **Composition over inheritance.** Prefer composing small, focused pieces over deep inheritance hierarchies. Inheritance couples subclasses to implementation details of parents.
+
+## Resolving Principle Tensions
+
+Principles conflict. When they do, use the current context to decide — not a fixed hierarchy:
+
+| Tension | Resolution Heuristic |
+|---|---|
+| DRY vs. readability | If the abstraction requires more context to understand than the duplication, keep the duplication |
+| SOLID vs. simplicity | Apply SRP and DI broadly; apply OCP/ISP/LSP only at module boundaries or public APIs |
+| YAGNI vs. extensibility | Build for today's requirements; refactor when (not before) new requirements arrive |
+| Performance vs. clarity | Write clear code first; optimize only when profiling shows a measured bottleneck |
+| Consistency vs. correctness | Don't follow a bad pattern just because it's established; fix the pattern if scope allows, otherwise document the deviation |
+| Abstraction vs. directness | If you'd need to read the abstraction's source to understand the call site, the abstraction isn't helping |
+
 ## Trade-Off Awareness for Code
 
 When writing or modifying code:
 
-- **Surface competing approaches before committing.** If multiple valid implementations exist, name them and the trade-offs: readability vs. performance, simplicity vs. extensibility, short-term speed vs. long-term maintenance.
-- **Explain strategy before writing code.** State the approach, the constraints that shaped it, and what alternatives you considered. Then implement.
-- **Flag deviations from conventions.** If you're doing something non-standard, explain why the standard approach doesn't fit. If you're following convention, you don't need to justify it.
+- **Surface competing approaches before committing.** Name the trade-offs: readability vs. performance, simplicity vs. extensibility, short-term speed vs. long-term maintenance.
+- **Explain strategy before writing code.** State the approach, the constraints that shaped it, and what alternatives you considered.
+- **Flag deviations from conventions.** If you're doing something non-standard, explain why. If you're following convention, no justification needed.
 - **Acknowledge knowledge limits.** For technologies or APIs that may have evolved beyond your training data, say so and suggest where to verify.
 
 ## Decision Matrix
@@ -107,3 +131,11 @@ When writing or modifying code:
 | Clear bug with obvious root cause | Lightweight | Fix, verify, move on |
 | Isolated change, well-defined scope | Lightweight | Standard execution with basic reasoning |
 | Mechanical operations (rename, format, move) | Skip | Execute directly |
+
+## Verification
+
+- Assumptions are stated explicitly before conclusions that depend on them
+- At least one alternative was considered for non-trivial decisions
+- Trade-offs name concrete costs, not vague "might be harder to maintain"
+- Engineering principles were applied as lenses, not invoked as dogma
+- Verification criteria were defined before or alongside implementation
