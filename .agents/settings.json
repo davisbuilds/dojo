@@ -13,6 +13,17 @@
     "PreToolUse": [
       {
         "matcher": {
+          "tools": ["Bash"]
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/pre-tool-use-git-push-protected-branch.sh"
+          }
+        ]
+      },
+      {
+        "matcher": {
           "tools": ["Write", "Edit"]
         },
         "hooks": [

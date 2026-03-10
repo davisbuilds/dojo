@@ -67,8 +67,9 @@ python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skil
 
 Hooks enforce quality at edit-time and session-stop:
 
+- Pre-tool-use hook blocks pushes to protected branches unless the command includes `DOJO_ALLOW_PROTECTED_PUSH=1`.
 - Pre-tool-use hook validates SKILL.md on every write.
-- Stop hooks verify git state and skill structure.
+- Stop hooks verify git state and skill structure; protected branches may keep local unpushed commits.
 
 See `docs/system/skill-contract-v1.md` for the contract checklist and `docs/system/SKILL-BEST-PRACTICES.md` for authoring guidance.
 

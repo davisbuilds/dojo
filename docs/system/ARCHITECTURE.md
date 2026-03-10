@@ -40,9 +40,10 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 | Hook | Event | Purpose |
 |------|-------|---------|
 | `session-start-skill-catalog.sh` | SessionStart | Injects skill catalog, recent git log, and AGENTS.md pointer |
+| `pre-tool-use-git-push-protected-branch.sh` | PreToolUse (Bash) | Blocks pushes to protected branches unless an explicit override token is present |
 | `pre-tool-use-validate-skill.sh` | PreToolUse (Write/Edit) | Validates SKILL.md frontmatter; blocks on failure |
 | `post-tool-use-regen-manifest.sh` | PostToolUse (Write/Edit) | Regenerates `skills.json` after SKILL.md edits |
-| `stop-hook-git-check.sh` | Stop | Blocks if uncommitted changes or unpushed commits |
+| `stop-hook-git-check.sh` | Stop | Blocks if uncommitted changes or non-protected branches have unpushed commits |
 | `stop-hook-skill-structure.sh` | Stop | Validates modified skill directories have valid SKILL.md |
 
 ## Manifest System
@@ -66,7 +67,7 @@ Uses a polyglot shebang — works with both `python` and `python3`.
 
 ```text
 skills/                   # 37 skill directories (each with SKILL.md)
-hooks/                    # 5 lifecycle hook scripts (bash)
+hooks/                    # 6 lifecycle hook scripts (bash)
 scripts/                  # Manifest generation (Python)
 spec/                     # Agent skills specification
 docs/plans/               # Implementation plans

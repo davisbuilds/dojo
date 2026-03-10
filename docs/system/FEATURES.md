@@ -88,9 +88,10 @@ jq '.skills | length' skills.json
 ## Hook-Enforced Quality Gates
 
 - SKILL.md frontmatter validated on every write/edit (pre-tool-use).
+- Pushes to protected branches are blocked unless the command includes an explicit `DOJO_ALLOW_PROTECTED_PUSH=1` override.
 - `skills.json` manifest regenerated after every SKILL.md change (post-tool-use).
 - `docs/plans/*-implementation.md` validated after every write/edit (post-tool-use).
-- Uncommitted changes and unpushed commits blocked at session stop.
+- Uncommitted changes and unpushed commits on non-protected branches blocked at session stop.
 - Skill directory structure validated at session stop.
 
 ## Command Wrappers
