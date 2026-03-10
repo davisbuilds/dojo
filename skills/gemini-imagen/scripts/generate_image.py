@@ -25,9 +25,12 @@ import os
 import sys
 from pathlib import Path
 
-MODEL = "gemini-3-pro-image-preview"
+MODEL = "gemini-3.1-flash-image-preview"
 
-ASPECT_CHOICES = ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"]
+ASPECT_CHOICES = [
+    "1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4",
+    "9:16", "16:9", "21:9", "4:1", "1:4", "8:1", "1:8",
+]
 RESOLUTION_CHOICES = ["1K", "2K", "4K"]
 
 

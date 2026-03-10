@@ -68,7 +68,7 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 
 ### Medium Impact
 
-5. **Bring gemini-imagen to parity with gpt-imagen** -- Add sample prompts, use-case taxonomy
+5. ~~**Bring gemini-imagen to parity with gpt-imagen**~~ -- Done, sample prompts + model/aspect ratio/workflow updates
 6. **Add auto-detection to code-review-agents** -- Select relevant reviewers based on tech stack
 7. **Bundle guidelines in web-design-guidelines** -- Don't depend on external URL fetch
 8. ~~**Upgrade template**~~ -- Done, added commented guidance for all contract sections + authoring checklist
@@ -99,3 +99,4 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 | Enhance first-principles | Added engineering principles, tension resolution table, verification (110→141 lines) |
 | Deduplicate fetch_issue.sh | Unified to `scripts/fetch_issue.sh`, symlinked from both skills |
 | Upgrade template | Commented scaffold with all contract sections + authoring checklist (35→78 lines) |
+| gemini-imagen parity | Updated to Nano Banana 2, added 4 extreme aspect ratios, drift warning, two-tier workflow, text rendering callout, sample-prompts.md |

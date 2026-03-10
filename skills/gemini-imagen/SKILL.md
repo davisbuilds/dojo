@@ -9,11 +9,11 @@ Generate and edit images using Google's Gemini API. The environment variable `GE
 
 ## Quick Reference
 
-| Setting      | Default                        | Options                                                    |
-| ------------ | ------------------------------ | ---------------------------------------------------------- |
-| Model        | `gemini-3-pro-image-preview`   | -                                                          |
-| Resolution   | 1K                             | 1K, 2K, 4K                                                 |
-| Aspect Ratio | 1:1                            | 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9      |
+| Setting      | Default                          | Options                                                              |
+| ------------ | -------------------------------- | -------------------------------------------------------------------- |
+| Model        | `gemini-3.1-flash-image-preview` | Also: `gemini-3.1-flash-image-preview` for production-quality finals     |
+| Resolution   | 1K                               | 1K, 2K, 4K                                                          |
+| Aspect Ratio | 1:1                              | 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9, 4:1, 1:4, 8:1, 1:8 |
 
 ## Usage
 
@@ -27,11 +27,11 @@ Run from the user's working directory so images save where expected, not in the 
 
 ## Default Workflow
 
-Follow a draft-iterate-final pattern:
+Follow a two-tier draft-iterate-final pattern:
 
-1. **Draft (1K):** Generate with default resolution for a quick feedback loop.
+1. **Draft (Flash, 1K):** Use the default model (`gemini-3.1-flash-image-preview`) at 1K for rapid ideation.
 2. **Iterate:** Adjust the prompt in small diffs. Use a new filename per run. For editing, keep the same `--input-image`.
-3. **Final (4K):** Only when the prompt is locked. Add `--resolution 4K`.
+3. **Final (Pro, 4K):** When the prompt is locked, switch to `gemini-3.1-flash-image-preview` with `--resolution 4K` for production-quality output.
 
 ## Resolution Options
 
@@ -64,6 +64,12 @@ The `edit` subcommand auto-detects resolution from the input image dimensions wh
 | 9:16   | Vertical video (Stories, Reels)|
 | 16:9   | Horizontal video (YouTube)     |
 | 21:9   | Ultra-wide, panoramic          |
+| 4:1    | Extreme wide banner            |
+| 1:4    | Extreme tall banner            |
+| 8:1    | Ultra-wide strip               |
+| 1:8    | Ultra-tall strip               |
+
+**Aspect ratio drift in edits:** The model may change aspect ratio unexpectedly when editing. Add "Do not change the input aspect ratio" to the edit prompt, or supply a reference image at the desired dimensions.
 
 ## API Key
 
@@ -125,7 +131,7 @@ Examples:
 
 > "A fox sitting in a forest, kawaii style, soft pastels, thick black outlines, big expressive eyes, flat shading, no gradients."
 
-**Text in Images:** Be explicit about font style and placement.
+**Text in Images (Gemini strength):** Gemini handles text rendering better than most image models — use it for logos, posters, diagrams, greeting cards, and text localization. Be explicit about font style, placement, and exact wording.
 
 > "A motivational poster with the text 'KEEP GOING' in bold white sans-serif centered on a dark blue gradient background."
 
@@ -141,7 +147,7 @@ The script runs single-turn calls. For iterative refinement within a single conv
 from google.genai import types
 
 chat = client.chats.create(
-    model="gemini-3-pro-image-preview",
+    model="gemini-3.1-flash-image-preview",
     config=types.GenerateContentConfig(response_modalities=["TEXT", "IMAGE"]),
 )
 response = chat.send_message("Create a logo for 'Acme Corp'")
@@ -154,7 +160,7 @@ Use Google Search grounding to generate images informed by real-world data:
 
 ```python
 response = client.models.generate_content(
-    model="gemini-3-pro-image-preview",
+    model="gemini-3.1-flash-image-preview",
     contents="Generate an image of the latest Tesla Model Y in a showroom",
     config=types.GenerateContentConfig(
         response_modalities=["TEXT", "IMAGE"],
@@ -176,7 +182,7 @@ images = [Image.open(p) for p in ["ref1.jpg", "ref2.jpg", "ref3.jpg"]]
 contents = ["Combine these into a single panoramic scene"] + images
 
 response = client.models.generate_content(
-    model="gemini-3-pro-image-preview",
+    model="gemini-3.1-flash-image-preview",
     contents=contents,
     config=config,
 )
@@ -211,6 +217,11 @@ The API supports up to 14 input images per request.
 - Image files saved to the user's working directory with timestamped filenames (`yyyy-mm-dd-hh-mm-ss-name.jpg`)
 - JPEG format by default; PNG when `.png` extension is specified
 - One file per generation/edit/compose call
+
+## Resources
+
+- `scripts/generate_image.py` — CLI for generate, edit, and compose subcommands
+- `references/sample-prompts.md` — use-case-specific prompt recipes for generation and editing
 
 ## Verification
 
