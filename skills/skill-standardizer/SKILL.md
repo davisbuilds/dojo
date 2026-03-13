@@ -18,7 +18,7 @@ Use this skill when you see recurring problems like:
 This skill provides a deterministic workflow:
 1. Discover roots and classify scope.
 2. Audit byte-level and semantic drift.
-3. Generate actions (dry run by default).
+3. Generate actions (dry run by default), including deprecated-name replacement when configured by policy.
 4. Apply safe synchronization with backups.
 5. Re-audit and report final state.
 
@@ -56,6 +56,18 @@ Preferred global precedence:
 1. `~/.agents/skills`
 2. `~/.codex/skills`
 3. `~/.claude/skills`
+
+## Rename Policy
+
+Deprecated skill names can be mapped to canonical replacements.
+
+Current built-in mapping:
+- `json-canvas` -> `obsidian-canvas`
+
+When a deprecated skill name is found:
+- audit should report it explicitly instead of treating it as an unrelated extra directory
+- sync should back up the deprecated copy, install the canonical replacement in the same root, and remove the old name
+- secondary globals and local duplicates should still follow the normal link/copy policy for the replacement skill
 
 ## Scripts
 
@@ -127,6 +139,7 @@ For targeted fixes, provide a scoped canonical root containing only the affected
 
 - Never mutate plugin cache directories unless explicitly included.
 - Never overwrite without backup in apply mode.
+- Never remove a deprecated skill name without creating or confirming the canonical replacement in that root.
 - Always print resolved canonical and target roots before applying.
 - If no canonical root is found, restrict apply actions to explicit local/global normalization.
 

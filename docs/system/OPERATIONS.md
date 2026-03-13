@@ -51,6 +51,12 @@ python skills/skill-creator/scripts/generate_openai_yaml.py <path/to/skill-folde
 python scripts/generate_skills_manifest.py
 ```
 
+### Run skill-standardizer regression tests
+
+```bash
+python3 skills/skill-standardizer/scripts/test_skill_standardizer.py
+```
+
 ## Hook Configuration
 
 Hooks are configured in `.claude/settings.json` and `.agents/settings.json`. No manual installation is needed — they activate automatically when opening the repo in a supported harness.

@@ -17,6 +17,9 @@ CODEX_HOME_ENV = "CODEX_HOME"
 CLAUDE_HOME_ENV = "CLAUDE_HOME"
 
 IGNORE_NAMES = {".DS_Store", "__pycache__", ".git"}
+DEPRECATED_SKILL_REPLACEMENTS = {
+    "json-canvas": "obsidian-canvas",
+}
 
 
 @dataclass
@@ -243,10 +246,79 @@ def preferred_global_for_skill(skill: str, inventories: list[RootInventory]) -> 
 
 def _to_jsonable_issue(issue: dict[str, Any]) -> dict[str, Any]:
     out = dict(issue)
-    for key in ["source", "dest", "root", "canonical", "global_root", "local_root"]:
+    for key in [
+        "source",
+        "dest",
+        "root",
+        "canonical",
+        "global_root",
+        "local_root",
+        "deprecated_dest",
+    ]:
         if key in out and isinstance(out[key], Path):
             out[key] = str(out[key])
     return out
+
+
+def _replacement_source_for_root(
+    replacement_skill: str,
+    root: RootSpec,
+    inventories: list[RootInventory],
+    canonical_inventory: RootInventory | None,
+    primary_global_inventory: RootInventory | None,
+    local_policy: str,
+    global_policy: str,
+    codex_agents_dedupe: bool,
+    enforce_mirror: bool,
+) -> tuple[Path, bool, str] | None:
+    preferred = preferred_global_for_skill(replacement_skill, inventories)
+    primary_global_root = primary_global_inventory.root if primary_global_inventory else None
+    primary_has_replacement = bool(
+        primary_global_inventory and replacement_skill in primary_global_inventory.skills
+    )
+
+    if root.kind == "local" and local_policy == "prefer-global-link" and preferred:
+        return (
+            preferred[1].path,
+            True,
+            "Replace deprecated local skill with link to preferred global source",
+        )
+
+    prefer_link_secondary_globals = (
+        root.kind.startswith("global-")
+        and primary_global_root is not None
+        and root.kind != primary_global_root.kind
+        and (
+            global_policy == "prefer-primary-link"
+            or (
+                codex_agents_dedupe
+                and root.kind == "global-codex"
+                and primary_global_root.kind == "global-agents"
+            )
+        )
+    )
+    if prefer_link_secondary_globals and primary_has_replacement:
+        return (
+            primary_global_root.path / replacement_skill,
+            True,
+            "Replace deprecated secondary global with link to preferred global source",
+        )
+
+    if canonical_inventory and replacement_skill in canonical_inventory.skills:
+        return (
+            canonical_inventory.skills[replacement_skill].path,
+            False,
+            "Replace deprecated skill with canonical copy",
+        )
+
+    if preferred:
+        return (
+            preferred[1].path,
+            False,
+            "Replace deprecated skill with preferred existing source",
+        )
+
+    return None
 
 
 def build_audit_report(
@@ -274,6 +346,7 @@ def build_audit_report(
 
     issues: list[dict[str, Any]] = []
     actions: list[dict[str, Any]] = []
+    invalid_by_root: dict[Path, set[str]] = {}
 
     def add_issue(**kwargs: Any) -> None:
         issues.append(kwargs)
@@ -282,6 +355,7 @@ def build_audit_report(
         actions.append(kwargs)
 
     for inv in inventories:
+        invalid_by_root[inv.root.path] = set(inv.invalid_entries)
         for name in inv.invalid_entries:
             add_issue(
                 severity="warning",
@@ -295,9 +369,111 @@ def build_audit_report(
     for inv in inventories:
         all_skill_names.update(inv.skills.keys())
 
+    for inv in inventories:
+        for invalid_name in inv.invalid_entries:
+            invalid_dest = inv.root.path / invalid_name
+
+            if invalid_name in DEPRECATED_SKILL_REPLACEMENTS:
+                replacement_skill = DEPRECATED_SKILL_REPLACEMENTS[invalid_name]
+                replacement_entry = inv.skills.get(replacement_skill)
+                if replacement_entry is not None:
+                    add_action(
+                        action="remove_deprecated_skill",
+                        skill=invalid_name,
+                        source=replacement_entry.path,
+                        dest=inv.root.path / replacement_skill,
+                        deprecated_dest=invalid_dest,
+                        reason="Remove deprecated invalid alias after canonical replacement is present",
+                    )
+                    continue
+                replacement_source = _replacement_source_for_root(
+                    replacement_skill=replacement_skill,
+                    root=inv.root,
+                    inventories=inventories,
+                    canonical_inventory=canonical_inventory,
+                    primary_global_inventory=primary_global_inventory,
+                    local_policy=local_policy,
+                    global_policy=global_policy,
+                    codex_agents_dedupe=codex_agents_dedupe,
+                    enforce_mirror=enforce_mirror,
+                )
+                if replacement_source is None:
+                    continue
+                source, use_symlink, reason = replacement_source
+                add_action(
+                    action="replace_deprecated_skill",
+                    skill=invalid_name,
+                    source=source,
+                    dest=inv.root.path / replacement_skill,
+                    deprecated_dest=invalid_dest,
+                    link=use_symlink,
+                    reason=reason,
+                )
+                continue
+
+            if inv.root.kind == "local":
+                if local_policy != "prefer-global-link" or invalid_name in keep_local_skills:
+                    continue
+                preferred = preferred_global_for_skill(invalid_name, inventories)
+                if preferred is None:
+                    continue
+                _, global_entry = preferred
+                add_action(
+                    action="relink_to_global",
+                    skill=invalid_name,
+                    source=global_entry.path,
+                    dest=invalid_dest,
+                    reason="Repair invalid local skill entry with preferred global link",
+                )
+                continue
+
+            if not inv.root.kind.startswith("global-"):
+                continue
+
+            if (
+                primary_global_inventory
+                and inv.root.kind != primary_global_inventory.root.kind
+                and (
+                    global_policy == "prefer-primary-link"
+                    or (
+                        codex_agents_dedupe
+                        and inv.root.kind == "global-codex"
+                        and primary_global_inventory.root.kind == "global-agents"
+                    )
+                )
+                and (
+                    invalid_name in primary_global_inventory.skills
+                    or (canonical_inventory and invalid_name in canonical_inventory.skills)
+                )
+            ):
+                add_action(
+                    action="relink_to_global",
+                    skill=invalid_name,
+                    source=primary_global_inventory.root.path / invalid_name,
+                    dest=invalid_dest,
+                    reason="Repair invalid secondary global skill entry with preferred global link",
+                )
+                continue
+
+            if canonical_inventory and invalid_name in canonical_inventory.skills:
+                add_action(
+                    action="sync_copy",
+                    skill=invalid_name,
+                    source=canonical_inventory.skills[invalid_name].path,
+                    dest=invalid_dest,
+                    reason="Repair invalid global skill entry from canonical copy",
+                )
+
     for skill in sorted(all_skill_names):
+        if skill in DEPRECATED_SKILL_REPLACEMENTS:
+            continue
         entries = [(inv.root, inv.skills[skill]) for inv in inventories if skill in inv.skills]
         canonical_has_skill = bool(canonical_inventory and skill in canonical_inventory.skills)
+        deprecated_aliases = {
+            deprecated
+            for deprecated, replacement in DEPRECATED_SKILL_REPLACEMENTS.items()
+            if replacement == skill
+        }
         primary_global_root = primary_global_inventory.root if primary_global_inventory else None
         primary_global_entry = (
             primary_global_inventory.skills.get(skill) if primary_global_inventory else None
@@ -389,6 +565,10 @@ def build_audit_report(
                     if not inv.root.kind.startswith("global-"):
                         continue
                     if skill in inv.skills:
+                        continue
+                    if skill in invalid_by_root.get(inv.root.path, set()):
+                        continue
+                    if deprecated_aliases.intersection(inv.skills.keys()):
                         continue
                     prefer_link_missing_secondary = (
                         global_policy == "prefer-primary-link"
@@ -610,10 +790,80 @@ def build_audit_report(
                     reason="Prefer global link for local duplicate",
                 )
 
+    for deprecated_skill, replacement_skill in sorted(DEPRECATED_SKILL_REPLACEMENTS.items()):
+        replacement_exists_somewhere = (
+            (canonical_inventory and replacement_skill in canonical_inventory.skills)
+            or preferred_global_for_skill(replacement_skill, inventories) is not None
+        )
+        if not replacement_exists_somewhere:
+            continue
+
+        for inv in inventories:
+            deprecated_entry = inv.skills.get(deprecated_skill)
+            if not deprecated_entry:
+                continue
+
+            replacement_entry = inv.skills.get(replacement_skill)
+            replacement_dest = inv.root.path / replacement_skill
+            deprecated_dest = inv.root.path / deprecated_skill
+
+            add_issue(
+                severity="warning" if replacement_entry is None else "info",
+                code="DEPRECATED_SKILL_NAME",
+                skill=deprecated_skill,
+                root=inv.root.path,
+                canonical=canonical_inventory.skills[replacement_skill].path
+                if canonical_inventory and replacement_skill in canonical_inventory.skills
+                else None,
+                message=(
+                    f"Deprecated skill name should be replaced with canonical "
+                    f"'{replacement_skill}'"
+                ),
+            )
+
+            if replacement_entry is not None:
+                add_action(
+                    action="remove_deprecated_skill",
+                    skill=deprecated_skill,
+                    source=replacement_entry.path,
+                    dest=replacement_dest,
+                    deprecated_dest=deprecated_dest,
+                    reason="Remove deprecated alias after canonical replacement is present",
+                )
+                continue
+
+            replacement_source = _replacement_source_for_root(
+                replacement_skill=replacement_skill,
+                root=inv.root,
+                inventories=inventories,
+                canonical_inventory=canonical_inventory,
+                primary_global_inventory=primary_global_inventory,
+                local_policy=local_policy,
+                global_policy=global_policy,
+                codex_agents_dedupe=codex_agents_dedupe,
+                enforce_mirror=enforce_mirror,
+            )
+            if replacement_source is None:
+                continue
+
+            source, use_symlink, reason = replacement_source
+            add_action(
+                action="replace_deprecated_skill",
+                skill=deprecated_skill,
+                source=source,
+                dest=replacement_dest,
+                deprecated_dest=deprecated_dest,
+                link=use_symlink,
+                reason=reason,
+            )
+
     deduped_actions: list[dict[str, Any]] = []
     seen_keys: set[tuple[str, str]] = set()
     for action in actions:
-        key = (action["action"], str(action["dest"]))
+        if action["action"] == "remove_deprecated_skill":
+            key = ("remove_deprecated_skill", str(action["deprecated_dest"]))
+        else:
+            key = ("write", str(action["dest"]))
         if key in seen_keys:
             continue
         seen_keys.add(key)
@@ -704,14 +954,35 @@ def _backup_destination(dest: Path, backup_root: Path, stamp: str) -> Path | Non
 
 def _replace_with_copy(source: Path, dest: Path) -> None:
     src = source.resolve()
+    if not src.exists() or not src.is_dir():
+        raise FileNotFoundError(f"Copy source does not exist or is not a directory: {source}")
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(src, dest, symlinks=True)
 
 
 def _replace_with_symlink(source: Path, dest: Path) -> None:
+    if not source.exists():
+        raise FileNotFoundError(f"Symlink source does not exist: {source}")
     target = source.resolve()
+    if not target.exists():
+        raise FileNotFoundError(f"Resolved symlink source does not exist: {target}")
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.symlink_to(target, target_is_directory=True)
+
+
+def _action_priority(action: dict[str, Any]) -> tuple[int, str]:
+    action_type = action["action"]
+    if action_type in {"sync_copy", "create_copy"}:
+        return (0, str(action["dest"]))
+    if action_type == "replace_deprecated_skill" and not action.get("link"):
+        return (1, str(action["dest"]))
+    if action_type == "remove_deprecated_skill":
+        return (2, str(action["deprecated_dest"]))
+    if action_type == "relink_to_global":
+        return (3, str(action["dest"]))
+    if action_type == "replace_deprecated_skill" and action.get("link"):
+        return (4, str(action["dest"]))
+    return (5, str(action.get("dest", action.get("deprecated_dest", ""))))
 
 
 def apply_actions(
@@ -735,20 +1006,43 @@ def apply_actions(
     if not apply:
         return result
 
-    for action in actions:
+    ordered_actions = sorted(actions, key=_action_priority)
+
+    for action in ordered_actions:
         action_type = action["action"]
         source = _expand(action["source"])
         dest = _expand(action["dest"])
 
         try:
-            backup = _backup_destination(dest, backup_base, stamp)
-            if backup:
-                result["backups"].append({"dest": str(dest), "backup": str(backup)})
+            if action_type in {"sync_copy", "create_copy", "relink_to_global", "replace_deprecated_skill"}:
+                backup = _backup_destination(dest, backup_base, stamp)
+                if backup:
+                    result["backups"].append({"dest": str(dest), "backup": str(backup)})
 
             if action_type in {"sync_copy", "create_copy"}:
                 _replace_with_copy(source, dest)
             elif action_type == "relink_to_global":
                 _replace_with_symlink(source, dest)
+            elif action_type == "remove_deprecated_skill":
+                backup = _backup_destination(_expand(action["deprecated_dest"]), backup_base, stamp)
+                if backup:
+                    result["backups"].append(
+                        {
+                            "dest": str(_expand(action["deprecated_dest"])),
+                            "backup": str(backup),
+                        }
+                    )
+            elif action_type == "replace_deprecated_skill":
+                deprecated_dest = _expand(action["deprecated_dest"])
+                deprecated_backup = _backup_destination(deprecated_dest, backup_base, stamp)
+                if deprecated_backup:
+                    result["backups"].append(
+                        {"dest": str(deprecated_dest), "backup": str(deprecated_backup)}
+                    )
+                if action.get("link"):
+                    _replace_with_symlink(source, dest)
+                else:
+                    _replace_with_copy(source, dest)
             else:
                 raise ValueError(f"Unsupported action type: {action_type}")
 

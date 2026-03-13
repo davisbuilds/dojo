@@ -96,7 +96,10 @@ For OpenAI/Codex-compatible metadata, see `references/openai_yaml.md`.
 """
 
 EXAMPLE_SCRIPT = '''#!/usr/bin/env python3
-"""Example helper script for {skill_name}."""
+"""Example helper script for {skill_name}.
+
+Replace this placeholder with real automation or delete it if not needed.
+"""
 
 
 def main():
@@ -111,12 +114,19 @@ EXAMPLE_REFERENCE = """# Reference Documentation for {skill_title}
 
 This is a placeholder for detailed reference documentation.
 Replace with actual reference content or delete if not needed.
+
+Use references for material that should be read on demand:
+- detailed workflows
+- API or schema documentation
+- examples too large for SKILL.md
 """
 
 EXAMPLE_ASSET = """# Example Asset File
 
 This placeholder represents where asset files would be stored.
 Replace with actual assets or delete if not needed.
+
+Assets are for output resources such as templates, images, fonts, or boilerplate.
 """
 
 

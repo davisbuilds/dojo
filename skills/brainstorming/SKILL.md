@@ -15,11 +15,15 @@ Use brainstorming when:
 - Trade-offs have not been discussed
 - Scope and success criteria are unclear
 
+You can skip brainstorming when:
+- Requirements are already explicit, testable, and well-scoped
+- Scope is narrow and well-defined
+- The user asks for direct implementation with clear constraints
+
 ## Boundaries
 
-- Skip when requirements are already explicit, testable, and well-scoped
-- Skip when the user asks for direct implementation with clear constraints
-- Do not write code, modify files, or invoke implementation skills until the user has approved the design summary (or explicitly stops brainstorming)
+- If the task is already implementation-ready, suggest skipping to planning or execution and ask for confirmation
+- Do not write code, modify files, or invoke implementation skills until the user has approved the design summary (or explicitly chooses to stop brainstorming)
 - Stay on WHAT to build; implementation details belong to planning
 
 ## Core Process
@@ -110,11 +114,12 @@ Offer explicit next actions:
 2. Refine brainstorming further
 3. Stop here for now
 
-When a handoff is appropriate, suggest which skill should take over:
+When a handoff is appropriate, use this routing logic:
 - Implementation steps or task sequencing needed → `writing-plans`
 - CLI UX decisions (flags, args, output contracts) → `create-cli`
 - UI/UX direction or visual systems → `frontend-design` or `web-design-guidelines`
 - Deep architectural trade-off analysis → `first-principles`
+- Request is now explicit and implementation-ready → skip additional brainstorming and proceed directly to planning/implementation
 
 Explain why in one sentence and ask for confirmation. If the target skill is unavailable, use the closest manual fallback.
 
@@ -138,6 +143,7 @@ Explain why in one sentence and ask for confirmation. If the target skill is una
 ## Principles
 
 - One question per turn
-- Keep outputs concise (~200-300 words per section when nuanced)
+- Keep outputs concise (about 200-300 words per section when nuanced)
 - YAGNI: avoid speculative complexity
+- Stay on WHAT; implementation details belong to planning
 - Validate alignment incrementally before moving forward

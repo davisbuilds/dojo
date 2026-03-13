@@ -63,4 +63,7 @@ anthropic/
 .claude/todos/
 .claude/projects/
 
+# skill-standardizer backup snapshots
+.skill-standardizer/backups/
+
 skills-lock.json

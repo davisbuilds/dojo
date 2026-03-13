@@ -34,6 +34,7 @@ Before completion:
 - run `quick_validate.py` on the target skill
 - run representative script checks when new scripts are added
 - run packaging when distribution is requested
+- re-check any optional `agents/openai.yaml` metadata after updating SKILL.md
 
 ## About Skills
 
@@ -110,6 +111,7 @@ Every SKILL.md consists of:
   - Metadata generator: `scripts/generate_openai_yaml.py`
   - Optional metadata output: `agents/openai.yaml`
 - If a platform add-on is not needed, do not create or update those files.
+- If `agents/openai.yaml` exists, treat it as a mirror of the canonical skill intent in `SKILL.md`; regenerate or update it when the skill trigger behavior changes.
 
 #### Bundled Resources (optional)
 
@@ -152,7 +154,7 @@ A skill should only contain essential files that directly support its functional
 - CHANGELOG.md
 - etc.
 
-The skill should only contain the information needed for an AI agent to do the job at hand. It should not contain auxilary context about the process that went into creating it, setup and testing procedures, user-facing documentation, etc. Creating additional documentation files just adds clutter and confusion.
+The skill should only contain the information needed for an AI agent to do the job at hand. It should not contain auxiliary context about the process that went into creating it, setup and testing procedures, user-facing documentation, etc. Creating additional documentation files just adds clutter and confusion.
 
 ### Progressive Disclosure Design Principle
 
@@ -255,6 +257,14 @@ Skill creation involves these steps:
 
 Follow these steps in order, skipping only if there is a clear reason why they are not applicable.
 
+### Skill Naming
+
+- Use lowercase letters, digits, and hyphens only; normalize user-provided titles to hyphen-case.
+- Keep names under 64 characters.
+- Prefer short names that describe the action or domain clearly.
+- Namespace by tool or platform only when it improves trigger clarity.
+- Match the directory name exactly to the frontmatter `name`.
+
 ### Step 1: Understanding the Skill with Concrete Examples
 
 Skip this step only when the skill's usage patterns are already clearly understood. It remains valuable even when working with an existing skill.
@@ -310,6 +320,15 @@ Usage:
 scripts/init_skill.py <skill-name> --path <output-directory>
 ```
 
+Common variants:
+
+```bash
+scripts/init_skill.py my-skill --path skills/public --resources scripts,references
+scripts/init_skill.py my-skill --path skills/public --resources scripts --examples
+scripts/init_skill.py my-skill --path skills/public --with-openai-agent
+scripts/init_skill.py my-skill --path skills/public --with-openai-agent --interface short_description="Short UI label"
+```
+
 The script:
 
 - Creates the skill directory at the specified path
@@ -318,7 +337,7 @@ The script:
 - Optionally creates example files (`--examples`)
 - Optionally creates OpenAI/Codex metadata (`--with-openai-agent` or `--interface key=value`)
 
-After initialization, customize or remove generated examples and any optional platform metadata that isn't needed.
+After initialization, customize or remove generated examples and any optional platform metadata that isn't needed. If `agents/openai.yaml` is created, review that it still matches the actual trigger and capability described in `SKILL.md`.
 
 ### Step 4: Edit the Skill
 
@@ -361,6 +380,8 @@ Optional fields are allowed when needed: `license`, `allowed-tools`, `metadata`,
 ##### Body
 
 Write instructions for using the skill and its bundled resources.
+
+When the skill supports multiple modes, frameworks, or output shapes, keep the selection logic in `SKILL.md` and move variant-specific detail into references files.
 
 ### Step 5: Packaging a Skill
 

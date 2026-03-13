@@ -12,6 +12,7 @@ This reference defines default policy for `skill-standardizer`.
 ## Drift Types
 
 - `CONTENT_DRIFT`: same skill name, different content hash
+- `DEPRECATED_SKILL_NAME`: installed skill uses an old name that should be replaced by the canonical name
 - `GLOBAL_DRIFT`: global roots disagree without canonical alignment
 - `GLOBAL_DUPLICATE_PRIMARY*`: secondary global copy should be linked to primary global source
 - `GLOBAL_DUPLICATE_PREFERRED*`: secondary global copy should be linked to preferred existing global source
@@ -38,6 +39,16 @@ This reference defines default policy for `skill-standardizer`.
   3. `~/.claude/skills`
 - Action mode default: dry run
 - Apply mode always backs up replaced destinations
+- Deprecated-name replacement default:
+  - Back up the deprecated directory
+  - Install the canonical replacement in the same root
+  - Remove the old name after the replacement exists
+
+## Deprecated Name Mappings
+
+- `json-canvas` -> `obsidian-canvas`
+
+Treat the canonical replacement as the source of truth for future audits and sync operations.
 
 ## Safety Constraints
 
