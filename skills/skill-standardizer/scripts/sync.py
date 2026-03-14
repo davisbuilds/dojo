@@ -25,6 +25,8 @@ class Args(argparse.Namespace):
     keep_local_skill: list[str] | None
     enforce_mirror: bool
     codex_agents_dedupe: bool
+    only_existing: bool
+    normalize_primary: bool
     apply: bool
     backup_root: str
     format: str
@@ -79,6 +81,16 @@ def parse_args(argv: list[str]) -> Args:
         ),
     )
     parser.add_argument(
+        "--only-existing",
+        action="store_true",
+        help="Only sync skills that already exist in target roots (intersection mode).",
+    )
+    parser.add_argument(
+        "--normalize-primary",
+        action="store_true",
+        help="Promote concrete skills from secondary globals to the primary global root and relink.",
+    )
+    parser.add_argument(
         "--apply",
         action="store_true",
         help="Apply changes. Without this flag, runs as dry-run only.",
@@ -116,6 +128,8 @@ def main(argv: list[str]) -> int:
         keep_local_skills=set(args.keep_local_skill or []),
         enforce_mirror=args.enforce_mirror,
         codex_agents_dedupe=args.codex_agents_dedupe,
+        only_existing=args.only_existing,
+        normalize_primary=args.normalize_primary,
     )
     sync_result = apply_actions(report, apply=args.apply, backup_root=args.backup_root)
 

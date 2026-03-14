@@ -47,8 +47,17 @@ This reference defines default policy for `skill-standardizer`.
 ## Deprecated Name Mappings
 
 - `json-canvas` -> `obsidian-canvas`
+- `imagegen` -> `gpt-imagen`
 
 Treat the canonical replacement as the source of truth for future audits and sync operations.
+
+## Intersection Mode (`--only-existing`)
+
+When enabled, canonical sync only targets skills already present in the destination root. This prevents the standardizer from installing all canonical skills into globals — only the intersection of {canonical} ∩ {installed} is synced.
+
+## Topology Normalization (`--normalize-primary`)
+
+When enabled, concrete skills found in secondary global roots are promoted to the primary global root and the secondary copies are replaced with symlinks. This handles the common case where skills were originally installed in `~/.codex/skills` or `~/.claude/skills` and need to be consolidated into `~/.agents/skills` as the single gold copy.
 
 ## Safety Constraints
 

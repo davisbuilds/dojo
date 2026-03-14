@@ -19,6 +19,7 @@ CLAUDE_HOME_ENV = "CLAUDE_HOME"
 IGNORE_NAMES = {".DS_Store", "__pycache__", ".git"}
 DEPRECATED_SKILL_REPLACEMENTS = {
     "json-canvas": "obsidian-canvas",
+    "imagegen": "gpt-imagen",
 }
 
 
@@ -254,6 +255,7 @@ def _to_jsonable_issue(issue: dict[str, Any]) -> dict[str, Any]:
         "global_root",
         "local_root",
         "deprecated_dest",
+        "secondary_dest",
     ]:
         if key in out and isinstance(out[key], Path):
             out[key] = str(out[key])
@@ -328,6 +330,8 @@ def build_audit_report(
     keep_local_skills: set[str] | None,
     enforce_mirror: bool,
     codex_agents_dedupe: bool = True,
+    only_existing: bool = False,
+    normalize_primary: bool = False,
 ) -> dict[str, Any]:
     keep_local_skills = keep_local_skills or set()
 
@@ -353,6 +357,37 @@ def build_audit_report(
 
     def add_action(**kwargs: Any) -> None:
         actions.append(kwargs)
+
+    # --normalize-primary: promote concrete skills from secondary globals to
+    # the primary global root, then relink the secondary to the primary.
+    if normalize_primary and primary_global_inventory:
+        primary_root = primary_global_inventory.root
+        secondary_globals = [
+            inv for inv in inventories
+            if inv.root.kind.startswith("global-") and inv.root.kind != primary_root.kind
+        ]
+        for sec_inv in secondary_globals:
+            for skill_name, entry in list(sec_inv.skills.items()):
+                if skill_name in primary_global_inventory.skills:
+                    continue  # already in primary
+                if entry.is_symlink:
+                    continue  # already a link, nothing to promote
+                add_issue(
+                    severity="info",
+                    code="PROMOTE_TO_PRIMARY",
+                    skill=skill_name,
+                    root=sec_inv.root.path,
+                    global_root=primary_root.path,
+                    message=f"Concrete skill in secondary global should be promoted to primary ({primary_root.kind})",
+                )
+                add_action(
+                    action="promote_to_primary",
+                    skill=skill_name,
+                    source=entry.path,
+                    dest=primary_root.path / skill_name,
+                    secondary_dest=sec_inv.root.path / skill_name,
+                    reason=f"Promote concrete copy from {sec_inv.root.kind} to {primary_root.kind} and relink",
+                )
 
     for inv in inventories:
         invalid_by_root[inv.root.path] = set(inv.invalid_entries)
@@ -485,6 +520,11 @@ def build_audit_report(
             for root, entry in entries:
                 if root.kind == "canonical":
                     continue
+                # --only-existing: skip skills not already in this root
+                if only_existing and skill not in {
+                    e.name for inv in inventories if inv.root.path == root.path for e in inv.skills.values()
+                }:
+                    continue
 
                 if (
                     root.kind == "local"
@@ -560,7 +600,7 @@ def build_audit_report(
                         reason="Align with canonical copy",
                     )
 
-            if enforce_mirror:
+            if enforce_mirror and not only_existing:
                 for inv in inventories:
                     if not inv.root.kind.startswith("global-"):
                         continue
@@ -972,6 +1012,8 @@ def _replace_with_symlink(source: Path, dest: Path) -> None:
 
 def _action_priority(action: dict[str, Any]) -> tuple[int, str]:
     action_type = action["action"]
+    if action_type == "promote_to_primary":
+        return (-1, str(action["dest"]))  # must run before any relinking
     if action_type in {"sync_copy", "create_copy"}:
         return (0, str(action["dest"]))
     if action_type == "replace_deprecated_skill" and not action.get("link"):
@@ -1019,7 +1061,15 @@ def apply_actions(
                 if backup:
                     result["backups"].append({"dest": str(dest), "backup": str(backup)})
 
-            if action_type in {"sync_copy", "create_copy"}:
+            if action_type == "promote_to_primary":
+                # Copy concrete skill to primary global, then relink secondary
+                _replace_with_copy(source, dest)
+                secondary_dest = _expand(action["secondary_dest"])
+                sec_backup = _backup_destination(secondary_dest, backup_base, stamp)
+                if sec_backup:
+                    result["backups"].append({"dest": str(secondary_dest), "backup": str(sec_backup)})
+                _replace_with_symlink(dest, secondary_dest)
+            elif action_type in {"sync_copy", "create_copy"}:
                 _replace_with_copy(source, dest)
             elif action_type == "relink_to_global":
                 _replace_with_symlink(source, dest)

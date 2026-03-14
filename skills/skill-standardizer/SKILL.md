@@ -63,6 +63,7 @@ Deprecated skill names can be mapped to canonical replacements.
 
 Current built-in mapping:
 - `json-canvas` -> `obsidian-canvas`
+- `imagegen` -> `gpt-imagen`
 
 When a deprecated skill name is found:
 - audit should report it explicitly instead of treating it as an unrelated extra directory
@@ -134,6 +135,28 @@ python3 skills/skill-standardizer/scripts/sync.py \
 ```
 
 For targeted fixes, provide a scoped canonical root containing only the affected skills.
+
+## Intersection Mode
+
+Use `--only-existing` to restrict canonical sync to skills already installed in target roots. This prevents adding new skills that happen to exist in the canonical repo but were never installed globally.
+
+```bash
+python3 skills/skill-standardizer/scripts/sync.py \
+  --only-existing \
+  --global-policy prefer-primary-link \
+  --apply
+```
+
+## Topology Normalization
+
+Use `--normalize-primary` to promote concrete skills from secondary globals (`~/.codex/skills`, `~/.claude/skills`) to the primary global root (`~/.agents/skills`) and replace the secondary copies with symlinks. This is useful when skills were originally installed in a secondary root and need to be consolidated.
+
+```bash
+python3 skills/skill-standardizer/scripts/sync.py \
+  --normalize-primary \
+  --global-policy prefer-primary-link \
+  --apply
+```
 
 ## Safety Rules
 
