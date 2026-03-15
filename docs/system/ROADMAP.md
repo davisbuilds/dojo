@@ -1,6 +1,34 @@
 # Skills Roadmap
 
-Actionable improvement backlog for the skills catalog. Extracted from the [skills analysis](../skills-analysis-2026-3-07.md) (2026-03-07), updated 2026-03-08.
+Actionable improvement backlog for the skills catalog. This is a living snapshot, not a release contract.
+
+Last updated from the [skills analysis](../skills-analysis-2026-3-07.md) (2026-03-07).
+
+## Completed Highlights
+
+| Item | What Changed |
+|------|-------------|
+| 45 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, and meta/skill tooling |
+| 8-hook quality pipeline | Session-start catalog injection, pre/post-tool-use validation and manifest sync, implementation-plan validation, git checks, structure checks, session retro reminder |
+| Skill packaging and distribution | `.skill` zip format with validation |
+| Command wrappers | Deterministic slash-style entrypoints |
+| Skill installer | Supports Claude Code and Codex destinations |
+| Machine-readable manifest | `skills.json` with auto-regeneration |
+| Polyglot validation | Scripts compatible with both `python` and `python3` |
+| Trim Obsidian skills | obsidian-markdown 647→284, obsidian-bases 678→259, obsidian-canvas 675→192 |
+| Soften compound-docs | 527→119 lines, removed XML tags and redundant sections |
+| Strict contract enforcement | 45/45 pass, 0 warnings, CI enforces full catalog |
+| Trigger collision fixes | 78.6%→92.9%, discriminating name tokens, expanded stopwords |
+| Expanded trigger fixtures | 12→34 cases across 12 skill clusters |
+| Rescore all skills | 23 skills bumped, 1 new entry (skill-evals), measured evidence |
+| Rename json-canvas | → obsidian-canvas, updated all references |
+| Extract system docs | Best practices, roadmap, contract extracted from analysis doc |
+| Add test-strategy skill | Methodology skill with verification checklist, 45th skill |
+| Soften brainstorming | Removed XML hard-gate, added Boundaries/Verification/Resources |
+| Enhance first-principles | Added engineering principles, tension resolution table, verification (110→141 lines) |
+| Deduplicate fetch_issue.sh | Unified to `scripts/fetch_issue.sh`, symlinked from both skills |
+| Upgrade template | Commented scaffold with all contract sections + authoring checklist (35→78 lines) |
+| gemini-imagen parity | Updated to Nano Banana 2, added 4 extreme aspect ratios, drift warning, two-tier workflow, text rendering callout, sample-prompts.md |
 
 ## Cross-Cutting Findings
 
@@ -30,7 +58,6 @@ Actionable improvement backlog for the skills catalog. Extracted from the [skill
 
 | Gap | Description | Suggested Skill |
 |-----|-------------|----------------|
-| Testing | No skill for test strategy, test generation, or coverage analysis | `test-strategy` |
 | Database | No skill for schema design, migration planning, or query optimization | `db-design` |
 | API Design | No skill for REST/GraphQL API design patterns | `api-design` |
 | Documentation | No skill for README generation, API docs, or changelog management | `docs-generator` |
@@ -40,11 +67,10 @@ Actionable improvement backlog for the skills catalog. Extracted from the [skill
 
 ### Duplicate/Overlapping Concerns
 
-1. **gh-fix-issue + gh-triage-issues**: Both bundle `fetch_issue.sh` separately. Should share a common script.
-2. **gpt-imagen + gemini-imagen**: Same workflow pattern with different APIs. Could share a common skill layer with provider-specific scripts.
-3. **code-review-agents**: dhh-rails-reviewer and kieran-rails-reviewer overlap in domain. Consider merging or clearly differentiating.
-4. **vercel-deploy + vercel-preview-logs**: Could be one skill with deploy + diagnose commands.
-5. **obsidian-markdown + obsidian-bases + obsidian-canvas**: Three separate reference skills. Already trimmed and disambiguated; merging is low priority since trigger routing works (f1 1.00 for all three).
+1. **gpt-imagen + gemini-imagen**: Same workflow pattern with different APIs. Could share a common skill layer with provider-specific scripts.
+2. **code-review-agents**: dhh-rails-reviewer and kieran-rails-reviewer overlap in domain. Consider merging or clearly differentiating.
+3. **vercel-deploy + vercel-preview-logs**: Could be one skill with deploy + diagnose commands.
+4. **obsidian-markdown + obsidian-bases + obsidian-canvas**: Three separate reference skills. Already trimmed and disambiguated; merging is low priority since trigger routing works (f1 1.00 for all three).
 
 ### Resource Distribution
 
@@ -61,42 +87,22 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 
 ### High Impact
 
-1. ~~**Add engineering principles to first-principles**~~ -- Done, added YAGNI/KISS/DRY/SOLID lenses and tension resolution table
-2. ~~**Add test strategy skill**~~ -- Done, see `test-strategy`
-3. **Merge Vercel deploy skills** -- Combine vercel-deploy and vercel-preview-logs into one skill with deploy + diagnose commands
-4. ~~**Deduplicate fetch_issue.sh**~~ -- Done, unified to `scripts/fetch_issue.sh` with symlinks
+1. **Merge Vercel deploy skills** -- Combine vercel-deploy and vercel-preview-logs into one skill with deploy + diagnose commands
 
 ### Medium Impact
 
-5. ~~**Bring gemini-imagen to parity with gpt-imagen**~~ -- Done, sample prompts + model/aspect ratio/workflow updates
-6. **Add auto-detection to code-review-agents** -- Select relevant reviewers based on tech stack
-7. **Bundle guidelines in web-design-guidelines** -- Don't depend on external URL fetch
-8. ~~**Upgrade template**~~ -- Done, added commented guidance for all contract sections + authoring checklist
-9. ~~**Soften brainstorming language**~~ -- Done, XML hard-gate removed, boundaries added
+2. **Add auto-detection to code-review-agents** -- Select relevant reviewers based on tech stack
+3. **Bundle guidelines in web-design-guidelines** -- Don't depend on external URL fetch
 
 ### Low Impact
 
-10. **Add caching to deep-research** -- Avoid re-researching previously answered questions
-11. **Add rule testing to hookify** -- Let users validate rules before activation
-12. **Add example plans to writing-plans** -- Show what good plans look like
-13. **Consolidate agent-native-architecture references** -- Reduce overlap between architecture-patterns.md and agent-execution-patterns.md
-14. **LLM-based trigger scoring** -- Add semantic scoring tier for the 10 accepted lexical-limit pairs
+4. **Add caching to deep-research** -- Avoid re-researching previously answered questions
+5. **Add rule testing to hookify** -- Let users validate rules before activation
+6. **Add example plans to writing-plans** -- Show what good plans look like
+7. **Consolidate agent-native-architecture references** -- Reduce overlap between architecture-patterns.md and agent-execution-patterns.md
+8. **LLM-based trigger scoring** -- Add semantic scoring tier for the 10 accepted lexical-limit pairs
 
-## Completed
+## Planned / Open Areas
 
-| Item | What Changed |
-|------|-------------|
-| Trim Obsidian skills | obsidian-markdown 647→284, obsidian-bases 678→259, obsidian-canvas 675→192 |
-| Soften compound-docs | 527→119 lines, removed XML tags and redundant sections |
-| Strict contract enforcement | 45/45 pass, 0 warnings, CI enforces full catalog |
-| Trigger collision fixes | 78.6%→92.9%, discriminating name tokens, expanded stopwords |
-| Expanded trigger fixtures | 12→34 cases across 12 skill clusters |
-| Rescore all skills | 23 skills bumped, 1 new entry (skill-evals), measured evidence |
-| Rename json-canvas | → obsidian-canvas, updated all references |
-| Extract system docs | Best practices, roadmap, contract extracted from analysis doc |
-| Add test-strategy skill | Methodology skill with verification checklist, 45th skill |
-| Soften brainstorming | Removed XML hard-gate, added Boundaries/Verification/Resources |
-| Enhance first-principles | Added engineering principles, tension resolution table, verification (110→141 lines) |
-| Deduplicate fetch_issue.sh | Unified to `scripts/fetch_issue.sh`, symlinked from both skills |
-| Upgrade template | Commented scaffold with all contract sections + authoring checklist (35→78 lines) |
-| gemini-imagen parity | Updated to Nano Banana 2, added 4 extreme aspect ratios, drift warning, two-tier workflow, text rendering callout, sample-prompts.md |
+- Skill versioning and changelog tracking.
+- Expanded test coverage for hook scripts and validation logic.

@@ -9,6 +9,6 @@ PyYAML>=6.0
 # openai>=1.0.0
 # Pillow>=10.0.0
 
-# skills/nano-banana-pro (Google Gemini image generation)
+# skills/gemini-imagen (Google Gemini image generation)
 # google-genai>=1.0.0
 # Pillow>=10.0.0

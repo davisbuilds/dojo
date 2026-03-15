@@ -30,7 +30,7 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 
 ## Hooks
 
-Seven hooks in `hooks/` enforce skill quality, inject session context, and nudge agents to capture learnings (skill catalog, frontmatter validation, manifest regeneration, git checks, structure checks, session retro reminder). Configured in `.claude/settings.json` and `.agents/settings.json`. See [docs/system/ARCHITECTURE.md](docs/system/ARCHITECTURE.md) for details.
+Eight hooks in `hooks/` enforce skill quality, inject session context, and nudge agents to capture learnings (skill catalog, frontmatter validation, manifest regeneration, git checks, structure checks, session retro reminder). Configured in `.claude/settings.json` and `.agents/settings.json`. See [docs/system/ARCHITECTURE.md](docs/system/ARCHITECTURE.md) for details.
 
 ## Prerequisites
 
@@ -122,7 +122,7 @@ Some skills include optional `commands/*.md` wrappers for slash-style entrypoint
 - Skills catalog and feature reference: [docs/system/FEATURES.md](docs/system/FEATURES.md)
 - Setup and operations: [docs/system/OPERATIONS.md](docs/system/OPERATIONS.md)
 - Product vision and principles: [docs/project/VISION.md](docs/project/VISION.md)
-- Product roadmap snapshot: [docs/project/ROADMAP.md](docs/project/ROADMAP.md)
+- Product roadmap: [docs/system/ROADMAP.md](docs/system/ROADMAP.md)
 - Git history and branch policy: [docs/project/GIT_HISTORY_POLICY.md](docs/project/GIT_HISTORY_POLICY.md)
 
 ## Acknowledgements

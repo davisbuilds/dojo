@@ -27,7 +27,7 @@ Squash-merge only. All other merge strategies are disabled at the repository lev
 
 This project uses hooks rather than a CI pipeline. Quality gate before merge:
 
-- `python scripts/quick_validate.py`
+- `python skills/skill-creator/scripts/quick_validate.py`
 
 ## Current Limitation
 

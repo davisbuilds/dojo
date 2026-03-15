@@ -32,7 +32,7 @@ Use descriptive prefixes:
 - Keep PR scope tight (one objective per PR).
 - Include a short summary and test evidence.
 - Ensure quality checks pass before merge:
-  - `python scripts/quick_validate.py`
+  - `python skills/skill-creator/scripts/quick_validate.py`
 
 Note: This project enforces quality through hooks (pre-tool-use validation, stop-hook git check) rather than a CI pipeline.
 
