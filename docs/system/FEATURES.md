@@ -107,7 +107,7 @@ Slash-style entrypoints for harnesses that support command files:
 - `/plan` — implementation planning workflow
 - `/standardize-skills` — skill standardization
 - `/deep-research` — route depth and filter evidence in one command
-- `/retro` — capture session learnings into project reference docs
+- `/retro` — capture session learnings into existing project reference docs, including matching root, `docs/system`, or `docs/project` files
 
 ## Skill Packaging
 
