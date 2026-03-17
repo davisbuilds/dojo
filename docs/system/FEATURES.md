@@ -4,7 +4,7 @@ Product-surface reference for the Agent Skills Repository.
 
 ## Skills Catalog
 
-Catalog snapshot by category. For canonical runtime inventory, use `skills.json` (currently 45 skills):
+Catalog snapshot by category. For canonical runtime inventory, use `skills.json` (currently 46 skills):
 
 ```bash
 jq '.skills | length' skills.json
@@ -51,6 +51,7 @@ jq '.skills | length' skills.json
 | `create-cli` | CLI parameter and UX design |
 | `agent-native-architecture` | Build agent-native apps with tool/action parity |
 | `deep-research` | Web-backed research with conditional depth and evidence filtering |
+| `self-improve` | Capture learnings, compact them, and promote validated patterns into reusable artifacts |
 
 ### Platform Integrations
 
@@ -107,6 +108,7 @@ Slash-style entrypoints for harnesses that support command files:
 - `/plan` — implementation planning workflow
 - `/standardize-skills` — skill standardization
 - `/deep-research` — route depth and filter evidence in one command
+- `/self-improve` — capture, compact, propose, and extract self-improvement artifacts
 - `/retro` — capture session learnings into existing project reference docs, including matching root, `docs/system`, or `docs/project` files
 
 ## Skill Packaging

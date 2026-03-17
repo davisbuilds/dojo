@@ -8,7 +8,7 @@ Last updated from the [skills analysis](../skills-analysis-2026-3-07.md) (2026-0
 
 | Item | What Changed |
 |------|-------------|
-| 45 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, and meta/skill tooling |
+| 46 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, and meta/skill tooling |
 | 8-hook quality pipeline | Session-start catalog injection, pre/post-tool-use validation and manifest sync, implementation-plan validation, git checks, structure checks, session retro reminder |
 | Skill packaging and distribution | `.skill` zip format with validation |
 | Command wrappers | Deterministic slash-style entrypoints |
@@ -17,13 +17,13 @@ Last updated from the [skills analysis](../skills-analysis-2026-3-07.md) (2026-0
 | Polyglot validation | Scripts compatible with both `python` and `python3` |
 | Trim Obsidian skills | obsidian-markdown 647→284, obsidian-bases 678→259, obsidian-canvas 675→192 |
 | Soften compound-docs | 527→119 lines, removed XML tags and redundant sections |
-| Strict contract enforcement | 45/45 pass, 0 warnings, CI enforces full catalog |
+| Strict contract enforcement | 46/46 pass, 0 warnings, CI enforces full catalog |
 | Trigger collision fixes | 78.6%→92.9%, discriminating name tokens, expanded stopwords |
 | Expanded trigger fixtures | 12→34 cases across 12 skill clusters |
 | Rescore all skills | 23 skills bumped, 1 new entry (skill-evals), measured evidence |
 | Rename json-canvas | → obsidian-canvas, updated all references |
 | Extract system docs | Best practices, roadmap, contract extracted from analysis doc |
-| Add test-strategy skill | Methodology skill with verification checklist, 45th skill |
+| Add test-strategy skill | Methodology skill with verification checklist, a catalog-expanding milestone before later additions |
 | Soften brainstorming | Removed XML hard-gate, added Boundaries/Verification/Resources |
 | Enhance first-principles | Added engineering principles, tension resolution table, verification (110→141 lines) |
 | Deduplicate fetch_issue.sh | Unified to `scripts/fetch_issue.sh`, symlinked from both skills |
@@ -104,5 +104,6 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 
 ## Planned / Open Areas
 
+- Guarded promotion from `self-improve` proposals into harness-level canaries or rollback-aware improvement loops.
 - Skill versioning and changelog tracking.
 - Expanded test coverage for hook scripts and validation logic.

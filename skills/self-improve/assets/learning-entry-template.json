@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "record_id": "20260317T120000Z-learning-summary-first-reads",
+  "created_at": "2026-03-17T12:00:00Z",
+  "kind": "learning",
+  "summary": "Summary-first reads reduce context overhead.",
+  "evidence": "The agent avoided reopening multiple raw files after consulting the compact summary first.",
+  "tags": [
+    "context",
+    "triage"
+  ],
+  "source": "manual",
+  "context": "Observed while building a new skill package.",
+  "status": "new"
+}
