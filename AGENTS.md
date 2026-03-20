@@ -1,6 +1,8 @@
 # AGENTS.md
 
-This file provides guidance to AI agents when working with code in this repository.
+Guidance for coding agents working in this repository.
+
+Modular skill packages that extend AI agents with specialized knowledge, workflows, and tool integrations.
 
 ## Overview
 
@@ -73,13 +75,19 @@ Some skills have additional optional dependencies (e.g. `openai`, `google-genai`
 
 ## Key Design Principles
 
-1. **Concise is key**: The context window is shared. Only add information the agent doesn't already have.
+1. **Context is sacred**: The context window is finite and shared. Only add information the agent doesn't already have/know.
 
 2. **Progressive disclosure**: Metadata always loaded (~100 words) → SKILL.md body on trigger (<5k words) → bundled resources as needed.
 
 3. **Degrees of freedom**: Match specificity to task fragility - high freedom for flexible tasks (text instructions), low freedom for fragile operations (specific scripts).
 
 4. **Description is the trigger**: The `description` field determines when the agent uses the skill. Include both what it does AND specific scenarios/triggers.
+
+## Testing
+
+**Pre-push check**: Before pushing updates to the remote, run the skill contract validation with `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.
+
+**TDD**: Use red/green TDD for new features and major changes.
 
 ## Hooks
 
@@ -104,6 +112,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 
 | Doc | Purpose |
 |-----|---------|
+| `docs/system/ARCHITECTURE.md` | System architecture |
 | `docs/system/FEATURES.md` | Skills catalog and command wrappers |
 | `docs/system/OPERATIONS.md` | Setup, commands, CI, dependencies |
 | `docs/system/skill-contract-v1.md` | SKILL.md quality contract (enforced by CI) |
