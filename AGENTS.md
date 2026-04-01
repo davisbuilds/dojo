@@ -63,15 +63,21 @@ Creates or updates `agents/openai.yaml` as optional platform-specific metadata.
 
 ## Dependencies
 
-Install the core Python dependencies before running hooks or skill-management scripts:
+Install the core Python dependencies from the lockfile before running hooks or skill-management scripts:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install --require-hashes -r requirements.lock
+```
+
+`requirements.txt` remains the human-edited source file for the lock. Regenerate `requirements.lock` with:
+
+```bash
+uv pip compile --generate-hashes requirements.txt -o requirements.lock
 ```
 
 The hooks also require these system tools: `git`, `jq`, `python3`, `sed`, and `grep`.
 
-Some skills have additional optional dependencies (e.g. `openai`, `google-genai`, `Pillow`). See `requirements.txt` for details.
+Some skills have additional optional dependencies (e.g. `openai`, `google-genai`, `Pillow`). See `requirements.txt` for the source entries and regenerate the lock before relying on them in shared automation.
 
 ## Key Design Principles
 

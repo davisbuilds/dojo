@@ -46,10 +46,16 @@ If everything prints `ok`, skip ahead to [Python dependencies](#python-dependenc
 
 ### Python dependencies
 
-Install the core Python dependencies (currently just **PyYAML**, used by the validation and manifest-generation scripts the hooks invoke):
+Install the core Python dependencies from the hash-pinned lockfile (currently just **PyYAML**, used by the validation and manifest-generation scripts the hooks invoke):
 
 ```bash
-pip install -r requirements.txt
+python -m pip install --require-hashes -r requirements.lock
+```
+
+`requirements.txt` is the human-edited source for the lock. When the dependency set changes, regenerate [`requirements.lock`](/Users/dg-mac-mini/Dev/dojo/requirements.lock) with:
+
+```bash
+uv pip compile --generate-hashes requirements.txt -o requirements.lock
 ```
 
 #### Optional (skill-specific)
@@ -112,7 +118,8 @@ Some skills include optional `commands/*.md` wrappers for slash-style entrypoint
 
 - **`AGENTS.md`**: Guidance for AI agents on how to use this repository (single source of truth).
 - **`CLAUDE.md`**: Symlink to `AGENTS.md` so Claude Code picks up the same instructions.
-- **`requirements.txt`**: Python dependencies for hooks and scripts (core + optional per-skill extras).
+- **`requirements.txt`**: Human-edited dependency source file (core + optional per-skill extras).
+- **`requirements.lock`**: Hash-pinned install lock used by CI and reproducible local setups.
 
 ## Documentation
 

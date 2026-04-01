@@ -1,9 +1,10 @@
-# Core dependencies — required by hooks and skill-management scripts
-# Install: pip install -r requirements.txt
-PyYAML>=6.0
+# Core dependency source file for requirements.lock
+# Install from the lockfile instead: python -m pip install --require-hashes -r requirements.lock
+# Regenerate the lock with: uv pip compile --generate-hashes requirements.txt -o requirements.lock
+PyYAML==6.0.3
 
 # Optional — only needed by specific skills
-# Uncomment the groups you need:
+# Keep these pinned if you activate them and regenerate requirements.lock.
 
 # skills/gpt-imagen (OpenAI image generation)
 # openai>=1.0.0

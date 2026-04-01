@@ -13,10 +13,16 @@ git jq python3 sed grep
 ### Python Dependencies
 
 ```bash
-pip install -r requirements.txt
+python -m pip install --require-hashes -r requirements.lock
 ```
 
-Core: `PyYAML>=6.0`. Optional per-skill extras are documented in `requirements.txt`.
+Core installs are hash-pinned via `requirements.lock`. Update the lock whenever `requirements.txt` changes:
+
+```bash
+uv pip compile --generate-hashes requirements.txt -o requirements.lock
+```
+
+Core: `PyYAML==6.0.3`. Optional per-skill extras are documented in `requirements.txt`.
 
 ## Skill Management Commands
 
