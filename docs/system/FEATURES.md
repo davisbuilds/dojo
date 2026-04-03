@@ -4,7 +4,7 @@ Product-surface reference for the Agent Skills Repository.
 
 ## Skills Catalog
 
-Catalog snapshot by category. For canonical runtime inventory, use `skills.json` (currently 46 skills):
+Catalog snapshot by category. For canonical runtime inventory, use `skills.json` (currently 47 skills):
 
 ```bash
 jq '.skills | length' skills.json
@@ -60,6 +60,7 @@ jq '.skills | length' skills.json
 | `vercel-deploy` | Deploy to Vercel |
 | `vercel-preview-logs` | Debug Vercel preview deployments |
 | `vercel-react-best-practices` | React/Next.js performance optimization |
+| `nextjs-app-router` | Next.js App Router patterns, data fetching, and debugging |
 | `vercel-react-native-skills` | React Native and Expo best practices |
 | `vercel-composition-patterns` | Scalable React composition patterns |
 | `playwright` | Browser automation from the terminal |
