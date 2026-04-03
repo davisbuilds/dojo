@@ -9,7 +9,7 @@ metadata:
 
 # Vercel React Best Practices
 
-Comprehensive performance optimization guide for React and Next.js applications, maintained by Vercel. Contains 57 rules across 8 categories, prioritized by impact to guide automated refactoring and code generation.
+Comprehensive performance optimization guide for React and Next.js applications, maintained by Vercel. Contains 64 rules across 8 categories, prioritized by impact to guide automated refactoring and code generation.
 
 ## When to Apply
 
@@ -60,6 +60,7 @@ Reference these guidelines when:
 - `server-serialization` - Minimize data passed to client components
 - `server-parallel-fetching` - Restructure components to parallelize fetches
 - `server-after-nonblocking` - Use after() for non-blocking operations
+- `server-hoist-static-io` - Hoist static I/O to module level
 
 ### 4. Client-Side Data Fetching (MEDIUM-HIGH)
 
@@ -82,6 +83,9 @@ Reference these guidelines when:
 - `rerender-move-effect-to-event` - Put interaction logic in event handlers
 - `rerender-transitions` - Use startTransition for non-urgent updates
 - `rerender-use-ref-transient-values` - Use refs for transient frequent values
+- `rerender-no-inline-components` - Don't define components inside components
+- `rerender-split-combined-hooks` - Split combined hook computations
+- `rerender-use-deferred-value` - Use useDeferredValue for expensive derived renders
 
 ### 6. Rendering Performance (MEDIUM)
 
@@ -94,6 +98,8 @@ Reference these guidelines when:
 - `rendering-activity` - Use Activity component for show/hide
 - `rendering-conditional-render` - Use ternary, not && for conditionals
 - `rendering-usetransition-loading` - Prefer useTransition for loading state
+- `rendering-resource-hints` - Use React DOM resource hints (preload/preconnect)
+- `rendering-script-defer-async` - Use defer or async on script tags
 
 ### 7. JavaScript Performance (LOW-MEDIUM)
 
@@ -109,6 +115,7 @@ Reference these guidelines when:
 - `js-min-max-loop` - Use loop for min/max instead of sort
 - `js-set-map-lookups` - Use Set/Map for O(1) lookups
 - `js-tosorted-immutable` - Use toSorted() for immutability
+- `js-flatmap-filter` - Use flatMap to map and filter in one pass
 
 ### 8. Advanced Patterns (LOW)
 
@@ -133,7 +140,7 @@ Each rule file contains:
 
 ## Full Compiled Document
 
-For the complete guide with all rules expanded: `AGENTS.md`
+For the complete guide with all rules expanded: `references/compiled-guide.md`
 
 ## Boundaries
 

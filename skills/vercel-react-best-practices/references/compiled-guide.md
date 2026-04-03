@@ -2923,6 +2923,92 @@ function SearchInput({ onSearch }: { onSearch: (q: string) => void }) {
 
 ---
 
+## Addendum: New Rules (April 2026)
+
+### Server-Side: Hoist Static I/O to Module Level
+
+**Impact: HIGH** — Module-level code runs once when first imported, not per request. Hoist static asset loading (fonts, logos, config) to module scope to avoid redundant I/O.
+
+```typescript
+// Module-level: runs ONCE
+const fontData = fetch(
+  new URL('./fonts/Inter.ttf', import.meta.url)
+).then(res => res.arrayBuffer())
+
+export async function GET(request: Request) {
+  const font = await fontData // Await the already-started promise
+  return new ImageResponse(/* ... */)
+}
+```
+
+### Re-render: Don't Define Components Inside Components
+
+**Impact: HIGH** — Inner component definitions create new types each render, causing React to fully remount (losing state, DOM, effects). Extract to module-level and pass props.
+
+```tsx
+// BAD: remounts every render
+function Parent() {
+  const Child = () => <div>{/* accesses parent vars */}</div>
+  return <Child />
+}
+
+// GOOD: stable component type
+function Child({ value }: { value: string }) {
+  return <div>{value}</div>
+}
+function Parent() {
+  return <Child value="hello" />
+}
+```
+
+### Re-render: Split Combined Hook Computations
+
+**Impact: MEDIUM** — When a hook combines independent tasks, split them so each recomputes only when its own dependencies change.
+
+```tsx
+// Split filtering and sorting into separate useMemo calls
+const filtered = useMemo(() => products.filter(p => p.category === cat), [products, cat])
+const sorted = useMemo(() => filtered.toSorted(compareFn), [filtered, sortOrder])
+```
+
+### Re-render: useDeferredValue for Expensive Derived Renders
+
+**Impact: MEDIUM** — Keeps input responsive while expensive computations render when idle.
+
+```tsx
+const [query, setQuery] = useState('')
+const deferredQuery = useDeferredValue(query)
+const filtered = useMemo(() => items.filter(item => fuzzyMatch(item, deferredQuery)), [items, deferredQuery])
+```
+
+### Rendering: React DOM Resource Hints
+
+**Impact: HIGH** — Use `prefetchDNS`, `preconnect`, `preload`, `preloadModule`, `preinit`, `preinitModule` from `react-dom` to hint the browser about resources needed soon.
+
+```tsx
+import { preconnect, preload } from 'react-dom'
+
+export default function RootLayout({ children }) {
+  preconnect('https://api.example.com')
+  preload('/fonts/inter.woff2', { as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' })
+  return <html><body>{children}</body></html>
+}
+```
+
+### Rendering: defer/async on Script Tags
+
+**Impact: HIGH** — Scripts without `defer`/`async` block HTML parsing. Use `defer` for DOM-dependent scripts, `async` for independent ones. In Next.js, prefer `next/script` with `strategy` prop.
+
+### JavaScript: flatMap to Map and Filter in One Pass
+
+**Impact: LOW-MEDIUM** — Replace `.map().filter(Boolean)` with `.flatMap()` for a single-pass transform+filter.
+
+```typescript
+const names = users.flatMap(u => u.isActive ? [u.name] : [])
+```
+
+---
+
 ## References
 
 1. [https://react.dev](https://react.dev)

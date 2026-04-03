@@ -1,7 +1,7 @@
 # React Composition Patterns
 
 **Version 1.0.0**  
-Engineering  
+Vercel Engineering  
 January 2026
 
 > **Note:**  
