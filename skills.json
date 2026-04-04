@@ -126,6 +126,12 @@
       "path": "skills/markdown-converter"
     },
     {
+      "name": "nextjs-app-router",
+      "description": "Next.js App Router expert guidance. Use when building, debugging, or architecting Next.js applications \u2014 routing, Server Components, Server Actions, layouts, data fetching, rendering strategies, metadata, image/font optimization, error handling, and hydration debugging. Triggers on tasks involving Next.js pages, app directory structure, RSC boundaries, or App Router migration.",
+      "path": "skills/nextjs-app-router",
+      "license": "MIT"
+    },
+    {
       "name": "obsidian-bases",
       "description": "Create and edit Obsidian Bases (.base files) with database-style views, filters, formulas, and summaries. Use when working with .base files, building table/card/dashboard views over a vault, or when the user mentions Bases, filters, or formulas in Obsidian.",
       "path": "skills/obsidian-bases"
@@ -144,6 +150,11 @@
       "name": "playwright",
       "description": "Use when the task requires automating a real browser from the terminal (navigation, form filling, snapshots, screenshots, data extraction, UI-flow debugging) via `playwright-cli` or the bundled wrapper script.",
       "path": "skills/playwright"
+    },
+    {
+      "name": "repo-hardening",
+      "description": "Audit and harden a software repo against supply-chain and workflow risks. Use when a user asks to audit a repo, harden CI, pin GitHub Actions, freeze installs, reduce bot workflow risk, review lockfile/package-manager discipline, or create repo-local security investigation artifacts. Supports Node, Python, GitHub Actions, GitLab CI, and mixed-stack repos. On-demand via /repo-audit and /repo-harden.",
+      "path": "skills/repo-hardening"
     },
     {
       "name": "screenshot",
