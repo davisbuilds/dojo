@@ -19,7 +19,10 @@ skill-name/
 
 - **Frontmatter** (YAML): Must include `name` (hyphen-case, max 64 chars) and `description` (max 1024 chars, no angle brackets)
 - **Body** (Markdown): Instructions loaded only after the skill triggers
-- Allowed frontmatter fields: `name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility`
+- Allowed frontmatter fields: `name`, `description`, `skill-type`, `license`, `allowed-tools`, `metadata`, `compatibility`
+- Preferred `skill-type` values:
+  - `workflow` for procedural, audit, remediation, review, and planning skills
+  - `reference` for reference routers and guideline catalogs
 
 ## Commands
 
@@ -86,6 +89,8 @@ Some skills have additional optional dependencies (e.g. `openai`, `google-genai`
 ## Testing
 
 **Pre-push check**: Before pushing updates to the remote, run the skill contract validation with `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.
+
+The strict validator is type-aware. `workflow` skills must define execution flow and output expectations; `reference` skills are not forced to invent those sections if scope, boundaries, verification, and resource navigation are already clear.
 
 **TDD**: Use red/green TDD for new features and major changes.
 

@@ -24,6 +24,10 @@ skill-name/
 
 The `SKILL.md` file contains the "brain" of the skill—the prompt instructions that are loaded into the agent's context when the skill is triggered.
 
+`SKILL.md` frontmatter should declare a `skill-type` for new or updated skills:
+- `workflow` for procedural, review, audit, remediation, or planning skills
+- `reference` for best-practice indexes and reference routers
+
 ## Available Skills
 
 48 skills across categories: GitHub workflows, code review, content creation, dev workflows, platform integrations, knowledge management, and meta/skill tooling. See [docs/system/FEATURES.md](docs/system/FEATURES.md) for the full catalog.
@@ -90,6 +94,8 @@ python skills/skill-creator/scripts/generate_openai_yaml.py <skill-name> \
 ```
 
 The validator uses a polyglot shebang so it can also be run directly and will work in environments that provide either `python` or `python3`.
+
+For new or updated skills, set `skill-type` before validating so the contract enforces the right structure.
 
 ## Usage
 

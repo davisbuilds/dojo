@@ -82,6 +82,7 @@ skill-name/
 │   ├── YAML frontmatter metadata (required)
 │   │   ├── name: (required)
 │   │   ├── description: (required)
+│   │   ├── skill-type: (recommended; `workflow` or `reference`)
 │   │   ├── license: (optional)
 │   │   ├── metadata: (optional)
 │   │   ├── allowed-tools: (optional)
@@ -99,7 +100,7 @@ skill-name/
 
 Every SKILL.md consists of:
 
-- **Frontmatter** (YAML): `name` and `description` are required. Optional fields are `license`, `allowed-tools`, `metadata`, and `compatibility`. Keep optional fields minimal and only when they improve behavior or portability.
+- **Frontmatter** (YAML): `name` and `description` are required. `skill-type` is strongly recommended and should be `workflow` for procedural/remediation skills or `reference` for navigational guideline/reference skills. Other optional fields are `license`, `allowed-tools`, `metadata`, and `compatibility`. Keep optional fields minimal and only when they improve behavior or portability.
 - **Body** (Markdown): Instructions and guidance for using the skill. Only loaded AFTER the skill triggers (if at all).
 
 #### Platform-specific add-ons (optional)
@@ -239,6 +240,19 @@ For simple edits, modify the XML directly.
 
 The agent reads REDLINING.md or OOXML.md only when the user needs those features.
 
+## Skill Type Guidance
+
+Use `skill-type` to declare the structural shape the validator should enforce:
+
+- `workflow`
+  - Use for audit, remediation, review, planning, command-wrapper, and procedural skills.
+  - These skills should include an execution flow and output expectations.
+- `reference`
+  - Use for best-practice indexes, reference routers, and guideline catalogs.
+  - These skills still need clear scope, boundaries, verification, and resource navigation, but they are not forced to invent workflow/output sections that do not match their purpose.
+
+When in doubt, start with `workflow`. Choose `reference` only when the skill is primarily there to route the agent to the right guidance rather than to define a concrete execution procedure.
+
 **Important guidelines:**
 
 - **Avoid deeply nested references** - Keep references one level deep from SKILL.md. All reference files should link directly from SKILL.md.
@@ -375,7 +389,7 @@ Write YAML frontmatter with `name` and `description`:
   - Include all "when to use" information here - Not in the body. The body is only loaded after triggering, so "When to Use This Skill" sections in the body are not helpful to the agent.
   - Example description for a `docx` skill: "Comprehensive document creation, editing, and analysis with support for tracked changes, comments, formatting preservation, and text extraction. Use when the agent needs to work with professional documents (.docx files) for: (1) Creating new documents, (2) Modifying or editing content, (3) Working with tracked changes, (4) Adding comments, or any other document tasks"
 
-Optional fields are allowed when needed: `license`, `allowed-tools`, `metadata`, and `compatibility`.
+Optional fields are allowed when needed: `skill-type`, `license`, `allowed-tools`, `metadata`, and `compatibility`.
 
 ##### Body
 

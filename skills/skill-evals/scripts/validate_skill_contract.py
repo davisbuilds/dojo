@@ -17,6 +17,8 @@ from typing import Any
 
 import yaml
 
+ALLOWED_SKILL_TYPES = {"workflow", "reference"}
+
 
 @dataclass
 class CheckResult:
@@ -53,6 +55,36 @@ def description_trigger_ready(description: str) -> bool:
     ) is not None
 
 
+def normalized_skill_type(frontmatter: dict[str, Any] | None) -> str:
+    if not frontmatter:
+        return "workflow"
+
+    skill_type = frontmatter.get("skill-type")
+    if isinstance(skill_type, str) and skill_type in ALLOWED_SKILL_TYPES:
+        return skill_type
+    return "workflow"
+
+
+def is_required(check_name: str, skill_type: str, strict: bool) -> bool:
+    universal_required = {
+        "frontmatter_valid",
+        "description_trigger_ready",
+        "scope_anchor_present",
+        "boundaries_anchor_present",
+        "verification_anchor_present",
+        "resource_map_present",
+    }
+    workflow_required = {"execution_anchor_present", "output_anchor_present"}
+
+    if check_name in universal_required:
+        return True if strict else check_name in {"frontmatter_valid", "description_trigger_ready"}
+    if check_name in workflow_required:
+        return skill_type == "workflow"
+    if check_name == "context_budget":
+        return strict
+    return False
+
+
 def resource_map_present(text: str, skill_dir: Path) -> bool:
     bundled = [d for d in ("scripts", "references", "assets", "commands") if (skill_dir / d).exists()]
     if not bundled:
@@ -82,6 +114,7 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
 
     valid, validate_msg = validate_skill_fn(str(skill_dir))
     fm = parse_frontmatter(text)
+    skill_type = normalized_skill_type(fm)
     description = ""
     if fm and isinstance(fm.get("description"), str):
         description = fm["description"].strip()
@@ -90,13 +123,13 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
 
     checks["frontmatter_valid"] = CheckResult(
         status="pass" if valid else "fail",
-        required=True,
+        required=is_required("frontmatter_valid", skill_type, strict),
         message=validate_msg,
     )
 
     checks["description_trigger_ready"] = CheckResult(
         status="pass" if description and description_trigger_ready(description) else "fail",
-        required=True,
+        required=is_required("description_trigger_ready", skill_type, strict),
         message="Description includes trigger-ready language"
         if description and description_trigger_ready(description)
         else "Description should include trigger language (for example: 'use when', 'triggers on')",
@@ -122,8 +155,8 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
     ) or has_numbered_steps(text)
 
     checks["execution_anchor_present"] = CheckResult(
-        status="pass" if execution_anchor else "fail",
-        required=True,
+        status="pass" if execution_anchor else ("fail" if is_required("execution_anchor_present", skill_type, strict) else "warn"),
+        required=is_required("execution_anchor_present", skill_type, strict),
         message="Execution anchor present"
         if execution_anchor
         else "Add workflow/process/commands section or numbered execution steps",
@@ -141,8 +174,8 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         ],
     )
     checks["scope_anchor_present"] = CheckResult(
-        status="pass" if scope_anchor else ("fail" if strict else "warn"),
-        required=strict,
+        status="pass" if scope_anchor else ("fail" if is_required("scope_anchor_present", skill_type, strict) else "warn"),
+        required=is_required("scope_anchor_present", skill_type, strict),
         message="Scope anchor present" if scope_anchor else "Add a scope section (When to use / Prerequisites)",
     )
 
@@ -160,8 +193,8 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         ],
     ) or re.search(r"\b(skip this skill|do not use|not for)\b", text, re.IGNORECASE) is not None
     checks["boundaries_anchor_present"] = CheckResult(
-        status="pass" if boundaries_anchor else ("fail" if strict else "warn"),
-        required=strict,
+        status="pass" if boundaries_anchor else ("fail" if is_required("boundaries_anchor_present", skill_type, strict) else "warn"),
+        required=is_required("boundaries_anchor_present", skill_type, strict),
         message="Boundaries anchor present"
         if boundaries_anchor
         else "Add boundaries/non-goals section (Not for / Constraints)",
@@ -172,8 +205,8 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         [r"output contract", r"output requirements", r"output", r"deliverables", r"summary"],
     )
     checks["output_anchor_present"] = CheckResult(
-        status="pass" if output_anchor else ("fail" if strict else "warn"),
-        required=strict,
+        status="pass" if output_anchor else ("fail" if is_required("output_anchor_present", skill_type, strict) else "warn"),
+        required=is_required("output_anchor_present", skill_type, strict),
         message="Output anchor present" if output_anchor else "Add output expectations section",
     )
 
@@ -189,8 +222,8 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         ],
     )
     checks["verification_anchor_present"] = CheckResult(
-        status="pass" if verification_anchor else ("fail" if strict else "warn"),
-        required=strict,
+        status="pass" if verification_anchor else ("fail" if is_required("verification_anchor_present", skill_type, strict) else "warn"),
+        required=is_required("verification_anchor_present", skill_type, strict),
         message="Verification anchor present"
         if verification_anchor
         else "Add verification/quality criteria section",
@@ -198,8 +231,8 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
 
     resource_anchor = resource_map_present(text, skill_dir)
     checks["resource_map_present"] = CheckResult(
-        status="pass" if resource_anchor else ("fail" if strict else "warn"),
-        required=strict,
+        status="pass" if resource_anchor else ("fail" if is_required("resource_map_present", skill_type, strict) else "warn"),
+        required=is_required("resource_map_present", skill_type, strict),
         message="Resource map present"
         if resource_anchor
         else "Skill bundles resources but SKILL.md does not clearly reference them",
@@ -217,7 +250,7 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
 
     checks["context_budget"] = CheckResult(
         status=context_status,
-        required=strict,
+        required=is_required("context_budget", skill_type, strict),
         message=context_msg,
     )
 
@@ -238,6 +271,7 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
 
     return {
         "skill": skill_dir.name,
+        "skill_type": skill_type,
         "path": str(skill_md),
         "status": overall,
         "line_count": lines,
@@ -276,11 +310,11 @@ def render_markdown(results: list[dict[str, Any]], strict: bool) -> str:
     out.append("")
     out.append("## Per-Skill Status")
     out.append("")
-    out.append("| Skill | Status | Required Failures | Warnings | Lines |")
-    out.append("|---|---|---:|---:|---:|")
+    out.append("| Skill | Type | Status | Required Failures | Warnings | Lines |")
+    out.append("|---|---|---|---:|---:|---:|")
     for row in sorted(results, key=lambda item: (item["status"], item["skill"])):
         out.append(
-            f"| {row['skill']} | {row['status']} | {len(row['required_failures'])} | {len(row['warnings'])} | {row['line_count']} |"
+            f"| {row['skill']} | {row['skill_type']} | {row['status']} | {len(row['required_failures'])} | {len(row['warnings'])} | {row['line_count']} |"
         )
 
     issues = [r for r in results if r["status"] != "pass"]
@@ -392,7 +426,7 @@ def main() -> int:
         )
         for item in results:
             print(
-                f"{item['status'].upper():4} {item['skill']} "
+                f"{item['status'].upper():4} {item['skill']}[{item['skill_type']}] "
                 f"(required_failures={len(item['required_failures'])}, warnings={len(item['warnings'])})"
             )
 

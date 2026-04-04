@@ -29,6 +29,7 @@ except Exception:
 SKILL_TEMPLATE = """---
 name: {skill_name}
 description: "TODO: Complete and informative explanation of what the skill does and when to use it. Include specific scenarios, file types, or tasks that should trigger this skill."
+skill-type: workflow
 ---
 
 # {skill_title}
@@ -252,7 +253,7 @@ def init_skill(skill_name, path, resources, include_examples, with_openai_agent,
 
     print(f"\n[OK] Skill '{skill_name}' initialized successfully at {skill_dir}")
     print("\nNext steps:")
-    print("1. Edit SKILL.md to complete the TODO items and update the description")
+    print("1. Edit SKILL.md to complete the TODO items, confirm the description, and set the correct skill-type")
     if resources:
         if include_examples:
             print("2. Customize or delete the example files in selected resource directories")

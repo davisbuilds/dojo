@@ -91,6 +91,7 @@ jq '.skills | length' skills.json
 ## Hook-Enforced Quality Gates
 
 - SKILL.md frontmatter validated on every write/edit (pre-tool-use).
+- New or updated skills should declare `skill-type` so contract validation applies the right structure for workflow vs reference skills.
 - Pushes to protected branches are blocked unless the command includes an explicit `DOJO_ALLOW_PROTECTED_PUSH=1` override.
 - `skills.json` manifest regenerated after every SKILL.md change (post-tool-use).
 - `docs/plans/*-implementation.md` validated after every write/edit (post-tool-use).

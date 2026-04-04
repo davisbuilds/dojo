@@ -19,11 +19,13 @@ MAX_COMPATIBILITY_LENGTH = 500
 ALLOWED_PROPERTIES = {
     "name",
     "description",
+    "skill-type",
     "license",
     "allowed-tools",
     "metadata",
     "compatibility",
 }
+ALLOWED_SKILL_TYPES = {"workflow", "reference"}
 
 
 def _extract_frontmatter(content: str):
@@ -101,6 +103,17 @@ def validate_skill(skill_path):
             False,
             f"Description is too long ({len(description)} characters). Maximum is {MAX_DESCRIPTION_LENGTH} characters.",
         )
+
+    skill_type = frontmatter.get("skill-type")
+    if skill_type is not None:
+        if not isinstance(skill_type, str):
+            return False, f"skill-type must be a string, got {type(skill_type).__name__}"
+        if skill_type not in ALLOWED_SKILL_TYPES:
+            return (
+                False,
+                f"skill-type must be one of: {', '.join(sorted(ALLOWED_SKILL_TYPES))}. "
+                f"Got: {skill_type}",
+            )
 
     compatibility = frontmatter.get("compatibility")
     if compatibility is not None:

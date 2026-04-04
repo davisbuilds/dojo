@@ -1,11 +1,28 @@
 # SKILL Contract v1
 
-Date: 2026-03-07
+Date: 2026-04-04
 Scope: All `skills/*/SKILL.md` files in this repository.
 
 This contract defines a deterministic checklist for skill quality. It is designed for enforcement by `skills/skill-evals/scripts/validate_skill_contract.py`.
 
-## Required Checks (must pass)
+## Skill Types
+
+Skills may declare a `skill-type` frontmatter field to express the structural shape they are expected to follow.
+
+Allowed values:
+
+- `workflow`
+  - For procedural, audit, remediation, review, planning, or command-oriented skills that should define how work gets executed and what the output should contain.
+- `reference`
+  - For reference routers, guideline catalogs, and best-practice indexes that are primarily navigational and informational rather than procedural.
+
+Migration behavior:
+
+- `skill-type` is strongly recommended for all new or updated skills.
+- Existing untyped skills default to `workflow` behavior until explicitly classified.
+- This preserves current strictness for legacy skills while allowing reference skills to opt into a better-fitting contract.
+
+## Universal Required Checks (must pass)
 
 1. `frontmatter_valid`
    - SKILL has valid frontmatter and passes `skill-creator` quick validation.
@@ -13,28 +30,42 @@ This contract defines a deterministic checklist for skill quality. It is designe
 2. `description_trigger_ready`
    - Frontmatter description includes trigger-ready language (for example: `use when`, `when the user`, `triggers on`, `on-demand via`).
 
-3. `execution_anchor_present`
+3. `scope_anchor_present`
+   - Includes `When to use`/`When to apply`/`Prerequisites` style scope section.
+
+4. `boundaries_anchor_present`
+   - Includes explicit non-goals or boundaries (`Not for`, `Skip`, `Constraints`, `Anti-patterns`, etc.).
+
+5. `verification_anchor_present`
+   - Defines quality/verification/success criteria.
+
+6. `resource_map_present`
+   - If skill bundles resources (`scripts/`, `references/`, `assets/`, `commands/`), SKILL.md points to them clearly.
+
+## Type-Specific Structural Checks
+
+### `workflow`
+
+These checks are required for `workflow` skills and for untyped skills during the migration period:
+
+7. `execution_anchor_present`
    - Body includes a clear execution anchor through at least one of:
      - a workflow/process heading (`Workflow`, `Process`, `Core Workflow`, etc.)
      - commands/usage heading (`Commands`, `Usage`, `Quick Start`, etc.)
      - a numbered step sequence (`1.`, `2.`, `3.`)
 
-## Recommended Checks (warn on fail by default)
-
-4. `scope_anchor_present`
-   - Includes `When to use`/`When to apply`/`Prerequisites` style scope section.
-
-5. `boundaries_anchor_present`
-   - Includes explicit non-goals or boundaries (`Not for`, `Skip`, `Constraints`, `Anti-patterns`, etc.).
-
-6. `output_anchor_present`
+8. `output_anchor_present`
    - Defines output contract/deliverables/summary expectations.
 
-7. `verification_anchor_present`
-   - Defines quality/verification/success criteria.
+### `reference`
 
-8. `resource_map_present`
-   - If skill bundles resources (`scripts/`, `references/`, `assets/`, `commands/`), SKILL.md points to them clearly.
+For `reference` skills:
+
+- `execution_anchor_present` is recommended, not required.
+- `output_anchor_present` is recommended, not required.
+- Reference skills should still define scope, boundaries, verification, and resource navigation clearly.
+
+## Recommended Checks (warn on fail by default)
 
 9. `context_budget`
    - SKILL.md line count guidance:

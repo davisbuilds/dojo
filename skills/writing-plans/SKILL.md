@@ -1,6 +1,7 @@
 ---
 name: writing-plans
 description: Create robust, execution-ready implementation plans with explicit scope, task sequencing, dependencies, and verification commands. Use when planning non-trivial implementation work before coding.
+skill-type: workflow
 ---
 
 # Writing Plans
