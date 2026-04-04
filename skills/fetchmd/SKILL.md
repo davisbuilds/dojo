@@ -4,6 +4,7 @@ description: >
   Fetch webpages or local HTML and convert to clean, token-efficient markdown.
   Use when you need to ingest web content for summarization, RAG, research,
   or any AI workflow that requires readable text from URLs or HTML files.
+skill-type: workflow
 ---
 
 # fetchmd

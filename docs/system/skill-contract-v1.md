@@ -61,8 +61,8 @@ These checks are required for `workflow` skills and for untyped skills during th
 
 For `reference` skills:
 
-- `execution_anchor_present` is recommended, not required.
-- `output_anchor_present` is recommended, not required.
+- `execution_anchor_present` is not applicable.
+- `output_anchor_present` is not applicable.
 - Reference skills should still define scope, boundaries, verification, and resource navigation clearly.
 
 ## Recommended Checks (warn on fail by default)

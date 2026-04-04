@@ -5,6 +5,7 @@ description:
   when building React Native components, optimizing list performance,
   implementing animations, or working with native modules. Triggers on tasks
   involving React Native, Expo, mobile performance, or native platform APIs.
+skill-type: reference
 license: MIT
 metadata:
   author: vercel

@@ -6,6 +6,7 @@ description: >
   precedence, and safe/dry-run behavior. Use when you’re designing a CLI spec
   (before implementation) or refactoring an existing CLI’s surface area for
   consistency, composability, and discoverability.
+skill-type: workflow
 ---
 
 ## When To Use

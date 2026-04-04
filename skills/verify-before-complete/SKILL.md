@@ -1,6 +1,7 @@
 ---
 name: verify-before-complete
 description: Enforce evidence-based completion claims. Use when you are about to state work is fixed, passing, done, or complete, and run verification first.
+skill-type: workflow
 ---
 
 # Verify Before Complete

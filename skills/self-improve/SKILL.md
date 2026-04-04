@@ -1,6 +1,7 @@
 ---
 name: self-improve
 description: Capture agent-operational lessons, recurring mistakes, and reusable workflow improvements in a dedicated learning store, compact them, and promote validated patterns into memory notes or skill candidates. Use when the user wants the agent to learn from repeated experience, keep a portable improvement log, extract reusable practices, or propose durable behavior changes without silently mutating code or canonical project docs.
+skill-type: workflow
 ---
 
 # Self Improve

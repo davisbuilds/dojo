@@ -1,6 +1,7 @@
 ---
 name: gh-review-pr
 description: "Review GitHub pull requests using the gh CLI. Analyzes code changes, checks CI status, and posts a review comment with findings and a merge recommendation. Use when user asks to review a PR, check a pull request, or evaluate code changes. Triggers on phrases like 'review PR #N', 'check this pull request', 'review github.com/.../pull/N', 'should we merge PR #N', 'evaluate this PR'."
+skill-type: workflow
 ---
 
 # gh-review-pr

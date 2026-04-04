@@ -1,6 +1,7 @@
 ---
 name: skill-evals
 description: Evaluate skill quality and routing reliability with deterministic checks. Use when creating/updating skills, validating trigger behavior (explicit/implicit/contextual/negative), applying SKILL.md contract checklists, or generating cross-skill compliance reports.
+skill-type: workflow
 compatibility: "Requires python3 and PyYAML."
 ---
 

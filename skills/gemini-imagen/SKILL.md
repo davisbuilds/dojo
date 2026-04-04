@@ -1,6 +1,7 @@
 ---
 name: gemini-imagen
 description: "Generate, edit, and compose images via Google's Gemini API. Use when the user mentions Gemini or wants multi-image composition and aspect-ratio control. Requires `GEMINI_API_KEY`."
+skill-type: workflow
 ---
 
 # Gemini Imagen

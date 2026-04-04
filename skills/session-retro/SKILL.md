@@ -1,6 +1,7 @@
 ---
 name: session-retro
 description: 'Update existing project reference docs with non-obvious learnings from the current session. Route each learning to the single best existing target: AGENTS.md, CLAUDE.md, README.md, or canonical docs/system and docs/project references such as OPERATIONS.md, ARCHITECTURE.md, FEATURES.md, or ROADMAP.md. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on "/retro", "update docs with learnings", "save what we learned", or proactively at session end.'
+skill-type: workflow
 ---
 
 # Session Retro

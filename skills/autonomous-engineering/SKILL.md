@@ -1,6 +1,7 @@
 ---
 name: autonomous-engineering
 description: "Full autonomous engineering workflows that run a complete feature development cycle: plan, deepen, implement, review, resolve, test, and record. Use when asked to build a feature end-to-end, go autonomous, or when user says 'lfg' or 'slfg'. Includes a sequential variant (lfg) and a swarm-parallel variant (slfg) for faster execution of large features."
+skill-type: workflow
 ---
 
 # Autonomous Engineering

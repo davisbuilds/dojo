@@ -1,6 +1,7 @@
 ---
 name: gh-fix-issue
 description: "Fetch and fix GitHub issues using the gh CLI. Use when user asks to fix, resolve, or work on a GitHub issue by number or URL. Handles the full workflow from fetching issue details, cloning repo if needed, understanding context, implementing fixes, and creating PRs. Triggers on phrases like 'fix issue #N', 'resolve issue', 'work on github.com/.../issues/N', 'help with issue N in repo', 'close out issue'."
+skill-type: workflow
 ---
 
 # gh-fix-issue

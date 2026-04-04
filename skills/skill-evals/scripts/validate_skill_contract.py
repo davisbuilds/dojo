@@ -22,7 +22,7 @@ ALLOWED_SKILL_TYPES = {"workflow", "reference"}
 
 @dataclass
 class CheckResult:
-    status: str  # pass|warn|fail
+    status: str  # pass|warn|fail|na
     required: bool
     message: str
 
@@ -83,6 +83,10 @@ def is_required(check_name: str, skill_type: str, strict: bool) -> bool:
     if check_name == "context_budget":
         return strict
     return False
+
+
+def not_applicable(check_name: str, skill_type: str) -> bool:
+    return skill_type == "reference" and check_name in {"execution_anchor_present", "output_anchor_present"}
 
 
 def resource_map_present(text: str, skill_dir: Path) -> bool:
@@ -154,12 +158,22 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         ],
     ) or has_numbered_steps(text)
 
+    execution_anchor_required = is_required("execution_anchor_present", skill_type, strict)
+    execution_anchor_status = (
+        "pass"
+        if execution_anchor
+        else ("na" if not_applicable("execution_anchor_present", skill_type) else ("fail" if execution_anchor_required else "warn"))
+    )
     checks["execution_anchor_present"] = CheckResult(
-        status="pass" if execution_anchor else ("fail" if is_required("execution_anchor_present", skill_type, strict) else "warn"),
+        status=execution_anchor_status,
         required=is_required("execution_anchor_present", skill_type, strict),
         message="Execution anchor present"
         if execution_anchor
-        else "Add workflow/process/commands section or numbered execution steps",
+        else (
+            "Not applicable for reference skills"
+            if not_applicable("execution_anchor_present", skill_type)
+            else "Add workflow/process/commands section or numbered execution steps"
+        ),
     )
 
     scope_anchor = has_heading(
@@ -204,10 +218,22 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         text,
         [r"output contract", r"output requirements", r"output", r"deliverables", r"summary"],
     )
+    output_anchor_required = is_required("output_anchor_present", skill_type, strict)
+    output_anchor_status = (
+        "pass"
+        if output_anchor
+        else ("na" if not_applicable("output_anchor_present", skill_type) else ("fail" if output_anchor_required else "warn"))
+    )
     checks["output_anchor_present"] = CheckResult(
-        status="pass" if output_anchor else ("fail" if is_required("output_anchor_present", skill_type, strict) else "warn"),
-        required=is_required("output_anchor_present", skill_type, strict),
-        message="Output anchor present" if output_anchor else "Add output expectations section",
+        status=output_anchor_status,
+        required=output_anchor_required,
+        message="Output anchor present"
+        if output_anchor
+        else (
+            "Not applicable for reference skills"
+            if not_applicable("output_anchor_present", skill_type)
+            else "Add output expectations section"
+        ),
     )
 
     verification_anchor = has_heading(

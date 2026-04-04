@@ -1,6 +1,7 @@
 ---
 name: theme-factory
 description: Toolkit for styling artifacts with a theme. Use when users ask to theme slides, docs, reports, or HTML pages using curated font/color systems or a generated custom theme.
+skill-type: workflow
 license: Complete terms in LICENSE.txt
 ---
 
