@@ -1,4 +1,4 @@
-# Agent Skills Repository
+# Dojo
 
 This repository contains **Agent Skills**—modular packages that extend an AI agent's capabilities with specialized knowledge, workflows, and tool integrations. These skills allow general-purpose agents (Claude, Codex, etc) to perform specialized tasks in specific domains.
 
@@ -30,7 +30,7 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 
 ## Hooks
 
-Eight hooks in `hooks/` enforce skill quality, inject session context, and nudge agents to capture learnings (skill catalog, frontmatter validation, manifest regeneration, git checks, structure checks, session retro reminder). Configured in `.claude/settings.json` and `.agents/settings.json`. See [docs/system/ARCHITECTURE.md](docs/system/ARCHITECTURE.md) for details.
+8 hooks in `hooks/` enforce skill quality, inject session context, and nudge agents to capture learnings (skill catalog, frontmatter validation, manifest regeneration, git checks, structure checks, session retro reminder). Configured in `.claude/settings.json` and `.agents/settings.json`. See [docs/system/ARCHITECTURE.md](docs/system/ARCHITECTURE.md) for details.
 
 ## Prerequisites
 

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This repository contains Agent Skills - modular packages that extend an agent's capabilities with specialized knowledge, workflows, and tool integrations. Skills transform a general-purpose agent into a specialized agent for specific domains or tasks.
+This repository contains extensible, agent-agnostic skills and hooks.
 
 ## Skill Structure
 

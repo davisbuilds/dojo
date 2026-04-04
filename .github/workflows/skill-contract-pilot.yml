@@ -48,14 +48,25 @@ jobs:
       - name: Run strict contract checks on enforced skill set
         run: |
           . .venv/bin/activate
+          set +e
+          python3 skills/skill-evals/scripts/validate_skill_contract.py \
+            --skills-root skills \
+            --strict | tee strict-skill-contract-summary.txt
+          status=${PIPESTATUS[0]}
           python3 skills/skill-evals/scripts/validate_skill_contract.py \
             --skills-root skills \
             --strict \
             --json > strict-skill-contract-report.json
+          json_status=$?
+          if [ "$status" -ne 0 ] || [ "$json_status" -ne 0 ]; then
+            exit 1
+          fi
 
       - name: Upload strict set report
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: strict-skill-contract-report
-          path: strict-skill-contract-report.json
+          path: |
+            strict-skill-contract-report.json
+            strict-skill-contract-summary.txt
