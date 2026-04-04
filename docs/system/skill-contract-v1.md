@@ -7,7 +7,7 @@ This contract defines a deterministic checklist for skill quality. It is designe
 
 ## Skill Types
 
-Skills may declare a `skill-type` frontmatter field to express the structural shape they are expected to follow.
+Skills declare a `skill-type` frontmatter field to express the structural shape they are expected to follow.
 
 Allowed values:
 
@@ -16,11 +16,11 @@ Allowed values:
 - `reference`
   - For reference routers, guideline catalogs, and best-practice indexes that are primarily navigational and informational rather than procedural.
 
-Migration behavior:
+Current repo state:
 
-- `skill-type` is strongly recommended for all new or updated skills.
-- Existing untyped skills default to `workflow` behavior until explicitly classified.
-- This preserves current strictness for legacy skills while allowing reference skills to opt into a better-fitting contract.
+- The catalog is fully typed.
+- New and updated skills should continue to declare `skill-type`.
+- For robustness, untyped skills still default to `workflow` behavior if one appears in the future.
 
 ## Universal Required Checks (must pass)
 
@@ -46,7 +46,7 @@ Migration behavior:
 
 ### `workflow`
 
-These checks are required for `workflow` skills and for untyped skills during the migration period:
+These checks are required for `workflow` skills and for any untyped skill that falls back to `workflow` behavior:
 
 7. `execution_anchor_present`
    - Body includes a clear execution anchor through at least one of:

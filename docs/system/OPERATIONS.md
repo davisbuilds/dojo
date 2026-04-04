@@ -69,13 +69,18 @@ Hooks are configured in `.claude/settings.json` and `.agents/settings.json`. No 
 
 ## CI
 
-GitHub Actions enforces strict contract compliance on the full 45-skill catalog via:
+GitHub Actions enforces strict contract compliance on the full 48-skill catalog via:
 
 - `.github/workflows/skill-contract-pilot.yml`
 
 ```bash
 python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
 ```
+
+The strict validator is type-aware:
+
+- `workflow` skills must define execution flow and output expectations.
+- `reference` skills are evaluated on scope, boundaries, verification, and resource navigation without being forced into workflow-only sections.
 
 Hooks enforce quality at edit-time and session-stop:
 
