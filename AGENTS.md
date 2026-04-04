@@ -1,11 +1,5 @@
 # AGENTS.md
 
-Guidance for coding agents working in this repository.
-
-Modular skill packages that extend AI agents with specialized knowledge, workflows, and tool integrations.
-
-## Overview
-
 This repository contains Agent Skills - modular packages that extend an agent's capabilities with specialized knowledge, workflows, and tool integrations. Skills transform a general-purpose agent into a specialized agent for specific domains or tasks.
 
 ## Skill Structure
@@ -112,7 +106,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 
 ## Existing Skills
 
-47 skills in `skills/`. The full catalog with descriptions is in `docs/system/FEATURES.md`. The auto-generated `skills.json` manifest is the runtime source of truth.
+48 skills in `skills/`. The full catalog with descriptions is in `docs/system/FEATURES.md`. The auto-generated `skills.json` manifest is the runtime source of truth.
 
 ## System Docs
 

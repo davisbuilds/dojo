@@ -4,7 +4,7 @@ Product-surface reference for the Agent Skills Repository.
 
 ## Skills Catalog
 
-Catalog snapshot by category. For canonical runtime inventory, use `skills.json` (currently 47 skills):
+Catalog snapshot by category. For canonical runtime inventory, use `skills.json` (currently 48 skills):
 
 ```bash
 jq '.skills | length' skills.json
@@ -25,6 +25,7 @@ jq '.skills | length' skills.json
 |-------|---------|
 | `code-review-agents` | Multi-agent reviews: architecture, security, data, performance, deployment |
 | `local-review` | Findings-first local reviews on workspace diffs |
+| `repo-hardening` | Audit repos for supply-chain risk, generate repo-local security artifacts, and drive hardening work |
 | `test-strategy` | Testing methodology: TDD, real dependencies over mocks, behavior-based tests |
 | `verify-before-complete` | Require verification evidence before completion claims |
 
@@ -109,6 +110,8 @@ Slash-style entrypoints for harnesses that support command files:
 - `/plan` — implementation planning workflow
 - `/standardize-skills` — skill standardization
 - `/deep-research` — route depth and filter evidence in one command
+- `/repo-audit` — generate repo-local audit artifacts and summarize hardening gaps
+- `/repo-harden` — implement the highest-value hardening fixes and refresh the audit packet
 - `/self-improve` — capture, compact, propose, and extract self-improvement artifacts
 - `/retro` — capture session learnings into existing project reference docs, including matching root, `docs/system`, or `docs/project` files
 
