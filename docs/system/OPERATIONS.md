@@ -86,7 +86,7 @@ Hooks enforce quality at edit-time and session-stop:
 
 - Pre-tool-use hook blocks pushes to protected branches unless the command includes `DOJO_ALLOW_PROTECTED_PUSH=1`.
 - Pre-tool-use hook validates SKILL.md on every write.
-- Stop hooks verify git state and skill structure; protected branches may keep local unpushed commits.
+- Stop hooks verify git state and skill structure; uncommitted changes and untracked files block, but unpushed commits never do (push timing is the operator's call).
 
 See `docs/system/skill-contract-v1.md` for the contract checklist and `docs/system/SKILL-BEST-PRACTICES.md` for authoring guidance.
 

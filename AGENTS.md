@@ -105,7 +105,7 @@ Scripts in `hooks/` enforce quality and inject context automatically. Configured
 | `post-tool-use-regen-manifest.sh` | PostToolUse (Write\|Edit) | Regenerates `skills.json` after a SKILL.md is modified |
 | `post-tool-use-validate-implementation-plan.sh` | PostToolUse (Write\|Edit) | Validates `docs/plans/*-implementation.md` against `writing-plans` schema after write/edit |
 | `pre-tool-use-git-push-protected-branch.sh` | PreToolUse (Bash) | Blocks pushes to protected branches unless the command includes `DOJO_ALLOW_PROTECTED_PUSH=1` |
-| `stop-hook-git-check.sh` | Stop | Blocks if there are uncommitted changes, untracked files, or unpushed commits on non-protected branches |
+| `stop-hook-git-check.sh` | Stop | Blocks if there are uncommitted changes or untracked files. Unpushed commits are allowed — pushing is left to the operator. |
 | `stop-hook-skill-structure.sh` | Stop | Validates that modified skill directories have SKILL.md and matching directory/frontmatter names |
 | `stop-hook-session-retro.sh` | Stop | Reminds agent to run `/retro` to capture non-obvious session learnings before ending |
 

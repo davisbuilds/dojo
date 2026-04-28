@@ -95,7 +95,7 @@ jq '.skills | length' skills.json
 - Pushes to protected branches are blocked unless the command includes an explicit `DOJO_ALLOW_PROTECTED_PUSH=1` override.
 - `skills.json` manifest regenerated after every SKILL.md change (post-tool-use).
 - `docs/plans/*-implementation.md` validated after every write/edit (post-tool-use).
-- Uncommitted changes and unpushed commits on non-protected branches blocked at session stop.
+- Uncommitted changes and untracked files blocked at session stop. Unpushed commits no longer block — push timing is the operator's call.
 - Skill directory structure validated at session stop.
 
 ## Command Wrappers

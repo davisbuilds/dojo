@@ -44,7 +44,7 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 | `pre-tool-use-validate-skill.sh` | PreToolUse (Write/Edit) | Validates SKILL.md frontmatter; blocks on failure |
 | `post-tool-use-regen-manifest.sh` | PostToolUse (Write/Edit) | Regenerates `skills.json` after SKILL.md edits |
 | `post-tool-use-validate-implementation-plan.sh` | PostToolUse (Write/Edit) | Validates `docs/plans/*-implementation.md` against `writing-plans` schema |
-| `stop-hook-git-check.sh` | Stop | Blocks if uncommitted changes or non-protected branches have unpushed commits |
+| `stop-hook-git-check.sh` | Stop | Blocks if there are uncommitted changes or untracked files. Unpushed commits are allowed. |
 | `stop-hook-skill-structure.sh` | Stop | Validates modified skill directories have valid SKILL.md |
 | `stop-hook-session-retro.sh` | Stop | Reminds agent to run `/retro` to capture session learnings |
 
