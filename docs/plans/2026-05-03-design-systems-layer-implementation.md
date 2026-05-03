@@ -40,13 +40,13 @@ Add a design-systems layer to dojo built around the Google Labs DESIGN.md format
 - Both skills are `workflow` type per dojo's skill-type taxonomy. The exemplars and slop catalog are reference assets nested under their consuming skill.
 - Triggers must be sharp enough to fire reliably without colliding with each other. `design-md` triggers on token / format / lint / export language; `design-critique` triggers on review / audit / taste / "looks AI-generated" language.
 
-## Open Decisions To Confirm Before Task 2
+## Confirmed Decisions
 
-These are surfaced in "Open Questions for User" below; the plan proceeds with the recommended defaults if not overridden.
-
-1. Which five Refero exemplars to vendor (recommended set in Task 2).
-2. Whether `design-critique` accepts a screenshot input path in v1, or requires markup/CSS input only.
-3. Whether the slop catalog lives under `design-critique/references/` only, or is duplicated under `design-md/references/` for shared access. Recommended: single home in `design-critique`, with `design-md` linking out.
+1. Exemplar set: Cursor, Linear, Stripe, Vercel, Figma.
+2. `design-critique` v1 inputs: text/markup, plus an optional path to an existing screenshot, plus opt-in Playwright auto-capture only when the user explicitly asks for it.
+3. Slop catalog lives under `design-critique/references/` only; `design-md` links out.
+4. Smoke test target: `habits-ai-website`.
+5. Wrap the Google CLI in a thin `run_cli.sh` so the pinned version lives in one place.
 
 ## Task Breakdown
 
@@ -220,7 +220,7 @@ Write the operational instructions for `design-critique` so the agent can take a
 2. Author `finding-template.md` as a short reference defining the structured shape of a single finding: `pattern-id`, `where` (file:line or DOM selector), `evidence` (the offending snippet or coordinates), `severity`, `recommended-fix` (concrete, actionable, often pointing at the catalog's named alternative).
 3. Add a `When To Use` section with sharp triggers: "review my UI", "audit this design", "does this look AI-generated", "check for design slop", "critique the visuals".
 4. Add a `When Not To Use` section that explicitly excludes accessibility/WCAG audits and creative UI generation.
-5. Add an `Inputs` section describing accepted forms: pasted HTML/JSX, file paths to component files, file paths to local screenshots, or a URL the agent can fetch via existing tools. Document the fallback when only a textual description is available (still possible, lower confidence).
+5. Add an `Inputs` section describing accepted forms: pasted HTML/JSX, file paths to component files, file paths to local screenshots already on disk, or — only when the user explicitly opts in — a URL plus Playwright auto-capture via the existing `playwright` skill. Document the fallback when only a textual description is available (still possible, lower confidence).
 6. Add a brief `Output Shape` section showing what a complete critique response looks like: grouped findings, severity-ranked, with a top-three summary and a one-line overall taste verdict.
 
 **Verification**
@@ -314,7 +314,4 @@ These items are deliberately out of scope for this plan but should be queued for
 
 ## Open Questions For User
 
-1. Confirm or override the recommended five exemplars: Cursor, Linear, Stripe, Vercel, Figma. Are there higher-signal alternatives in the Refero catalog you want included?
-2. For `design-critique` v1, confirm: accept a screenshot path as input but do not auto-capture? Or stay text-input-only and add screenshot input in the remediation pass?
-3. Confirm the smoke-test target in Task 7. Default recommendation is `habits-ai-website` since it has the most visible UI surface and a cohesive brand to critique against.
-4. Confirm we should publish `design-critique` findings as agent output only, with no auto-applied fixes, in v1.
+All resolved in the Confirmed Decisions section above.
