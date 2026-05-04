@@ -30,7 +30,7 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 
 ## Available Skills
 
-48 skills across categories: GitHub workflows, code review, content creation, dev workflows, platform integrations, knowledge management, and meta/skill tooling. See [docs/system/FEATURES.md](docs/system/FEATURES.md) for the full catalog.
+50 skills across categories: GitHub workflows, code review, content creation, dev workflows, platform integrations, knowledge management, and meta/skill tooling. See [docs/system/FEATURES.md](docs/system/FEATURES.md) for the full catalog.
 
 ## Hooks
 
@@ -148,3 +148,6 @@ Some skills include optional `commands/*.md` wrappers for slash-style entrypoint
 - [Vercel skills](https://github.com/vercel/next.js) — React, Next.js, React Native best-practice rules and composition patterns, plus preview deployment debugging workflows
 - [Kepano's Obsidian skills](https://github.com/kepano) — Obsidian Markdown, Bases, and JSON Canvas skill references
 - [skills.sh](https://skills.sh) — community skill registry and discovery
+- [Google Labs `@google/design.md`](https://github.com/google-labs-code/design.md) — DESIGN.md format and CLI wrapped by the `design-md` skill (Apache-2.0)
+- [Refero](https://styles.refero.design) — source of the five DESIGN.md exemplars vendored under `skills/design-md/references/exemplars/`
+- [impeccable.style](https://impeccable.style/slop) — slop anti-pattern taxonomy paraphrased into the `design-critique` slop catalog

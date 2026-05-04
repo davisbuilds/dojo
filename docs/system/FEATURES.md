@@ -4,7 +4,7 @@ Product-surface reference for the Agent Skills Repository.
 
 ## Skills Catalog
 
-Catalog snapshot by category. For canonical runtime inventory, use `skills.json` (currently 48 skills):
+Catalog snapshot by category. For canonical runtime inventory, use `skills.json` (currently 50 skills):
 
 ```bash
 jq '.skills | length' skills.json
@@ -34,6 +34,8 @@ jq '.skills | length' skills.json
 | Skill | Purpose |
 |-------|---------|
 | `algorithmic-art` | Generative art with p5.js and controlled randomness |
+| `design-md` | Read, write, lint, diff, and export DESIGN.md files via the pinned `@google/design.md` CLI |
+| `design-critique` | Audit UI against a 37-pattern slop catalog and return ranked, scoped findings |
 | `frontend-design` | Distinctive, production-grade frontend interfaces |
 | `gemini-imagen` | Image generation/editing via Gemini API |
 | `gpt-imagen` | Image generation/editing via OpenAI Image API |

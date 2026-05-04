@@ -60,7 +60,7 @@
     },
     {
       "name": "design-critique",
-      "description": "TODO: Complete and informative explanation of what the skill does and when to use it. Include specific scenarios, file types, or tasks that should trigger this skill.",
+      "description": "Audit implemented UI against a 37-pattern slop catalog and return ranked, scoped findings with named alternatives. Use when the user asks to review their UI, audit a design, check for AI-generated tells, critique the visuals, or asks 'does this look AI-generated'. Accepts pasted markup, file paths to component or CSS files, file paths to local screenshots, or \u2014 only when the user explicitly opts in \u2014 a URL plus Playwright auto-capture. Excludes accessibility/WCAG audits beyond contrast and creative UI generation.",
       "path": "skills/design-critique"
     },
     {
