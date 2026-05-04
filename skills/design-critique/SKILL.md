@@ -50,7 +50,10 @@ If the user provides only a URL with no opt-in, ask whether to capture before pr
 6. **Rank within each category.** Sort findings high → medium → low severity.
 7. **Pick the top three highest-leverage fixes** across all categories. Leverage = improvement-to-effort ratio, not raw severity. Often a single `high` finding with a one-line fix beats three `medium` findings requiring a rewrite.
 8. **Write the verdict.** One honest, specific line characterizing the overall taste level.
-9. **Surface input gaps.** If pattern checks were impossible to perform with the given input (e.g., no screenshot, so motion patterns are unverifiable), list those in a `Coverage gaps` note so the user knows what was *not* checked.
+9. **Surface coverage status in two distinct buckets.** Patterns split into:
+   - `Checked — no finding`: patterns walked with the given input and definitively ruled out (e.g., "no `text-align: justify` declaration found anywhere"). These prove the catalog was walked completely.
+   - `Unverifiable`: patterns whose `tells` could not be operationalized against the given input (e.g., "bounce-elastic-easing requires a rendered view; markup-only input cannot confirm"). These tell the user what to revisit if they want fuller coverage.
+   Listing one without the other under-serves the user. Do not collapse both into a single "coverage gaps" block.
 
 ## Output Shape
 
@@ -65,6 +68,7 @@ If the user provides only a URL with no opt-in, ask whether to capture before pr
   **evidence:** ...
   **severity:** high
   **recommended-fix:** ...
+  **pattern-match-strength:** full
   **confidence:** high
 
 ### Layout and Space
@@ -81,9 +85,13 @@ If the user provides only a URL with no opt-in, ask whether to capture before pr
 
 <one specific line>
 
-## Coverage gaps
+## Checked — no finding
 
-- <pattern category that could not be checked> — <why>
+- <pattern-id> — <one-line "checked X, found Y, rule does not fire">
+
+## Unverifiable
+
+- <pattern-id> — <why this input form can't reach the tell, what input would unlock it>
 ```
 
 Categories with zero findings are omitted. If the entire surface produces zero findings, say so explicitly in the verdict.

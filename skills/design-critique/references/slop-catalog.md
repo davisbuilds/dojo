@@ -84,7 +84,7 @@ Every entry has five fields:
 ### flat-type-hierarchy
 
 - **name:** Flat type hierarchy
-- **tells:** Heading and body sizes within a few pixels of each other; the page reads as one undifferentiated wall of text.
+- **tells:** Heading and body sizes within a few pixels of each other (px-based CSS), or with a size *ratio* below 1.25× between adjacent levels (rem / `clamp()` CSS). The page reads as one undifferentiated wall of text.
 - **why-it-fails:** Without a clear size step, the eye cannot scan or anchor; everything competes for the same level of attention.
 - **alternative:** Use fewer sizes with a stronger ratio (1.25× minimum, 1.333× or 1.5× for display-driven layouts). Pair size with weight and color shifts.
 - **severity:** high
@@ -260,7 +260,7 @@ Every entry has five fields:
 ### every-button-primary
 
 - **name:** Every button is a primary button
-- **tells:** Multiple filled, high-contrast buttons sitting next to each other competing for the click.
+- **tells:** Multiple filled, high-contrast buttons within the same scope competing for the click. **Scope** = same section (full match), or same viewport / same major page region (partial match — emit with `pattern-match-strength: partial`). Two primary CTAs with the entire page between them is partial; two primary CTAs in the same hero is full.
 - **why-it-fails:** When everything is emphasized, nothing is. The user has to read every button to find the actual primary action.
 - **alternative:** One primary per surface. Demote the rest to secondary (outline or filled-neutral), tertiary (ghost), or text links. The visual hierarchy should mirror the action hierarchy.
 - **severity:** high
@@ -320,7 +320,7 @@ Every entry has five fields:
 ### tight-line-height
 
 - **name:** Tight line height
-- **tells:** Body paragraphs set with `line-height` below 1.3.
+- **tells:** Body paragraphs set with `line-height` below 1.3 (unitless or any unit). Display headings below 1.05 also qualify.
 - **why-it-fails:** Lines crowd each other; ascenders and descenders nearly touch, the eye loses track of which line it is on, and reading slows.
 - **alternative:** 1.5–1.7 for body text, 1.1–1.25 for display headings. Tune by face — some require more, some less.
 - **severity:** medium
@@ -328,7 +328,7 @@ Every entry has five fields:
 ### tiny-body-text
 
 - **name:** Tiny body text
-- **tells:** Body copy below 14px, sometimes 11–12px in marketing layouts.
+- **tells:** Body copy below 14px (or its rem equivalent: below `0.875rem` assuming a 16px root). For `clamp()`-based fluid typography, the *minimum* clamp value is the criterion — `clamp(0.75rem, 1vw, 1rem)` triggers because the floor is below 14px.
 - **why-it-fails:** Hard to read on standard displays, worse on high-DPI screens at typical viewing distances. Excludes users with even mild vision differences.
 - **alternative:** 14px minimum, 16px ideal for body. Reserve smaller sizes for true secondary content like captions, footnotes, and metadata.
 - **severity:** high

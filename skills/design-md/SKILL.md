@@ -104,14 +104,21 @@ Inputs the agent should gather first:
 - Typography constraints (system fonts only, custom face available, monospace required for code surfaces).
 - Existing CSS / Tailwind config the system should align with.
 
+**Before drafting — format gotchas the linter will surface loudly:**
+
+- **`orphaned-tokens` is the dominant warning.** Every color token must be referenced by a component (`{colors.foo}` from a `components.bar.backgroundColor` or similar) or it fires `orphaned-tokens`. Plan your component set up front so muted-text tokens, border tokens, hover-state tokens, and link tokens all have a component slot to land on. Fabricating a `prose-body` component (with `textColor` + `typography` refs) is a legitimate way to anchor global text colors.
+- **Components have no `borderColor` key.** Valid keys are `backgroundColor`, `textColor`, `typography`, `rounded`, `padding`, `size`, `height`, `width`. Border colors will be perma-orphaned no matter what; either accept the warning or document the border color in prose only and skip the token.
+- **Source CSS using `rgba()` must be resolved to hex before tokenizing.** The Color type is `#`-prefix sRGB hex only. For dark themes, resolve `rgba(255,255,255,0.6)` to its solid equivalent on the canvas color (≈ `#999999` on `#000`). Document the original alpha value in the Markdown rationale if it matters.
+- **Inverted themes (white CTA on black canvas) should still set `colors.primary`.** The `missing-primary` rule fires whenever colors are defined without a `primary` entry, regardless of whether `primary` is a brand color or a CTA-fill role. For dark-first sites, set `primary` to the CTA fill (often `#FFFFFF`) and document the inversion in the Overview prose.
+
 Steps:
 
 1. Read `references/exemplars/README.md` and pick the exemplar that anchors the closest aesthetic pole. The five exemplars cover warm-technical (Cursor), dark-geometric (Linear), clean-blue (Stripe), monochrome-minimal (Vercel), and colorful-playful (Figma).
 2. Read the chosen exemplar for **voice, taste, and depth of rationale** — not for structural shape. The exemplars use Refero's Style Reference export format, which has richer prose sections and no YAML frontmatter. Treat them as taste anchors, not as structural templates.
 3. Read `references/format-primer.md` for the **canonical structure** the linter expects: frontmatter schema, token types, and section order. The output must conform to the primer, not the exemplar.
-4. Draft the frontmatter first. Define `colors`, `typography`, and at least three components (one button, one surface, one text style). Use token references rather than raw values wherever possible.
+4. Draft the frontmatter first. Define `colors`, `typography`, and at least three components — one interactive (a button), one surface (a card or container), and one prose role (e.g. `prose-body` with `textColor` and `typography` refs to anchor global body styles). "Text style" here means a component entry, not a typography token. Use token references rather than raw values wherever possible.
 5. Draft the Markdown body in canonical section order. Each section is short — a paragraph of rationale, not an essay.
-6. Lint the draft. Resolve any errors before showing it to the user. Surface warnings as discussion points rather than fixing them silently.
+6. Lint the draft via stdin: `printf '%s' "<draft>" | bash skills/design-md/scripts/run_cli.sh lint -`. Stdin is the canonical path for in-context drafts; reserve a temp file for iterative editing across multiple turns. Resolve any errors before showing it to the user. Surface warnings as discussion points rather than fixing them silently — the orphaned-tokens warnings on global text/border/hover tokens are often the right tradeoff to accept.
 7. Save the file as `DESIGN.md` at the project root unless the user specifies a different path.
 
 ## Inputs The Skill Accepts

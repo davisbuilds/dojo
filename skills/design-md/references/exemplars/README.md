@@ -43,7 +43,11 @@ Cursor and Vercel are both light + roughly mono but differ on warmth (Cursor war
 
 ## Format Notes
 
-These files use Refero's export shape, not strict Google `@google/design.md` v0.1 frontmatter. See `../format-primer.md` for the strict format spec the CLI lints against. Translation between the two is mostly mechanical (rename sections, lift palette into frontmatter) but not automated.
+These files use Refero's export shape, not strict Google `@google/design.md` v0.1 frontmatter. See `../format-primer.md` for the strict format spec the CLI lints against.
+
+Translation is *not* a faithful copy. The Refero exports are richer than the strict spec — they carry Surfaces, Elevation, Imagery, Layout, and Similar Brands sections that have no canonical mapping, and they list dozens of named palette tokens that go unreferenced by any component. A line-by-line lift of an exemplar's palette into the strict frontmatter will produce double-digit `orphaned-tokens` warnings on lint, because every color must be referenced from a `components.*` entry to count as "used."
+
+When translating an exemplar, treat it as a taste anchor — sample mood, voice, and section rationale — and rebuild the palette around the components you actually plan to define. The format-primer's "Before drafting" notes in the parent `SKILL.md` walk through the specific gotchas (orphaned-tokens scope, no `borderColor` key, alpha-color resolution, inverted-theme `primary`).
 
 ## Substitutions And Sourcing
 
