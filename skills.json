@@ -50,7 +50,7 @@
     },
     {
       "name": "create-cli",
-      "description": "Design command-line interface parameters and UX: arguments, flags, subcommands, help text, output formats, error messages, exit codes, prompts, config/env precedence, and safe/dry-run behavior. Use when you\u2019re designing a CLI spec (before implementation) or refactoring an existing CLI\u2019s surface area for consistency, composability, and discoverability.",
+      "description": "Design command-line interface parameters and UX: arguments, flags, subcommands, help text, output formats, error messages, exit codes, prompts, config/env precedence, and safe/dry-run behavior. Use when you\u2019re designing a CLI spec (before implementation) or refactoring an existing CLI\u2019s surface area for consistency, composability, and discoverability.\n",
       "path": "skills/create-cli"
     },
     {
@@ -59,8 +59,18 @@
       "path": "skills/deep-research"
     },
     {
+      "name": "design-critique",
+      "description": "TODO: Complete and informative explanation of what the skill does and when to use it. Include specific scenarios, file types, or tasks that should trigger this skill.",
+      "path": "skills/design-critique"
+    },
+    {
+      "name": "design-md",
+      "description": "Read, write, lint, diff, and export DESIGN.md files using the Google @google/design.md format. Use when the user mentions DESIGN.md, design tokens, extracting a design system, linting design tokens, exporting tokens to Tailwind, DTCG, or CSS variables, or when authoring a fresh design-system reference for a project. Wraps the pinned 0.1.1 CLI through scripts/run_cli.sh.",
+      "path": "skills/design-md"
+    },
+    {
       "name": "fetchmd",
-      "description": "Fetch webpages or local HTML and convert to clean, token-efficient markdown. Use when you need to ingest web content for summarization, RAG, research, or any AI workflow that requires readable text from URLs or HTML files.",
+      "description": "Fetch webpages or local HTML and convert to clean, token-efficient markdown. Use when you need to ingest web content for summarization, RAG, research, or any AI workflow that requires readable text from URLs or HTML files.\n",
       "path": "skills/fetchmd"
     },
     {

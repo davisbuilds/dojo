@@ -1,68 +1,165 @@
 ---
 name: design-md
-description: "TODO: Complete and informative explanation of what the skill does and when to use it. Include specific scenarios, file types, or tasks that should trigger this skill."
+description: "Read, write, lint, diff, and export DESIGN.md files using the Google @google/design.md format. Use when the user mentions DESIGN.md, design tokens, extracting a design system, linting design tokens, exporting tokens to Tailwind, DTCG, or CSS variables, or when authoring a fresh design-system reference for a project. Wraps the pinned 0.1.1 CLI through scripts/run_cli.sh."
 skill-type: workflow
+metadata:
+  upstream:
+    format: "https://github.com/google-labs-code/design.md"
+    cli: "@google/design.md@0.1.1 (npm)"
+    license: "Apache-2.0"
+    exemplar-source: "https://styles.refero.design"
 ---
 
-# Design Md
+# design-md
 
-## Overview
+Operates on DESIGN.md files — the Google Labs format that pairs a YAML token block with a Markdown rationale. The skill knows how to lint an existing file, diff two versions, export tokens to Tailwind or DTCG, and author a fresh DESIGN.md grounded in five Refero exemplars.
 
-[TODO: 1-2 sentences explaining what this skill enables]
+## When To Use
 
-## Structuring This Skill
+Trigger this skill when the request involves any of the following:
 
-[TODO: Choose the structure that best fits this skill's purpose. Common patterns:
+- The user mentions "DESIGN.md", "design tokens", "design system spec", or "@google/design.md".
+- The user asks to extract a design system from existing CSS, Tailwind config, or component code into a single source of truth.
+- The user wants to lint, validate, or diff a DESIGN.md file.
+- The user wants to export design tokens to Tailwind v3 (`json-tailwind`), Tailwind v4 (`css-tailwind`), or W3C DTCG (`dtcg`).
+- The user wants to author a fresh DESIGN.md and asks for examples or a starting point.
 
-**1. Workflow-Based** (best for sequential processes)
-- Works well when there are clear step-by-step procedures
-- Example: DOCX skill with "Workflow Decision Tree" -> "Reading" -> "Creating" -> "Editing"
-- Structure: ## Overview -> ## Workflow Decision Tree -> ## Step 1 -> ## Step 2...
+## When Not To Use
 
-**2. Task-Based** (best for tool collections)
-- Works well when the skill offers different operations/capabilities
-- Example: PDF skill with "Quick Start" -> "Merge PDFs" -> "Split PDFs" -> "Extract Text"
-- Structure: ## Overview -> ## Quick Start -> ## Task Category 1 -> ## Task Category 2...
+- Generating UI components or page layouts from scratch — DESIGN.md is a token spec, not a component library.
+- Auditing visuals for taste, polish, or AI-generation tells — that is `design-critique`.
+- Accessibility audits beyond contrast (axe / WCAG full-coverage). The DESIGN.md linter only checks `contrast-ratio` on declared component pairs.
+- Animation, motion, or breakpoint tokens — the format does not cover them.
 
-**3. Reference/Guidelines** (best for standards or specifications)
-- Works well for brand guidelines, coding standards, or requirements
-- Example: Brand styling with "Brand Guidelines" -> "Colors" -> "Typography" -> "Features"
-- Structure: ## Overview -> ## Guidelines -> ## Specifications -> ## Usage...
+## Operations
 
-**4. Capabilities-Based** (best for integrated systems)
-- Works well when the skill provides multiple interrelated features
-- Example: Product Management with "Core Capabilities" -> numbered capability list
-- Structure: ## Overview -> ## Core Capabilities -> ### 1. Feature -> ### 2. Feature...
+The skill exposes four operations. They share one entry point: `scripts/run_cli.sh`, which pins the CLI version in a single place. Always invoke through the wrapper.
 
-Patterns can be mixed and matched as needed. Most skills combine patterns (e.g., start with task-based, add workflow for complex operations).
+### lint
 
-Delete this entire "Structuring This Skill" section when done - it's just guidance.]
+Validate a DESIGN.md file's structure, references, and contrast.
 
-## [TODO: Replace with the first main section based on chosen structure]
+```bash
+bash skills/design-md/scripts/run_cli.sh lint path/to/DESIGN.md
+bash skills/design-md/scripts/run_cli.sh lint --format json path/to/DESIGN.md
+cat path/to/DESIGN.md | bash skills/design-md/scripts/run_cli.sh lint -
+```
 
-[TODO: Add content here. See examples in existing skills:
-- Code samples for technical skills
-- Decision trees for complex workflows
-- Concrete examples with realistic user requests
-- References to scripts/templates/references as needed]
+Steps:
 
-## Resources (optional)
+1. Run `lint` against the file. Read the JSON findings.
+2. Group findings by rule. The seven rules and their meanings are in `references/format-primer.md`. Surface errors first, then warnings, then info.
+3. For each finding, suggest a concrete fix:
+   - `broken-ref` → fix the typo or define the missing token.
+   - `contrast-ratio` → propose a darker text color or a lighter background that lands above 4.5:1.
+   - `orphaned-tokens` → either reference the token from a component or remove it.
+   - `section-order` → reorder the Markdown sections to match canonical order.
+4. If exit code is non-zero, the file has at least one error. Do not move on to `export` or `diff` until errors clear.
 
-Create only the resource directories this skill actually needs. Delete this section if no resources are required.
+### diff
 
-### scripts/
-Executable code (Python/Bash/etc.) that can be run directly to perform specific operations.
+Compare two DESIGN.md versions and summarize what changed.
 
-### references/
-Documentation and reference material intended to be loaded into context as needed.
+```bash
+bash skills/design-md/scripts/run_cli.sh diff path/to/old/DESIGN.md path/to/new/DESIGN.md
+```
 
-### assets/
-Files not intended to be loaded into context, but rather used within the output the agent produces.
+Steps:
 
-### agents/ (optional, platform add-on)
-Platform-specific metadata files. Only include if your target platform supports them.
-For OpenAI/Codex-compatible metadata, see `references/openai_yaml.md`.
+1. Run `diff` and parse the JSON output.
+2. Separate **material** changes (token values, new components, removed tokens, contrast regressions) from **cosmetic** changes (renames, prose rewrites, section reordering).
+3. Report the material changes first with one-line consequences for downstream code (Tailwind config, component CSS, generated tokens).
+4. Exit code `1` means regressions were detected (more errors or warnings in the new version). Call this out explicitly.
 
----
+### export
 
-**Not every skill requires all resource or platform directories.**
+Convert tokens to Tailwind or DTCG.
+
+```bash
+bash skills/design-md/scripts/run_cli.sh export --format json-tailwind path/to/DESIGN.md > tailwind.theme.json
+bash skills/design-md/scripts/run_cli.sh export --format css-tailwind path/to/DESIGN.md > theme.css
+bash skills/design-md/scripts/run_cli.sh export --format dtcg path/to/DESIGN.md > tokens.json
+```
+
+Format selection:
+
+- Tailwind v3 project → `json-tailwind`. Merge into `tailwind.config.{js,ts}` under `theme.extend`.
+- Tailwind v4 project → `css-tailwind`. Drop the output into the project's main stylesheet inside `@theme { ... }`.
+- Style-Dictionary, Token Studio, or any DTCG-aware tool → `dtcg`.
+
+Steps:
+
+1. Lint first. Never export an unlinted file — broken refs land in the output as raw `{path.to.token}` strings.
+2. Run `export` with the chosen format and write the output where the user's build expects it.
+3. After writing, show the user the diff against any prior token file so they can review before committing.
+
+### author
+
+Write a fresh DESIGN.md from scratch when the project does not yet have one.
+
+Inputs the agent should gather first:
+
+- The product's mood and audience (technical-studio, marketing, consumer, internal tool, etc.).
+- Color preferences (warm/cool, light/dark, brand hex if known).
+- Typography constraints (system fonts only, custom face available, monospace required for code surfaces).
+- Existing CSS / Tailwind config the system should align with.
+
+Steps:
+
+1. Read `references/exemplars/README.md` and pick the exemplar that anchors the closest aesthetic pole. The five exemplars cover warm-technical (Cursor), dark-geometric (Linear), clean-blue (Stripe), monochrome-minimal (Vercel), and colorful-playful (Figma).
+2. Read the chosen exemplar for **voice, taste, and depth of rationale** — not for structural shape. The exemplars use Refero's Style Reference export format, which has richer prose sections and no YAML frontmatter. Treat them as taste anchors, not as structural templates.
+3. Read `references/format-primer.md` for the **canonical structure** the linter expects: frontmatter schema, token types, and section order. The output must conform to the primer, not the exemplar.
+4. Draft the frontmatter first. Define `colors`, `typography`, and at least three components (one button, one surface, one text style). Use token references rather than raw values wherever possible.
+5. Draft the Markdown body in canonical section order. Each section is short — a paragraph of rationale, not an essay.
+6. Lint the draft. Resolve any errors before showing it to the user. Surface warnings as discussion points rather than fixing them silently.
+7. Save the file as `DESIGN.md` at the project root unless the user specifies a different path.
+
+## Inputs The Skill Accepts
+
+- A path to an existing DESIGN.md file (lint, diff, export).
+- Two paths for `diff`.
+- A path to a project root and a description of its aesthetic for `author`.
+- Pasted DESIGN.md content piped through stdin (use `-` as the file argument).
+
+## Output Shape
+
+For `lint` and `diff`, return a structured summary:
+
+```
+## Findings
+
+### Errors
+- broken-ref at colors.brand: undefined token referenced by components.button-primary.backgroundColor
+  Fix: define `colors.brand` or change the reference to `{colors.primary}`.
+
+### Warnings
+- contrast-ratio on button-secondary: 3.1:1 (AA fails for body)
+  Fix: darken textColor toward #0F172A or lighten background toward #F8FAFC.
+
+### Info
+- token-summary: 12 colors, 6 typography, 3 spacing, 8 components
+```
+
+For `export`, write the file and print the path plus a one-line summary of token counts.
+
+For `author`, return the drafted file path plus the lint result.
+
+## References
+
+- `references/format-primer.md` — DESIGN.md schema, token types, linting rules, export formats.
+- `references/exemplars/README.md` — index of the five Refero-sourced exemplars.
+- `references/exemplars/{cursor,linear,stripe,vercel,figma}.md` — full DESIGN.md exemplars covering distinct aesthetic poles.
+
+## Maintenance
+
+The format is `version: alpha` and the CLI is at 0.1.1. Both may move. Two signals indicate this skill needs a refresh:
+
+1. The user reports lint findings that mention rules not listed in `format-primer.md`.
+2. `npx @google/design.md@latest --version` returns a version newer than 0.1.1 and a smoke run produces unfamiliar output.
+
+To refresh:
+
+1. Bump `DESIGN_MD_VERSION` in `scripts/run_cli.sh`.
+2. Re-fetch the upstream README from `github.com/google-labs-code/design.md`.
+3. Run `bash scripts/run_cli.sh spec --rules-only --format json` and reconcile any rule additions, removals, or severity changes against the table in `format-primer.md`.
+4. Run `bash scripts/run_cli.sh lint` against each of the five exemplars to confirm none of them regressed under the new version.
