@@ -50,6 +50,7 @@ When two skills share domain vocabulary, the lexical scorer cannot distinguish t
 | first-principles / brainstorming | approaches, trade-offs | Semantic (depth vs breadth) |
 | fetchmd / markdown-converter | markdown, convert | Accepted (different tool domains) |
 | skill-creator / template | workflow, steps, trigger | Semantic (guided vs scaffold) |
+| design-critique / web-design-guidelines | review, audit, UI | Reciprocal description hand-off + sibling-skills footer; semantic (taste/AI-slop vs rule-compliance/a11y). Note: reciprocal pointers add the other skill's name as a matching token, slightly worsening cross-routing risk in exchange for clearer intent on a smarter scorer. |
 
 For these pairs, explicit invocation (`$skill-name`) is recommended in production.
 
