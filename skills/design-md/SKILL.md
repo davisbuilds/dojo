@@ -170,3 +170,11 @@ To refresh:
 2. Re-fetch the upstream README from `github.com/google-labs-code/design.md`.
 3. Run `bash scripts/run_cli.sh spec --rules-only --format json` and reconcile any rule additions, removals, or severity changes against the table in `format-primer.md`.
 4. Run `bash scripts/run_cli.sh lint` against each of the five exemplars to confirm none of them regressed under the new version.
+
+## Sibling skills
+
+The four design skills compose into a pipeline: **spec → build → review**. Hand off when the request crosses an axis.
+
+- `frontend-design` — generative UI builder. If a fresh DESIGN.md is being authored alongside a build, draft tokens here and consume them there.
+- `design-critique` — visual taste audit against a closed 37-pattern slop catalog. Orthogonal to token-spec linting; run it on the *built* UI, not on the DESIGN.md.
+- `web-design-guidelines` — accessibility / UX rule-compliance review (Vercel WIG, fetched live). Orthogonal to token-spec linting.

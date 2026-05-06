@@ -1,6 +1,6 @@
 ---
 name: design-critique
-description: "Audit implemented UI against a 37-pattern slop catalog and return ranked, scoped findings with named alternatives. Use when the user asks to review their UI, audit a design, check for AI-generated tells, critique the visuals, or asks 'does this look AI-generated'. Accepts pasted markup, file paths to component or CSS files, file paths to local screenshots, or — only when the user explicitly opts in — a URL plus Playwright auto-capture. Excludes accessibility/WCAG audits beyond contrast and creative UI generation."
+description: "Audit implemented UI against a 37-pattern slop catalog and return ranked, scoped findings with named alternatives. Use when the user asks to review their UI, audit a design, check for AI-generated tells, critique the visuals, or asks 'does this look AI-generated'. Accepts pasted markup, file paths to component or CSS files, file paths to local screenshots, or — only when the user explicitly opts in — a URL plus Playwright auto-capture. Excludes accessibility/WCAG audits beyond contrast and creative UI generation; for rule-compliance / a11y / UX audits use web-design-guidelines."
 skill-type: workflow
 metadata:
   upstream:
@@ -107,3 +107,11 @@ Categories with zero findings are omitted. If the entire surface produces zero f
 
 - `references/slop-catalog.md` — 37 patterns across 8 categories with the five-field schema (id, name, tells, why-it-fails, alternative, severity).
 - `references/finding-template.md` — the structured shape every finding must conform to.
+
+## Sibling skills
+
+The four design skills compose into a pipeline: **spec → build → review**. Hand off when the request crosses an axis.
+
+- `frontend-design` — generative UI builder. Run this skill against `frontend-design` output to catch slop tells before handoff.
+- `design-md` — DESIGN.md token spec; the source of truth for tokens lives there, not here. A taste critique does not edit token files.
+- `web-design-guidelines` — accessibility / UX rule-compliance review against Vercel WIG. Runs *in parallel* to a taste audit, not in place of it; the two cover non-overlapping rule sets.

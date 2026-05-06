@@ -43,6 +43,8 @@ jq '.skills | length' skills.json
 | `web-design-guidelines` | Review UI against web interface guidelines |
 | `screenshot` | Capture screenshots across platforms |
 
+The four design skills above compose into a pipeline: `design-md` (token spec) → `frontend-design` (build) → `design-critique` (taste / AI-slop review), with `web-design-guidelines` as a parallel rule-compliance pass (Vercel WIG, accessibility, UX). Each skill's body carries a `Sibling skills` footer that names the adjacent stages and hand-off cues.
+
 ### Development Workflows
 
 | Skill | Purpose |

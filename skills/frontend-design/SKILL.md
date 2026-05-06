@@ -71,8 +71,16 @@ Remember: AI agents are capable of extraordinary creative work. Don't hold back,
 
 ## Resources
 
-- `references/anti-patterns.md` -- common AI design pitfalls to avoid
+- `references/anti-patterns.md` -- common AI design pitfalls to avoid (build-time avoidance list; for review-time pattern matching see `design-critique`'s slop catalog)
 - `references/color-palettes.md` -- curated color palette options
 - `references/font-pairings.md` -- distinctive font pairing suggestions
 - `assets/component-templates/` -- starter HTML templates (hero, card grid, nav)
 - `scripts/scaffold_page.py` -- scaffolds a new page with boilerplate
+
+## Sibling skills
+
+The four design skills compose into a pipeline: **spec → build → review**. Hand off when the request crosses an axis.
+
+- `design-md` — DESIGN.md token spec. If the project already has a DESIGN.md, source colors/typography/spacing from it before inventing a palette.
+- `design-critique` — visual taste audit against a closed 37-pattern slop catalog. Run it against the built UI before handoff to catch slop tells.
+- `web-design-guidelines` — accessibility / UX rule-compliance review (Vercel WIG, fetched live). Orthogonal to taste review; run alongside `design-critique`, not in place of it.

@@ -60,7 +60,7 @@
     },
     {
       "name": "design-critique",
-      "description": "Audit implemented UI against a 37-pattern slop catalog and return ranked, scoped findings with named alternatives. Use when the user asks to review their UI, audit a design, check for AI-generated tells, critique the visuals, or asks 'does this look AI-generated'. Accepts pasted markup, file paths to component or CSS files, file paths to local screenshots, or \u2014 only when the user explicitly opts in \u2014 a URL plus Playwright auto-capture. Excludes accessibility/WCAG audits beyond contrast and creative UI generation.",
+      "description": "Audit implemented UI against a 37-pattern slop catalog and return ranked, scoped findings with named alternatives. Use when the user asks to review their UI, audit a design, check for AI-generated tells, critique the visuals, or asks 'does this look AI-generated'. Accepts pasted markup, file paths to component or CSS files, file paths to local screenshots, or \u2014 only when the user explicitly opts in \u2014 a URL plus Playwright auto-capture. Excludes accessibility/WCAG audits beyond contrast and creative UI generation; for rule-compliance / a11y / UX audits use web-design-guidelines.",
       "path": "skills/design-critique"
     },
     {
@@ -258,7 +258,7 @@
     },
     {
       "name": "web-design-guidelines",
-      "description": "Review UI code for Web Interface Guidelines compliance. Use when asked to \"review my UI\", \"check accessibility\", \"audit design\", \"review UX\", or \"check my site against best practices\".",
+      "description": "Review UI code for Web Interface Guidelines compliance (accessibility, UX, code-level rules from Vercel WIG). Use when asked to \"review my UI\", \"check accessibility\", \"audit design\", \"review UX\", or \"check my site against best practices\". For visual taste / AI-slop audits use design-critique instead.",
       "path": "skills/web-design-guidelines"
     },
     {
