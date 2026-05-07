@@ -1,80 +1,25 @@
 # AGENTS.md
 
-This repository contains extensible, agent-agnostic skills and hooks.
+`dojo` is a repository of extensible, agent-agnostic skills and hooks. 50 skills under `skills/`, 8 lifecycle hooks under `hooks/`. Skills are markdown-first (`SKILL.md` per directory) with optional `scripts/`, `references/`, `assets/`, and `commands/`.
 
-## Skill Structure
+## Documentation Map
 
-Every skill follows this structure:
+- `docs/system/ARCHITECTURE.md` — high-level flow, skill structure + frontmatter spec, progressive disclosure tiers, hook pipeline table, manifest + validation pipelines, directory map.
+- `docs/system/FEATURES.md` — full skill catalog grouped by category (GitHub workflows, code review, design, etc.).
+- `docs/system/OPERATIONS.md` — setup, dependency install, all skill-management commands, hook configuration, CI, optional skill dependencies.
+- `docs/system/SKILL-BEST-PRACTICES.md` — research-backed authoring guidance, design contract, anti-patterns, trigger collision guidance.
+- `docs/system/skill-contract-v1.md` — SKILL.md quality contract (skill types, required checks) enforced by CI.
+- `docs/system/ROADMAP.md` — improvement backlog and cross-cutting findings.
+- `docs/project/VISION.md` — long-term direction and guiding principles.
+- `docs/project/GIT_HISTORY_POLICY.md` — squash-merge-only policy.
+- `spec/agent-skills-spec.md` — full skill specification.
 
-```
-skill-name/
-├── SKILL.md           # Required: frontmatter + instructions
-├── commands/          # Optional: command-wrapper docs for slash-style entrypoints
-├── scripts/           # Optional: executable Python/Bash code
-├── references/        # Optional: documentation loaded into context as needed
-└── assets/            # Optional: templates, images, fonts for output
-```
+The auto-generated `skills.json` manifest is the runtime source of truth for what's available.
 
-### SKILL.md Requirements
+## Working Conventions
 
-- **Frontmatter** (YAML): Must include `name` (hyphen-case, max 64 chars) and `description` (max 1024 chars, no angle brackets)
-- **Body** (Markdown): Instructions loaded only after the skill triggers
-- Allowed frontmatter fields: `name`, `description`, `skill-type`, `license`, `allowed-tools`, `metadata`, `compatibility`
-- Preferred `skill-type` values:
-  - `workflow` for procedural, audit, remediation, review, and planning skills
-  - `reference` for reference routers and guideline catalogs
-
-## Commands
-
-### Create a new skill
-
-```bash
-python skills/skill-creator/scripts/init_skill.py <skill-name> --path <output-directory> [--resources scripts,references,assets] [--examples] [--with-openai-agent]
-```
-
-Creates a skill directory with a template SKILL.md and optional resource/platform add-ons.
-
-### Validate a skill
-
-```bash
-python skills/skill-creator/scripts/quick_validate.py <path/to/skill-folder>
-```
-
-Checks frontmatter format, required fields, naming conventions. The validator uses a polyglot shebang that works with both `python` and `python3`, so it can be invoked directly or with either interpreter.
-
-### Package a skill for distribution
-
-```bash
-python skills/skill-creator/scripts/package_skill.py <path/to/skill-folder> [output-directory]
-```
-
-Validates and creates a `.skill` file (zip format) for distribution.
-
-### Generate OpenAI metadata (optional add-on)
-
-```bash
-python skills/skill-creator/scripts/generate_openai_yaml.py <path/to/skill-folder> [--interface key=value]
-```
-
-Creates or updates `agents/openai.yaml` as optional platform-specific metadata.
-
-## Dependencies
-
-Install the core Python dependencies from the lockfile before running hooks or skill-management scripts:
-
-```bash
-python -m pip install --require-hashes -r requirements.lock
-```
-
-`requirements.txt` remains the human-edited source file for the lock. Regenerate `requirements.lock` with:
-
-```bash
-uv pip compile --generate-hashes requirements.txt -o requirements.lock
-```
-
-The hooks also require these system tools: `git`, `jq`, `python3`, `sed`, and `grep`.
-
-Some skills have additional optional dependencies (e.g. `openai`, `google-genai`, `Pillow`). See `requirements.txt` for the source entries and regenerate the lock before relying on them in shared automation.
+- **Hooks already enforce most invariants.** Editing a `SKILL.md` triggers validation on write, manifest regen on save, and skill-structure check at session stop. If a hook blocks you, fix the underlying problem rather than working around it.
+- **Command wrappers (`commands/*.md`)** remain canonical runbooks even in harnesses that don't expose command files — treat them as part of the skill.
 
 ## Key Design Principles
 
@@ -88,46 +33,5 @@ Some skills have additional optional dependencies (e.g. `openai`, `google-genai`
 
 ## Testing
 
-**Pre-push check**: Before pushing updates to the remote, run the skill contract validation with `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.
-
-The strict validator is type-aware. `workflow` skills must define execution flow and output expectations; `reference` skills are not forced to invent those sections if scope, boundaries, verification, and resource navigation are already clear.
-
-**TDD**: Use red/green TDD for new features and major changes.
-
-## Hooks
-
-Scripts in `hooks/` enforce quality and inject context automatically. Configured in `.claude/settings.json` (and mirrored in `.agents/settings.json` for other harnesses).
-
-| Hook | Event | What it does |
-|------|-------|--------------|
-| `session-start-skill-catalog.sh` | SessionStart | Injects skill catalog from `skills.json`, recent git log, and a pointer to AGENTS.md |
-| `pre-tool-use-validate-skill.sh` | PreToolUse (Write\|Edit) | Runs `quick_validate.py` when a SKILL.md is written or edited; blocks on invalid frontmatter |
-| `post-tool-use-regen-manifest.sh` | PostToolUse (Write\|Edit) | Regenerates `skills.json` after a SKILL.md is modified |
-| `post-tool-use-validate-implementation-plan.sh` | PostToolUse (Write\|Edit) | Validates `docs/plans/*-implementation.md` against `writing-plans` schema after write/edit |
-| `pre-tool-use-git-push-protected-branch.sh` | PreToolUse (Bash) | Blocks pushes to protected branches unless the command includes `DOJO_ALLOW_PROTECTED_PUSH=1` |
-| `stop-hook-git-check.sh` | Stop | Blocks if there are uncommitted changes or untracked files. Unpushed commits are allowed — pushing is left to the operator. |
-| `stop-hook-skill-structure.sh` | Stop | Validates that modified skill directories have SKILL.md and matching directory/frontmatter names |
-| `stop-hook-session-retro.sh` | Stop | Reminds agent to run `/retro` to capture non-obvious session learnings before ending |
-
-## Existing Skills
-
-48 skills in `skills/`. The full catalog with descriptions is in `docs/system/FEATURES.md`. The auto-generated `skills.json` manifest is the runtime source of truth.
-
-## System Docs
-
-| Doc | Purpose |
-|-----|---------|
-| `docs/system/ARCHITECTURE.md` | System architecture |
-| `docs/system/FEATURES.md` | Skills catalog and command wrappers |
-| `docs/system/OPERATIONS.md` | Setup, commands, CI, dependencies |
-| `docs/system/skill-contract-v1.md` | SKILL.md quality contract (enforced by CI) |
-| `docs/system/SKILL-BEST-PRACTICES.md` | Research-backed authoring guidance |
-| `docs/system/ROADMAP.md` | Improvement backlog and cross-cutting findings |
-
-## Specification
-
-Full skill specification: `spec/agent-skills-spec.md`
-
-## Command Wrappers
-
-Some skills include `commands/*.md` wrappers for slash-style entrypoints. See `docs/system/FEATURES.md` for the current list. In harnesses that do not expose command files, these wrappers remain canonical runbooks.
+- **Pre-push** (matches CI): `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.
+- **TDD**: red/green for new features and major changes.

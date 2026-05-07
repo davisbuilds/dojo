@@ -96,3 +96,4 @@ See `docs/system/skill-contract-v1.md` for the contract checklist and `docs/syst
 |-------|---------------|----------|
 | `gemini-imagen` | `google-genai>=1.0.0`, `Pillow>=10.0.0` | `GEMINI_API_KEY` |
 | `gpt-imagen` | `openai>=1.0.0`, `Pillow>=10.0.0` | `OPENAI_API_KEY` |
+| `design-md` | `npx` on PATH; pulls `@google/design.md@0.1.1` on first invocation via `scripts/run_cli.sh` | — |

@@ -1,6 +1,6 @@
 ---
 name: web-design-guidelines
-description: Review UI code for Web Interface Guidelines compliance. Use when asked to "review my UI", "check accessibility", "audit design", "review UX", or "check my site against best practices".
+description: Review UI code for Web Interface Guidelines compliance (accessibility, UX, code-level rules from Vercel WIG). Use when asked to "review my UI", "check accessibility", "audit design", "review UX", or "check my site against best practices". For visual taste / AI-slop audits use design-critique instead.
 skill-type: workflow
 metadata:
   author: vercel
@@ -65,3 +65,11 @@ If no files specified, ask the user which files to review.
 - All specified files were read and checked against the full ruleset
 - Findings use the exact output format defined in the fetched guidelines document
 - No false positives from rules that do not apply to the file's framework or context
+
+## Sibling skills
+
+The four design skills compose into a pipeline: **spec → build → review**. Hand off when the request crosses an axis.
+
+- `design-critique` — visual taste audit against a closed 37-pattern slop catalog. Complementary to rule-compliance review, not redundant: this skill catches WIG violations, that skill catches AI-slop tells. Run both for full review coverage.
+- `frontend-design` — generative UI builder. Run this skill against `frontend-design` output for code-level rule compliance.
+- `design-md` — DESIGN.md token spec; orthogonal to UI-rule compliance.
