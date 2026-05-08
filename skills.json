@@ -69,6 +69,11 @@
       "path": "skills/design-md"
     },
     {
+      "name": "diagnose",
+      "description": "Disciplined debugging loop for hard bugs and performance regressions \u2014 build a deterministic pass/fail signal first, then reproduce, hypothesise, instrument, fix, regression-test. Use when the user says \"diagnose this\", \"debug this\", \"this is broken/throwing/failing\", reports a bug whose cause is non-obvious, or describes a performance regression. For completion-time evidence checks use verify-before-complete; for new-test methodology use test-strategy; for post-hoc code review use local-review.",
+      "path": "skills/diagnose"
+    },
+    {
       "name": "fetchmd",
       "description": "Fetch webpages or local HTML and convert to clean, token-efficient markdown. Use when you need to ingest web content for summarization, RAG, research, or any AI workflow that requires readable text from URLs or HTML files.\n",
       "path": "skills/fetchmd"

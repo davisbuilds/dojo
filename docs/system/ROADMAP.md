@@ -8,7 +8,7 @@ Last updated from the [skills analysis](../skills-analysis-2026-3-07.md) (2026-0
 
 | Item | What Changed |
 |------|-------------|
-| 50 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, and meta/skill tooling |
+| 51 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, and meta/skill tooling |
 | 8-hook quality pipeline | Session-start catalog injection, pre/post-tool-use validation and manifest sync, implementation-plan validation, git checks, structure checks, session retro reminder |
 | Skill packaging and distribution | `.skill` zip format with validation |
 | Command wrappers | Deterministic slash-style entrypoints |
@@ -25,6 +25,7 @@ Last updated from the [skills analysis](../skills-analysis-2026-3-07.md) (2026-0
 | Extract system docs | Best practices, roadmap, contract extracted from analysis doc |
 | Add test-strategy skill | Methodology skill with verification checklist, a catalog-expanding milestone before later additions |
 | Design systems layer | Added `design-md` (Google `@google/design.md` CLI wrapper) and `design-critique` (closed 37-pattern slop catalog with structured findings) plus 5 Refero exemplars; sibling-skills footer convention disambiguates the four-skill design pipeline |
+| Add diagnose skill | Adapted mattpocock's feedback-loop-first debugging discipline into a six-phase workflow with a `scaffold_feedback_loop.sh` template generator (7 loop kinds) and a HITL bash harness |
 | Soften brainstorming | Removed XML hard-gate, added Boundaries/Verification/Resources |
 | Enhance first-principles | Added engineering principles, tension resolution table, verification (110→141 lines) |
 | Deduplicate fetch_issue.sh | Unified to `scripts/fetch_issue.sh`, symlinked from both skills |

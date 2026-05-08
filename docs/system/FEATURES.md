@@ -4,7 +4,7 @@ Product-surface reference for the Agent Skills Repository.
 
 ## Skills Catalog
 
-Catalog snapshot by category. For canonical runtime inventory, use `skills.json` (currently 50 skills):
+Catalog snapshot by category. For canonical runtime inventory, use `skills.json` (currently 51 skills):
 
 ```bash
 jq '.skills | length' skills.json
@@ -24,6 +24,7 @@ jq '.skills | length' skills.json
 | Skill | Purpose |
 |-------|---------|
 | `code-review-agents` | Multi-agent reviews: architecture, security, data, performance, deployment |
+| `diagnose` | Disciplined six-phase debugging loop — build a deterministic pass/fail signal, reproduce, hypothesise, instrument, fix, regression-test |
 | `local-review` | Findings-first local reviews on workspace diffs |
 | `repo-hardening` | Audit repos for supply-chain risk, generate repo-local security artifacts, and drive hardening work |
 | `test-strategy` | Testing methodology: TDD, real dependencies over mocks, behavior-based tests |

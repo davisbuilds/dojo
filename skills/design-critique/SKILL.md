@@ -108,6 +108,17 @@ Categories with zero findings are omitted. If the entire surface produces zero f
 - `references/slop-catalog.md` — 37 patterns across 8 categories with the five-field schema (id, name, tells, why-it-fails, alternative, severity).
 - `references/finding-template.md` — the structured shape every finding must conform to.
 
+## Verification
+
+A critique is complete when:
+
+- [ ] Every reported finding cites a specific pattern ID from `references/slop-catalog.md`, a file:line range, and a one-line tell.
+- [ ] No invented patterns appear — only IDs that exist in the closed catalog.
+- [ ] Severity matches the catalog entry (no inflation for prominence).
+- [ ] The verdict states a top-three by severity × prominence, or explicitly says "zero findings" if the surface is clean.
+- [ ] An "Unverifiable" section is included whenever the input form (e.g. markup-only, no rendered view) prevented full coverage; absent if every pattern was reachable.
+- [ ] No code was edited unless the user explicitly asked for the fixes to be applied as a follow-up.
+
 ## Sibling skills
 
 The four design skills compose into a pipeline: **spec → build → review**. Hand off when the request crosses an axis.
