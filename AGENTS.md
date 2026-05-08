@@ -1,6 +1,6 @@
 # AGENTS.md
 
-`dojo` is a repository of extensible, agent-agnostic skills and hooks. 50 skills under `skills/`, 8 lifecycle hooks under `hooks/`. Skills are markdown-first (`SKILL.md` per directory) with optional `scripts/`, `references/`, `assets/`, and `commands/`.
+`dojo` is a repository of extensible, agent-agnostic skills and hooks. 51 skills under `skills/`, 8 lifecycle hooks under `hooks/`. Skills are markdown-first (`SKILL.md` per directory) with optional `scripts/`, `references/`, `assets/`, and `commands/`.
 
 ## Documentation Map
 
