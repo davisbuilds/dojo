@@ -171,6 +171,16 @@ To refresh:
 3. Run `bash scripts/run_cli.sh spec --rules-only --format json` and reconcile any rule additions, removals, or severity changes against the table in `format-primer.md`.
 4. Run `bash scripts/run_cli.sh lint` against each of the five exemplars to confirm none of them regressed under the new version.
 
+## Verification
+
+A run is complete when:
+
+- [ ] The intended subcommand (`lint`, `diff`, `export`, `spec`) has been invoked via `scripts/run_cli.sh` (not bare `npx`) so the pinned `DESIGN_MD_VERSION` is honored.
+- [ ] For `lint`: every reported finding has either been resolved in the DESIGN.md or annotated with the rule ID and a justification comment.
+- [ ] For `diff`: the changed token surface has been reported back to the user and the consuming skill (typically `frontend-design`) has been told what moved.
+- [ ] For `export`: the produced artifact (Tailwind config / DTCG JSON) is referenced from the consumer and lints clean against its own validator.
+- [ ] No edits were made directly to the exemplars under `references/exemplars/` unless the user explicitly asked.
+
 ## Sibling skills
 
 The four design skills compose into a pipeline: **spec → build → review**. Hand off when the request crosses an axis.
