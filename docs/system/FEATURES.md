@@ -4,7 +4,7 @@ Product-surface reference for the Agent Skills Repository.
 
 ## Skills Catalog
 
-Catalog snapshot by category. For canonical runtime inventory, use `skills.json` (currently 51 skills):
+Catalog snapshot by category. For canonical runtime inventory, use `skills.json` (currently 52 skills):
 
 ```bash
 jq '.skills | length' skills.json
@@ -52,6 +52,7 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 |-------|---------|
 | `autonomous-engineering` | Full end-to-end feature workflows (`/lfg`, `/slfg`) |
 | `brainstorming` | Explore requirements before implementation |
+| `caveman` | Sticky ultra-compressed output mode (~75% token cut) until the user says "stop caveman" |
 | `first-principles` | Systems reasoning for high-stakes decisions |
 | `writing-plans` | Structured implementation plans with explicit verification and handoff gates |
 | `create-cli` | CLI parameter and UX design |
