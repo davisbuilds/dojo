@@ -138,3 +138,11 @@ When updating the repo-local artifacts:
 
 - `references/hardening-matrix.md`
 - `references/artifact-layout.md`
+
+## Sibling skills
+
+Two security skills, distinguished by *scope*.
+
+- `secure-code` — semgrep-based static scan of *application code* for vulnerabilities (injection, auth, secrets). This skill is broader (supply-chain, CI/CD, repo posture); pair them on high-stakes audits.
+- `audit-skill` — security audit specifically for *agent skills* (prompt injection, exfiltration). Different artifact; use that one before installing third-party skills.
+- `code-review-agents` — multi-agent review whose security agent overlaps with `secure-code`; orthogonal to repo-level hardening here.

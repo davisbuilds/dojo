@@ -98,3 +98,11 @@ Before finalizing diagnosis:
 
 - This skill focuses on inspection and diagnosis, not deploying.
 - If user asks to create/redeploy previews, use `vercel-deploy`.
+
+## Sibling skills
+
+Vercel/React stack — this skill is the *diagnose* action paired with `vercel-deploy`.
+
+- `vercel-deploy` — paired action. Common upstream cause of the logs inspected here.
+- `diagnose` — generalist debugging discipline. Use this skill first to gather Vercel-specific log evidence; hand off to `diagnose` for the broader feedback-loop framing if the bug isn't surface-level.
+- `nextjs-app-router`, `vercel-react-best-practices` — referenced when log diagnosis surfaces App Router / React performance issues.

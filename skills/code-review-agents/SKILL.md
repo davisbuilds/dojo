@@ -84,3 +84,11 @@ Before finalizing:
 - confirm findings are grounded in current diff/context
 - confirm each blocking finding includes concrete evidence
 - confirm recommendation aligns with observed risk, not default posture
+
+## Sibling skills
+
+One of three review skills (multi-agent / diff / PR).
+
+- `local-review` — generalist review on workspace diffs. Use when scope is small or specialist depth isn't justified.
+- `gh-review-pr` — same framing applied to a published PR. Pair with this skill on high-stakes PRs.
+- `secure-code` — semgrep-based static analysis. Complementary to the security agent here, not redundant: this skill reasons about architecture-level risk, that one finds concrete pattern matches.

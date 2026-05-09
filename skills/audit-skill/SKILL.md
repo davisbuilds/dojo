@@ -105,3 +105,11 @@ Return:
 ## Remediation
 
 For finding-specific remediation guidance, load `references/remediation-guide.md`. For code-level vulnerability details, cross-reference `skills/secure-code/references/secure-coding-guidelines.md`.
+
+## Sibling skills
+
+Part of the skill-management toolchain (security gate) and adjacent to general security skills.
+
+- `skill-evals` — orthogonal: contract/structure validation. Run both before publishing — this skill catches malicious behavior, that one catches malformed structure.
+- `skill-installer` — common downstream caller. Run this skill against any third-party skill before installing.
+- `secure-code` — broader semgrep-based scan for application code. This skill is scoped to *agent skills*; use `secure-code` for product/library code.

@@ -166,3 +166,10 @@ Before finalizing:
 - confirm commands ran without terminal errors
 - confirm artifacts exist when they were requested
 - confirm post-action state using a fresh snapshot after major UI changes
+
+## Sibling skills
+
+Two UI-automation tools for agents, distinguished by *interaction depth*.
+
+- `screenshot` — single-shot capture of the desktop, app, window, or region. Use when you only need pixels, not interaction. This skill drives a real browser through navigation, form-fill, snapshots, and DOM extraction.
+- `frontend-design` / `design-critique` — common downstream consumers; this skill produces the rendered UI those skills evaluate.

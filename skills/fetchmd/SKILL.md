@@ -111,3 +111,8 @@ fetchmd --raw https://example.com
 - **Stdin is single-input** — Cannot mix stdin with `--file` or URL args.
 - **`--render` requires Puppeteer** — Install separately; only applies to URLs (not file/stdin).
 - **Readability may fall back** — If extraction fails, full body is used with a stderr warning. Use `--raw` if extraction consistently strips needed content.
+
+## Sibling skills
+
+- `markdown-converter` — sister format-to-markdown tool. Use that one for *file* inputs (PDF, .docx, .pptx, .xlsx); use this skill for *web* inputs (URLs or HTML).
+- `deep-research` — orchestrates this skill at scale across many sources. If the task is broad research with citations, hand off there.

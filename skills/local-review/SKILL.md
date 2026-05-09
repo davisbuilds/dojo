@@ -116,3 +116,11 @@ If the harness supports command files, use `commands/review.md` as the canonical
 
 - Prefer precise, evidence-backed findings over broad advice.
 - Do not make GitHub review API calls in this skill.
+
+## Sibling skills
+
+One of three review skills (diff / PR / multi-agent).
+
+- `gh-review-pr` — same framing applied to a published GitHub PR. Use when the work has already been pushed; this skill is for unpushed workspace diffs.
+- `code-review-agents` — multi-agent specialist review (architecture, security, performance, data, deployment). Use alongside this skill for high-stakes diffs; this skill is the lighter generalist pass.
+- `verify-before-complete` — orthogonal gate. Run before claiming a diff is "done"; this skill produces the findings, that one enforces the completion claim.

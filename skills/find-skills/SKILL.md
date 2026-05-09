@@ -151,3 +151,11 @@ I can still help you with this task directly! Would you like me to proceed?
 If this is something you do often, you could create your own skill:
 npx skills init my-xyz-skill
 ```
+
+## Sibling skills
+
+Part of the skill-management toolchain (discovery).
+
+- `skill-installer` — downstream. Once a skill is found, install it here.
+- `skill-creator` / `template` — alternative path when no existing skill fits and authoring a new one is the right move.
+- `audit-skill` — run before installing any third-party result this skill surfaces.

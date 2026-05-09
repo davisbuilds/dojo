@@ -103,4 +103,9 @@ If any item fails, the mode silently broke. Self-correct on the next response wi
 
 ## Sibling skills
 
-- `compact-session` — different scope. compact-session produces a structured summary for handoff between sessions; caveman is a styling mode applied to *live* output. Don't conflate.
+One of four `reference`-typed *Disciplines* — modes that govern *how* the agent operates.
+
+- `verify-before-complete` — completion-claim gate. Orthogonal axis: that one rules *what* the agent claims; this one rules *how* the agent writes.
+- `test-strategy` — testing methodology. Orthogonal.
+- `first-principles` — reasoning methodology. Orthogonal — applies before/during decisions, not output.
+- `compact-session` — different scope. That skill produces a structured summary for handoff between sessions; this one is a styling mode applied to *live* output.

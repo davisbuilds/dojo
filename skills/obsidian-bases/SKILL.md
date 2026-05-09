@@ -258,3 +258,10 @@ filters:
 - [Functions](https://help.obsidian.md/bases/functions)
 - [Views](https://help.obsidian.md/bases/views)
 - [Formulas](https://help.obsidian.md/formulas)
+
+## Sibling skills
+
+Three Obsidian-format references, distinguished by *file type*.
+
+- `obsidian-markdown` — `.md` notes with Obsidian extensions (wikilinks, callouts, properties). Use for note authoring; this skill is for the database-view layer over those notes.
+- `obsidian-canvas` — `.canvas` visual canvases. Orthogonal.

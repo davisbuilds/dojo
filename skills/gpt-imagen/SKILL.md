@@ -185,3 +185,7 @@ Asset-type templates (website assets, game assets, wireframes, logo) are consoli
 - **`references/prompting.md`**: prompting principles (structure, constraints/invariants, iteration patterns).
 - **`references/sample-prompts.md`**: copy/paste prompt recipes (generate + edit workflows; examples only).
 - **`references/codex-network.md`**: environment/sandbox/network-approval troubleshooting.
+
+## Sibling skills
+
+- `gemini-imagen` — same shape, different provider. Choose Gemini for multi-image composition, native 4K/extreme aspect ratios, or text rendering inside images. Choose this skill (OpenAI) when the user asks for DALL-E / `gpt-image-1`, needs precise inpainting/masking, or has only an `OPENAI_API_KEY`.

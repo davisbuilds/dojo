@@ -118,3 +118,11 @@ Good documentation includes:
 - Code examples included in solution section
 - Cross-references added if related issues found
 - User presented with decision menu
+
+## Sibling skills
+
+Four knowledge-capture skills, distinguished by *output shape*:
+
+- `session-retro` — append facts into existing reference docs. Use when the learning fits an existing file; this skill creates a new categorized solution doc.
+- `compact-session` — narrative summary for handoff. Different output.
+- `self-improve` — promote *recurring* patterns into reusable artifacts. Use when a pattern repeats across sessions; this skill is for a single confirmed solution.

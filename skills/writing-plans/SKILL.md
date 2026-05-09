@@ -125,3 +125,11 @@ Then offer:
 ## Command Wrapper
 
 If command files are supported, use `commands/workflows/plan.md` as the canonical `/workflows:plan` wrapper.
+
+## Sibling skills
+
+Pre-execution thinking pipeline: **brainstorm → reason → research → plan**.
+
+- `brainstorming` — upstream. Use when WHAT is ambiguous; come here once direction is clear and HOW needs structuring.
+- `first-principles` — upstream for high-stakes plans. Use it when the plan hinges on a non-obvious architectural decision.
+- `deep-research` — parallel. Use when the plan needs evidence (library behavior, prior art, current docs).

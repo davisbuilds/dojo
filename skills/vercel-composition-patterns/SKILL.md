@@ -108,3 +108,11 @@ For the complete guide with all rules expanded: `references/compiled-guide.md`
 - Provider is the only place that knows how state is managed
 - Components use `children` for composition rather than `renderX` props
 - React 19 APIs (`use()`) used only when project targets React 19+
+
+## Sibling skills
+
+Vercel/React reference layer — composition-focused. Sibling references at different axes:
+
+- `vercel-react-best-practices` — perf axis (waterfalls, RSC, bundle).
+- `nextjs-app-router` — Next.js routing axis.
+- `vercel-react-native-skills` — same composition principles applied to React Native.

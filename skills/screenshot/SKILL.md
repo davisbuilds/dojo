@@ -293,3 +293,10 @@ gnome-screenshot -w -f output/window.png
 - If Linux region/window capture fails, check tool availability with `command -v scrot`, `command -v gnome-screenshot`, and `command -v import`.
 - If saving to the OS default location fails with permission errors in a sandbox, rerun the command with escalated permissions.
 - Always report the saved file path in the response.
+
+## Sibling skills
+
+Two UI-automation tools for agents, distinguished by *interaction depth*.
+
+- `playwright` — drives a real browser through navigation, form-fill, snapshots, and DOM extraction. Use when the task needs browser interaction or web-page state, not just desktop pixels. This skill captures whatever is already on screen.
+- `design-critique` / `frontend-design` — common downstream consumers; this skill produces the artifact they evaluate when the source is a desktop app or non-browser UI.
