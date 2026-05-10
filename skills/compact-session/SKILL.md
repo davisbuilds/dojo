@@ -170,3 +170,11 @@ The summary should feel like watching a fast-forward of the entire session.
 ## Template
 
 See `assets/summary-template.md` for a blank template to start from.
+
+## Sibling skills
+
+Four knowledge-capture skills, distinguished by *scope* and *timing*:
+
+- `session-retro` — append non-obvious *learnings* into existing project reference docs at session end. Different output: this skill produces a fast-forward summary, that one routes facts into reference files.
+- `self-improve` — capture *recurring* patterns and promote them into reusable artifacts (proposals, candidate skills). Different cadence: that one is across sessions; this one is within one.
+- `compound-docs` — categorize a confirmed *solution* under `docs/solutions/`. Different shape: solution-document, not session-summary.

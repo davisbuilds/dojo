@@ -191,3 +191,10 @@ For complete worked examples (mind map, project board, research canvas, flowchar
 
 - [JSON Canvas Spec 1.0](https://jsoncanvas.org/spec/1.0/)
 - [JSON Canvas GitHub](https://github.com/obsidianmd/jsoncanvas)
+
+## Sibling skills
+
+Three Obsidian-format references, distinguished by *file type*.
+
+- `obsidian-markdown` — `.md` notes. Use for note authoring; canvases reference notes as nodes.
+- `obsidian-bases` — `.base` database views. Orthogonal.

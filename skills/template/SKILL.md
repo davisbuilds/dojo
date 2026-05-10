@@ -77,3 +77,11 @@ Use this checklist before shipping. All items are enforced by `validate_skill_co
 - [ ] All `<!-- comments -->` removed
 - [ ] Validated: `python3 skills/skill-creator/scripts/quick_validate.py <skill-path>`
 - [ ] Strict pass: `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills <name> --strict`
+
+## Sibling skills
+
+Part of the skill-management toolchain.
+
+- `skill-creator` — guided authoring path. Use that skill when you want full guidance; use this template when you just need a contract-passing shell.
+- `skill-evals` — runs the strict validator referenced in the checklist above.
+- `audit-skill` — security audit before publishing/installing.

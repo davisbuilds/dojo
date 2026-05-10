@@ -140,3 +140,11 @@ For the complete guide with all rules expanded: `references/compiled-guide.md`
 - Animations target only `transform` and `opacity` properties
 - Native stack and native tabs used over JS-based navigators
 - Text content wrapped in `<Text>` components — no bare strings in JSX
+
+## Sibling skills
+
+Vercel/React reference layer — React Native / Expo branch.
+
+- `vercel-react-best-practices` — web counterpart. Many principles transfer; this skill is the RN-specific layer.
+- `vercel-composition-patterns` — same composition principles, framework-agnostic.
+- `nextjs-app-router` — web-only sibling reference; not applicable to RN projects.

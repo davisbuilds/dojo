@@ -137,3 +137,12 @@ Do not mix discarded items back into final claims.
 ## References
 
 - `references/contracts.md`: input schemas, output schemas, and composable usage notes.
+
+## Sibling skills
+
+Parallel evidence-gathering stage in the pre-execution pipeline.
+
+- `brainstorming` — common caller when option exploration depends on facts.
+- `first-principles` — common caller when reasoning hinges on unknowns (library behavior, API contracts).
+- `writing-plans` — common caller when a plan needs grounded references.
+- `fetchmd` — narrower tool for fetching specific known URLs into markdown; this skill orchestrates broader web-backed research with depth routing and citation synthesis.

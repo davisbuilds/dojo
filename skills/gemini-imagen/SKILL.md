@@ -230,3 +230,7 @@ The API supports up to 14 input images per request.
 - Output filename follows the `yyyy-mm-dd-hh-mm-ss-name.jpg` convention
 - For edits, the `--input-image` path exists and is accessible
 - Final deliverables use `--resolution 4K`; drafts use 1K
+
+## Sibling skills
+
+- `gpt-imagen` — same shape, different provider. Choose this skill (Gemini / Nano Banana) for multi-image composition, native 4K/extreme aspect ratios, or text-in-image rendering. Choose `gpt-imagen` when the user asks for DALL-E / `gpt-image-1`, needs precise inpainting/masking, or has only an `OPENAI_API_KEY`.

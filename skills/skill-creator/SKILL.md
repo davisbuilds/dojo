@@ -435,3 +435,14 @@ After testing the skill, users may request improvements. Often this happens righ
 2. Notice struggles or inefficiencies
 3. Identify how SKILL.md or bundled resources should be updated
 4. Implement changes and test again
+
+## Sibling skills
+
+Part of the skill-management toolchain: **scaffold → validate → audit → install → maintain**, with discovery alongside.
+
+- `template` — minimal scaffold to copy when starting a new skill. Use this skill for the full guided creation; use `template` when you just need the contract-passing shell.
+- `skill-evals` — downstream validation. Run after authoring/edits to confirm contract compliance and trigger reliability.
+- `audit-skill` — security audit (prompt injection, exfiltration, dangerous code). Run before publishing or installing untrusted skills.
+- `skill-installer` — install curated or third-party skills into Claude/Codex/Agents homes.
+- `skill-standardizer` — keep multiple skill copies in sync across canonical/global/local mirrors.
+- `find-skills` — discover skills available to install.

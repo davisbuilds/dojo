@@ -95,3 +95,11 @@ python3 skills/self-improve/scripts/extract_skill_candidate.py \
 - `references/adapter-patterns.md` - Optional harness adapter patterns.
 - `assets/sample-prompts.md` - Prompt examples for routing and manual testing.
 - `commands/self-improve.md` - Slash-style wrapper for harnesses that support command files.
+
+## Sibling skills
+
+Four knowledge-capture skills, distinguished by *scope* and *timing*:
+
+- `session-retro` — append per-session learnings to project reference files. Different scope: this skill operates across sessions, surfacing recurring patterns; that one captures one-off facts within a single session.
+- `compact-session` — fresh summary for handoff. Different output and timing.
+- `compound-docs` — write a categorized solution document. Use that one when a single confirmed solution warrants its own doc; use this one when a pattern recurs across many sessions.

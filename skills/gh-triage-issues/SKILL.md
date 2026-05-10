@@ -218,3 +218,11 @@ Before reporting completion:
 ## Command Wrapper
 
 If the harness supports command files, use `commands/triage-issue.md` as the canonical entrypoint for this skill.
+
+## Sibling skills
+
+The four `gh-*` skills cover the issue-to-merge pipeline: **triage → fix → commit/push/PR → review**.
+
+- `gh-fix-issue` — next stage. Once an issue is triaged and ready to work, hand off here for the analyze→implement→PR loop.
+- `gh-commit-push-pr` — used inside `gh-fix-issue` and standalone for ad-hoc changes.
+- `gh-review-pr` — closing stage. Run on PRs (yours or others') for findings + merge recommendation.

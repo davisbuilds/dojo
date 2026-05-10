@@ -152,3 +152,11 @@ You MUST call multiple tools in a single response when the calls are independent
 ## Command Wrapper
 
 If the harness supports command files, use `commands/commit-push-pr.md` as the canonical entrypoint for this skill.
+
+## Sibling skills
+
+Part of the `gh-*` issue-to-merge pipeline. Most often invoked at the end of `gh-fix-issue`.
+
+- `gh-fix-issue` — typical caller. Provides commit context (issue number, scope) before delegating here.
+- `gh-review-pr` — runs on the PR this skill creates.
+- `gh-triage-issues` — orthogonal; concerned with issue metadata, not code changes.

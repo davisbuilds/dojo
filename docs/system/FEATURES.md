@@ -26,9 +26,6 @@ jq '.skills | length' skills.json
 | `code-review-agents` | Multi-agent reviews: architecture, security, data, performance, deployment |
 | `diagnose` | Disciplined six-phase debugging loop — build a deterministic pass/fail signal, reproduce, hypothesise, instrument, fix, regression-test |
 | `local-review` | Findings-first local reviews on workspace diffs |
-| `repo-hardening` | Audit repos for supply-chain risk, generate repo-local security artifacts, and drive hardening work |
-| `test-strategy` | Testing methodology: TDD, real dependencies over mocks, behavior-based tests |
-| `verify-before-complete` | Require verification evidence before completion claims |
 
 ### Content Creation and Design
 
@@ -42,7 +39,6 @@ jq '.skills | length' skills.json
 | `gpt-imagen` | Image generation/editing via OpenAI Image API |
 | `theme-factory` | Apply preset or generated theme systems |
 | `web-design-guidelines` | Review UI against web interface guidelines |
-| `screenshot` | Capture screenshots across platforms |
 
 The four design skills above compose into a pipeline: `design-md` (token spec) → `frontend-design` (build) → `design-critique` (taste / AI-slop review), with `web-design-guidelines` as a parallel rule-compliance pass (Vercel WIG, accessibility, UX). Each skill's body carries a `Sibling skills` footer that names the adjacent stages and hand-off cues.
 
@@ -52,13 +48,29 @@ The four design skills above compose into a pipeline: `design-md` (token spec) �
 |-------|---------|
 | `autonomous-engineering` | Full end-to-end feature workflows (`/lfg`, `/slfg`) |
 | `brainstorming` | Explore requirements before implementation |
-| `caveman` | Sticky ultra-compressed output mode (~75% token cut) until the user says "stop caveman" |
-| `first-principles` | Systems reasoning for high-stakes decisions |
 | `writing-plans` | Structured implementation plans with explicit verification and handoff gates |
 | `create-cli` | CLI parameter and UX design |
 | `agent-native-architecture` | Build agent-native apps with tool/action parity |
 | `deep-research` | Web-backed research with conditional depth and evidence filtering |
 | `self-improve` | Capture learnings, compact them, and promote validated patterns into reusable artifacts |
+
+### Disciplines
+
+`reference`-typed skills that govern *how* the agent operates rather than what to build. They produce no discrete deliverable; they shape style, rigor, and reasoning across every other skill.
+
+| Skill | Purpose |
+|-------|---------|
+| `caveman` | Sticky ultra-compressed output mode (~75% token cut) until the user says "stop caveman" |
+| `first-principles` | Systems reasoning for high-stakes decisions — epistemic framework, decision matrix, principle tensions |
+| `test-strategy` | Testing methodology: TDD, real dependencies over mocks, behavior-based tests |
+| `verify-before-complete` | Evidence-based completion gate; require verification before claiming done |
+
+### Security
+
+| Skill | Purpose |
+|-------|---------|
+| `repo-hardening` | Audit repos for supply-chain risk, generate repo-local security artifacts, and drive hardening work |
+| `secure-code` | Static analysis security scanning and architectural trifecta detection via semgrep |
 
 ### Platform Integrations
 
@@ -70,7 +82,13 @@ The four design skills above compose into a pipeline: `design-md` (token spec) �
 | `nextjs-app-router` | Next.js App Router patterns, data fetching, and debugging |
 | `vercel-react-native-skills` | React Native and Expo best practices |
 | `vercel-composition-patterns` | Scalable React composition patterns |
-| `playwright` | Browser automation from the terminal |
+
+### UI Automation
+
+| Skill | Purpose |
+|-------|---------|
+| `playwright` | Browser automation from the terminal — navigation, form filling, screenshots, data extraction |
+| `screenshot` | Capture screenshots across platforms (full screen, app/window, region) |
 
 ### Knowledge and Documentation
 

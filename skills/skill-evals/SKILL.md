@@ -57,3 +57,11 @@ Provide:
 
 - `references/contracts.md` - input/output schemas
 - `assets/sample-trigger-cases.json` - fixture for trigger tests
+
+## Sibling skills
+
+Part of the skill-management toolchain.
+
+- `skill-creator` / `template` — upstream authoring. Validate after edits land here.
+- `audit-skill` — security review (prompt injection, exfiltration). Orthogonal to contract validation; this skill checks structure, that one checks safety.
+- `skill-standardizer` — keep skill copies aligned across mirrors after validation passes.

@@ -101,3 +101,11 @@ See `references/writing-custom-rules.md` for authoring guidance.
 ## Network
 
 semgrep rule downloads require network access on first run. After initial fetch, rules are cached locally. Use `--metrics=off` and `--disable-version-check` to minimize network calls.
+
+## Sibling skills
+
+Two security skills, distinguished by *scope*.
+
+- `repo-hardening` — broader posture audit (supply-chain, CI/CD, GitHub Actions pinning, branch protection). Pair on high-stakes audits; this skill is the application-code half.
+- `audit-skill` — security audit specifically for *agent skills*. Different artifact; use it before installing third-party skills.
+- `code-review-agents` — security agent overlaps with this skill but reasons about architecture-level risk; this skill produces concrete pattern matches.

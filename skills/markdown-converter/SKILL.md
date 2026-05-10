@@ -93,3 +93,7 @@ uvx markitdown scan.pdf -d -e "https://your-resource.cognitiveservices.azure.com
 - `uvx` is available in the environment (no pre-installation required)
 - For Azure Document Intelligence, endpoint is reachable and credentials are valid
 - Output file is non-empty when `-o` is used
+
+## Sibling skills
+
+- `fetchmd` — sister format-to-markdown tool. Use this skill for *file* inputs (PDF, .docx, .pptx, .xlsx, image OCR); use `fetchmd` for *web* inputs (URLs or HTML).

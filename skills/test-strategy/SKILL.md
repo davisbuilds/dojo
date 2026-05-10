@@ -1,7 +1,7 @@
 ---
 name: test-strategy
 description: Guide agents to follow preferred testing methodology — red/green TDD, real dependencies over mocks, behavior-based tests. Use when writing tests, planning test coverage, deciding between TDD and test-after, or when the agent defaults to excessive mocking. Triggers on 'write tests', 'add test coverage', 'how should I test this', 'TDD', 'test strategy', 'test plan'.
-skill-type: workflow
+skill-type: reference
 ---
 
 # Test Strategy
@@ -110,3 +110,12 @@ Mocks are not acceptable when:
 ## Resources
 
 - `references/verification-checklist.md` — post-test self-review checklist
+
+## Sibling skills
+
+One of four `reference`-typed *Disciplines* — modes that govern *how* the agent operates.
+
+- `verify-before-complete` — completion-claim gate. Common downstream: the tests this methodology produces feed that gate's evidence requirements.
+- `first-principles` — reasoning methodology. Orthogonal axis: that one is for architectural decisions; this one is for testing decisions.
+- `caveman` — output-style mode. Orthogonal.
+- `diagnose` — common upstream caller; the regression test in Phase 5 should follow this skill's methodology.

@@ -87,3 +87,11 @@ All of these scripts use network, so when running in the sandbox, request escala
 - Git fallback tries HTTPS first, then SSH.
 - The skills at https://github.com/openai/skills/tree/main/skills/.system are preinstalled, so no need to help users install those. If they ask, just explain this. If they insist, you can download and overwrite.
 - Installed annotations come from the selected agent home (`$CODEX_HOME/skills` or `$CLAUDE_HOME/skills`) unless `--dest` is provided.
+
+## Sibling skills
+
+Part of the skill-management toolchain.
+
+- `find-skills` — upstream. Use to discover what's available before installing.
+- `audit-skill` — security gate. Run before installing any third-party or untrusted skill.
+- `skill-standardizer` — downstream. After installing across multiple homes, use this to consolidate copies and avoid duplicate catalog entries.

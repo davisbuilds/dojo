@@ -90,3 +90,11 @@ Reference these guidelines when:
 - `cookies()` and `headers()` are awaited in server code
 - Error boundaries exist at appropriate route segment levels
 - Metadata uses `generateMetadata` for dynamic values, not `next/head`
+
+## Sibling skills
+
+Vercel/React reference layer — App Router-focused. Sibling references at different axes:
+
+- `vercel-react-best-practices` — perf optimization (waterfalls, server-component data shaping). Pair with this skill on perf-sensitive routes.
+- `vercel-composition-patterns` — component composition patterns. Orthogonal axis.
+- `vercel-deploy` / `vercel-preview-logs` — runtime side.

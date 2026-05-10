@@ -193,3 +193,11 @@ See `references/policy.md` for policy details and tradeoffs.
 - All symlinks resolve to valid targets
 - No plugin cache directories were mutated unless explicitly included
 - Canonical and target roots are printed before any apply operation
+
+## Sibling skills
+
+Part of the skill-management toolchain (maintenance).
+
+- `skill-installer` — common upstream. Use this skill after installing across multiple agent homes to consolidate copies.
+- `skill-evals` — run after sync to confirm copies still pass the contract.
+- `find-skills` — discovery. Orthogonal to drift management.

@@ -162,3 +162,12 @@ For the complete guide with all rules expanded: `references/compiled-guide.md`
 - No barrel file imports in bundles — direct imports used instead
 - Server components minimize data serialized to client components
 - Auth checks present in all server actions
+
+## Sibling skills
+
+Vercel/React reference layer — perf-focused. Sibling references at different axes:
+
+- `nextjs-app-router` — App Router routing, Server Components, async APIs. Pair with this skill on Next.js 13+ projects.
+- `vercel-composition-patterns` — component composition patterns. Orthogonal axis (architecture, not perf).
+- `vercel-react-native-skills` — same shape for React Native / Expo.
+- `vercel-deploy` / `vercel-preview-logs` — runtime side; this skill is build/code side.

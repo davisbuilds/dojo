@@ -183,3 +183,12 @@ Before posting review:
 ## Command Wrapper
 
 If the harness supports command files, use `commands/review-pr.md` as the canonical entrypoint for this skill.
+
+## Sibling skills
+
+Final stage of the `gh-*` issue-to-merge pipeline, and one of three review skills (PR / diff / multi-agent).
+
+- `gh-fix-issue` — common upstream caller.
+- `local-review` — same review framing applied to *uncommitted workspace diffs* instead of a published PR.
+- `code-review-agents` — multi-agent specialist review (architecture, security, performance, etc.); use alongside this skill for high-stakes PRs.
+- `gh-triage-issues` — orthogonal; concerned with issue metadata, not code review.

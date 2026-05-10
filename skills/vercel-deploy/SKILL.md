@@ -81,3 +81,10 @@ Before reporting success:
 - confirm CLI returned a deployment URL
 - confirm command exit status was successful
 - include preview URL (and claim URL when present)
+
+## Sibling skills
+
+Vercel/React stack — this skill is the *deploy* action.
+
+- `vercel-preview-logs` — paired diagnose action. Use after a failed deploy or to inspect runtime logs of a preview created here.
+- `nextjs-app-router`, `vercel-react-best-practices`, `vercel-composition-patterns`, `vercel-react-native-skills` — parallel `reference` skills consulted before/during the build that produces the deploy artifact.

@@ -283,3 +283,11 @@ Escape pipes with backslash in wikilinks inside tables:
 - [Embed files](https://help.obsidian.md/embeds)
 - [Callouts](https://help.obsidian.md/callouts)
 - [Properties](https://help.obsidian.md/properties)
+
+## Sibling skills
+
+Three Obsidian-format references, distinguished by *file type*.
+
+- `obsidian-bases` — `.base` files: database-style views, filters, formulas. Use when the file extension is `.base` or the user mentions Bases.
+- `obsidian-canvas` — `.canvas` files: visual node/edge canvases. Use for `.canvas` files or whiteboard-style diagrams.
+- This skill covers `.md` notes with Obsidian-Flavored extensions (wikilinks, callouts, embeds, properties).

@@ -148,3 +148,11 @@ Explain why in one sentence and ask for confirmation. If the target skill is una
 - YAGNI: avoid speculative complexity
 - Stay on WHAT; implementation details belong to planning
 - Validate alignment incrementally before moving forward
+
+## Sibling skills
+
+Pre-execution thinking pipeline: **brainstorm → reason → research → plan**.
+
+- `first-principles` — escalate to here when the brainstorm reaches a high-stakes architectural or trade-off decision that needs systems-level reasoning, not just option exploration.
+- `deep-research` — parallel evidence gathering when the brainstorm depends on facts you don't have (library behavior, API contracts, prior art).
+- `writing-plans` — downstream. Once WHAT is clear, hand off to plan HOW.

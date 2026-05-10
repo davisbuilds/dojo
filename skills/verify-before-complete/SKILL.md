@@ -1,7 +1,7 @@
 ---
 name: verify-before-complete
 description: Enforce evidence-based completion claims. Use when you are about to state work is fixed, passing, done, or complete, and run verification first.
-skill-type: workflow
+skill-type: reference
 ---
 
 # Verify Before Complete
@@ -117,3 +117,12 @@ Do not:
 ## Bottom Line
 
 Run the right checks, read the results, then claim only what the evidence proves.
+
+## Sibling skills
+
+One of four `reference`-typed *Disciplines* — modes that govern *how* the agent operates rather than what to build.
+
+- `test-strategy` — testing methodology. Common upstream: this skill demands evidence; that one shapes what the evidence-producing test should look like.
+- `first-principles` — reasoning methodology. Orthogonal axis (start-of-task) to the completion gate here (end-of-task).
+- `caveman` — output-style mode. Orthogonal — concerned with *how the agent writes*, not *what the agent claims*.
+- `diagnose` — common upstream caller; Phase 6 of the diagnose loop hands off to this gate.

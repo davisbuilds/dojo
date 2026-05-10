@@ -1,7 +1,7 @@
 ---
 name: first-principles
 description: "Guide agent into first-principles, systems-thinking reasoning for high-stakes technical tasks. Use when making architectural or design decisions, evaluating trade-offs between competing approaches, performing deep code review, debugging complex or unclear failures, planning non-mechanical refactors, or starting greenfield implementations. Triggers on: 'what approach should I take', 'help me decide', 'evaluate trade-offs', 'design review', 'why is this failing', 'architect', 'first principles', 'think through this', 'compare approaches', 'root cause', 'how should I structure this'."
-skill-type: workflow
+skill-type: reference
 ---
 
 ## When To Use
@@ -140,3 +140,17 @@ When writing or modifying code:
 - Trade-offs name concrete costs, not vague "might be harder to maintain"
 - Engineering principles were applied as lenses, not invoked as dogma
 - Verification criteria were defined before or alongside implementation
+
+## Sibling skills
+
+This skill is in two clusters: **pre-execution thinking** and **disciplines** (modes that govern *how* the agent reasons).
+
+Pre-execution thinking:
+- `brainstorming` — upstream. Use that skill when WHAT is ambiguous; this skill when HOW or WHY needs systems-level reasoning.
+- `writing-plans` — downstream. Once a direction is reasoned out, hand off to author the executable plan.
+- `deep-research` — parallel evidence gathering when reasoning hinges on unknowns.
+
+Disciplines:
+- `verify-before-complete` — gate at the *end* of execution. This skill shapes thinking at the start.
+- `test-strategy` — methodology for the testing decisions; orthogonal axis to architectural reasoning here.
+- `caveman` — output style mode; orthogonal.

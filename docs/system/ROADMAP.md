@@ -27,6 +27,7 @@ Last updated from the [skills analysis](../skills-analysis-2026-3-07.md) (2026-0
 | Design systems layer | Added `design-md` (Google `@google/design.md` CLI wrapper) and `design-critique` (closed 37-pattern slop catalog with structured findings) plus 5 Refero exemplars; sibling-skills footer convention disambiguates the four-skill design pipeline |
 | Add diagnose skill | Adapted mattpocock's feedback-loop-first debugging discipline into a six-phase workflow with a `scaffold_feedback_loop.sh` template generator (7 loop kinds) and a HITL bash harness |
 | Add caveman skill | Adapted mattpocock's ultra-compressed communication mode as a `reference`-typed skill — sticky output style with explicit Auto-Clarity Exception list and verification checklist |
+| Catalog typing + sibling clusters | Reclassified `verify-before-complete`, `test-strategy`, `first-principles`, `agent-native-architecture` from workflow→reference (body shape is reference). Added `Disciplines`, `Security`, and `UI Automation` categories to FEATURES.md. Added `Sibling skills` footers to 12 clusters (~40 skills): GitHub flow, skill management, knowledge capture, pre-execution thinking, code review, disciplines, obsidian, image-gen, vercel/react, format-to-md, security, UI automation |
 | Soften brainstorming | Removed XML hard-gate, added Boundaries/Verification/Resources |
 | Enhance first-principles | Added engineering principles, tension resolution table, verification (110→141 lines) |
 | Deduplicate fetch_issue.sh | Unified to `scripts/fetch_issue.sh`, symlinked from both skills |
