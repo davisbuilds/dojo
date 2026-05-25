@@ -2,6 +2,41 @@
 
 This repository contains **Agent Skills**—modular packages that extend an AI agent's capabilities with specialized knowledge, workflows, and tool integrations. These skills allow general-purpose agents (Claude, Codex, etc) to perform specialized tasks in specific domains.
 
+## Agent Setup
+
+New here? Paste the prompt below into your coding agent (Claude Code, Codex, etc.) and it will install the toolchain, validate the skills, and tell you how to install a skill into your agent.
+
+```text
+Set up the `dojo` repo for me. It's a collection of agent-agnostic Skills (markdown
+`SKILL.md` files) and lifecycle hooks for coding agents like Claude Code and Codex.
+It's markdown-first with small Python helper scripts.
+
+Do this, in order:
+
+1. Check system tools. These must be on PATH (the hooks use them): git, jq,
+   python3, sed, grep. Run:
+   for cmd in git jq python3 sed grep; do command -v "$cmd" >/dev/null && echo "$cmd: ok" || echo "$cmd: MISSING"; done
+   If any are MISSING, tell me which and how to install (e.g. `brew install jq`).
+
+2. Install Python deps from the hash-pinned lockfile:
+   `python -m pip install --require-hashes -r requirements.lock` (currently just
+   PyYAML). No env vars or secrets are required for the core repo — only the
+   optional gpt-imagen / gemini-imagen skills need OPENAI_API_KEY / GEMINI_API_KEY,
+   and only if I use them.
+
+3. Verify WITHOUT any secrets: run the skill-contract validator —
+   `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.
+   It should pass. If it fails, show me the output and stop.
+
+4. Report back: confirm tools present + deps installed + validator passed, and show
+   me how to install a skill into my agent, e.g.
+   `python3 skills/skill-installer/scripts/install-skill-from-github.py --agent claude --repo davisbuilds/dojo --path skills/<skill-name>`.
+
+Don't commit anything.
+```
+
+Prefer to do it yourself? The manual steps are below.
+
 ## Overview
 
 A "Skill" is a self-contained directory that provides:
