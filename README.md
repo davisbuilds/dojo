@@ -1,6 +1,6 @@
 # Dojo
 
-This repository contains **Agent Skills**—modular packages that extend an AI agent's capabilities with specialized knowledge, workflows, and tool integrations. These skills allow general-purpose agents (Claude, Codex, etc) to perform specialized tasks in specific domains.
+This repository contains **Agent Skills**: markdown-first packages that extend AI agents with specialized knowledge, workflows, and tool integrations. Skills are agent-agnostic by default, with lifecycle hooks and a generated manifest keeping the catalog usable across Claude Code, Codex, and similar harnesses.
 
 ## Agent Setup
 
@@ -19,7 +19,7 @@ Do this, in order:
    If any are MISSING, tell me which and how to install (e.g. `brew install jq`).
 
 2. Install Python deps from the hash-pinned lockfile:
-   `python -m pip install --require-hashes -r requirements.lock` (currently just
+   `python3 -m pip install --require-hashes -r requirements.lock` (currently just
    PyYAML). No env vars or secrets are required for the core repo — only the
    optional gpt-imagen / gemini-imagen skills need OPENAI_API_KEY / GEMINI_API_KEY,
    and only if I use them.
@@ -37,16 +37,79 @@ Don't commit anything.
 
 Prefer to do it yourself? The manual steps are below.
 
-## Overview
+## Documentation
 
-A "Skill" is a self-contained directory that provides:
-- **Instructions**: Detailed guides on how to perform a specific task (in `SKILL.md`).
-- **Context**: Specialized knowledge or best practices.
-- **Workflow**: A structured approach to complex problems.
+- **Agent guidance**: [`AGENTS.md`](AGENTS.md)
+- **Architecture and skill structure**: [`docs/system/ARCHITECTURE.md`](docs/system/ARCHITECTURE.md)
+- **Skill catalog and command wrappers**: [`docs/system/FEATURES.md`](docs/system/FEATURES.md)
+- **Setup and operations**: [`docs/system/OPERATIONS.md`](docs/system/OPERATIONS.md)
+- **Skill authoring guidance**: [`docs/system/SKILL-BEST-PRACTICES.md`](docs/system/SKILL-BEST-PRACTICES.md)
+- **Strict skill contract**: [`docs/system/skill-contract-v1.md`](docs/system/skill-contract-v1.md)
+- **Vision and roadmap**: [`docs/project/VISION.md`](docs/project/VISION.md), [`docs/system/ROADMAP.md`](docs/system/ROADMAP.md)
+- **Git history policy**: [`docs/project/GIT_HISTORY_POLICY.md`](docs/project/GIT_HISTORY_POLICY.md)
 
-## Skill Structure
+The generated [`skills.json`](skills.json) manifest is the runtime inventory source of truth.
 
-Each skill is located in its own directory and follows this structure:
+## Prerequisites
+
+The hooks require `git`, `jq`, `python3`, `sed`, and `grep`. These ship with most systems. Verify with:
+
+```bash
+for cmd in git jq python3 sed grep; do command -v "$cmd" >/dev/null && echo "$cmd: ok" || echo "$cmd: MISSING"; done
+```
+
+If everything prints `ok`, install the Python dependencies. Otherwise install the missing tool(s) via your package manager, for example `brew install jq`.
+
+## Install
+
+Install the core Python dependencies from the hash-pinned lockfile:
+
+```bash
+python3 -m pip install --require-hashes -r requirements.lock
+```
+
+`requirements.txt` is the human-edited source for the lock. When the dependency set changes, regenerate [`requirements.lock`](requirements.lock) with:
+
+```bash
+uv pip compile --generate-hashes requirements.txt -o requirements.lock
+```
+
+Some skills bundle optional dependencies:
+
+| Skill | Extra packages | Env vars |
+|-------|----------------|----------|
+| `skills/gpt-imagen/` | `openai>=1.0.0`, `Pillow>=10.0.0` | `OPENAI_API_KEY` |
+| `skills/gemini-imagen/` | `google-genai>=1.0.0`, `Pillow>=10.0.0` | `GEMINI_API_KEY` |
+| `skills/design-md/` | `npx` on PATH; pulls `@google/design.md@0.1.1` on first invocation | — |
+
+## Quick Start
+
+```bash
+# Validate the full skill catalog against the strict contract.
+python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
+
+# Inspect the runtime skill count.
+jq '.skills | length' skills.json
+
+# Regenerate the manifest after skill metadata changes.
+python3 scripts/generate_skills_manifest.py
+
+# Install a skill into an agent.
+python3 skills/skill-installer/scripts/install-skill-from-github.py \
+  --agent claude \
+  --repo davisbuilds/dojo \
+  --path skills/<skill-name>
+```
+
+## Skill Model
+
+A skill is a self-contained directory that provides:
+
+- **Instructions**: task-specific guidance in `SKILL.md`.
+- **Context**: specialized references or best practices.
+- **Workflow**: a structured approach to complex problems.
+
+Each skill follows this structure:
 
 ```
 skill-name/
@@ -63,6 +126,8 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 - `workflow` for procedural, review, audit, remediation, or planning skills
 - `reference` for best-practice indexes and reference routers
 
+Context loading follows progressive disclosure: manifest metadata is always available, `SKILL.md` loads only when triggered, and bundled resources are read on demand.
+
 ## Available Skills
 
 Skills span GitHub workflows, code review, content creation, dev workflows, platform integrations, knowledge management, and meta/skill tooling. Use `jq '.skills | length' skills.json` for the current runtime count, and see [docs/system/FEATURES.md](docs/system/FEATURES.md) for the catalog snapshot.
@@ -71,60 +136,23 @@ Skills span GitHub workflows, code review, content creation, dev workflows, plat
 
 Hooks in `hooks/` enforce skill quality, inject session context, and nudge agents to capture learnings (skill catalog, frontmatter validation, manifest regeneration, git checks, structure checks, session retro reminder). Configured in `.claude/settings.json` and `.agents/settings.json`. See [docs/system/ARCHITECTURE.md](docs/system/ARCHITECTURE.md) for details.
 
-## Prerequisites
-
-### System tools
-
-The hooks require `git`, `jq`, `python3`, `sed`, and `grep`. These ship with most systems. Verify with:
-
-```bash
-for cmd in git jq python3 sed grep; do command -v "$cmd" >/dev/null && echo "$cmd: ok" || echo "$cmd: MISSING"; done
-```
-
-If everything prints `ok`, skip ahead to [Python dependencies](#python-dependencies). Otherwise install the missing tool(s) via your package manager (e.g. `brew install jq`, `apt install jq`).
-
-### Python dependencies
-
-Install the core Python dependencies from the hash-pinned lockfile (currently just **PyYAML**, used by the validation and manifest-generation scripts the hooks invoke):
-
-```bash
-python -m pip install --require-hashes -r requirements.lock
-```
-
-`requirements.txt` is the human-edited source for the lock. When the dependency set changes, regenerate [`requirements.lock`](/Users/dg-mac-mini/Dev/dojo/requirements.lock) with:
-
-```bash
-uv pip compile --generate-hashes requirements.txt -o requirements.lock
-```
-
-#### Optional (skill-specific)
-
-Some skills bundle their own dependencies. Uncomment the relevant sections in `requirements.txt` or install manually:
-
-| Skill | Extra packages |
-|-------|---------------|
-| `skills/gpt-imagen/` | `openai>=1.0.0`, `Pillow>=10.0.0` |
-| `skills/gemini-imagen/` | `google-genai>=1.0.0`, `Pillow>=10.0.0` |
-
-These skills also require API keys set as environment variables (`OPENAI_API_KEY`, `GEMINI_API_KEY`).
-
-## Creating a New Skill
+## Creating and Shipping Skills
 
 You can use the `skill-creator` scripts to scaffold a new skill:
 
 ```bash
 # Create a new skill directory
-python skills/skill-creator/scripts/init_skill.py <skill-name> --path ./ \
+python3 skills/skill-creator/scripts/init_skill.py <skill-name> --path ./ \
   --resources scripts,references --examples
 
 # Validate your skill structure (works with both `python` and `python3`)
-python skills/skill-creator/scripts/quick_validate.py <skill-name>
+python3 skills/skill-creator/scripts/quick_validate.py <skill-name>
 
 # Package a skill for distribution
-python skills/skill-creator/scripts/package_skill.py <skill-name> ./dist
+python3 skills/skill-creator/scripts/package_skill.py <skill-name> ./dist
 
 # Optional: generate OpenAI/Codex metadata add-on
-python skills/skill-creator/scripts/generate_openai_yaml.py <skill-name> \
+python3 skills/skill-creator/scripts/generate_openai_yaml.py <skill-name> \
   --interface default_prompt="Use $<skill-name> to help with this task."
 ```
 
@@ -132,9 +160,10 @@ The validator uses a polyglot shebang so it can also be run directly and will wo
 
 For new or updated skills, set `skill-type` before validating so the contract enforces the right structure.
 
-## Usage
+## Agent Usage
 
 When working with an agent that supports these skills:
+
 1. **Trigger**: The agent will select a skill based on its `description` in `SKILL.md` when it matches your request.
 2. **Follow Instructions**: The agent will then follow the specific protocols defined in the skill's body.
 3. **Tools**: Some skills may require specific tools (like `gh` CLI or `python`) to be installed in your environment.
@@ -155,23 +184,27 @@ python3 skills/skill-installer/scripts/install-skill-from-github.py \
 
 Some skills include optional `commands/*.md` wrappers for slash-style entrypoints. See [docs/system/FEATURES.md](docs/system/FEATURES.md) for the full list.
 
-## Resources
+## Code Layout
 
-- **`AGENTS.md`**: Guidance for AI agents on how to use this repository (single source of truth).
-- **`CLAUDE.md`**: Symlink to `AGENTS.md` so Claude Code picks up the same instructions.
-- **`requirements.txt`**: Human-edited dependency source file (core + optional per-skill extras).
-- **`requirements.lock`**: Hash-pinned install lock used by CI and reproducible local setups.
+```text
+skills/                   skill directories; each skill is anchored by SKILL.md
+hooks/                    lifecycle hooks for validation, manifest updates, and session checks
+scripts/                  manifest generation and helper scripts
+tests/                    regression tests for repository scripts
+spec/                     agent skills specification
+docs/system/              architecture, operations, catalog, contract, and authoring references
+docs/project/             project vision and git history policy
+docs/plans/               implementation plans
+docs/downloads/           pre-packaged .skill files
+docs/archive/             historical analyses and completed plans
+```
 
-## Documentation
+## Current Boundaries
 
-- Contributor workflow and PR expectations: [CONTRIBUTING.md](CONTRIBUTING.md)
-- Agent implementation guidance: [AGENTS.md](AGENTS.md)
-- Architecture and skill structure: [docs/system/ARCHITECTURE.md](docs/system/ARCHITECTURE.md)
-- Skills catalog and feature reference: [docs/system/FEATURES.md](docs/system/FEATURES.md)
-- Setup and operations: [docs/system/OPERATIONS.md](docs/system/OPERATIONS.md)
-- Product vision and principles: [docs/project/VISION.md](docs/project/VISION.md)
-- Product roadmap: [docs/system/ROADMAP.md](docs/system/ROADMAP.md)
-- Git history and branch policy: [docs/project/GIT_HISTORY_POLICY.md](docs/project/GIT_HISTORY_POLICY.md)
+- `skills.json` is generated from `skills/*/SKILL.md`; do not hand-edit it as the primary source.
+- Hooks are configured for supported local harnesses, but CI currently enforces the strict skill contract only.
+- Optional image and design skills can require external CLIs or API keys; the core repo validation does not.
+- `commands/*.md` wrappers are part of the skill surface even when a harness does not expose command files.
 
 ## Acknowledgements
 
