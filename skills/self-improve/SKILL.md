@@ -18,7 +18,7 @@ Capture self-improvement signals in a portable store, then promote only validate
 ## Boundaries
 
 - Not for updating `AGENTS.md`, `README.md`, or other project reference docs. Use `session-retro` for that.
-- Not for session handoff summaries or transcript compaction. Use `compact-session` when the goal is resumability for a fresh instance.
+- Not for session handoff summaries or transcript compaction. Use `handoff` when the goal is resumability for a fresh instance.
 - Not for creating a brand-new skill from scratch without prior learning artifacts. Use `skill-creator` for direct skill authoring.
 - Do not silently edit code, prompts, or repo docs as part of this workflow. Promotion should produce reviewable artifacts first.
 
@@ -81,7 +81,7 @@ python3 skills/self-improve/scripts/extract_skill_candidate.py \
 - `python3 skills/skill-creator/scripts/quick_validate.py skills/self-improve` passes.
 - `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills self-improve --strict` passes.
 - Capture, compaction, proposal, and extraction scripts run without crashing on a demo store.
-- Trigger evals keep `self-improve` separate from `session-retro`, `compact-session`, and `skill-creator`.
+- Trigger evals keep `self-improve` separate from `session-retro`, `handoff`, and `skill-creator`.
 
 ## Resources
 
@@ -101,5 +101,5 @@ python3 skills/self-improve/scripts/extract_skill_candidate.py \
 Four knowledge-capture skills, distinguished by *scope* and *timing*:
 
 - `session-retro` — append per-session learnings to project reference files. Different scope: this skill operates across sessions, surfacing recurring patterns; that one captures one-off facts within a single session.
-- `compact-session` — fresh summary for handoff. Different output and timing.
+- `handoff` — fresh session summary for a new instance. Different output and timing.
 - `compound-docs` — write a categorized solution document. Use that one when a single confirmed solution warrants its own doc; use this one when a pattern recurs across many sessions.

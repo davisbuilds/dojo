@@ -1,10 +1,10 @@
 ---
-name: compact-session
+name: handoff
 description: Create comprehensive session summaries for context preservation and seamless handoff. Use when (1) conversation approaching context limits, (2) user requests session summary, (3) preparing handoff documentation to another agent or fresh instance, (4) archiving work for future reference.
 skill-type: workflow
 ---
 
-# Compact Session
+# Handoff
 
 Create summaries that enable a fresh instance to continue work seamlessly with no prior context.
 
@@ -24,7 +24,7 @@ Create summaries that enable a fresh instance to continue work seamlessly with n
 
 ## Verification
 
-- Summary is written to `docs/sessions/COMPACT_{SESSION-NAME}_{YYYY-MM-DD}.md`
+- Summary is written to `docs/sessions/HANDOFF_{SESSION-NAME}_{YYYY-MM-DD}.md`
 - All 9 numbered sections are present (use "None" for inapplicable sections)
 - File paths are absolute and code snippets include language identifiers
 - A fresh agent instance could resume work from the summary without clarifying questions
@@ -35,7 +35,7 @@ Answer: "If I were dropped into this conversation cold, what would I need to pic
 
 ## Output File Location
 
-Write the session summary to: `docs/sessions/COMPACT_{SESSION-NAME}_{YYYY-MM-DD}.md`
+Write the session summary to: `docs/sessions/HANDOFF_{SESSION-NAME}_{YYYY-MM-DD}.md`
 
 **Determining SESSION-NAME automatically:**
 Derive a concise, descriptive name (2-4 words, kebab-case) from the session context:
@@ -58,7 +58,7 @@ Examples:
 2. Derive SESSION-NAME from the session context
 3. Get current date in YYYY-MM-DD format
 4. Create `docs/sessions/` directory if it doesn't exist
-5. Write summary to `docs/sessions/COMPACT_{SESSION-NAME}_{YYYY-MM-DD}.md`
+5. Write summary to `docs/sessions/HANDOFF_{SESSION-NAME}_{YYYY-MM-DD}.md`
 6. Inform user of the file location
 
 ## Summary Structure

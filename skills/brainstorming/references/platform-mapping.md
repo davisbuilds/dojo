@@ -10,9 +10,9 @@ This file keeps the core `brainstorming` skill model-agnostic and moves platform
 ## Planning Handoff Mapping
 
 - Generic: "Proceed to planning"
-- Claude workflows: `/workflows:plan` (if available)
-- Skill-driven harnesses: invoke `writing-plans` (or equivalent planning skill)
-- Manual fallback: create a detailed implementation plan in `docs/plans/`
+- Claude workflows: `/workflows:spec` (if available)
+- Skill-driven harnesses: invoke `write-spec` (or equivalent planning skill)
+- Manual fallback: create a detailed spec in `docs/specs/`
 
 ## Questioning/Interaction Mapping
 

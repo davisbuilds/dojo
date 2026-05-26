@@ -9,7 +9,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 | Item | What Changed |
 |------|-------------|
 | 52 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, and meta/skill tooling |
-| 8-hook quality pipeline | Session-start catalog injection, pre/post-tool-use validation and manifest sync, implementation-plan validation, git checks, structure checks, session retro reminder |
+| 8-hook quality pipeline | Session-start catalog injection, pre/post-tool-use validation and manifest sync, spec validation, git checks, structure checks, session retro reminder |
 | Skill packaging and distribution | `.skill` zip format with validation |
 | Command wrappers | Deterministic slash-style entrypoints |
 | Skill installer | Supports Claude Code and Codex destinations |
@@ -102,7 +102,7 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 
 4. **Add caching to deep-research** -- Avoid re-researching previously answered questions
 5. **Add rule testing to hookify** -- Let users validate rules before activation
-6. **Add example plans to writing-plans** -- Show what good plans look like
+6. **Add example specs to write-spec** -- Show what good specs look like
 7. **Consolidate agent-native-architecture references** -- Reduce overlap between architecture-patterns.md and agent-execution-patterns.md
 8. **LLM-based trigger scoring** -- Add semantic scoring tier for the 10 accepted lexical-limit pairs
 

@@ -11,7 +11,7 @@ tmp_json="${TMPDIR:-/tmp}/self-improve-trigger-evals.json"
 python3 skills/skill-evals/scripts/run_trigger_evals.py \
   --cases skills/skill-evals/assets/trigger-collision-cases-expanded.json \
   --skills-root skills \
-  --skills self-improve,session-retro,compact-session,skill-creator,writing-plans \
+  --skills self-improve,session-retro,handoff,skill-creator,write-spec \
   --pretty > "$tmp_json"
 
 if rg -q '"passed": false' "$tmp_json"; then

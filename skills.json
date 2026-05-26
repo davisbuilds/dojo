@@ -38,11 +38,6 @@
       "path": "skills/code-review-agents"
     },
     {
-      "name": "compact-session",
-      "description": "Create comprehensive session summaries for context preservation and seamless handoff. Use when (1) conversation approaching context limits, (2) user requests session summary, (3) preparing handoff documentation to another agent or fresh instance, (4) archiving work for future reference.",
-      "path": "skills/compact-session"
-    },
-    {
       "name": "compound-docs",
       "description": "Capture solved problems as categorized documentation with YAML frontmatter for fast lookup. Use when a solution is confirmed and should be preserved for future retrieval.",
       "path": "skills/compound-docs",
@@ -129,6 +124,11 @@
       "name": "gpt-imagen",
       "description": "Generate or edit images via the OpenAI Image API (gpt-image-1, DALL-E). Use when the user asks to generate, edit, inpaint, mask, remove backgrounds, or create product shots, concept art, covers, or batch outputs using OpenAI. Runs the bundled CLI (`scripts/image_gen.py`) and requires `OPENAI_API_KEY`.",
       "path": "skills/gpt-imagen"
+    },
+    {
+      "name": "handoff",
+      "description": "Create comprehensive session summaries for context preservation and seamless handoff. Use when (1) conversation approaching context limits, (2) user requests session summary, (3) preparing handoff documentation to another agent or fresh instance, (4) archiving work for future reference.",
+      "path": "skills/handoff"
     },
     {
       "name": "hookify",
@@ -272,9 +272,9 @@
       "path": "skills/web-design-guidelines"
     },
     {
-      "name": "writing-plans",
-      "description": "Create robust, execution-ready implementation plans with explicit scope, task sequencing, dependencies, and verification commands. Use when planning non-trivial implementation work before coding.",
-      "path": "skills/writing-plans"
+      "name": "write-spec",
+      "description": "Create robust, execution-ready specs (detailed implementation plans) with explicit scope, task sequencing, dependencies, and verification commands. Use when planning non-trivial implementation work before coding, or when asked for an implementation plan.",
+      "path": "skills/write-spec"
     }
   ]
 }

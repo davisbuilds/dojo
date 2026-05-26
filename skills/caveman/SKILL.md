@@ -108,4 +108,4 @@ One of four `reference`-typed *Disciplines* — modes that govern *how* the agen
 - `verify-before-complete` — completion-claim gate. Orthogonal axis: that one rules *what* the agent claims; this one rules *how* the agent writes.
 - `test-strategy` — testing methodology. Orthogonal.
 - `first-principles` — reasoning methodology. Orthogonal — applies before/during decisions, not output.
-- `compact-session` — different scope. That skill produces a structured summary for handoff between sessions; this one is a styling mode applied to *live* output.
+- `handoff` — different scope. That skill produces a structured summary for handoff between sessions; this one is a styling mode applied to *live* output.

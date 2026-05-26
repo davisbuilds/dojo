@@ -1,12 +1,12 @@
 ---
-name: writing-plans
-description: Create robust, execution-ready implementation plans with explicit scope, task sequencing, dependencies, and verification commands. Use when planning non-trivial implementation work before coding.
+name: write-spec
+description: Create robust, execution-ready specs (detailed implementation plans) with explicit scope, task sequencing, dependencies, and verification commands. Use when planning non-trivial implementation work before coding, or when asked for an implementation plan.
 skill-type: workflow
 ---
 
-# Writing Plans
+# Write Spec
 
-Create implementation plans that are executable, auditable, and easy for a zero-context engineer to follow.
+Create specs that are executable, auditable, and easy for a zero-context engineer to follow.
 
 ## When To Use
 
@@ -23,7 +23,7 @@ Skip this skill when:
 ## Start Behavior
 
 Start with:
-`I'm using the writing-plans skill to create a robust implementation plan.`
+`I'm using the write-spec skill to create a robust spec.`
 
 If key context is missing, ask focused questions before writing:
 - goal and non-goals
@@ -33,14 +33,14 @@ If key context is missing, ask focused questions before writing:
 
 ## Output Path
 
-Save plan to:
-`docs/plans/YYYY-MM-DD-<topic>-implementation.md`
+Save spec to:
+`docs/specs/YYYY-MM-DD-<topic>-spec.md`
 
 If a brainstorm summary exists at `docs/plans/YYYY-MM-DD-<topic>-plan.md`, reuse its topic slug.
 
 ## Output Contract
 
-Every implementation plan must include YAML frontmatter and the required sections below.
+Every spec must include YAML frontmatter and the required sections below.
 
 ### Required Frontmatter
 
@@ -48,7 +48,7 @@ Every implementation plan must include YAML frontmatter and the required section
 ---
 date: YYYY-MM-DD
 topic: <kebab-case-topic>
-stage: implementation-plan
+stage: spec
 status: draft
 source: conversation
 ---
@@ -56,7 +56,7 @@ source: conversation
 
 ### Required Sections
 
-1. `# <Title> Implementation Plan`
+1. `# <Title> Spec`
 2. `## Goal`
 3. `## Scope`
 4. `## Assumptions And Constraints`
@@ -65,7 +65,7 @@ source: conversation
 7. `## Verification Matrix`
 8. `## Handoff`
 
-Use `assets/implementation-plan-template.md` as the default scaffold.
+Use `assets/spec-template.md` as the default scaffold.
 
 ## Task Design Rules
 
@@ -88,9 +88,9 @@ Granularity target:
 - Include at least one concrete verification command per task.
 - Include integration or end-to-end verification when applicable.
 - Add negative-path verification for risky logic.
-- Do not claim plan readiness until verification coverage is explicit.
+- Do not claim spec readiness until verification coverage is explicit.
 
-If available, apply the mindset from `verify-before-complete` when checking final plan quality.
+If available, apply the mindset from `verify-before-complete` when checking final spec quality.
 
 ## Conditional Coordination
 
@@ -98,16 +98,16 @@ Route to another skill only when needed:
 - requirements unclear: use `brainstorming`
 - architectural trade-off dominates risk: use `first-principles`
 - CLI contract design is central: use `create-cli`
-- user asks for autonomous execution after planning: use `autonomous-engineering` or manual execution
+- user asks for autonomous execution after the spec: use `autonomous-engineering` or manual execution
 
 If a named skill is unavailable, continue with manual fallback in this skill.
 
-## Plan Validation
+## Spec Validation
 
-After writing a plan, run:
+After writing a spec, run:
 
 ```bash
-python3 skills/writing-plans/scripts/validate_plan.py docs/plans/<filename>.md
+python3 skills/write-spec/scripts/validate_spec.py docs/specs/<filename>.md
 ```
 
 Fix all reported issues before handoff.
@@ -115,21 +115,21 @@ Fix all reported issues before handoff.
 ## Handoff
 
 End with:
-`Plan complete and saved to docs/plans/<filename>.md.`
+`Spec complete and saved to docs/specs/<filename>.md.`
 
 Then offer:
 1. Execute in this session, task by task.
 2. Open a separate execution session.
-3. Refine the plan before implementation.
+3. Refine the spec before implementation.
 
 ## Command Wrapper
 
-If command files are supported, use `commands/workflows/plan.md` as the canonical `/workflows:plan` wrapper.
+If command files are supported, use `commands/workflows/spec.md` as the canonical `/workflows:spec` wrapper.
 
 ## Sibling skills
 
-Pre-execution thinking pipeline: **brainstorm → reason → research → plan**.
+Pre-execution thinking pipeline: **brainstorm → reason → research → spec**.
 
 - `brainstorming` — upstream. Use when WHAT is ambiguous; come here once direction is clear and HOW needs structuring.
-- `first-principles` — upstream for high-stakes plans. Use it when the plan hinges on a non-obvious architectural decision.
-- `deep-research` — parallel. Use when the plan needs evidence (library behavior, prior art, current docs).
+- `first-principles` — upstream for high-stakes specs. Use it when the spec hinges on a non-obvious architectural decision.
+- `deep-research` — parallel. Use when the spec needs evidence (library behavior, prior art, current docs).

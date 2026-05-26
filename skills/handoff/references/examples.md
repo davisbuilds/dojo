@@ -2,11 +2,11 @@
 
 This file provides examples of good session summaries to illustrate the format.
 
-Note: Each summary below would be written to `docs/sessions/COMPACT_{SESSION-NAME}_{YYYY-MM-DD}.md` in the project root.
+Note: Each summary below would be written to `docs/sessions/HANDOFF_{SESSION-NAME}_{YYYY-MM-DD}.md` in the project root.
 
 ## Example 1: Bug Fix Session
 
-**Output file**: `docs/sessions/COMPACT_react-profile-bug_2025-01-07.md`
+**Output file**: `docs/sessions/HANDOFF_react-profile-bug_2025-01-07.md`
 
 ### 1. Primary Request and Intent
 
@@ -78,7 +78,7 @@ None - session complete
 
 ## Example 2: Multi-File Feature Implementation (In Progress)
 
-**Output file**: `docs/sessions/COMPACT_realtime-notifications_2025-01-07.md`
+**Output file**: `docs/sessions/HANDOFF_realtime-notifications_2025-01-07.md`
 
 ### 1. Primary Request and Intent
 

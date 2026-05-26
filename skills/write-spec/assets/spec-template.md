@@ -1,12 +1,12 @@
 ---
 date: YYYY-MM-DD
 topic: topic-slug
-stage: implementation-plan
+stage: spec
 status: draft
 source: conversation
 ---
 
-# Topic Title Implementation Plan
+# Topic Title Spec
 
 ## Goal
 
@@ -75,4 +75,4 @@ None
 
 1. Execute in this session, task by task.
 2. Open a separate execution session.
-3. Refine this plan before implementation.
+3. Refine this spec before implementation.

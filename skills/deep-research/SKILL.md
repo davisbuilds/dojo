@@ -144,5 +144,5 @@ Parallel evidence-gathering stage in the pre-execution pipeline.
 
 - `brainstorming` — common caller when option exploration depends on facts.
 - `first-principles` — common caller when reasoning hinges on unknowns (library behavior, API contracts).
-- `writing-plans` — common caller when a plan needs grounded references.
+- `write-spec` — common caller when a plan needs grounded references.
 - `fetchmd` — narrower tool for fetching specific known URLs into markdown; this skill orchestrates broader web-backed research with depth routing and citation synthesis.

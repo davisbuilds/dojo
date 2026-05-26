@@ -59,7 +59,7 @@
       "type": "implicit",
       "prompt": "Create an implementation plan with task sequencing, dependencies, and verification commands for this feature.",
       "expected": {
-        "trigger": ["writing-plans"],
+        "trigger": ["write-spec"],
         "avoid": ["brainstorming"]
       }
     },
@@ -69,7 +69,7 @@
       "prompt": "I have a vague idea for a new feature. Help me clarify what to build before we start planning.",
       "expected": {
         "trigger": ["brainstorming"],
-        "avoid": ["writing-plans"]
+        "avoid": ["write-spec"]
       }
     },
     {
@@ -109,11 +109,11 @@
       }
     },
     {
-      "id": "compact-session-summary",
+      "id": "handoff-summary",
       "type": "implicit",
       "prompt": "Context is getting long. Create a session summary for handoff to a fresh instance.",
       "expected": {
-        "trigger": ["compact-session"],
+        "trigger": ["handoff"],
         "avoid": ["session-retro", "self-improve"]
       }
     },
@@ -123,7 +123,7 @@
       "prompt": "Update AGENTS.md and CLAUDE.md with non-obvious learnings from this session.",
       "expected": {
         "trigger": ["session-retro"],
-        "avoid": ["compact-session", "self-improve"]
+        "avoid": ["handoff", "self-improve"]
       }
     },
     {
@@ -132,7 +132,7 @@
       "prompt": "Keep a portable self-improvement log of the agent's recurring mistakes and workflow learnings.",
       "expected": {
         "trigger": ["self-improve"],
-        "avoid": ["session-retro", "compact-session"]
+        "avoid": ["session-retro", "handoff"]
       }
     },
     {

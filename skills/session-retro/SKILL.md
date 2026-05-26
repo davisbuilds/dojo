@@ -111,6 +111,6 @@ If the best-fit doc is missing, fall back to the closest existing root doc only 
 
 Four knowledge-capture skills, distinguished by *scope* and *timing*:
 
-- `compact-session` — produces a session summary for handoff. Different output: this skill routes facts into existing reference files; that one writes a fresh summary doc.
+- `handoff` — produces a session summary for a fresh instance. Different output: this skill routes facts into existing reference files; that one writes a fresh summary doc.
 - `self-improve` — promote *recurring* learnings across sessions into reusable artifacts. Use when the lesson generalizes; this skill is for project-specific facts.
 - `compound-docs` — write a categorized solution document. Use when the learning is a confirmed end-to-end solution with reproducible code, not a one-line operational fact.
