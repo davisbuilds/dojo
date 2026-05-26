@@ -68,7 +68,7 @@ Uses a polyglot shebang — works with both `python` and `python3`.
 ## Directory Map
 
 ```text
-skills/                   # 45 skill directories (each with SKILL.md)
+skills/                   # skill directories (each with SKILL.md); skills.json is the inventory source of truth
 hooks/                    # 8 lifecycle hook scripts (bash)
 scripts/                  # Manifest generation (Python)
 spec/                     # Agent skills specification

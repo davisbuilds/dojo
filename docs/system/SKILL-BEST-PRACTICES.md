@@ -1,6 +1,6 @@
 # Skill Best Practices
 
-Research-backed guidance for skill authoring and evaluation. Based on 2025-2026 vendor docs, arXiv literature, and internal experience. Extracted from the [skills analysis](../skills-analysis-2026-3-07.md).
+Research-backed guidance for skill authoring and evaluation. Based on 2025-2026 vendor docs, arXiv literature, and internal experience. Extracted from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md).
 
 ## Key Principles
 

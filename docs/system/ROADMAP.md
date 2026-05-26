@@ -2,7 +2,7 @@
 
 Actionable improvement backlog for the skills catalog. This is a living snapshot, not a release contract.
 
-Last updated from the [skills analysis](../skills-analysis-2026-3-07.md) (2026-03-07).
+Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped.
 
 ## Completed Highlights
 
@@ -17,7 +17,7 @@ Last updated from the [skills analysis](../skills-analysis-2026-3-07.md) (2026-0
 | Polyglot validation | Scripts compatible with both `python` and `python3` |
 | Trim Obsidian skills | obsidian-markdown 647→284, obsidian-bases 678→259, obsidian-canvas 675→192 |
 | Soften compound-docs | 527→119 lines, removed XML tags and redundant sections |
-| Strict contract enforcement | 46/46 pass, 0 warnings, CI enforces full catalog |
+| Strict contract enforcement | Strict validator covers the manifest-backed skill catalog in CI |
 | Trigger collision fixes | 78.6%→92.9%, discriminating name tokens, expanded stopwords |
 | Expanded trigger fixtures | 12→34 cases across 12 skill clusters |
 | Rescore all skills | 23 skills bumped, 1 new entry (skill-evals), measured evidence |

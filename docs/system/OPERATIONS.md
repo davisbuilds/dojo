@@ -69,7 +69,7 @@ Hooks are configured in `.claude/settings.json` and `.agents/settings.json`. No 
 
 ## CI
 
-GitHub Actions enforces strict contract compliance on the full 48-skill catalog via:
+GitHub Actions enforces strict contract compliance on the manifest-backed skill catalog via:
 
 - `.github/workflows/skill-contract-pilot.yml`
 

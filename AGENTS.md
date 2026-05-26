@@ -1,6 +1,6 @@
 # AGENTS.md
 
-`dojo` is a repository of extensible, agent-agnostic skills and hooks. 52 skills under `skills/`, 8 lifecycle hooks under `hooks/`. Skills are markdown-first (`SKILL.md` per directory) with optional `scripts/`, `references/`, `assets/`, and `commands/`.
+`dojo` is a repository of extensible, agent-agnostic skills and hooks. Skills are markdown-first (`SKILL.md` per directory) with optional `scripts/`, `references/`, `assets/`, and `commands/`. The generated `skills.json` manifest is the runtime inventory source of truth.
 
 ## Documentation Map
 
@@ -40,3 +40,4 @@ The auto-generated `skills.json` manifest is the runtime source of truth for wha
 
 - **Push back before building.** If a request is incoherent or self-contradictory, or a spec/plan is vague or skips key decisions, stop and interview me — ask clarifying questions and confirm intent before writing code or changing files. Don't guess at scope or comply silently. (Clear, well-scoped requests don't need this.)
 - **Keep docs current.** After a significant change, PR, or completed spec/plan, update any now-stale reference docs under `docs/system/` (including `ROADMAP.md`) so they match shipped behavior. Skip this for trivial changes.
+- **Commit logically.** Commit completed work in coherent chunks as you proceed. Push only when explicitly asked.

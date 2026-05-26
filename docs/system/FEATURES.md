@@ -4,7 +4,7 @@ Product-surface reference for the Agent Skills Repository.
 
 ## Skills Catalog
 
-Catalog snapshot by category. For canonical runtime inventory, use `skills.json` (currently 52 skills):
+Catalog snapshot by category. For canonical runtime inventory, use `skills.json`:
 
 ```bash
 jq '.skills | length' skills.json
@@ -71,6 +71,7 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 |-------|---------|
 | `repo-hardening` | Audit repos for supply-chain risk, generate repo-local security artifacts, and drive hardening work |
 | `secure-code` | Static analysis security scanning and architectural trifecta detection via semgrep |
+| `audit-skill` | Security-audit agent skills for prompt injection, overreach, secrets, and dangerous code patterns |
 
 ### Platform Integrations
 
@@ -98,8 +99,10 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 | `obsidian-bases` | Obsidian Bases with views, filters, and formulas |
 | `obsidian-canvas` | Obsidian Canvas files for visual canvases |
 | `markdown-converter` | Convert file formats to Markdown |
+| `fetchmd` | Convert webpages or local HTML into clean Markdown for AI workflows |
 | `compact-session` | Session summaries for context handoff |
 | `compound-docs` | Capture solved problems as documentation |
+| `session-retro` | Route non-obvious session learnings into existing project reference docs |
 
 ### Meta / Skill Management
 
@@ -110,6 +113,7 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 | `skill-installer` | Install skills from curated lists or GitHub repos |
 | `skill-standardizer` | Detect drift and unify skill copies |
 | `find-skills` | Discover installable skills |
+| `hookify` | Create and manage markdown-defined guard-rail hooks |
 | `template` | Starter scaffold for new skills |
 
 ## Hook-Enforced Quality Gates
