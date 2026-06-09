@@ -16,14 +16,14 @@ fi
 
 # Check for uncommitted changes (both staged and unstaged)
 if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo "There are uncommitted changes in the repository. Please commit and push these changes to the remote branch." >&2
+  echo "There are uncommitted changes in the repository. Please commit them before stopping. (Pushing is the operator's call — do not push unless asked.)" >&2
   exit 2
 fi
 
 # Check for untracked files that might be important
 untracked_files=$(git ls-files --others --exclude-standard)
 if [[ -n "$untracked_files" ]]; then
-  echo "There are untracked files in the repository. Please commit and push these changes to the remote branch." >&2
+  echo "There are untracked files in the repository. Please commit or ignore them before stopping. (Pushing is the operator's call — do not push unless asked.)" >&2
   exit 2
 fi
 
