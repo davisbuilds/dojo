@@ -2,13 +2,13 @@
 
 Actionable improvement backlog for the skills catalog. This is a living snapshot, not a release contract.
 
-Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped.
+Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-06-09.
 
 ## Completed Highlights
 
 | Item | What Changed |
 |------|-------------|
-| 52 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, and meta/skill tooling |
+| 53 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, autonomous-loop design, and meta/skill tooling |
 | 8-hook quality pipeline | Session-start catalog injection, pre/post-tool-use validation and manifest sync, spec validation, git checks, structure checks, session retro reminder |
 | Skill packaging and distribution | `.skill` zip format with validation |
 | Command wrappers | Deterministic slash-style entrypoints |
@@ -33,6 +33,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 | Deduplicate fetch_issue.sh | Unified to `scripts/fetch_issue.sh`, symlinked from both skills |
 | Upgrade template | Commented scaffold with all contract sections + authoring checklist (35→78 lines) |
 | gemini-imagen parity | Updated to Nano Banana 2, added 4 extreme aspect ratios, drift warning, two-tier workflow, text rendering callout, sample-prompts.md |
+| Add loop-design skill | Workflow skill on top of `/loop` and `/goal`: a go/no-go oracle gate, a portable loop blueprint, and a stdlib scaffolder that emits the loop bundle (`LOOP.md`, `verify.sh` oracle, `progress.md` state, `verifier.md` checker, `BINDINGS.md` for Claude Code/Codex/Actions/Ralph). The scaffolder refuses to emit a loop without a `done_when` oracle, turning "no oracle → not a loop" into a hard gate |
 
 ## Cross-Cutting Findings
 
@@ -77,6 +78,8 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 4. **obsidian-markdown + obsidian-bases + obsidian-canvas**: Three separate reference skills. Already trimmed and disambiguated; merging is low priority since trigger routing works (f1 1.00 for all three).
 
 ### Resource Distribution
+
+_Counts are from the 2026-03-07 analysis (~44-skill baseline) and are approximate; the catalog is now 53 skills. Treat as directional until recomputed._
 
 | Resource Type | Count | Skills With | Skills Without |
 |---------------|-------|-------------|----------------|
