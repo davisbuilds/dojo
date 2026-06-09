@@ -1,6 +1,6 @@
 # Contributing
 
-This repository uses a squash-merge workflow to keep `main` history clean and readable.
+This repository preserves full per-commit history on `main` (squash merging is disabled). Keep your PR commits tidy so what lands reads cleanly.
 
 ## Workflow
 
@@ -8,7 +8,7 @@ This repository uses a squash-merge workflow to keep `main` history clean and re
 2. Create a feature branch from `main`.
 3. Make focused changes and commit normally.
 4. Push branch and open a pull request.
-5. Merge with **Squash and merge** after quality checks pass.
+5. Merge with **Create a merge commit** (default) or **Rebase and merge** after quality checks pass; squash is disabled.
 6. Let GitHub auto-delete the merged remote branch.
 7. Prune merged local branches periodically.
 
@@ -25,7 +25,7 @@ Use descriptive prefixes:
 
 - Keep commits logical and atomic while working on the branch.
 - Use clear, imperative commit messages.
-- It is fine to have multiple commits in one PR; squash merge will combine them on `main`.
+- It is fine to have multiple commits in one PR, but they all land on `main` (no squash) — reword or rebase locally so each reads cleanly before merging.
 
 ## Pull Request Expectations
 
