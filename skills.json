@@ -141,6 +141,11 @@
       "path": "skills/local-review"
     },
     {
+      "name": "loop-design",
+      "description": "Design a reusable, verifiable autonomous loop on top of harness primitives like /loop and /goal. Run a go/no-go gate (is there a pass/fail oracle?), define a portable loop blueprint (goal, done-when command, on-disk state, maker/checker split, sandbox/credential/budget guardrails), then scaffold the concrete files a harness runs. Use when setting up a recurring, unattended, or overnight agent loop, an automation or cron task, a /loop or /goal run, a Ralph-style while-true loop, or when deciding whether a task SHOULD be looped at all. Agent-agnostic across Claude Code, Codex, and CI/GitHub Actions. On-demand via /loop-design.",
+      "path": "skills/loop-design"
+    },
+    {
       "name": "markdown-converter",
       "description": "Convert documents and files to Markdown using markitdown. Use when converting PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx, .xls), HTML, CSV, JSON, XML, images (with EXIF/OCR), audio (with transcription), ZIP archives, YouTube URLs, or EPubs to Markdown format for LLM processing or text analysis.",
       "path": "skills/markdown-converter"
