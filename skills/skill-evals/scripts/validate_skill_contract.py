@@ -280,6 +280,23 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         message=context_msg,
     )
 
+    triggers = fm.get("triggers") if fm else None
+    if triggers is None:
+        triggers_status, triggers_msg = "na", "No triggers declared (optional)"
+    elif isinstance(triggers, list) and triggers and all(
+        isinstance(t, str) and t.strip() for t in triggers
+    ):
+        triggers_status = "pass"
+        triggers_msg = f"triggers valid ({len(triggers)} declared)"
+    else:
+        triggers_status = "warn"
+        triggers_msg = "triggers should be a non-empty list of non-empty strings"
+    checks["triggers_valid"] = CheckResult(
+        status=triggers_status,
+        required=is_required("triggers_valid", skill_type, strict),
+        message=triggers_msg,
+    )
+
     required_failures = [name for name, result in checks.items() if result.required and result.status == "fail"]
     warns = [name for name, result in checks.items() if result.status == "warn"]
     optional_failures = [

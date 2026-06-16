@@ -116,6 +116,31 @@ def test_generate_manifest_writes_valid_skills_and_optional_metadata(
     assert "missing name or description" in captured.err
 
 
+def test_generate_manifest_includes_triggers_when_present(tmp_path: Path) -> None:
+    module = load_manifest_module()
+    skills_root = tmp_path / "skills"
+    skills_root.mkdir()
+    output_path = tmp_path / "skills.json"
+
+    write_skill(
+        skills_root,
+        "with-triggers",
+        "name: with-triggers\n"
+        "description: Skill that declares triggers\n"
+        "triggers:\n"
+        "  - review this pr\n"
+        "  - check my diff\n",
+    )
+    write_skill(skills_root, "no-triggers", "name: no-triggers\ndescription: Plain skill\n")
+
+    module.generate_manifest(skills_root, output_path)
+
+    manifest = json.loads(output_path.read_text(encoding="utf-8"))
+    by_name = {entry["name"]: entry for entry in manifest["skills"]}
+    assert by_name["with-triggers"]["triggers"] == ["review this pr", "check my diff"]
+    assert "triggers" not in by_name["no-triggers"]
+
+
 def test_generate_manifest_exits_when_skills_directory_is_missing(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
