@@ -32,6 +32,9 @@ python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skil
 
 # Trigger evals from fixture
 python3 skills/skill-evals/scripts/run_trigger_evals.py --cases skills/skill-evals/assets/sample-trigger-cases.json --skills-root skills --pretty
+
+# Trigger evals from declared `triggers:` frontmatter (self-routing + collision check)
+python3 skills/skill-evals/scripts/run_trigger_evals.py --from-triggers --skills-root skills --pretty
 ```
 
 ## Output Contract
@@ -44,6 +47,7 @@ Provide:
 ## Boundaries
 
 - Do not treat lexical trigger scoring as a replacement for end-to-end LLM evals.
+- `--from-triggers` uses lexical/name overlap, so declared `triggers:` should echo the skill's name/description vocabulary; a phrase sharing no tokens with its skill may not self-route under this deterministic scorer.
 - Do not auto-edit skills unless explicitly requested.
 - Keep recommendations deterministic and reproducible.
 
