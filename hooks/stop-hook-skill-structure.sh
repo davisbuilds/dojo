@@ -51,6 +51,11 @@ errors=()
 for skill_name in "${changed_skills[@]}"; do
   skill_dir="$SKILLS_DIR/$skill_name"
 
+  # Skip underscore-prefixed support dirs (e.g. _fragments) — not skills
+  if [[ "$skill_name" == _* ]]; then
+    continue
+  fi
+
   # Skip if the directory doesn't exist (deleted skill)
   if [[ ! -d "$skill_dir" ]]; then
     continue

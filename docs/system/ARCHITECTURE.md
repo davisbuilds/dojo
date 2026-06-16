@@ -43,7 +43,7 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 | `session-start-skill-catalog.sh` | SessionStart | Injects skill catalog, recent git log, and AGENTS.md pointer |
 | `pre-tool-use-git-push-protected-branch.sh` | PreToolUse (Bash) | Blocks pushes to protected branches unless an explicit override token is present |
 | `pre-tool-use-validate-skill.sh` | PreToolUse (Write/Edit) | Validates SKILL.md frontmatter; blocks on failure |
-| `post-tool-use-regen-manifest.sh` | PostToolUse (Write/Edit) | Regenerates `skills.json` after SKILL.md edits |
+| `post-tool-use-regen-manifest.sh` | PostToolUse (Write/Edit) | On SKILL.md or `skills/_fragments/*` edits, expands opt-in fragment composition then regenerates `skills.json` |
 | `post-tool-use-validate-spec.sh` | PostToolUse (Write/Edit) | Validates `docs/specs/*-spec.md` against `write-spec` schema |
 | `stop-hook-git-check.sh` | Stop | Blocks if there are uncommitted changes or untracked files. Unpushed commits are allowed. |
 | `stop-hook-skill-structure.sh` | Stop | Validates modified skill directories have valid SKILL.md |
