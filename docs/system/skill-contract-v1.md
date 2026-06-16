@@ -22,6 +22,30 @@ Current repo state:
 - New and updated skills should continue to declare `skill-type`.
 - For robustness, untyped skills still default to `workflow` behavior if one appears in the future.
 
+## Optional Frontmatter Extensions
+
+These are dojo-specific extensions beyond the upstream `spec/agent-skills-spec.md`. They are optional; absence never fails the contract.
+
+### `triggers`
+
+A list of literal trigger phrases that should route to this skill (for example, the exact things a user might type or ask).
+
+```yaml
+triggers:
+  - review this pr
+  - code review
+  - check my diff
+```
+
+Rationale: `description` carries trigger-ready *prose* (see `description_trigger_ready`), but prose is not directly testable. `triggers` makes routing intent explicit and machine-checkable, so `skills/skill-evals/scripts/run_trigger_evals.py` can assert each declared phrase self-routes to its own skill and flag collisions with other skills. When present, `triggers` must be a non-empty list of non-empty strings. Skills without `triggers` keep the description-inferred behavior unchanged.
+
+## Generated Artifacts (single source of truth)
+
+SKILL.md frontmatter is the source of truth. Two generation steps derive artifacts from it; both are deterministic, idempotent, and expose a `--check` mode that fails on drift:
+
+- **Shared-fragment composition** (`scripts/gen_skill_docs.py`): expands declared shared includes into SKILL.md between `<!-- AUTO-GENERATED -->` markers. **Opt-in only** — a skill that declares no template/includes is never modified.
+- **Harness sidecars** (`scripts/gen_harness_adapters.py`): emits per-skill adapter files for each target harness (`.claude/`, `.agents/`, `.agent/`, Codex) from frontmatter. Sidecars are generated artifacts and must not be hand-edited; the compliance `--check` treats hand-edits as drift.
+
 ## Universal Required Checks (must pass)
 
 1. `frontmatter_valid`
@@ -72,6 +96,11 @@ For `reference` skills:
      - <=500: pass
      - 501-700: warn
      - >700: warn (needs decomposition plan)
+
+10. `triggers_valid`
+    - Only applies when the optional `triggers` field is present.
+    - Passes when `triggers` is a non-empty list of non-empty strings; warns otherwise.
+    - Absent `triggers` is `na` (not a warning).
 
 ## Status Rules
 
