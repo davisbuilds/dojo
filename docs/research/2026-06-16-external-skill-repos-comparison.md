@@ -1,8 +1,19 @@
-# External Skill-Repo Comparison: ECC & gstack vs. dojo
+# External Skill-Repo Comparison: ECC, gstack & dimillian vs. dojo
 
 **Date:** 2026-06-16
-**Scope:** Deep review of `_clones/skills/ECC` (and `_clones/skills/gstack`) compared to dojo, to surface what dojo could leverage, what each does better/worse, and concrete next steps.
+**Scope:** Deep review of three external skill repositories compared to dojo, to surface what dojo could leverage, what each does better/worse, and concrete next steps.
 **Status:** Research only — no building yet.
+
+### Repos reviewed (pointers)
+
+| Ref | Local clone | Upstream | Shape |
+|---|---|---|---|
+| **ECC** | `_clones/skills/ECC/` | `github.com/` (Everything Claude Code, v2.0.0) | Breadth platform — 271 skills, 9-harness fan-out |
+| **gstack** | `_clones/skills/gstack/` | `github.com/garrytan/gstack` (v1.58.x) | Depth stack — ~70 mega-skills + Bun CLI toolkit |
+| **dimillian** | `_clones/skills/dimillian/` | `github.com/Dimillian/Skills` | Curated personal — 16 Codex-native skills |
+| dojo | `dojo/` (this repo) | local | Curated library — 53 skills, contract + hooks |
+
+> All file paths cited within a given Part are relative to that repo's clone root above (e.g. in Part 1, `scripts/skills-health.js` means `_clones/skills/ECC/scripts/skills-health.js`).
 
 ---
 
@@ -128,15 +139,54 @@ Borrow gstack's **authoring infrastructure** (templating/composition, explicit t
 
 ---
 
-## Consolidated next-steps shortlist (both repos)
+## Part 3 — dimillian ("Dimillian/Skills") vs. dojo
 
-Ordered by value-to-effort for dojo specifically:
+### What dimillian actually is
 
-1. **Resolve the multi-harness gap** (from ECC) — adopt an adapter-compliance `--check`, or scope the claim. *Correctness, not enhancement.*
-2. **Explicit `triggers:` frontmatter + wire into `run_trigger_evals.py`** (from gstack) — small change, leverages existing infra.
-3. **SKILL.md templating / section composition with AUTO-GENERATED markers** (from gstack) — biggest authoring-infra win; pairs with `skill-standardizer`.
-4. **`skills-health` report** (from ECC) — evidence for "description is the trigger."
-5. **Behavioral eval tier** (from gstack) — next rung after static skill-evals.
-6. **slop-scan in CI** (from gstack) + **thin `rules/` tier** (from ECC) — both relieve quality/trigger pressure.
+**dimillian** (`_clones/skills/dimillian/`, `github.com/Dimillian/Skills`) is a **curated personal skill collection** — 16 focused, self-contained, markdown-first skills by the Ice Cubes / IceCubesApp developer. It is the **closest sibling to dojo** of the three: small, single-purpose skills, each a `SKILL.md` with optional `references/`. Its niche is Apple-platform depth (`_clones/skills/dimillian/swift-concurrency-expert/`, `swiftui-liquid-glass/`, `swiftui-performance-audit/`, `macos-spm-app-packaging/`) plus a few portable workflow skills (`review-swarm/`, `bug-hunt-swarm/`, `orchestrate-batch-refactor/`, `project-skill-audit/`). It is explicitly **Codex-native** (README: "place these skill folders under `$CODEX_HOME/skills`").
 
-Explicitly **out of scope** for dojo: ECC's install platform/dashboards/inline-bootstrap hooks; gstack's mega-skill model, mandatory CLI/gbrain stack, and per-invocation preambles.
+### Distinctive mechanisms
+
+1. **Lightweight per-skill harness interface file** — every skill ships `agents/openai.yaml` (e.g. `_clones/skills/dimillian/review-swarm/agents/openai.yaml`) carrying `interface.display_name`, `short_description`, and a `default_prompt` with `$skill-name` invocation syntax. This is the *minimal* multi-harness adapter: no build step, no fan-out generator — just a small sidecar YAML per harness. Contrast ECC's compiled adapters (`_clones/skills/ECC/scripts/harness-adapter-compliance.js`) and gstack's template generation (`_clones/skills/gstack/scripts/gen-skill-docs.ts`).
+2. **Auto-generated GitHub Pages catalog.** `_clones/skills/dimillian/scripts/build_docs_index.py` walks every `SKILL.md`, extracts frontmatter, and writes `_clones/skills/dimillian/docs/skills.json`, which a static site (`docs/index.html` + `app.js` + `styles.css`) renders as a browseable, published catalog (`dimillian.github.io/Skills/`). Regeneration is wired via a **git pre-commit hook** (`_clones/skills/dimillian/scripts/git-hooks/pre-commit`) that rebuilds and `git add`s the manifest.
+3. **Codeless multi-agent swarm pattern.** `review-swarm/SKILL.md` and `bug-hunt-swarm/SKILL.md` orchestrate four read-only parallel sub-agents plus a main-agent synthesis pass — pure prompt orchestration, no supporting code, fully portable.
+4. **References as curated domain knowledge** — e.g. `swift-concurrency-expert/references/` bundles WWDC/concurrency notes; `swiftui-liquid-glass/references/liquid-glass.md`. Skills are thin; the depth lives in curated reference docs.
+5. **Meta-skill: `project-skill-audit/`** — analyzes a project's past Codex sessions, memory, and conventions to recommend new/updated skills (analogous to dojo's `self-improve` + `find-skills`).
+
+### What dojo could leverage from dimillian (ranked)
+
+1. **Published, auto-generated discoverability catalog** — dojo already emits `skills.json` but has no browseable, published view. dimillian's pattern (`build_docs_index.py` → `docs/skills.json` → static site, regenerated by hook) is a near-zero-dependency way to ship a public/local skill catalog. dojo's existing `post-tool-use-regen-manifest.sh` already does the regen half; adding a static renderer is small.
+2. **Lightweight per-skill harness-interface sidecar** — directly relevant to the **multi-harness gap** flagged in Part 1. Of the three approaches (ECC compiled fan-out, gstack templating, dimillian sidecar YAML), the **dimillian sidecar is the best fit for dojo's scale** — it honors the agnostic claim per-skill without a build platform. Worth evaluating as the concrete mechanism behind shortlist item #1.
+3. **Swarm orchestration as a portable, codeless pattern** — compare against dojo's `code-review-agents` skill; dimillian's read-only-swarm-plus-synthesis is a clean reference.
+
+### What dimillian does better than dojo
+
+- **Published discoverability** (the Pages catalog) — dojo has none.
+- **Lightest-weight multi-harness story** that actually ships (sidecar YAML per skill).
+- **Domain depth** for Apple platforms (different niche, but a model for reference-doc-backed expertise).
+
+### What dimillian does worse than dojo
+
+- **No quality contract or validation.** Frontmatter is `name` + `description` only, parsed by a naive line-splitter in `scripts/build_docs_index.py` (`split(":")` — not real YAML; would mangle complex values). No typed skills, no CI, no eval harness. dojo's `skill-contract-v1` + `skill-evals` are far stronger.
+- **No lifecycle hooks** beyond the docs-rebuild pre-commit. dojo's 8-hook pipeline enforces invariants dimillian leaves to discipline.
+- **Narrow, single-author scope** — minimal reusable infra; most value is in the Apple-domain content.
+
+### Where dimillian sits among the three
+
+dimillian is the **minimalist** corner of the spectrum: ECC = breadth platform, gstack = depth stack, **dimillian = curated personal collection** — the same category as dojo. The takeaway: benchmark dojo against **dimillian for taste/curation and lightweight publishing**, while borrowing heavier *infrastructure* from ECC and gstack. Notably, dimillian proves the multi-harness claim can be honored *cheaply* (sidecar files) rather than via a build system.
+
+---
+
+## Consolidated next-steps shortlist (all three repos)
+
+Ordered by value-to-effort for dojo specifically. Source repo in parentheses.
+
+1. **Resolve the multi-harness gap** (ECC for the `--check` invariant; **dimillian** for the lightweight sidecar mechanism) — adopt per-skill harness sidecars + a compliance check, or scope the claim. *Correctness, not enhancement.*
+2. **Explicit `triggers:` frontmatter + wire into `run_trigger_evals.py`** (gstack) — small change, leverages existing infra.
+3. **SKILL.md templating / section composition with AUTO-GENERATED markers** (gstack) — biggest authoring-infra win; pairs with `skill-standardizer`.
+4. **Published discoverability catalog from `skills.json`** (dimillian) — static renderer over the manifest dojo already generates.
+5. **`skills-health` report** (ECC) — evidence for "description is the trigger."
+6. **Behavioral eval tier** (gstack) — next rung after static skill-evals.
+7. **slop-scan in CI** (gstack) + **thin `rules/` tier** (ECC) — both relieve quality/trigger pressure.
+
+Explicitly **out of scope** for dojo: ECC's install platform/dashboards/inline-bootstrap hooks; gstack's mega-skill model, mandatory CLI/gbrain stack, and per-invocation preambles; dimillian's contract-free authoring (dojo's stricter bar is a feature, keep it).
