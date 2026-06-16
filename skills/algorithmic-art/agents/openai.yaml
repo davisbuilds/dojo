@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Algorithmic Art"
+  short_description: "Creating algorithmic art using p5.js with seeded randomness and interactive parameter exploration"
+  default_prompt: "Use the Algorithmic Art skill for this task."

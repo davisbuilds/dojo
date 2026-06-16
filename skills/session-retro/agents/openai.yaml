@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Session Retro"
+  short_description: "Update existing project reference docs with non-obvious learnings from the current session"
+  default_prompt: "Use the Session Retro skill for this task."

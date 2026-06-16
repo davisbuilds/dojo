@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Gh Commit Push Pr"
+  short_description: "Commit staged changes, push branch, and open a GitHub PR"
+  default_prompt: "Use the Gh Commit Push Pr skill for this task."

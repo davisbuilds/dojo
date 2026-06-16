@@ -80,7 +80,7 @@ skills/                   # skill directories (each with SKILL.md); skills.json 
 skills/_fragments/        # Shared include fragments for opt-in SKILL.md composition
 hooks/                    # lifecycle hook scripts (bash)
 scripts/                  # Manifest generation + generation pipeline (Python)
-.claude/ .agents/ .agent/ # Per-harness skill sidecars (generated); Codex sidecars colocated per skill
+.claude/ .agents/ .agent/ # Each `skills/` is a generated relative symlink -> ../skills (Codex sidecars colocated at skills/<name>/agents/openai.yaml)
 spec/                     # Agent skills specification (upstream)
 docs/specs/               # Specs (write-spec output)
 docs/plans/               # Brainstorm summaries and historical implementation plans

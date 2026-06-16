@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Audit Skill"
+  short_description: "Security audit for agent skills using a three-layer deterministic architecture: structural valida..."
+  default_prompt: "Use the Audit Skill skill for this task."

@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Gh Fix Issue"
+  short_description: "Fetch and fix GitHub issues using the gh CLI"
+  default_prompt: "Use the Gh Fix Issue skill for this task."

@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Deep Research"
+  short_description: "Use when a task needs web-backed research with controlled depth, relevance filtering, and citatio..."
+  default_prompt: "Use the Deep Research skill for this task."

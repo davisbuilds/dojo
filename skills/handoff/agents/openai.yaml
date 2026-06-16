@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Handoff"
+  short_description: "Create comprehensive session summaries for context preservation and seamless handoff"
+  default_prompt: "Use the Handoff skill for this task."

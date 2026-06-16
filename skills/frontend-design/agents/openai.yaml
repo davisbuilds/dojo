@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Frontend Design"
+  short_description: "Create distinctive, production-grade frontend interfaces with high design quality"
+  default_prompt: "Use the Frontend Design skill for this task."

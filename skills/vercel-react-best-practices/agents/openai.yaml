@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Vercel React Best Practices"
+  short_description: "React and Next.js performance optimization guidelines from Vercel Engineering"
+  default_prompt: "Use the Vercel React Best Practices skill for this task."

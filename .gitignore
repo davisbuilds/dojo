@@ -58,8 +58,10 @@ anthropic/
 .agent/
 .agents/
 
-# Claude Code — ignore user-specific subdirs; settings.json is tracked
-.claude/skills/
+# Claude Code — ignore user-specific subdirs; settings.json is tracked.
+# `.claude/skills` is a generated symlink -> ../skills (regenerated per clone
+# by scripts/gen_harness_adapters.py), so ignore it as a file or directory.
+.claude/skills
 .claude/todos/
 .claude/projects/
 

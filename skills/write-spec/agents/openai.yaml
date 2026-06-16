@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Write Spec"
+  short_description: "Create robust, execution-ready specs (detailed implementation plans) with explicit scope, task se..."
+  default_prompt: "Use the Write Spec skill for this task."

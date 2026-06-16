@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Compound Docs"
+  short_description: "Capture solved problems as categorized documentation with YAML frontmatter for fast lookup"
+  default_prompt: "Use the Compound Docs skill for this task."

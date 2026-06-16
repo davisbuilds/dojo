@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Brainstorming"
+  short_description: "Use this when requirements are ambiguous, multiple approaches are plausible, or trade-offs need d..."
+  default_prompt: "Use the Brainstorming skill for this task."

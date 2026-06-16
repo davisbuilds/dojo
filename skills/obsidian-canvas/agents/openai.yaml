@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Obsidian Canvas"
+  short_description: "Create and edit Obsidian Canvas files (.canvas) with nodes, edges, groups, and connections"
+  default_prompt: "Use the Obsidian Canvas skill for this task."

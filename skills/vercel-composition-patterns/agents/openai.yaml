@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Vercel Composition Patterns"
+  short_description: "React composition patterns that scale"
+  default_prompt: "Use the Vercel Composition Patterns skill for this task."

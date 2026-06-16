@@ -110,6 +110,11 @@ def main() -> int:
     parser.add_argument("--skills-root", default="skills", help="Path to skills directory (default: skills)")
     parser.add_argument("--repo-root", default=None, help="Repo root (default: parent of this script)")
     parser.add_argument("--check", action="store_true", help="Report drift without writing; exit 1 on drift")
+    parser.add_argument(
+        "--skip-symlinks",
+        action="store_true",
+        help="Only handle Codex sidecars (the committed artifacts); ignore the local-only harness symlinks",
+    )
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root).resolve() if args.repo_root else Path(__file__).resolve().parents[1]
@@ -125,13 +130,12 @@ def main() -> int:
     drift: list[str] = []
     wrote: list[str] = []
 
-    # 1. Dir-level symlinks
-    for harness in HARNESS_DIRS:
-        link = repo_root / harness / "skills"
-        if not ensure_symlink(link, write):
-            drift.append(f"{harness}/skills should be a symlink -> {SYMLINK_TARGET}")
-        elif write and link.is_symlink():
-            pass
+    # 1. Dir-level symlinks (local-only; gitignored)
+    if not args.skip_symlinks:
+        for harness in HARNESS_DIRS:
+            link = repo_root / harness / "skills"
+            if not ensure_symlink(link, write):
+                drift.append(f"{harness}/skills should be a symlink -> {SYMLINK_TARGET}")
 
     # 2. Codex sidecars
     for skill_md in sorted(skills_root.glob("*/SKILL.md")):

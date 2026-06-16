@@ -87,6 +87,20 @@ def test_check_reports_drift_before_generate(tmp_path: Path):
     assert _invoke(module, tmp_path, ["--check"]) == 1  # symlinks + sidecar missing
 
 
+def test_skip_symlinks_writes_sidecars_only(tmp_path: Path):
+    module = load_module()
+    skills_root, make_skill = make_repo(tmp_path)
+    make_skill("diagnose", "Use when debugging.")
+
+    assert _invoke(module, tmp_path, ["--skip-symlinks"]) == 0
+    # sidecar written
+    assert (skills_root / "diagnose" / "agents" / "openai.yaml").exists()
+    # harness skills/ left as the original plain dir (not converted to a symlink)
+    assert not (tmp_path / ".claude" / "skills").is_symlink()
+    # sidecars-only check passes regardless of symlink state
+    assert _invoke(module, tmp_path, ["--check", "--skip-symlinks"]) == 0
+
+
 def test_hand_authored_sidecar_preserved(tmp_path: Path):
     module = load_module()
     skills_root, make_skill = make_repo(tmp_path)

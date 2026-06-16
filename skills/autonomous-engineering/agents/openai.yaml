@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Autonomous Engineering"
+  short_description: "Full autonomous engineering workflows that run a complete feature development cycle: plan, deepen..."
+  default_prompt: "Use the Autonomous Engineering skill for this task."

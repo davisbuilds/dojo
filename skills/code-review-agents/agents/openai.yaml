@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Code Review Agents"
+  short_description: "Specialized code review and quality assurance agents covering architecture, data integrity, secur..."
+  default_prompt: "Use the Code Review Agents skill for this task."
