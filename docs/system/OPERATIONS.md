@@ -78,6 +78,24 @@ python scripts/gen_harness_adapters.py --check --skip-symlinks  # verify committ
 
 Hand-curated sidecars (no `AUTO-GENERATED` marker) are preserved; for those, author with `skills/skill-creator/scripts/generate_openai_yaml.py`.
 
+### Regenerate the skill catalog
+
+Builds a self-contained, searchable `docs/catalog/index.html` from `skills.json` (open it directly in a browser):
+
+```bash
+python scripts/gen_catalog.py          # write
+python scripts/gen_catalog.py --check  # verify no drift (CI)
+```
+
+### Skill health report
+
+Read-only aggregation of contract status + declared-trigger routing across the catalog (reporting, not a gate):
+
+```bash
+python scripts/skills_health.py         # human-readable
+python scripts/skills_health.py --json  # machine-readable
+```
+
 ### Run skill-standardizer regression tests
 
 ```bash
@@ -98,6 +116,7 @@ GitHub Actions enforces strict contract compliance and generated-artifact sync o
 python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
 python3 scripts/gen_skill_docs.py --check
 python3 scripts/gen_harness_adapters.py --check --skip-symlinks
+python3 scripts/gen_catalog.py --check
 ```
 
 The strict validator is type-aware:
