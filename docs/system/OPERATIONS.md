@@ -87,6 +87,15 @@ python scripts/gen_catalog.py          # write
 python scripts/gen_catalog.py --check  # verify no drift (CI)
 ```
 
+### Skill health report
+
+Read-only aggregation of contract status + declared-trigger routing across the catalog (reporting, not a gate):
+
+```bash
+python scripts/skills_health.py         # human-readable
+python scripts/skills_health.py --json  # machine-readable
+```
+
 ### Run skill-standardizer regression tests
 
 ```bash
