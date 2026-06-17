@@ -106,6 +106,15 @@ python scripts/skills_health.py         # human-readable
 python scripts/skills_health.py --json  # machine-readable
 ```
 
+### Behavioral trigger evals (opt-in, never in CI)
+
+Asks a real local agent which skill it would pick for each declared trigger, then checks against the owner. Requires `DOJO_BEHAVIORAL_EVALS=1` and a local agent command (`DOJO_BEHAVIORAL_AGENT`, default `claude -p`; reads the prompt on stdin). Non-deterministic and may cost tokens, so it is gated off by default and not wired into CI:
+
+```bash
+DOJO_BEHAVIORAL_EVALS=1 python scripts/behavioral_evals.py
+DOJO_BEHAVIORAL_EVALS=1 python scripts/behavioral_evals.py --json
+```
+
 ### Run skill-standardizer regression tests
 
 ```bash

@@ -39,6 +39,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 | Skill health report | `skills_health.py` aggregates contract status + declared-trigger routing into a read-only per-skill report (ECC-derived) |
 | Minimal rules/ tier | `rules/` for standing always-follow conventions (skill-authoring, doc-hygiene), composable into SKILL.md via `rules/<name>` includes; referenced from AGENTS.md/CONTRIBUTING (ECC-derived) |
 | AI-slop prose scan | `slop_scan.py` — high-precision deterministic linter for AI-slop tells in skill prose + core docs, CI-gated; complements the visual `design-critique` skill (gstack-derived) |
+| Opt-in behavioral evals | `behavioral_evals.py` — drives a real local agent to verify declared triggers route to the right skill; gated on `DOJO_BEHAVIORAL_EVALS=1`, never in CI (gstack-derived) |
 
 ## Cross-Cutting Findings
 
