@@ -21,6 +21,19 @@ Standing conventions for changes in this repo.
   composed SKILL.md blocks) are never hand-edited — change the source and
   regenerate.
 
+## Plans & specs
+
+- Plans and specs carry a `status:` that follows a lifecycle:
+  `draft → in-progress → complete` (terminal synonyms: `shipped`, `implemented`,
+  `superseded`). Update it honestly as work progresses — downstream tooling keys
+  off it.
+- Completed plans don't linger in `docs/plans/` (or `docs/specs/`). They move to
+  a gitignored `docs/archive/<category>/` — kept locally, out of the tracked
+  tree; preserve the emptied dir with `.gitkeep`.
+- Don't hand-sweep one at a time: `ops/scripts/archive_plans.py` archives
+  terminal-status docs past a settling buffer and reports anything missing
+  lifecycle frontmatter. Setting `status:` correctly is what lets it run safely.
+
 ## Verification
 
 - State outcomes faithfully: if tests fail, say so with output; if a step was
