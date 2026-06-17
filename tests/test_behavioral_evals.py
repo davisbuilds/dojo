@@ -69,6 +69,25 @@ def test_run_evals_with_injected_runner():
     assert report2["summary"]["failed"] == 2  # the two diagnose cases misroute
 
 
+def test_empty_cases_json_is_valid_json(tmp_path: Path, monkeypatch, capsys):
+    import json
+
+    module = load_module()
+    skills_root = tmp_path / "skills"
+    (skills_root / "plain").mkdir(parents=True)
+    (skills_root / "plain" / "SKILL.md").write_text(
+        "---\nname: plain\ndescription: No triggers here.\n---\n\n# plain\n", encoding="utf-8"
+    )
+
+    monkeypatch.setenv("DOJO_BEHAVIORAL_EVALS", "1")
+    monkeypatch.setattr("sys.argv", ["behavioral", "--skills-root", str(skills_root), "--json"])
+    assert module.main() == 0
+
+    payload = json.loads(capsys.readouterr().out)  # must be valid JSON
+    assert payload["summary"] == {"cases": 0, "passed": 0, "failed": 0}
+    assert payload["results"] == []
+
+
 def test_gated_off_by_default(tmp_path: Path, monkeypatch):
     module = load_module()
     monkeypatch.delenv("DOJO_BEHAVIORAL_EVALS", raising=False)

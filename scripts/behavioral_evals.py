@@ -145,7 +145,10 @@ def main() -> int:
     catalog = build_catalog(skills_root)
     cases = build_cases(catalog)
     if not cases:
-        print("No skills declare `triggers:` — nothing to evaluate.")
+        if args.json:
+            print(json.dumps({"summary": {"cases": 0, "passed": 0, "failed": 0}, "results": []}, indent=2))
+        else:
+            print("No skills declare `triggers:` — nothing to evaluate.")
         return 0
 
     try:

@@ -5,7 +5,9 @@ on:
     paths:
       - 'skills/**'
       - 'scripts/**'
-      - 'docs/system/skill-contract-v1.md'
+      - 'rules/**'
+      - 'README.md'
+      - 'docs/system/**'
       - 'requirements.txt'
       - 'requirements.lock'
       - '.github/workflows/skill-contract-pilot.yml'
@@ -15,7 +17,9 @@ on:
     paths:
       - 'skills/**'
       - 'scripts/**'
-      - 'docs/system/skill-contract-v1.md'
+      - 'rules/**'
+      - 'README.md'
+      - 'docs/system/**'
       - 'requirements.txt'
       - 'requirements.lock'
       - '.github/workflows/skill-contract-pilot.yml'
