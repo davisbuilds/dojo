@@ -128,6 +128,17 @@ The `SKILL.md` file contains the "brain" of the skill—the prompt instructions 
 
 Context loading follows progressive disclosure: manifest metadata is always available, `SKILL.md` loads only when triggered, and bundled resources are read on demand.
 
+Skills may also declare an optional `triggers:` list of literal trigger phrases. These are machine-checkable by the trigger evals (`run_trigger_evals.py --from-triggers`) and stay optional — absence changes nothing.
+
+### Multi-harness support
+
+The agent-agnostic claim is backed by generated adapters, not duplicated content. `scripts/gen_harness_adapters.py` derives, from each skill's frontmatter:
+
+- **Dir-level relative symlinks** so SKILL.md-native harnesses see every skill: `.claude/skills`, `.agents/skills`, and `.agent/skills` each point to `../skills`. These live under gitignored harness dirs, so they are **local-only and regenerated per clone** — run the generator after cloning.
+- **A colocated Codex sidecar** at `skills/<name>/agents/openai.yaml`. These are committed, portable artifacts. Generated sidecars carry an `AUTO-GENERATED` marker; hand-curated ones (with icons, polished copy) are preserved and never overwritten.
+
+Run `python3 scripts/gen_harness_adapters.py` to regenerate everything locally. CI enforces the committed sidecars with `gen_harness_adapters.py --check --skip-symlinks`.
+
 ## Available Skills
 
 Skills span GitHub workflows, code review, content creation, dev workflows, platform integrations, knowledge management, and meta/skill tooling. Use `jq '.skills | length' skills.json` for the current runtime count, and see [docs/system/FEATURES.md](docs/system/FEATURES.md) for the catalog snapshot.

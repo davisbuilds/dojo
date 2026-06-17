@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Verify Before Complete"
+  short_description: "Enforce evidence-based completion claims"
+  default_prompt: "Use $verify-before-complete for this task."

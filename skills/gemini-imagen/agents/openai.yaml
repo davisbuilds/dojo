@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Gemini Imagen"
+  short_description: "Generate, edit, and compose images via Google's Gemini API"
+  default_prompt: "Use $gemini-imagen for this task."

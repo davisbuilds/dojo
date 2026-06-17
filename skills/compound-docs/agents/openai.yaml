@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Compound Docs"
+  short_description: "Capture solved problems as categorized documentation with YAML"
+  default_prompt: "Use $compound-docs for this task."

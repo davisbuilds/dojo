@@ -57,6 +57,27 @@ python skills/skill-creator/scripts/generate_openai_yaml.py <path/to/skill-folde
 python scripts/generate_skills_manifest.py
 ```
 
+### Compose opt-in shared fragments
+
+Expands `<!-- INCLUDE: name -->` directives from `skills/_fragments/` into SKILL.md (skills with no directive are untouched):
+
+```bash
+python scripts/gen_skill_docs.py          # write
+python scripts/gen_skill_docs.py --check  # verify no drift (CI)
+```
+
+### Regenerate harness adapters
+
+Creates the local `.claude/.agents/.agent` `skills/` symlinks and the colocated Codex `openai.yaml` sidecars from frontmatter. Run after cloning (symlinks are gitignored) and after editing skill descriptions:
+
+```bash
+python scripts/gen_harness_adapters.py                      # write symlinks + sidecars
+python scripts/gen_harness_adapters.py --check              # verify both locally
+python scripts/gen_harness_adapters.py --check --skip-symlinks  # verify committed sidecars only (CI)
+```
+
+Hand-curated sidecars (no `AUTO-GENERATED` marker) are preserved; for those, author with `skills/skill-creator/scripts/generate_openai_yaml.py`.
+
 ### Run skill-standardizer regression tests
 
 ```bash
@@ -69,12 +90,14 @@ Hooks are configured in `.claude/settings.json` and `.agents/settings.json`. No 
 
 ## CI
 
-GitHub Actions enforces strict contract compliance on the manifest-backed skill catalog via:
+GitHub Actions enforces strict contract compliance and generated-artifact sync on the manifest-backed skill catalog via:
 
 - `.github/workflows/skill-contract-pilot.yml`
 
 ```bash
 python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
+python3 scripts/gen_skill_docs.py --check
+python3 scripts/gen_harness_adapters.py --check --skip-symlinks
 ```
 
 The strict validator is type-aware:

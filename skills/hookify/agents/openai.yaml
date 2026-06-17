@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Hookify"
+  short_description: "Create and manage lightweight guard-rail hooks from markdown"
+  default_prompt: "Use $hookify for this task."

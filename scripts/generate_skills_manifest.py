@@ -77,6 +77,8 @@ def generate_manifest(skills_dir, output_path):
             entry['license'] = frontmatter['license']
         if 'allowed-tools' in frontmatter:
             entry['allowed-tools'] = frontmatter['allowed-tools']
+        if 'triggers' in frontmatter:
+            entry['triggers'] = frontmatter['triggers']
 
         skills.append(entry)
 

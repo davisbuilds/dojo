@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Skill Evals"
+  short_description: "Evaluate skill quality and routing reliability with"
+  default_prompt: "Use $skill-evals for this task."

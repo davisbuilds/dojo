@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Code Review Agents"
+  short_description: "Specialized code review and quality assurance agents covering"
+  default_prompt: "Use $code-review-agents for this task."

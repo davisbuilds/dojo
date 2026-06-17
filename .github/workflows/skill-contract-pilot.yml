@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'skills/**'
+      - 'scripts/**'
       - 'docs/system/skill-contract-v1.md'
       - 'requirements.txt'
       - 'requirements.lock'
@@ -13,6 +14,7 @@ on:
       - main
     paths:
       - 'skills/**'
+      - 'scripts/**'
       - 'docs/system/skill-contract-v1.md'
       - 'requirements.txt'
       - 'requirements.lock'
@@ -61,6 +63,12 @@ jobs:
           if [ "$status" -ne 0 ] || [ "$json_status" -ne 0 ]; then
             exit 1
           fi
+
+      - name: Verify generated artifacts are in sync
+        run: |
+          . .venv/bin/activate
+          python3 scripts/gen_skill_docs.py --check
+          python3 scripts/gen_harness_adapters.py --check --skip-symlinks
 
       - name: Upload strict set report
         if: always()

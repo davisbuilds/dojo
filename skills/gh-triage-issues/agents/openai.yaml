@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Gh Triage Issues"
+  short_description: "Triage GitHub issues using the gh CLI"
+  default_prompt: "Use $gh-triage-issues for this task."

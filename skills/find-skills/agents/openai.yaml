@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Find Skills"
+  short_description: "Helps users discover and install agent skills when they ask"
+  default_prompt: "Use $find-skills for this task."

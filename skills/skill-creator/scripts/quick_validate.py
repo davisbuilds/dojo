@@ -24,6 +24,7 @@ ALLOWED_PROPERTIES = {
     "allowed-tools",
     "metadata",
     "compatibility",
+    "triggers",
 }
 ALLOWED_SKILL_TYPES = {"workflow", "reference"}
 
@@ -114,6 +115,14 @@ def validate_skill(skill_path):
                 f"skill-type must be one of: {', '.join(sorted(ALLOWED_SKILL_TYPES))}. "
                 f"Got: {skill_type}",
             )
+
+    triggers = frontmatter.get("triggers")
+    if triggers is not None:
+        if not isinstance(triggers, list) or not triggers:
+            return False, "triggers must be a non-empty list of strings"
+        for item in triggers:
+            if not isinstance(item, str) or not item.strip():
+                return False, "triggers must contain only non-empty strings"
 
     compatibility = frontmatter.get("compatibility")
     if compatibility is not None:

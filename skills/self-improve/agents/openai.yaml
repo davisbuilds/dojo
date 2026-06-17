@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Self Improve"
+  short_description: "Capture agent-operational lessons, recurring mistakes, and"
+  default_prompt: "Use $self-improve for this task."

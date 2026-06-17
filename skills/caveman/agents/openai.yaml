@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Caveman"
+  short_description: "Ultra-compressed communication mode"
+  default_prompt: "Use $caveman for this task."

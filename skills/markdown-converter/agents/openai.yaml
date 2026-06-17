@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Markdown Converter"
+  short_description: "Convert documents and files to Markdown using markitdown"
+  default_prompt: "Use $markdown-converter for this task."

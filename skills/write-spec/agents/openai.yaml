@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Write Spec"
+  short_description: "Create robust, execution-ready specs (detailed implementation"
+  default_prompt: "Use $write-spec for this task."

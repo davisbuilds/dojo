@@ -97,12 +97,18 @@ def build_skill_index(skills_root: Path, selected: set[str] | None) -> dict[str,
         if not isinstance(description, str):
             description = ""
 
+        declared = fm.get("triggers", [])
+        if not isinstance(declared, list):
+            declared = []
+        declared = [t.strip() for t in declared if isinstance(t, str) and t.strip()]
+
         combined = f"{skill} {description}"
         name_tokens = set(skill.lower().split("-"))
         index[skill] = {
             "description": description,
             "tokens": normalize_tokens(combined),
             "name_tokens": name_tokens,
+            "declared_triggers": declared,
         }
         for token in name_tokens:
             all_name_tokens.setdefault(token, []).append(skill)
@@ -166,13 +172,78 @@ def safe_div(num: float, den: float) -> float:
     return 0.0 if den == 0 else num / den
 
 
+def evaluate_declared_triggers(skills: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """Assert each skill's declared `triggers:` self-route without collisions.
+
+    For every declared trigger phrase, score it against every skill. The owning
+    skill must clear the explicit-case threshold and must not be tied or beaten
+    by any other skill (a tie/loss is a routing collision).
+    """
+    case_type = "explicit"
+    threshold = threshold_for(case_type)
+    assertions: list[dict[str, Any]] = []
+
+    for owner in sorted(skills):
+        triggers = skills[owner].get("declared_triggers", [])
+        for phrase in triggers:
+            scores = {
+                skill: score_trigger(phrase, case_type, skill, data)
+                for skill, data in skills.items()
+            }
+            self_score = scores[owner]
+            competitors = sorted(
+                ((s, sc) for s, sc in scores.items() if s != owner),
+                key=lambda item: item[1],
+                reverse=True,
+            )
+            top_other, top_other_score = competitors[0] if competitors else (None, 0.0)
+
+            routes = self_score >= threshold
+            collision = top_other is not None and top_other_score >= self_score
+            passed = routes and not collision
+
+            assertions.append(
+                {
+                    "skill": owner,
+                    "trigger": phrase,
+                    "self_score": round(self_score, 4),
+                    "routes": routes,
+                    "collision_with": top_other if collision else None,
+                    "collision_score": round(top_other_score, 4) if collision else None,
+                    "passed": passed,
+                }
+            )
+
+    passed = sum(1 for item in assertions if item["passed"])
+    failed = len(assertions) - passed
+    skills_with_triggers = sum(1 for s in skills.values() if s.get("declared_triggers"))
+
+    return {
+        "summary": {
+            "skills_with_triggers": skills_with_triggers,
+            "assertions": len(assertions),
+            "passed": passed,
+            "failed": failed,
+        },
+        "assertions": assertions,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run deterministic trigger eval scaffold for skills")
-    parser.add_argument("--cases", required=True, help="Path to trigger case JSON file")
+    parser.add_argument("--cases", help="Path to trigger case JSON file")
+    parser.add_argument(
+        "--from-triggers",
+        action="store_true",
+        help="Derive cases from skills' declared `triggers:` and assert self-routing without collisions",
+    )
     parser.add_argument("--skills-root", default="skills", help="Path to skills directory (default: skills)")
     parser.add_argument("--skills", help="Comma-separated subset of skills to score")
     parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output")
     args = parser.parse_args()
+
+    if not args.cases and not args.from_triggers:
+        parser.error("provide --cases <file> and/or --from-triggers")
 
     script_path = Path(__file__).resolve()
     repo_root = script_path.parents[3]
@@ -181,15 +252,8 @@ def main() -> int:
     if not skills_root.is_absolute():
         skills_root = (repo_root / skills_root).resolve()
 
-    cases_path = Path(args.cases)
-    if not cases_path.is_absolute():
-        cases_path = (repo_root / cases_path).resolve()
-
     if not skills_root.is_dir():
         print(f"Skills root not found: {skills_root}", file=sys.stderr)
-        return 1
-    if not cases_path.exists():
-        print(f"Cases file not found: {cases_path}", file=sys.stderr)
         return 1
 
     selected = None
@@ -199,6 +263,19 @@ def main() -> int:
     skills = build_skill_index(skills_root, selected)
     if not skills:
         print("No skills available for scoring", file=sys.stderr)
+        return 1
+
+    # Mode: derive cases from declared `triggers:` only.
+    if args.from_triggers and not args.cases:
+        output = evaluate_declared_triggers(skills)
+        print(json.dumps(output, indent=2) if args.pretty else json.dumps(output))
+        return 1 if output["summary"]["failed"] else 0
+
+    cases_path = Path(args.cases)
+    if not cases_path.is_absolute():
+        cases_path = (repo_root / cases_path).resolve()
+    if not cases_path.exists():
+        print(f"Cases file not found: {cases_path}", file=sys.stderr)
         return 1
 
     payload = json.loads(cases_path.read_text(encoding="utf-8"))
@@ -290,12 +367,18 @@ def main() -> int:
         "assertions": assertions,
     }
 
+    declared_failed = 0
+    if args.from_triggers:
+        declared = evaluate_declared_triggers(skills)
+        output["declared_triggers"] = declared
+        declared_failed = declared["summary"]["failed"]
+
     if args.pretty:
         print(json.dumps(output, indent=2))
     else:
         print(json.dumps(output))
 
-    return 1 if failed else 0
+    return 1 if (failed or declared_failed) else 0
 
 
 if __name__ == "__main__":

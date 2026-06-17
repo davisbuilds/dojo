@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Theme Factory"
+  short_description: "Toolkit for styling artifacts with a theme"
+  default_prompt: "Use $theme-factory for this task."
