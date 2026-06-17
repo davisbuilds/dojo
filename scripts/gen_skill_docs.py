@@ -35,28 +35,43 @@ from pathlib import Path
 FRAGMENTS_DIRNAME = "_fragments"
 
 # Matches an INCLUDE directive and, optionally, the generated block it owns
-# (up to the matching closing marker with the same fragment name).
+# (up to the matching closing marker with the same fragment name). A name may
+# be a bare fragment (skills/_fragments/<name>.md) or a namespaced rule
+# (rules/<name> -> rules/<name>.md).
 INCLUDE_RE = re.compile(
-    r"<!-- INCLUDE: (?P<name>[a-z0-9][a-z0-9-]*) -->"
+    r"<!-- INCLUDE: (?P<name>(?:rules/)?[a-z0-9][a-z0-9-]*) -->"
     r"(?:.*?<!-- /INCLUDE: (?P=name) -->)?",
     re.DOTALL,
 )
 
 
-def load_fragment(fragments_dir: Path, name: str) -> str:
-    path = fragments_dir / f"{name}.md"
+def resolve_source(name: str, skills_root: Path, repo_root: Path) -> tuple[Path, str]:
+    """Resolve an include name to (path, display-label)."""
+    if name.startswith("rules/"):
+        path = repo_root / f"{name}.md"
+        return path, f"{name}.md"
+    path = skills_root / FRAGMENTS_DIRNAME / f"{name}.md"
+    try:
+        label = str(path.relative_to(repo_root))
+    except ValueError:
+        label = f"skills/{FRAGMENTS_DIRNAME}/{name}.md"
+    return path, label
+
+
+def load_fragment(name: str, skills_root: Path, repo_root: Path) -> tuple[str, str]:
+    path, label = resolve_source(name, skills_root, repo_root)
     if not path.exists():
         raise FileNotFoundError(f"fragment not found: {path}")
-    return path.read_text(encoding="utf-8").strip("\n")
+    return path.read_text(encoding="utf-8").strip("\n"), label
 
 
-def expand(text: str, fragments_dir: Path) -> str:
+def expand(text: str, skills_root: Path, repo_root: Path) -> str:
     def repl(match: re.Match) -> str:
         name = match.group("name")
-        body = load_fragment(fragments_dir, name)
+        body, label = load_fragment(name, skills_root, repo_root)
         return (
             f"<!-- INCLUDE: {name} -->\n"
-            f"<!-- AUTO-GENERATED from skills/{FRAGMENTS_DIRNAME}/{name}.md — do not edit -->\n"
+            f"<!-- AUTO-GENERATED from {label} — do not edit -->\n"
             f"{body}\n"
             f"<!-- /INCLUDE: {name} -->"
         )
@@ -83,7 +98,6 @@ def main() -> int:
     skills_root = Path(args.skills_root)
     if not skills_root.is_absolute():
         skills_root = (repo_root / skills_root).resolve()
-    fragments_dir = skills_root / FRAGMENTS_DIRNAME
 
     if not skills_root.is_dir():
         print(f"Skills root not found: {skills_root}", file=sys.stderr)
@@ -97,7 +111,7 @@ def main() -> int:
         if not has_directive(original):
             continue  # not opted in: never touch
         try:
-            expanded = expand(original, fragments_dir)
+            expanded = expand(original, skills_root, repo_root)
         except FileNotFoundError as exc:
             print(f"ERROR: {skill_md.parent.name}: {exc}", file=sys.stderr)
             return 1

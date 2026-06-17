@@ -21,6 +21,10 @@ Use descriptive prefixes:
 - `chore/<name>`
 - `docs/<name>`
 
+## Conventions
+
+Standing always-follow conventions live in [`rules/`](rules/) — see [`rules/skill-authoring.md`](rules/skill-authoring.md) and [`rules/doc-hygiene.md`](rules/doc-hygiene.md).
+
 ## Commit Guidance
 
 - Keep commits logical and atomic while working on the branch.
