@@ -54,6 +54,13 @@ source: conversation
 ---
 ```
 
+`status:` is born `draft` and follows the lifecycle `draft → in-progress →
+complete` (terminal synonyms: `shipped`, `implemented`, `superseded`). Update it
+honestly as the work lands — completed specs are swept out of `docs/plans/` and
+`docs/specs/` into a gitignored `docs/archive/<category>/` by
+`ops/scripts/archive_plans.py`, which keys off this field. A spec left at the
+wrong `status` is either archived prematurely or lingers in the tracked tree.
+
 ### Required Sections
 
 1. `# <Title> Spec`
