@@ -28,7 +28,14 @@ Do this, in order:
    `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.
    It should pass. If it fails, show me the output and stop.
 
-4. Report back: confirm tools present + deps installed + validator passed, and show
+4. Apply harness adapters so this repo's skills are discoverable by SKILL.md-native
+   harnesses: `python3 scripts/gen_harness_adapters.py`. This creates local,
+   gitignored symlinks (`.claude/skills`, `.agents/skills`, `.agent/skills` ->
+   `../skills`) and leaves the committed Codex sidecars untouched — it produces no
+   git changes. (Codex sidecars at `skills/<name>/agents/openai.yaml` are already
+   committed, so Codex works without this step.)
+
+5. Report back: confirm tools present + deps installed + validator passed, and show
    me how to install a skill into my agent, e.g.
    `python3 skills/skill-installer/scripts/install-skill-from-github.py --agent claude --repo davisbuilds/dojo --path skills/<skill-name>`.
 
