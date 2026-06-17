@@ -44,4 +44,10 @@ fi
 # Regenerate silently — errors are non-blocking
 python3 "$GENERATOR" >/dev/null 2>&1
 
+# Regenerate the browseable catalog from the refreshed manifest (non-blocking)
+CATALOG="$REPO_ROOT/scripts/gen_catalog.py"
+if [[ -f "$CATALOG" ]]; then
+  python3 "$CATALOG" >/dev/null 2>&1
+fi
+
 exit 0

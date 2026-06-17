@@ -143,6 +143,8 @@ Run `python3 scripts/gen_harness_adapters.py` to regenerate everything locally. 
 
 Skills span GitHub workflows, code review, content creation, dev workflows, platform integrations, knowledge management, and meta/skill tooling. Use `jq '.skills | length' skills.json` for the current runtime count, and see [docs/system/FEATURES.md](docs/system/FEATURES.md) for the catalog snapshot.
 
+For a searchable view, open [`docs/catalog/index.html`](docs/catalog/index.html) — a self-contained page generated from `skills.json` by `scripts/gen_catalog.py` (rebuilt automatically when skill metadata changes).
+
 ## Hooks
 
 Hooks in `hooks/` enforce skill quality, inject session context, and nudge agents to capture learnings (skill catalog, frontmatter validation, manifest regeneration, git checks, structure checks, session retro reminder). Configured in `.claude/settings.json` and `.agents/settings.json`. See [docs/system/ARCHITECTURE.md](docs/system/ARCHITECTURE.md) for details.

@@ -43,7 +43,7 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 | `session-start-skill-catalog.sh` | SessionStart | Injects skill catalog, recent git log, and AGENTS.md pointer |
 | `pre-tool-use-git-push-protected-branch.sh` | PreToolUse (Bash) | Blocks pushes to protected branches unless an explicit override token is present |
 | `pre-tool-use-validate-skill.sh` | PreToolUse (Write/Edit) | Validates SKILL.md frontmatter; blocks on failure |
-| `post-tool-use-regen-manifest.sh` | PostToolUse (Write/Edit) | On SKILL.md or `skills/_fragments/*` edits, expands opt-in fragment composition then regenerates `skills.json` |
+| `post-tool-use-regen-manifest.sh` | PostToolUse (Write/Edit) | On SKILL.md or `skills/_fragments/*` edits, expands opt-in fragment composition, regenerates `skills.json`, then rebuilds the catalog |
 | `post-tool-use-validate-spec.sh` | PostToolUse (Write/Edit) | Validates `docs/specs/*-spec.md` against `write-spec` schema |
 | `stop-hook-git-check.sh` | Stop | Blocks if there are uncommitted changes or untracked files. Unpushed commits are allowed. |
 | `stop-hook-skill-structure.sh` | Stop | Validates modified skill directories have valid SKILL.md |
@@ -59,6 +59,7 @@ SKILL.md frontmatter is the single source of truth; two deterministic, idempoten
 
 - `scripts/gen_skill_docs.py` — **opt-in** shared-fragment composition. Expands declared includes (from `skills/_fragments/`) into SKILL.md between `<!-- AUTO-GENERATED -->` markers. Skills that declare no template are left untouched.
 - `scripts/gen_harness_adapters.py` — emits per-skill harness sidecars for the target set: `.claude/`, `.agents/`, `.agent/`, and Codex. Sidecars are generated artifacts (do not hand-edit); CI runs `--check` to enforce they stay synced with frontmatter.
+- `scripts/gen_catalog.py` — renders a self-contained, searchable `docs/catalog/index.html` from `skills.json`. Regenerated after the manifest by the post-tool-use hook; CI runs `--check`.
 
 ## Validation Pipeline
 
@@ -82,6 +83,7 @@ hooks/                    # lifecycle hook scripts (bash)
 scripts/                  # Manifest generation + generation pipeline (Python)
 .claude/ .agents/ .agent/ # Each `skills/` is a generated relative symlink -> ../skills (Codex sidecars colocated at skills/<name>/agents/openai.yaml)
 spec/                     # Agent skills specification (upstream)
+docs/catalog/             # Generated browseable skill catalog (index.html) from skills.json
 docs/specs/               # Specs (write-spec output)
 docs/plans/               # Brainstorm summaries and historical implementation plans
 docs/research/            # External comparisons and research notes
