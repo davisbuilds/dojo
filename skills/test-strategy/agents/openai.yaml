@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Test Strategy"
-  short_description: "Guide agents to follow preferred testing methodology — red/green TDD, real dependencies over mock..."
-  default_prompt: "Use the Test Strategy skill for this task."
+  short_description: "Guide agents to follow preferred testing methodology"
+  default_prompt: "Use $test-strategy for this task."

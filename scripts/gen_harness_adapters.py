@@ -28,7 +28,6 @@ Usage:
 
 import argparse
 import os
-import shutil
 import sys
 from pathlib import Path
 
@@ -61,11 +60,24 @@ def display_name(name: str) -> str:
     return " ".join(part.capitalize() for part in name.split("-"))
 
 
-def short_description(description: str) -> str:
+SHORT_DESC_MAX = 64  # openai.yaml contract: short_description is 25-64 chars
+SHORT_DESC_MIN = 25
+
+
+def short_description(description: str, dn: str) -> str:
+    """Derive a 25-64 char blurb per the openai.yaml contract."""
     first = description.strip().split(". ")[0].strip().rstrip(".")
-    if len(first) > 100:
-        first = first[:97].rstrip() + "..."
-    return first
+    text = first if len(first) >= SHORT_DESC_MIN else description.strip().rstrip(".")
+
+    if len(text) > SHORT_DESC_MAX:
+        cut = text[:SHORT_DESC_MAX]
+        if " " in cut:
+            cut = cut[: cut.rfind(" ")]
+        text = cut.rstrip(" ,.;:—-")
+
+    if len(text) < SHORT_DESC_MIN:
+        text = f"{dn} — {text}".strip(" —")[:SHORT_DESC_MAX]
+    return text
 
 
 def render_sidecar(name: str, frontmatter: dict) -> str:
@@ -77,8 +89,8 @@ def render_sidecar(name: str, frontmatter: dict) -> str:
         f"{MARKER}\n"
         "interface:\n"
         f"  display_name: {yq(dn)}\n"
-        f"  short_description: {yq(short_description(desc))}\n"
-        f"  default_prompt: {yq(f'Use the {dn} skill for this task.')}\n"
+        f"  short_description: {yq(short_description(desc, dn))}\n"
+        f"  default_prompt: {yq(f'Use ${name} for this task.')}\n"
     )
 
 
@@ -90,19 +102,34 @@ def symlink_ok(link: Path) -> bool:
     return link.is_symlink() and os.readlink(link) == SYMLINK_TARGET
 
 
-def ensure_symlink(link: Path, write: bool) -> bool:
-    """Return True if the link is (or was made) correct; False if drift in --check."""
+def ensure_symlink(link: Path, write: bool) -> tuple[bool, str | None]:
+    """Ensure ``link`` is a relative symlink to ``../skills``.
+
+    Returns (ok, error). Never recursively deletes a real (non-symlink)
+    directory: a populated local harness dir may hold untracked skills or
+    config, so refuse and ask the developer to move it instead.
+    """
     if symlink_ok(link):
-        return True
+        return True, None
     if not write:
-        return False
-    if link.is_symlink() or link.is_file():
-        link.unlink()
-    elif link.is_dir():
-        shutil.rmtree(link)
+        return False, None  # drift, reported by --check
+
+    if link.is_symlink():
+        link.unlink()  # wrong/broken symlink: safe to replace
+    elif link.exists():
+        if link.is_dir():
+            if any(link.iterdir()):
+                return False, (
+                    f"{link} is a non-empty real directory; refusing to delete it. "
+                    f"Move or remove it, then re-run to create the symlink."
+                )
+            link.rmdir()  # empty real dir: safe to replace
+        else:
+            return False, f"{link} is a real file; refusing to replace it."
+
     link.parent.mkdir(parents=True, exist_ok=True)
     os.symlink(SYMLINK_TARGET, link)
-    return True
+    return True, None
 
 
 def main() -> int:
@@ -128,13 +155,17 @@ def main() -> int:
 
     write = not args.check
     drift: list[str] = []
+    errors: list[str] = []
     wrote: list[str] = []
 
     # 1. Dir-level symlinks (local-only; gitignored)
     if not args.skip_symlinks:
         for harness in HARNESS_DIRS:
             link = repo_root / harness / "skills"
-            if not ensure_symlink(link, write):
+            ok, error = ensure_symlink(link, write)
+            if error:
+                errors.append(error)
+            elif not ok:
                 drift.append(f"{harness}/skills should be a symlink -> {SYMLINK_TARGET}")
 
     # 2. Codex sidecars
@@ -156,6 +187,12 @@ def main() -> int:
             sidecar.parent.mkdir(parents=True, exist_ok=True)
             sidecar.write_text(rendered, encoding="utf-8")
             wrote.append(name)
+
+    if errors:
+        print("Harness adapter errors (resolve, then re-run):", file=sys.stderr)
+        for item in errors:
+            print(f"  - {item}", file=sys.stderr)
+        return 1
 
     if args.check:
         if drift:

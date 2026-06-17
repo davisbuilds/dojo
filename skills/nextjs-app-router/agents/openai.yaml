@@ -2,4 +2,4 @@
 interface:
   display_name: "Nextjs App Router"
   short_description: "Next.js App Router expert guidance"
-  default_prompt: "Use the Nextjs App Router skill for this task."
+  default_prompt: "Use $nextjs-app-router for this task."

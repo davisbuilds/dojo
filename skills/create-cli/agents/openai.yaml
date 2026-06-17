@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Create Cli"
-  short_description: "Design command-line interface parameters and UX: arguments, flags, subcommands, help text, output..."
-  default_prompt: "Use the Create Cli skill for this task."
+  short_description: "Design command-line interface parameters and UX: arguments"
+  default_prompt: "Use $create-cli for this task."

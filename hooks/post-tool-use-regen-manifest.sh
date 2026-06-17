@@ -23,10 +23,17 @@ if [[ -z "$REPO_ROOT" ]]; then
   exit 0
 fi
 
-# Expand opt-in fragment composition first (idempotent; no-op if nothing opted in)
+# Expand opt-in fragment composition first (idempotent; no-op if nothing opted in).
+# Surface composer failures (e.g. a missing/misspelled fragment) instead of
+# silently leaving the composed SKILL.md stale.
 COMPOSER="$REPO_ROOT/scripts/gen_skill_docs.py"
 if [[ -f "$COMPOSER" ]]; then
-  python3 "$COMPOSER" >/dev/null 2>&1
+  composer_output=$(python3 "$COMPOSER" 2>&1)
+  composer_status=$?
+  if [[ "$composer_status" -ne 0 ]]; then
+    echo "post-tool-use-regen-manifest: fragment composition failed:" >&2
+    echo "$composer_output" >&2
+  fi
 fi
 
 GENERATOR="$REPO_ROOT/scripts/generate_skills_manifest.py"

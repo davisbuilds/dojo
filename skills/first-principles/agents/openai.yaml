@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "First Principles"
-  short_description: "Guide agent into first-principles, systems-thinking reasoning for high-stakes technical tasks"
-  default_prompt: "Use the First Principles skill for this task."
+  short_description: "Guide agent into first-principles, systems-thinking reasoning"
+  default_prompt: "Use $first-principles for this task."

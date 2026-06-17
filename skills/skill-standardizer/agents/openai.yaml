@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Skill Standardizer"
-  short_description: "Use when skill copies drift across repositories or agent globals and you need canonicalization, d..."
-  default_prompt: "Use the Skill Standardizer skill for this task."
+  short_description: "Use when skill copies drift across repositories or agent"
+  default_prompt: "Use $skill-standardizer for this task."

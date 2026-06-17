@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Design Md"
-  short_description: "Read, write, lint, diff, and export DESIGN.md files using the Google @google/design.md format"
-  default_prompt: "Use the Design Md skill for this task."
+  short_description: "Read, write, lint, diff, and export DESIGN.md files using the"
+  default_prompt: "Use $design-md for this task."

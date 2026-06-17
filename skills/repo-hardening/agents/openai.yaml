@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Repo Hardening"
-  short_description: "Audit and harden a software repo against supply-chain and workflow risks"
-  default_prompt: "Use the Repo Hardening skill for this task."
+  short_description: "Audit and harden a software repo against supply-chain and"
+  default_prompt: "Use $repo-hardening for this task."

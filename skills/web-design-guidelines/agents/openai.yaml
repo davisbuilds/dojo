@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Web Design Guidelines"
-  short_description: "Review UI code for Web Interface Guidelines compliance (accessibility, UX, code-level rules from..."
-  default_prompt: "Use the Web Design Guidelines skill for this task."
+  short_description: "Review UI code for Web Interface Guidelines compliance"
+  default_prompt: "Use $web-design-guidelines for this task."

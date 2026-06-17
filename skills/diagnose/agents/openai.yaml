@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Diagnose"
-  short_description: "Disciplined debugging loop for hard bugs and performance regressions — build a deterministic pass..."
-  default_prompt: "Use the Diagnose skill for this task."
+  short_description: "Disciplined debugging loop for hard bugs and performance"
+  default_prompt: "Use $diagnose for this task."

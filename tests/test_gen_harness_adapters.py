@@ -68,6 +68,12 @@ def test_generates_symlinks_and_sidecars(tmp_path: Path):
     text = sidecar.read_text()
     assert text.startswith(module.MARKER)
     assert 'display_name: "Diagnose"' in text
+    # default_prompt must mention the skill as $name (explicit invocation)
+    assert "$diagnose" in text
+    # short_description must respect the 25-64 char contract
+    sd = next(line for line in text.splitlines() if "short_description:" in line)
+    value = sd.split('"', 1)[1].rsplit('"', 1)[0]
+    assert 25 <= len(value) <= 64, value
 
 
 def test_idempotent_check_after_generate(tmp_path: Path):
@@ -99,6 +105,29 @@ def test_skip_symlinks_writes_sidecars_only(tmp_path: Path):
     assert not (tmp_path / ".claude" / "skills").is_symlink()
     # sidecars-only check passes regardless of symlink state
     assert _invoke(module, tmp_path, ["--check", "--skip-symlinks"]) == 0
+
+
+def test_refuses_to_delete_nonempty_real_dir(tmp_path: Path):
+    module = load_module()
+    skills_root, make_skill = make_repo(tmp_path)
+    make_skill("diagnose", "Use when debugging.")
+    # A developer's real harness dir with untracked local content
+    local = tmp_path / ".claude" / "skills" / "my-local-skill"
+    local.mkdir(parents=True)
+    (local / "SKILL.md").write_text("local", encoding="utf-8")
+
+    assert _invoke(module, tmp_path, []) == 1  # errors -> non-zero
+    # untouched: the local skill is preserved, not rmtree'd
+    assert (local / "SKILL.md").read_text() == "local"
+    assert not (tmp_path / ".claude" / "skills").is_symlink()
+
+
+def test_short_description_truncates_long_first_sentence(tmp_path: Path):
+    module = load_module()
+    long = "This is an intentionally very long first sentence that runs well beyond the sixty four character ceiling"
+    out = module.short_description(long, "Demo")
+    assert len(out) <= 64
+    assert " " in out  # truncated on a word boundary, not mid-word
 
 
 def test_hand_authored_sidecar_preserved(tmp_path: Path):

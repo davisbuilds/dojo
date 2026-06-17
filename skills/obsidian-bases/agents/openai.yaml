@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Obsidian Bases"
-  short_description: "Create and edit Obsidian Bases (.base files) with database-style views, filters, formulas, and su..."
-  default_prompt: "Use the Obsidian Bases skill for this task."
+  short_description: "Create and edit Obsidian Bases (.base files) with"
+  default_prompt: "Use $obsidian-bases for this task."

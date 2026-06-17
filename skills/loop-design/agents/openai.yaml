@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Loop Design"
-  short_description: "Design a reusable, verifiable autonomous loop on top of harness primitives like /loop and /goal"
-  default_prompt: "Use the Loop Design skill for this task."
+  short_description: "Design a reusable, verifiable autonomous loop on top of harness"
+  default_prompt: "Use $loop-design for this task."

@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Template"
-  short_description: "Skill starter template with commented guidance for every contract section"
-  default_prompt: "Use the Template skill for this task."
+  short_description: "Skill starter template with commented guidance for every"
+  default_prompt: "Use $template for this task."
