@@ -57,7 +57,7 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 
 SKILL.md frontmatter is the single source of truth; two deterministic, idempotent generators derive artifacts from it, each with a `--check` mode that fails on drift:
 
-- `scripts/gen_skill_docs.py` — **opt-in** shared-fragment composition. Expands declared includes (from `skills/_fragments/`) into SKILL.md between `<!-- AUTO-GENERATED -->` markers. Skills that declare no template are left untouched.
+- `scripts/gen_skill_docs.py` — **opt-in** shared-fragment composition. Expands declared includes into SKILL.md between `<!-- AUTO-GENERATED -->` markers. Bare names resolve to `skills/_fragments/<name>.md`; namespaced `rules/<name>` includes resolve to the `rules/` tier. Skills that declare no include are left untouched.
 - `scripts/gen_harness_adapters.py` — emits per-skill harness sidecars for the target set: `.claude/`, `.agents/`, `.agent/`, and Codex. Sidecars are generated artifacts (do not hand-edit); CI runs `--check` to enforce they stay synced with frontmatter.
 - `scripts/gen_catalog.py` — renders a self-contained, searchable `docs/catalog/index.html` from `skills.json`. Regenerated after the manifest by the post-tool-use hook; CI runs `--check`.
 
@@ -79,6 +79,7 @@ Uses a polyglot shebang — works with both `python` and `python3`.
 ```text
 skills/                   # skill directories (each with SKILL.md); skills.json is the inventory source of truth
 skills/_fragments/        # Shared include fragments for opt-in SKILL.md composition
+rules/                    # Standing always-follow conventions (composable via rules/<name> includes)
 hooks/                    # lifecycle hook scripts (bash)
 scripts/                  # Manifest generation + generation pipeline (Python)
 .claude/ .agents/ .agent/ # Each `skills/` is a generated relative symlink -> ../skills (Codex sidecars colocated at skills/<name>/agents/openai.yaml)

@@ -5,7 +5,9 @@ on:
     paths:
       - 'skills/**'
       - 'scripts/**'
-      - 'docs/system/skill-contract-v1.md'
+      - 'rules/**'
+      - 'README.md'
+      - 'docs/system/**'
       - 'requirements.txt'
       - 'requirements.lock'
       - '.github/workflows/skill-contract-pilot.yml'
@@ -15,7 +17,9 @@ on:
     paths:
       - 'skills/**'
       - 'scripts/**'
-      - 'docs/system/skill-contract-v1.md'
+      - 'rules/**'
+      - 'README.md'
+      - 'docs/system/**'
       - 'requirements.txt'
       - 'requirements.lock'
       - '.github/workflows/skill-contract-pilot.yml'
@@ -70,6 +74,11 @@ jobs:
           python3 scripts/gen_skill_docs.py --check
           python3 scripts/gen_harness_adapters.py --check --skip-symlinks
           python3 scripts/gen_catalog.py --check
+
+      - name: Scan authored prose for AI-slop
+        run: |
+          . .venv/bin/activate
+          python3 scripts/slop_scan.py
 
       - name: Upload strict set report
         if: always()

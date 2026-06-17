@@ -41,7 +41,7 @@ def test_expands_directive(setup):
     md = make_skill("opted", "Intro\n\n<!-- INCLUDE: footer -->\n")
 
     text = md.read_text()
-    out = module.expand(text, fragments)
+    out = module.expand(text, skills_root, skills_root.parent)
 
     assert "<!-- AUTO-GENERATED from skills/_fragments/footer.md" in out
     assert "Shared footer line." in out
@@ -53,8 +53,8 @@ def test_idempotent(setup):
     skills_root, fragments, make_skill = setup
     md = make_skill("opted", "Intro\n\n<!-- INCLUDE: footer -->\n")
 
-    once = module.expand(md.read_text(), fragments)
-    twice = module.expand(once, fragments)
+    once = module.expand(md.read_text(), skills_root, skills_root.parent)
+    twice = module.expand(once, skills_root, skills_root.parent)
     assert once == twice
 
 
@@ -63,12 +63,27 @@ def test_picks_up_fragment_edits(setup):
     skills_root, fragments, make_skill = setup
     md = make_skill("opted", "<!-- INCLUDE: footer -->\n")
 
-    first = module.expand(md.read_text(), fragments)
+    first = module.expand(md.read_text(), skills_root, skills_root.parent)
     (fragments / "footer.md").write_text("Updated footer.", encoding="utf-8")
-    second = module.expand(first, fragments)
+    second = module.expand(first, skills_root, skills_root.parent)
 
     assert "Updated footer." in second
     assert "Shared footer line." not in second
+
+
+def test_resolves_namespaced_rules_include(setup):
+    module = load_module()
+    skills_root, fragments, make_skill = setup
+    repo_root = skills_root.parent
+    rules = repo_root / "rules"
+    rules.mkdir()
+    (rules / "skill-authoring.md").write_text("Authoring rule body.", encoding="utf-8")
+    md = make_skill("opted", "<!-- INCLUDE: rules/skill-authoring -->\n")
+
+    out = module.expand(md.read_text(), skills_root, repo_root)
+    assert "<!-- AUTO-GENERATED from rules/skill-authoring.md" in out
+    assert "Authoring rule body." in out
+    assert "<!-- /INCLUDE: rules/skill-authoring -->" in out
 
 
 def test_non_opted_in_skill_untouched(setup, monkeypatch):

@@ -87,6 +87,16 @@ python scripts/gen_catalog.py          # write
 python scripts/gen_catalog.py --check  # verify no drift (CI)
 ```
 
+### Scan for AI-slop prose
+
+Deterministic, high-precision linter for AI-slop tells in skill prose + core docs (complements the visual `design-critique` skill):
+
+```bash
+python scripts/slop_scan.py          # scan default set; exit 1 on hits (CI)
+python scripts/slop_scan.py --list   # show the patterns
+python scripts/slop_scan.py PATH...  # scan specific files
+```
+
 ### Skill health report
 
 Read-only aggregation of contract status + declared-trigger routing across the catalog (reporting, not a gate):
@@ -94,6 +104,15 @@ Read-only aggregation of contract status + declared-trigger routing across the c
 ```bash
 python scripts/skills_health.py         # human-readable
 python scripts/skills_health.py --json  # machine-readable
+```
+
+### Behavioral trigger evals (opt-in, never in CI)
+
+Asks a real local agent which skill it would pick for each declared trigger, then checks against the owner. Requires `DOJO_BEHAVIORAL_EVALS=1` and a local agent command (`DOJO_BEHAVIORAL_AGENT`, default `claude -p`; reads the prompt on stdin). Non-deterministic and may cost tokens, so it is gated off by default and not wired into CI:
+
+```bash
+DOJO_BEHAVIORAL_EVALS=1 python scripts/behavioral_evals.py
+DOJO_BEHAVIORAL_EVALS=1 python scripts/behavioral_evals.py --json
 ```
 
 ### Run skill-standardizer regression tests
@@ -108,7 +127,7 @@ Hooks are configured in `.claude/settings.json` and `.agents/settings.json`. No 
 
 ## CI
 
-GitHub Actions enforces strict contract compliance and generated-artifact sync on the manifest-backed skill catalog via:
+GitHub Actions enforces strict contract compliance, generated-artifact sync, and an AI-slop prose scan on the manifest-backed skill catalog via:
 
 - `.github/workflows/skill-contract-pilot.yml`
 
@@ -117,6 +136,7 @@ python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skil
 python3 scripts/gen_skill_docs.py --check
 python3 scripts/gen_harness_adapters.py --check --skip-symlinks
 python3 scripts/gen_catalog.py --check
+python3 scripts/slop_scan.py
 ```
 
 The strict validator is type-aware:
