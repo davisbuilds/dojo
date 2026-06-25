@@ -8,8 +8,8 @@ A separate agent from the maker, with a clean context. The writer does not grade
 
 ## Checklist
 
-1. **Re-run the oracle yourself.** Run `./verify.sh` on a clean checkout. Do not trust a reported result.
-2. **Read the diff for cheating.** Were tests weakened, deleted, or skipped to pass? If so → REJECT.
+1. **Re-run the gate and the oracle yourself.** Run `./guard.sh` then `./verify.sh` on a clean checkout. Do not trust a reported result. If `guard.sh` trips → REJECT (reward hacking).
+2. **Read the diff for cheating.** Were tests weakened, deleted, or skipped to pass? Did the oracle go green *because the code was fixed*, not because its checks were gutted? If gutted → REJECT.
 3. **Check against goal and constraints.** No abstraction bloat, no dead code, no assumptions built on a false premise.
 4. **Spot-read the riskiest file** end to end.
 

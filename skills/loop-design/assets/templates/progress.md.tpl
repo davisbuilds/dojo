@@ -17,3 +17,5 @@ State lives on disk, not in context. The loop forgets everything between runs; t
 ## Log
 
 <!-- Newest first. One entry per iteration: what was tried / what passed / what is still open. -->
+<!-- Machine-readable per-iteration events also append to `.loop_log.jsonl` (one JSON object per line)
+     so a human can diagnose how the loop died: runaway, stuck (same failure repeating), or silent death. -->

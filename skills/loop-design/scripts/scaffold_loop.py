@@ -25,6 +25,10 @@ DEFAULTS = {
     "harness": "claude-code",
     "state_file": "progress.md",
     "constraints": ["Never edit, delete, or skip tests to make the oracle pass."],
+    # Cheap, always-on reward-hacking gate (guard.sh): the maker must not satisfy
+    # the oracle by editing these paths. Defaults to the usual test dirs; harmless
+    # if they do not exist (the gate is a no-op when nothing matches).
+    "protected_paths": ["test/", "tests/"],
     "checker": {
         "enabled": True,
         "model": "different",
@@ -36,7 +40,10 @@ DEFAULTS = {
     "sandbox": {
         "mode": "container",
         "creds": "staging-only / least-privilege",
-        "budget": {"per_run_steps": 50, "daily_usd": 50},
+        # network: "none" hard-cuts outbound traffic — the blast-radius defense
+        # against prompt injection in untrusted task text / code the loop reads.
+        "network": "none",
+        "budget": {"max_iterations": 20, "per_run_steps": 50, "daily_usd": 50},
     },
 }
 
@@ -145,6 +152,9 @@ def build_mapping(bp: dict) -> dict:
     constraints_md = "\n".join(f"- {c}" for c in constraints)
     budget = (bp.get("sandbox") or {}).get("budget") or {}
     checker = bp.get("checker") or {}
+    protected = bp.get("protected_paths") or []
+    # Bash array literal, e.g.  "test/" "tests/"
+    protected_arr = " ".join(f'"{p}"' for p in protected)
     return {
         "NAME": require(bp, "name"),
         "GOAL": require(bp, "goal"),
@@ -153,6 +163,8 @@ def build_mapping(bp: dict) -> dict:
         "STATE_FILE": str(bp.get("state_file", "progress.md")),
         "CADENCE": str(bp.get("cadence", "until-done")),
         "CHECKER_INSTRUCTIONS": str(checker.get("instructions", DEFAULTS["checker"]["instructions"])),
+        "PROTECTED_PATHS_ARR": protected_arr,
+        "MAX_ITER": str(budget.get("max_iterations", 20)),
         "BUDGET_STEPS": str(budget.get("per_run_steps", 50)),
         "BUDGET_USD": str(budget.get("daily_usd", 50)),
         "SANDBOX_MODE": str((bp.get("sandbox") or {}).get("mode", "container")),
@@ -207,16 +219,18 @@ def main(argv: list[str] | None = None) -> int:
 
     write_file(out_dir / "LOOP.md", render("LOOP.md.tpl", mapping))
     write_file(out_dir / "verify.sh", render("verify.sh.tpl", mapping), executable=True)
+    write_file(out_dir / "guard.sh", render("guard.sh.tpl", mapping), executable=True)
     write_file(out_dir / mapping["STATE_FILE"], render("progress.md.tpl", mapping))
     write_file(out_dir / "verifier.md", render("verifier.md.tpl", mapping))
     write_file(out_dir / "BINDINGS.md", build_bindings(bp))
     write_file(out_dir / "blueprint.json", json.dumps(bp, indent=2) + "\n")
 
     print(f"[loop-design] Scaffolded loop '{name}' -> {out_dir}")
-    for f in ("LOOP.md", "verify.sh", mapping["STATE_FILE"], "verifier.md", "BINDINGS.md", "blueprint.json"):
+    for f in ("LOOP.md", "verify.sh", "guard.sh", mapping["STATE_FILE"], "verifier.md", "BINDINGS.md", "blueprint.json"):
         print(f"  - {out_dir / f}")
     print(
-        "\nNext: wire it via BINDINGS.md, then DRY-RUN ONE ITERATION ATTENDED.\n"
+        "\nNext: self-test the oracle (`./verify.sh --selftest`) to confirm it is deterministic,\n"
+        "then wire it via BINDINGS.md and DRY-RUN ONE ITERATION ATTENDED.\n"
         "Confirm verify.sh exits 0 only when truly done and the checker rejects a weakened result\n"
         "before letting it run unattended."
     )

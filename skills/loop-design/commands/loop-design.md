@@ -2,7 +2,7 @@
 name: loop-design
 description: Design a reusable, verifiable autonomous loop and scaffold the files a harness runs (on top of /loop, /goal, automations).
 argument-hint: "[task description] | --blueprint <path.json> [--out-dir <dir>]"
-allowed-tools: [Read, Write, Edit, Bash(python3 skills/loop-design/scripts/scaffold_loop.py:*), Bash(git:*)]
+allowed-tools: [Read, Write, Edit, Bash(python3 skills/loop-design/scripts/scaffold_loop.py:*), Bash(git:*), Bash(./verify.sh:*), Bash(./guard.sh:*)]
 ---
 
 # Loop Design Command
@@ -11,12 +11,13 @@ Turn a task into a verifiable, portable autonomous loop — or decide it should 
 
 ## Behavior
 
-1. **Run the go/no-go gate.** Ask the four questions from `skills/loop-design/SKILL.md`:
+1. **Run the go/no-go gate.** Ask the five questions from `skills/loop-design/SKILL.md`:
    - Is there an oracle (a command that exits 0 when done)?
+   - Is that oracle deterministic (same exit code across ~10 runs on one state)?
    - Is the maker graded by something other than itself?
    - Are credentials scoped and spend capped?
    - Will the diffs actually be read?
-   If gate 1 fails, report why this is not loop-shaped and stop. Do not scaffold.
+   If gate 1 fails, report why this is not loop-shaped and stop. Do not scaffold. If the oracle is flaky, say so and fix it before scaffolding.
 2. **Draft the blueprint** using the schema in `references/blueprint-spec.md` (`name`, `goal`, `done_when`, `constraints`, `cadence`, `harness`, `checker`, `sandbox`). Use `test-strategy` to design the oracle if one does not exist yet.
 3. **Scaffold the bundle:**
    ```bash
@@ -24,7 +25,7 @@ Turn a task into a verifiable, portable autonomous loop — or decide it should 
    ```
    (or pass `--name --goal --done-when --harness` directly).
 4. **Bind to the harness** using the generated `BINDINGS.md` and `references/harness-bindings.md`. Place the checker in `.claude/agents/` or `.codex/agents/`.
-5. **Require an attended dry-run** of one iteration before anything runs unattended.
+5. **Require an attended dry-run** of one iteration before anything runs unattended — including `./verify.sh --selftest` (oracle is deterministic) and a deliberate protected-path edit to confirm `guard.sh` trips.
 
 ## Rules
 

@@ -24,6 +24,8 @@ This skill sits one floor **above** the harness loop primitives (`/loop`, `/goal
 
 The guiding rule: `/loop` and `/goal` run the loop; this skill decides whether the loop should exist and hands the harness a verifiable, bounded, portable spec to run.
 
+**This skill builds *closed* loops.** A closed loop is bounded: a defined goal, a deterministic oracle at the stop, scoped credentials, and a point where it hands back to you. Its opposite is an *open* (exploratory) loop that roams a goal with no fixed stop — powerful, but it burns tokens fast and, pointed at loose standards, becomes a slop machine. Start closed; only open up once the gates below are trustworthy. Everything here assumes closed.
+
 ## When To Use
 
 Use this skill when:
@@ -42,25 +44,27 @@ Skip this skill when:
 A loop is only worth building when its progress can be checked without you. Before anything else, answer:
 
 1. **Is there an oracle?** Can "done" be expressed as a command that exits 0 (tests, lint, type-check, a metric threshold)? **If no → stop. This is not a loop. Keep prompting interactively.**
-2. **Is the maker graded by something other than itself?** If no → the blueprint must add a fresh-context checker.
-3. **Are credentials scoped and spend capped?** If no → do not let it run unattended.
-4. **Will the diffs actually be read?** If no → the loop is buying comprehension debt at interest.
+2. **Is that oracle deterministic?** Run it ~10× on one unchanged state — same exit code every time? A flaky oracle is *worse* than none: it breaks the stop condition in both directions (the loop fixes what isn't broken, or stops on what is). **If flaky → fix the oracle first, then build the loop.** (`./verify.sh --selftest` does this check.)
+3. **Is the maker graded by something other than itself?** If no → the blueprint must add a fresh-context checker.
+4. **Are credentials scoped and spend capped?** If no → do not let it run unattended.
+5. **Will the diffs actually be read?** If no → the loop is buying comprehension debt at interest.
 
 Gate 1 is hard. The scaffolder refuses to emit a bundle without a `done_when` command, by design. See `references/blueprint-spec.md` for the full rationale and failure modes.
 
 ## Workflow
 
-1. **Gate.** Run the four go/no-go questions above. If gate 1 fails, report why this should not be a loop and stop.
-2. **Draft the blueprint.** Fill the schema in `references/blueprint-spec.md`: `name`, `goal`, `done_when` (the oracle), `constraints`, `cadence`, `harness`, `checker`, and `sandbox` (mode / creds / budget). Reuse `test-strategy` to design the oracle and `verify-before-complete` for stop semantics.
+1. **Gate.** Run the five go/no-go questions above. If gate 1 fails, report why this should not be a loop and stop.
+2. **Draft the blueprint.** Fill the schema in `references/blueprint-spec.md`: `name`, `goal`, `done_when` (the oracle), `constraints`, `protected_paths` (the cheap reward-hacking gate), `cadence`, `harness`, `checker`, and `sandbox` (mode / creds / budget). Reuse `test-strategy` to design the oracle and `verify-before-complete` for stop semantics.
+   - **Estimate the cost before launch.** Run the task by hand once and note the tokens/steps for one iteration; the upper bound is roughly `max_iterations × per-iteration cost` (stateless keeps this ~linear, not quadratic). If that number is alarming, lower `max_iterations` or split the task — don't launch and hope.
 3. **Scaffold the bundle.** Run the scaffolder to write the loop files:
 
    ```bash
    python3 skills/loop-design/scripts/scaffold_loop.py --blueprint <blueprint.json> --out-dir .loops/<name>
    ```
 
-   Or pass the essentials directly with `--name`, `--goal`, `--done-when`, `--harness`. The script writes `LOOP.md`, `verify.sh`, `progress.md`, `verifier.md`, `BINDINGS.md`, and a normalized `blueprint.json`.
+   Or pass the essentials directly with `--name`, `--goal`, `--done-when`, `--harness`. The script writes `LOOP.md`, `verify.sh`, `guard.sh`, `progress.md`, `verifier.md`, `BINDINGS.md`, and a normalized `blueprint.json`.
 4. **Bind to the harness.** Wire the bundle into the chosen harness using `BINDINGS.md` (generated) and `references/harness-bindings.md`. Put the checker in `.claude/agents/` or `.codex/agents/*.toml`.
-5. **Dry-run once, attended.** Run a single iteration with you watching. Confirm `verify.sh` reports done correctly and the checker actually rejects a bad result. Only then let it run unattended.
+5. **Dry-run once, attended.** First confirm the oracle is deterministic: `./verify.sh --selftest`. Then run a single iteration with you watching. Confirm `verify.sh` reports done correctly, `guard.sh` trips when you deliberately edit a protected path, and the checker actually rejects a bad result. Only then let it run unattended.
 6. **Hand off.** Point out the budget caps and where state lives. The loop owner reads diffs; the loop does not get to self-certify.
 
 ## Boundaries
@@ -75,8 +79,9 @@ Gate 1 is hard. The scaffolder refuses to emit a bundle without a `done_when` co
 
 - A loop bundle under `.loops/<name>/` (or a chosen path):
   - `LOOP.md` — the iteration prompt the agent reads every cycle (memory-on-disk, oracle, constraints, guardrails)
-  - `verify.sh` — the stop-condition oracle (exit 0 == done); the single source of truth for completion
-  - `progress.md` — the on-disk state file
+  - `verify.sh` — the stop-condition oracle (exit 0 == done); the single source of truth for completion. `--selftest` checks it for flakiness.
+  - `guard.sh` — the cheap, always-on reward-hacking gate (fails if a protected path changed); run before the oracle each iteration
+  - `progress.md` — the on-disk state file (with a machine-readable `.loop_log.jsonl` companion for diagnosis)
   - `verifier.md` — a separate-context checker config (maker ≠ checker)
   - `BINDINGS.md` — concrete wiring for the chosen harness
   - `blueprint.json` — the normalized, portable loop definition
@@ -85,16 +90,17 @@ Gate 1 is hard. The scaffolder refuses to emit a bundle without a `done_when` co
 ## Verification
 
 - Gate 1 is enforced: `scaffold_loop.py` exits non-zero with a clear message when no `done_when` is provided.
-- The generated `verify.sh` is executable and runs the exact `done_when` command.
+- The generated `verify.sh` is executable and runs the exact `done_when` command; `./verify.sh --selftest` confirms it is deterministic before the loop runs.
+- `guard.sh` exits non-zero when a protected path is modified, added, or deleted (tracked or untracked).
 - An attended dry-run shows `verify.sh` exits 0 only when the goal is genuinely met, and the checker rejects a deliberately weakened result.
 - `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills loop-design --strict` passes.
 
 ## Resources
 
-- `references/blueprint-spec.md` — the blueprint schema, the go/no-go gate rationale, guardrails (sandbox/creds/budget), the on-disk state schema, and the maker/checker pattern.
+- `references/blueprint-spec.md` — the blueprint schema, the go/no-go gate rationale, guardrails (sandbox/creds/budget), the on-disk state schema, the reward-hacking gate vs. judge, the observability/circuit-breaker contract, and the maker/checker pattern.
 - `references/harness-bindings.md` — how one blueprint maps to Claude Code, Codex, GitHub Actions, and Ralph.
 - `scripts/scaffold_loop.py` — emits the loop bundle from a blueprint; enforces the oracle gate.
-- `assets/templates/` — the `LOOP.md`, `verify.sh`, `progress.md`, and `verifier.md` templates the scaffolder fills.
+- `assets/templates/` — the `LOOP.md`, `verify.sh`, `guard.sh`, `progress.md`, and `verifier.md` templates the scaffolder fills.
 - `commands/loop-design.md` — the `/loop-design` command wrapper.
 
 ## Sibling skills
