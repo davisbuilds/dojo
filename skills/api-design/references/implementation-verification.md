@@ -86,7 +86,7 @@ Before shipping:
 
 ## Source Anchors
 
-- Test Strategy skill: `../test-strategy/SKILL.md` from the dojo root
+- Test Strategy skill: `../../test-strategy/SKILL.md`
 - Pact documentation: https://docs.pact.io/
 - OpenAPI Specification: https://swagger.io/specification/
 - GitHub REST API best practices:
