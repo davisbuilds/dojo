@@ -2,7 +2,7 @@
 
 Actionable improvement backlog for the skills catalog. This is a living snapshot, not a release contract.
 
-Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-06-09.
+Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-06-28.
 
 ## Completed Highlights
 
@@ -34,6 +34,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 | Upgrade template | Commented scaffold with all contract sections + authoring checklist (35→78 lines) |
 | gemini-imagen parity | Updated to Nano Banana 2, added 4 extreme aspect ratios, drift warning, two-tier workflow, text rendering callout, sample-prompts.md |
 | Add loop-design skill | Workflow skill on top of `/loop` and `/goal`: a go/no-go oracle gate, a portable loop blueprint, and a stdlib scaffolder that emits the loop bundle (`LOOP.md`, `verify.sh` oracle, `progress.md` state, `verifier.md` checker, `BINDINGS.md` for Claude Code/Codex/Actions/Ralph). The scaffolder refuses to emit a loop without a `done_when` oracle, turning "no oracle → not a loop" into a hard gate |
+| Add api-design skill | Workflow skill for API/interface contract design and review across HTTP endpoints, event/stream contracts, typed DTO/service boundaries, CLI machine outputs, compatibility planning, and implementation handoff |
 | Authoring + multi-harness pipeline (#19) | Optional `triggers:` frontmatter wired into trigger evals (`--from-triggers` self-route + collision check); opt-in shared-fragment composition (`gen_skill_docs.py`); per-skill harness adapters (`gen_harness_adapters.py`) — dir-level symlinks for `.claude/.agents/.agent` + colocated Codex `openai.yaml` (54/54 skills), CI-enforced sync. Derived from the ECC/gstack/dimillian comparison in `docs/research/` |
 | Published skill catalog | `gen_catalog.py` renders a self-contained searchable `docs/catalog/index.html` from `skills.json`; rebuilt by the post-tool-use hook, CI-checked (dimillian-derived) |
 | Skill health report | `skills_health.py` aggregates contract status + declared-trigger routing into a read-only per-skill report (ECC-derived) |

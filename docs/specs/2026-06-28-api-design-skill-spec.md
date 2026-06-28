@@ -2,7 +2,7 @@
 date: 2026-06-28
 topic: api-design-skill
 stage: spec
-status: draft
+status: complete
 source: conversation
 ---
 
@@ -11,6 +11,8 @@ source: conversation
 ## Goal
 
 Create a contract-valid dojo skill named `api-design` that guides agents through API/interface design, review, and implementation handoff for robust public and internal contracts.
+
+Implementation landed in commit `83bddb4` on branch `feat/api-design-skill`.
 
 ## Scope
 
