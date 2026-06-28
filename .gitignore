@@ -35,6 +35,7 @@ yarn-error.log*
 
 # Python
 __pycache__/
+.pytest_cache/
 *.py[cod]
 *$py.class
 .venv/
@@ -67,5 +68,4 @@ anthropic/
 
 # skill-standardizer backup snapshots
 .skill-standardizer/backups/
-
 skills-lock.json

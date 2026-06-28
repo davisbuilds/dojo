@@ -16,7 +16,8 @@ AGENTS_HOME_ENV = "AGENTS_HOME"
 CODEX_HOME_ENV = "CODEX_HOME"
 CLAUDE_HOME_ENV = "CLAUDE_HOME"
 
-IGNORE_NAMES = {".DS_Store", "__pycache__", ".git"}
+IGNORE_NAMES = {".DS_Store", "__pycache__", ".git", ".pytest_cache"}
+IGNORE_FILE_SUFFIXES = {".pyc", ".pyo"}
 DEPRECATED_SKILL_REPLACEMENTS = {
     "json-canvas": "obsidian-canvas",
     "imagegen": "gpt-imagen",
@@ -178,7 +179,7 @@ def hash_directory(path: Path) -> str:
             if name not in IGNORE_NAMES and not name.startswith(".")
         ]
         for name in sorted(filenames):
-            if name in IGNORE_NAMES or name.endswith(".pyc"):
+            if name in IGNORE_NAMES or Path(name).suffix in IGNORE_FILE_SUFFIXES:
                 continue
             file_path = current_path / name
             rel_path = file_path.relative_to(root).as_posix()
@@ -997,7 +998,15 @@ def _replace_with_copy(source: Path, dest: Path) -> None:
     if not src.exists() or not src.is_dir():
         raise FileNotFoundError(f"Copy source does not exist or is not a directory: {source}")
     dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(src, dest, symlinks=True)
+    shutil.copytree(src, dest, symlinks=True, ignore=_copy_ignore)
+
+
+def _copy_ignore(_directory: str, names: list[str]) -> set[str]:
+    return {
+        name
+        for name in names
+        if name in IGNORE_NAMES or Path(name).suffix in IGNORE_FILE_SUFFIXES
+    }
 
 
 def _replace_with_symlink(source: Path, dest: Path) -> None:

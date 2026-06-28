@@ -157,11 +157,43 @@ def test_apply_orders_copy_before_link() -> None:
         assert_true(local.exists(), f"local symlink should resolve successfully: {local}")
 
 
+def test_apply_copy_ignores_generated_files() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        source = write_skill(base / "canonical", "brainstorming")
+        (source / ".DS_Store").write_text("mac metadata", encoding="utf-8")
+        (source / ".pytest_cache").mkdir()
+        (source / ".pytest_cache" / "README.md").write_text("cache", encoding="utf-8")
+        (source / "scripts" / "__pycache__").mkdir(parents=True)
+        (source / "scripts" / "__pycache__" / "helper.cpython-314.pyc").write_bytes(b"cache")
+        dest = base / "globals" / "brainstorming"
+
+        report = {
+            "actions": [
+                {
+                    "action": "create_copy",
+                    "skill": "brainstorming",
+                    "source": str(source),
+                    "dest": str(dest),
+                    "reason": "copy without generated files",
+                },
+            ]
+        }
+
+        result = apply_actions(report, apply=True, backup_root=str(base / "backups"))
+        assert_true(not result["errors"], f"apply_actions should succeed: {result}")
+        assert_true((dest / "SKILL.md").exists(), "skill content should be copied")
+        assert_true(not (dest / ".DS_Store").exists(), ".DS_Store should not be copied")
+        assert_true(not (dest / ".pytest_cache").exists(), ".pytest_cache should not be copied")
+        assert_true(not (dest / "scripts" / "__pycache__").exists(), "__pycache__ should not be copied")
+
+
 def main() -> int:
     tests = [
         test_invalid_entries_do_not_emit_missing_actions,
         test_deprecated_replacement_uses_real_source,
         test_apply_orders_copy_before_link,
+        test_apply_copy_ignores_generated_files,
     ]
 
     for test in tests:
