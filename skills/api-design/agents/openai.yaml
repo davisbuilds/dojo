@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Api Design"
+  short_description: "Design and review robust API and interface contracts"
+  default_prompt: "Use $api-design for this task."
