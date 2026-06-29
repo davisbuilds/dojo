@@ -333,8 +333,10 @@ def build_audit_report(
     codex_agents_dedupe: bool = True,
     only_existing: bool = False,
     normalize_primary: bool = False,
+    selected_skills: set[str] | None = None,
 ) -> dict[str, Any]:
     keep_local_skills = keep_local_skills or set()
+    selected_skills = selected_skills or set()
 
     inventories = [scan_root(root) for root in context.roots]
     by_path = {inv.root.path: inv for inv in inventories}
@@ -353,10 +355,26 @@ def build_audit_report(
     actions: list[dict[str, Any]] = []
     invalid_by_root: dict[Path, set[str]] = {}
 
+    def skills_are_related(selected: str, discovered: str) -> bool:
+        if selected == discovered:
+            return True
+        if DEPRECATED_SKILL_REPLACEMENTS.get(discovered) == selected:
+            return True
+        return DEPRECATED_SKILL_REPLACEMENTS.get(selected) == discovered
+
+    def skill_in_scope(skill: str | None) -> bool:
+        if not selected_skills or skill is None:
+            return True
+        return any(skills_are_related(selected, skill) for selected in selected_skills)
+
     def add_issue(**kwargs: Any) -> None:
+        if not skill_in_scope(kwargs.get("skill")):
+            return
         issues.append(kwargs)
 
     def add_action(**kwargs: Any) -> None:
+        if not skill_in_scope(kwargs.get("skill")):
+            return
         actions.append(kwargs)
 
     # --normalize-primary: promote concrete skills from secondary globals to
@@ -404,6 +422,19 @@ def build_audit_report(
     all_skill_names: set[str] = set()
     for inv in inventories:
         all_skill_names.update(inv.skills.keys())
+
+    if selected_skills:
+        discovered_names = set(all_skill_names)
+        for inv in inventories:
+            discovered_names.update(inv.invalid_entries)
+        for skill in sorted(selected_skills):
+            if not any(skills_are_related(skill, name) for name in discovered_names):
+                add_issue(
+                    severity="error",
+                    code="SELECTED_SKILL_NOT_FOUND",
+                    skill=skill,
+                    message="Selected skill was not found in any scanned root",
+                )
 
     for inv in inventories:
         for invalid_name in inv.invalid_entries:
@@ -921,7 +952,9 @@ def build_audit_report(
                 "label": inv.root.label,
                 "exists": inv.root.exists,
                 "skill_count": len(inv.skills),
-                "invalid_entries": list(inv.invalid_entries),
+                "invalid_entries": [
+                    name for name in inv.invalid_entries if skill_in_scope(name)
+                ],
             }
             for inv in inventories
         ],
@@ -929,6 +962,7 @@ def build_audit_report(
         "global_policy": global_policy,
         "codex_agents_dedupe": codex_agents_dedupe,
         "keep_local_skills": sorted(keep_local_skills),
+        "selected_skills": sorted(selected_skills),
         "enforce_mirror": enforce_mirror,
         "issues": [_to_jsonable_issue(issue) for issue in issues],
         "actions": [_to_jsonable_issue(action) for action in deduped_actions],
@@ -940,6 +974,9 @@ def summarize_report(report: dict[str, Any]) -> str:
     lines: list[str] = []
     canonical = report.get("canonical_root")
     lines.append(f"Canonical root: {canonical or 'none'}")
+    selected = report.get("selected_skills") or []
+    if selected:
+        lines.append(f"Selected skills: {', '.join(selected)}")
     lines.append("Roots:")
     for root in report["roots"]:
         suffix = " (missing)" if not root["exists"] else ""

@@ -22,6 +22,7 @@ This reference defines default policy for `skill-standardizer`.
 - `MISSING_GLOBAL_MIRROR`: canonical skill missing in global (only when `--enforce-mirror`)
 - `MISSING_GLOBAL_LINK`: canonical skill missing as a secondary global link (only when `--enforce-mirror` and link policy)
 - `MISSING_CODEX_LINK_TO_AGENTS`: Codex global is missing a link to the Agents source
+- `SELECTED_SKILL_NOT_FOUND`: a requested `--skill` name was not found in any scanned root
 
 ## Resolution Defaults
 
@@ -54,6 +55,14 @@ Treat the canonical replacement as the source of truth for future audits and syn
 ## Intersection Mode (`--only-existing`)
 
 When enabled, canonical sync only targets skills already present in the destination root. This prevents the standardizer from installing all canonical skills into globals — only the intersection of {canonical} ∩ {installed} is synced.
+
+## Selected Skill Mode (`--skill`)
+
+Use `--skill <name>` to restrict audit and sync planning to one skill; repeat the flag for a small set. This is the right mode when a newly authored canonical skill should be installed into global harness roots without widening the global catalog to every canonical skill.
+
+Selected mode still treats deprecated aliases and replacements as one unit. For example, selecting `obsidian-canvas` also keeps `json-canvas` cleanup in scope.
+
+Combine `--skill` with `--enforce-mirror` to install a selected canonical skill into globals. Combine it with `--only-existing` when the selected skill should only be repaired where it already exists.
 
 ## Topology Normalization (`--normalize-primary`)
 
