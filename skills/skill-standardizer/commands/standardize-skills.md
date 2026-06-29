@@ -1,7 +1,7 @@
 ---
 name: standardize-skills
 description: Audit and standardize skill copies across canonical, global, and local directories with backup-safe synchronization.
-argument-hint: "[optional roots or policy flags]"
+argument-hint: "[--skill name] [optional roots or policy flags]"
 ---
 
 # Standardize Skills
@@ -39,3 +39,4 @@ Default global policy is `prefer-primary-link` to avoid duplicate catalog entrie
 Codex/Agents dedupe is enabled by default (`--codex-agents-dedupe`) so `~/.agents/skills` remains authoritative and `~/.codex/skills` is relinked to avoid Codex duplicate entries.
 Deprecated-name replacement is policy-driven; for example `json-canvas` is replaced by `obsidian-canvas`.
 Use `--keep-local-skill <name>` for local-only exceptions.
+Use `--skill <name>` to target a single skill without planning unrelated mirror additions.

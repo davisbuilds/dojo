@@ -188,12 +188,149 @@ def test_apply_copy_ignores_generated_files() -> None:
         assert_true(not (dest / "scripts" / "__pycache__").exists(), "__pycache__ should not be copied")
 
 
+def test_selected_skill_limits_mirror_scope_and_invalid_reports() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        write_skill(skills, "alpha")
+        write_skill(skills, "beta")
+        (skills / "_fragments").mkdir()
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=True,
+            codex_agents_dedupe=True,
+            selected_skills={"alpha"},
+        )
+
+        assert_true(report["selected_skills"] == ["alpha"], f"selected scope missing: {report}")
+        assert_true(
+            {action["skill"] for action in report["actions"]} == {"alpha"},
+            f"targeted audit should only plan alpha actions: {report['actions']}",
+        )
+        assert_true(
+            all(issue.get("skill") == "alpha" for issue in report["issues"]),
+            f"targeted audit should only report alpha issues: {report['issues']}",
+        )
+        assert_true(
+            all("_fragments" not in root["invalid_entries"] for root in report["roots"]),
+            f"targeted audit should hide unrelated invalid dirs: {report['roots']}",
+        )
+
+
+def test_selected_skill_apply_creates_only_requested_global_mirror() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        write_skill(skills, "alpha")
+        write_skill(skills, "beta")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=True,
+            codex_agents_dedupe=True,
+            selected_skills={"alpha"},
+        )
+        result = apply_actions(report, apply=True, backup_root=str(base / "backups"))
+
+        assert_true(not result["errors"], f"selected apply should succeed: {result}")
+        primary_alpha = agents_home / "skills" / "alpha"
+        assert_true(primary_alpha.is_dir(), "selected skill should be copied to primary global")
+        assert_true(
+            (codex_home / "skills" / "alpha").is_symlink(),
+            "selected skill should be linked into Codex global",
+        )
+        assert_true(
+            (claude_home / "skills" / "alpha").is_symlink(),
+            "selected skill should be linked into Claude global",
+        )
+        for home in [agents_home, codex_home, claude_home]:
+            assert_true(
+                not (home / "skills" / "beta").exists(),
+                f"unselected skill should not be installed into {home}",
+            )
+
+
+def test_selected_missing_skill_reports_typo() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        write_skill(skills, "alpha")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=True,
+            codex_agents_dedupe=True,
+            selected_skills={"typo"},
+        )
+
+        assert_true(
+            [issue["code"] for issue in report["issues"]] == ["SELECTED_SKILL_NOT_FOUND"],
+            f"missing selected skill should be reported clearly: {report['issues']}",
+        )
+        assert_true(not report["actions"], f"missing selected skill should not plan actions: {report['actions']}")
+
+
 def main() -> int:
     tests = [
         test_invalid_entries_do_not_emit_missing_actions,
         test_deprecated_replacement_uses_real_source,
         test_apply_orders_copy_before_link,
         test_apply_copy_ignores_generated_files,
+        test_selected_skill_limits_mirror_scope_and_invalid_reports,
+        test_selected_skill_apply_creates_only_requested_global_mirror,
+        test_selected_missing_skill_reports_typo,
     ]
 
     for test in tests:

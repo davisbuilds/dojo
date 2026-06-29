@@ -79,9 +79,11 @@ Run from anywhere; scripts auto-discover repo root when possible.
   - Resolves canonical root, target roots, and discovered skills.
 - `scripts/audit.py`
   - Detects drift and emits a JSON report plus readable summary.
+  - Use `--skill <name>` to limit planning to one skill; repeat for multiple skills.
   - Exit codes: `0` no drift, `2` drift found, `1` error.
 - `scripts/sync.py`
   - Applies planned actions (copy/symlink) with backups.
+  - Use `--skill <name>` to apply only the selected skill's planned changes.
   - Default is dry run; use `--apply` to execute.
 
 ## Standard Workflow
@@ -135,7 +137,17 @@ python3 skills/skill-standardizer/scripts/sync.py \
   --apply
 ```
 
-For targeted fixes, provide a scoped canonical root containing only the affected skills.
+For targeted fixes, scope the operation to the affected skill:
+
+```bash
+python3 skills/skill-standardizer/scripts/sync.py \
+  --skill api-design \
+  --global-policy prefer-primary-link \
+  --enforce-mirror \
+  --apply
+```
+
+`--skill` is repeatable. In selected-skill mode, audits and sync plans hide unrelated invalid directories and unrelated canonical skills. Deprecated aliases remain in scope when either the alias or replacement is selected.
 
 ## Intersection Mode
 
