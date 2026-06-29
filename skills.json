@@ -13,6 +13,11 @@
       "license": "Complete terms in LICENSE.txt"
     },
     {
+      "name": "api-design",
+      "description": "Design and review robust API and interface contracts. Use when creating or changing HTTP endpoints, GraphQL/RPC-style APIs, webhooks, SSE/event streams, exported DTOs/types, service-layer boundaries, CLI JSON/stdout/exit-code contracts, versioning/deprecation plans, or any compatibility-sensitive boundary between consumers and providers.",
+      "path": "skills/api-design"
+    },
+    {
       "name": "audit-skill",
       "description": "Security audit for agent skills using a three-layer deterministic architecture: structural validation, instruction scanning (prompt injection, encoding tricks, exfiltration, overreach), and code analysis (secrets, dangerous patterns). Produces a trust score (A-F) with per-layer breakdown. Use when reviewing a skill for security, auditing a skill before installation, checking for prompt injection, or when the user says 'audit skill', 'check skill security', 'trust score', 'is this skill safe', or 'audit-skill'. On-demand via /audit-skill command.",
       "path": "skills/audit-skill"

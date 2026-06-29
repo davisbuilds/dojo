@@ -46,6 +46,7 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 
 | Skill | Purpose |
 |-------|---------|
+| `api-design` | Design and review robust API, event, interface, and machine-output contracts |
 | `autonomous-engineering` | Full end-to-end feature workflows (`/lfg`, `/slfg`) |
 | `loop-design` | Design verifiable autonomous loops on top of `/loop` and `/goal`; gate on an oracle, then scaffold a portable loop bundle (`/loop-design`) |
 | `brainstorming` | Explore requirements before implementation |
