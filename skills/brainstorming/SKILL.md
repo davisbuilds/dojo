@@ -23,7 +23,7 @@ You can skip brainstorming when:
 
 ## Boundaries
 
-- If the task is already implementation-ready, suggest skipping to planning or execution and ask for confirmation
+- If the task is already direction-clear, suggest skipping ahead to `write-spec` (the contract) or execution and ask for confirmation
 - Do not write code, modify files, or invoke implementation skills until the user has approved the design summary (or explicitly chooses to stop brainstorming)
 - Stay on WHAT to build; implementation details belong to planning
 
@@ -39,7 +39,7 @@ Signals requirements are already clear:
 - Existing implementation pattern is identified
 - Scope and constraints are explicit
 
-If clear, suggest skipping to planning/implementation and ask for confirmation.
+If clear, suggest skipping ahead to `write-spec` (the contract) or implementation and ask for confirmation.
 
 ### Phase 1: Understand Intent
 
