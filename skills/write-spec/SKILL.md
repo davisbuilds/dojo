@@ -75,10 +75,8 @@ source: conversation
 
 `status:` is born `draft` and follows the lifecycle `draft → in-progress →
 complete` (terminal synonyms: `shipped`, `implemented`, `superseded`). Update it
-honestly as the work lands — terminal-status docs are swept out of `docs/specs/`
-into a gitignored `docs/archive/<category>/` by the cross-repo archive script,
-which keys off this field. A spec left at the wrong `status` is either archived
-prematurely or lingers in the tracked tree.
+honestly as the work lands so a reader — or any lifecycle tooling — can tell a
+live contract from a finished one.
 
 ### Required Sections
 
