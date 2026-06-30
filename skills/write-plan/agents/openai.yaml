@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Write Plan"
+  short_description: "Sequence the build: turn a settled target (a `write-spec`"
+  default_prompt: "Use $write-plan for this task."
