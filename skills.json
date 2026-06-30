@@ -283,7 +283,7 @@
     },
     {
       "name": "write-spec",
-      "description": "Create robust, execution-ready specs (detailed implementation plans) with explicit scope, task sequencing, dependencies, and verification commands. Use when planning non-trivial implementation work before coding, or when asked for an implementation plan.",
+      "description": "Define the target before building: write a falsifiable contract \u2014 problem, end-state, success criteria, evaluation \u2014 that states WHAT must be true, with no files or implementation steps. Use when you need to specify or align on what \"done\" means before sequencing work, or are handed a feature/change and must pin its acceptance criteria. Hand off to `write-plan` for the HOW.",
       "path": "skills/write-spec"
     }
   ]
