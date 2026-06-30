@@ -147,7 +147,7 @@ This skill is in two clusters: **pre-execution thinking** and **disciplines** (m
 
 Pre-execution thinking:
 - `brainstorming` — upstream. Use that skill when WHAT is ambiguous; this skill when HOW or WHY needs systems-level reasoning.
-- `write-spec` — downstream. Once a direction is reasoned out, hand off to author the executable plan.
+- `write-spec` — downstream. Once a direction is reasoned out, hand off to `write-spec` for the falsifiable contract; then `write-plan` to sequence the build.
 - `deep-research` — parallel evidence gathering when reasoning hinges on unknowns.
 
 Disciplines:

@@ -59,8 +59,26 @@
       "type": "implicit",
       "prompt": "Create an implementation plan with task sequencing, dependencies, and verification commands for this feature.",
       "expected": {
+        "trigger": ["write-plan"],
+        "avoid": ["write-spec", "brainstorming"]
+      }
+    },
+    {
+      "id": "spec-contract-define-done",
+      "type": "implicit",
+      "prompt": "Before we build anything, pin down what 'done' means for this change — the acceptance criteria and how we'd verify it.",
+      "expected": {
         "trigger": ["write-spec"],
-        "avoid": ["brainstorming"]
+        "avoid": ["write-plan", "brainstorming"]
+      }
+    },
+    {
+      "id": "plan-sequence-build",
+      "type": "implicit",
+      "prompt": "The target is already agreed. Break it into ordered tasks with the files to touch and the steps to implement it.",
+      "expected": {
+        "trigger": ["write-plan"],
+        "avoid": ["write-spec"]
       }
     },
     {

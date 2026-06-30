@@ -36,7 +36,7 @@ Use this skill when:
 - you are about to point a scheduler at a raw prompt with no stop condition
 
 Skip this skill when:
-- the task is a single interactive turn (`write-spec` or just prompt directly)
+- the task is a single interactive turn (`write-plan` or just prompt directly)
 - you want to run one end-to-end feature cycle to a PR (use `autonomous-engineering` / lfg)
 
 ## The Go/No-Go Gate (do this first)
