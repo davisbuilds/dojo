@@ -4,15 +4,18 @@ This file keeps the core `brainstorming` skill model-agnostic and moves platform
 
 ## Canonical Outputs
 
-- Brainstorm summary path: `docs/plans/YYYY-MM-DD-<topic>-plan.md`
+- Design summary path: `docs/design/YYYY-MM-DD-<topic>-design.md`
 - Stage marker in frontmatter: `stage: brainstorm`
 
-## Planning Handoff Mapping
+## Spec Handoff Mapping
 
-- Generic: "Proceed to planning"
+The chosen direction hands off to `write-spec` to become a falsifiable contract
+(`write-plan` then sequences the build).
+
+- Generic: "Hand off to spec the contract"
 - Claude workflows: `/workflows:spec` (if available)
-- Skill-driven harnesses: invoke `write-spec` (or equivalent planning skill)
-- Manual fallback: create a detailed spec in `docs/specs/`
+- Skill-driven harnesses: invoke `write-spec` (or equivalent contract skill)
+- Manual fallback: create a contract in `docs/specs/`
 
 ## Questioning/Interaction Mapping
 

@@ -73,7 +73,11 @@ Lead with your recommendation and rationale. Prefer the simplest option that sat
 ### Phase 3: Capture Design Summary
 
 Write the approved design summary to:
-`docs/plans/YYYY-MM-DD-<topic>-plan.md`
+`docs/design/YYYY-MM-DD-<topic>-design.md`
+
+This is a *feeder*, not a proto-spec: it captures **direction**, and stops short of
+falsifiable acceptance criteria. Those harden into a contract in `write-spec` — do
+not finalize metrics or success thresholds here.
 
 Use this structure:
 
@@ -86,53 +90,57 @@ stage: brainstorm
 
 # <Topic Title>
 
-## What We Are Building
-[Concise problem/solution summary]
+## Problem / Context
+[Who is hurting, what they do today, why this matters now]
 
-## Why This Direction
-[Why this approach was chosen over alternatives]
+## Options Considered
+- [Option]: [trade-offs — pros / cons / best-fit conditions]
 
-## Key Decisions
-- [Decision]: [Rationale]
+## Chosen Direction
+[The selected approach and why it beats the alternatives]
 
-## Constraints
-- [Constraint]
-
-## Success Criteria
-- [Criterion]
+## What Good Looks Like
+[Directional signals of success — not falsifiable metrics; those belong to write-spec]
 
 ## Open Questions
 - [Unresolved item]
 
-## Next Step
-Proceed to planning.
+## Constraints
+- [Constraint]
 ```
 
 ### Phase 4: Handoff
 
 Offer explicit next actions:
-1. Proceed to planning
-2. Refine brainstorming further
-3. Stop here for now
+1. Hand off to `write-spec` to turn the chosen direction into a falsifiable contract.
+2. **Review the direction with a critique subagent.** If the harness supports
+   subagents (e.g. a Task/agent tool), launch one seeded with the design summary's
+   path **and** the originating goal/context, instructed to critique the *chosen
+   direction* — are the alternatives fairly weighed? is this the simplest option
+   that meets the need? are the open questions actually open (vs. quietly decided)?
+   — and to propose improvements. Apply or discuss before routing to `write-spec`.
+   If subagents are unavailable, run the same critique inline via
+   `verify-before-complete`.
+3. Refine brainstorming further, or stop here for now.
 
 When a handoff is appropriate, use this routing logic:
-- Implementation steps or task sequencing needed → `write-spec`
+- Direction is settled and needs a falsifiable target → `write-spec` (the contract)
 - CLI UX decisions (flags, args, output contracts) → `create-cli`
 - UI/UX direction or visual systems → `frontend-design` or `web-design-guidelines`
 - Deep architectural trade-off analysis → `first-principles`
-- Request is now explicit and implementation-ready → skip additional brainstorming and proceed directly to planning/implementation
 
 Explain why in one sentence and ask for confirmation. If the target skill is unavailable, use the closest manual fallback.
 
 ## Output
 
-- A design summary document at `docs/plans/YYYY-MM-DD-<topic>-plan.md`
-- Clear next-step recommendation (plan, refine, or stop)
+- A design summary document at `docs/design/YYYY-MM-DD-<topic>-design.md`
+- Clear next-step recommendation (spec the contract, refine, or stop)
 
 ## Verification
 
 - Design summary has YAML frontmatter with `stage: brainstorm`
-- Success criteria are specific enough to test against
+- The chosen direction is clear and traceable to the alternatives it beat
+- `What Good Looks Like` is directional (falsifiable criteria are deferred to `write-spec`)
 - At least one approach was evaluated with pros/cons before choosing
 - User explicitly approved the design direction
 
@@ -151,8 +159,10 @@ Explain why in one sentence and ask for confirmation. If the target skill is una
 
 ## Sibling skills
 
-Pre-execution thinking pipeline: **brainstorm → reason → research → plan**.
+Pre-execution pipeline: **brainstorm → spec → plan**
+(`docs/design/` → `docs/specs/` → `docs/plans/`).
 
+- `write-spec` — downstream. Once the direction is settled, hand off to make it a
+  falsifiable contract (the WHAT). `write-plan` then sequences the build (the HOW).
 - `first-principles` — escalate to here when the brainstorm reaches a high-stakes architectural or trade-off decision that needs systems-level reasoning, not just option exploration.
 - `deep-research` — parallel evidence gathering when the brainstorm depends on facts you don't have (library behavior, API contracts, prior art).
-- `write-spec` — downstream. Once WHAT is clear, hand off to plan HOW.
