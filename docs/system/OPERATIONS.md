@@ -22,7 +22,14 @@ Core installs are hash-pinned via `requirements.lock`. Update the lock whenever 
 uv pip compile --generate-hashes requirements.txt -o requirements.lock
 ```
 
-Core: `PyYAML==6.0.3`. Optional per-skill extras are documented in `requirements.txt`.
+Core: `PyYAML==6.0.3`; test tooling: `pytest` (runs the `tests/` regression
+suite). Optional per-skill extras are documented in `requirements.txt`.
+
+Run the repo regression tests with:
+
+```bash
+python -m pytest tests/ -q
+```
 
 ## Skill Management Commands
 

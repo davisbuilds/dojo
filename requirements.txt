@@ -3,6 +3,9 @@
 # Regenerate the lock with: uv pip compile --generate-hashes requirements.txt -o requirements.lock
 PyYAML==6.0.3
 
+# Test/dev tooling — runs the repo regression tests under tests/
+pytest>=8.2
+
 # Optional — only needed by specific skills
 # Keep these pinned if you activate them and regenerate requirements.lock.
 
