@@ -46,7 +46,11 @@
           },
           {
             "type": "command",
-            "command": "bash hooks/post-tool-use-validate-implementation-plan.sh"
+            "command": "bash hooks/post-tool-use-validate-spec.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/post-tool-use-validate-plan.sh"
           }
         ]
       }
