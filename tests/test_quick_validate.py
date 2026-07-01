@@ -39,7 +39,7 @@ def base_frontmatter(version_line: str | None = "version: 1.0.0") -> str:
 
 def test_accepts_valid_semver_with_prerelease_and_build_metadata(tmp_path: Path) -> None:
     module = load_module()
-    skill_dir = write_skill(tmp_path, base_frontmatter("version: 1.2.3-beta.1+build.7"))
+    skill_dir = write_skill(tmp_path, base_frontmatter("version: 1.2.3-0rc.1+build.7"))
 
     assert module.validate_skill(skill_dir) == (True, "Skill is valid!")
 
@@ -65,4 +65,14 @@ def test_rejects_non_semver_version(tmp_path: Path) -> None:
     assert module.validate_skill(skill_dir) == (
         False,
         "Version '1.0' must be valid SemVer, for example 1.0.0",
+    )
+
+
+def test_rejects_numeric_prerelease_with_leading_zero(tmp_path: Path) -> None:
+    module = load_module()
+    skill_dir = write_skill(tmp_path, base_frontmatter("version: 1.0.0-01"))
+
+    assert module.validate_skill(skill_dir) == (
+        False,
+        "Version '1.0.0-01' must be valid SemVer, for example 1.0.0",
     )

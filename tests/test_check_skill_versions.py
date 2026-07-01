@@ -45,6 +45,12 @@ def init_repo(tmp_path: Path) -> Path:
     return repo
 
 
+def test_semver_accepts_prerelease_identifiers_starting_with_zero() -> None:
+    module = load_module()
+
+    assert module.SemVer.parse("1.0.0-0rc.1") < module.SemVer.parse("1.0.0")
+
+
 def test_changed_skill_requires_version_increase_and_changelog(tmp_path: Path) -> None:
     module = load_module()
     repo = init_repo(tmp_path)

@@ -86,10 +86,11 @@ def test_generate_manifest_writes_valid_skills_and_optional_metadata(
         "  - Bash\n"
         "  - Read\n",
     )
-    write_skill(skills_root, "alpha", "name: alpha\ndescription: First skill\nversion: 1.0.0\n")
+    write_skill(skills_root, "alpha", "name: alpha\ndescription: First skill\nversion: 1.0.0-0rc.1\n")
     write_skill(skills_root, "missing-description", "name: skip-me\n")
     write_skill(skills_root, "missing-version", "name: skip-version\ndescription: No release identity\n")
     write_skill(skills_root, "invalid-version", "name: skip-invalid\ndescription: Bad release identity\nversion: v1.0.0\n")
+    write_skill(skills_root, "invalid-prerelease", "name: skip-prerelease\ndescription: Bad prerelease\nversion: 1.0.0-01\n")
     (skills_root / "bad-frontmatter").mkdir()
     (skills_root / "bad-frontmatter" / "SKILL.md").write_text("# No frontmatter\n", encoding="utf-8")
 
@@ -103,7 +104,7 @@ def test_generate_manifest_writes_valid_skills_and_optional_metadata(
                 "name": "alpha",
                 "description": "First skill",
                 "path": "skills/alpha",
-                "version": "1.0.0",
+                "version": "1.0.0-0rc.1",
             },
             {
                 "name": "beta",
