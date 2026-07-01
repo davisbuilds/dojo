@@ -76,7 +76,7 @@ def test_empty_cases_json_is_valid_json(tmp_path: Path, monkeypatch, capsys):
     skills_root = tmp_path / "skills"
     (skills_root / "plain").mkdir(parents=True)
     (skills_root / "plain" / "SKILL.md").write_text(
-        "---\nname: plain\ndescription: No triggers here.\n---\n\n# plain\n", encoding="utf-8"
+        "---\nname: plain\ndescription: No triggers here.\nversion: 1.0.0\n---\n\n# plain\n", encoding="utf-8"
     )
 
     monkeypatch.setenv("DOJO_BEHAVIORAL_EVALS", "1")

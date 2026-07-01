@@ -2,6 +2,7 @@
 name: web-design-guidelines
 description: Review UI code for Web Interface Guidelines compliance (accessibility, UX, code-level rules from Vercel WIG). Use when asked to "review my UI", "check accessibility", "audit design", "review UX", or "check my site against best practices". For visual taste / AI-slop audits use design-critique instead.
 skill-type: workflow
+version: 1.0.0
 metadata:
   author: vercel
   version: "1.0.0"

@@ -2,6 +2,7 @@
 name: test-strategy
 description: Guide agents to follow preferred testing methodology — red/green TDD, real dependencies over mocks, behavior-based tests. Use when writing tests, planning test coverage, deciding between TDD and test-after, or when the agent defaults to excessive mocking. Triggers on 'write tests', 'add test coverage', 'how should I test this', 'TDD', 'test strategy', 'test plan'.
 skill-type: reference
+version: 1.0.0
 ---
 
 # Test Strategy

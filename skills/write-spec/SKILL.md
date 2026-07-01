@@ -2,6 +2,7 @@
 name: write-spec
 description: 'Define the target before building: write a falsifiable contract — problem, end-state, success criteria, evaluation — that states WHAT must be true, with no files or implementation steps. Use when you need to specify or align on what "done" means before sequencing work, or are handed a feature/change and must pin its acceptance criteria. Hand off to `write-plan` for the HOW.'
 skill-type: workflow
+version: 1.0.0
 ---
 
 # Write Spec

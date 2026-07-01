@@ -32,7 +32,12 @@ Success criteria: the result is correct.
 def make_skill(skills_root: Path, name: str, triggers: list[str] | None = None):
     d = skills_root / name
     d.mkdir(parents=True)
-    fm = [f"name: {name}", f"description: Reference for {name}. Use when {name} applies.", "skill-type: reference"]
+    fm = [
+        f"name: {name}",
+        f"description: Reference for {name}. Use when {name} applies.",
+        "version: 1.0.0",
+        "skill-type: reference",
+    ]
     if triggers:
         fm.append("triggers:")
         fm += [f"  - {t}" for t in triggers]

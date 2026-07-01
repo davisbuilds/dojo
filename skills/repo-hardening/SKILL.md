@@ -8,6 +8,7 @@ description: >-
   and mixed-stack repos. On-demand via /repo-audit and /repo-harden.
 skill-type: workflow
 compatibility: "Requires python3. Uses only Python standard library. Writes artifacts into the target repo under .repo-hardening by default."
+version: 1.0.0
 ---
 
 # Repo Hardening

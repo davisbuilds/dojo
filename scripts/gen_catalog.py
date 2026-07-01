@@ -39,6 +39,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
   .skill {{ border: 1px solid #8883; border-radius: 10px; padding: .8rem 1rem; margin: .6rem 0; }}
   .skill h2 {{ font-size: 1rem; margin: 0 0 .3rem; font-family: ui-monospace, monospace; }}
   .skill p {{ margin: .3rem 0; }}
+  .version {{ opacity: .7; font-size: .82rem; font-family: ui-monospace, monospace; }}
   .triggers {{ margin-top: .4rem; }}
   .tag {{ display: inline-block; font-size: .78rem; padding: .1rem .5rem; border: 1px solid #8884; border-radius: 999px; margin: .15rem .25rem .15rem 0; opacity: .85; }}
   .hidden {{ display: none; }}
@@ -59,7 +60,8 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
   function render(skillsToShow) {{
     list.innerHTML = skillsToShow.map(s => {{
       const triggers = (s.triggers || []).map(t => `<span class="tag">${{esc(t)}}</span>`).join('');
-      return `<div class="skill"><h2>${{esc(s.name)}}</h2><p>${{esc(s.description)}}</p>`
+      const version = s.version ? `<div class="version">v${{esc(s.version)}}</div>` : '';
+      return `<div class="skill"><h2>${{esc(s.name)}}</h2>${{version}}<p>${{esc(s.description)}}</p>`
         + (triggers ? `<div class="triggers">${{triggers}}</div>` : '') + `</div>`;
     }}).join('');
     countEl.textContent = `${{skillsToShow.length}} shown`;
@@ -67,7 +69,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
   document.getElementById('q').addEventListener('input', e => {{
     const q = e.target.value.toLowerCase().trim();
     render(!q ? skills : skills.filter(s => {{
-      const hay = (s.name + ' ' + s.description + ' ' + (s.triggers || []).join(' ')).toLowerCase();
+      const hay = (s.name + ' ' + (s.version || '') + ' ' + s.description + ' ' + (s.triggers || []).join(' ')).toLowerCase();
       return hay.includes(q);
     }}));
   }});
@@ -81,7 +83,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 def build_page(manifest: dict) -> str:
     skills = manifest.get("skills", [])
     catalog = [
-        {k: v for k, v in s.items() if k in ("name", "description", "triggers")}
+        {k: v for k, v in s.items() if k in ("name", "description", "version", "triggers")}
         for s in skills
     ]
     data = html.escape(json.dumps(catalog, ensure_ascii=False), quote=False)

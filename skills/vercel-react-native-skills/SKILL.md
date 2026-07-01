@@ -6,6 +6,7 @@ description:
   implementing animations, or working with native modules. Triggers on tasks
   involving React Native, Expo, mobile performance, or native platform APIs.
 skill-type: reference
+version: 1.0.0
 license: MIT
 metadata:
   author: vercel

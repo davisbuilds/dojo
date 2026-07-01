@@ -7,6 +7,7 @@ description: >
   (before implementation) or refactoring an existing CLI’s surface area for
   consistency, composability, and discoverability.
 skill-type: workflow
+version: 1.0.0
 ---
 
 ## When To Use

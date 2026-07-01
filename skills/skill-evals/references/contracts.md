@@ -55,6 +55,21 @@ python3 skills/skill-evals/scripts/validate_skill_contract.py \
 }
 ```
 
+## `check_skill_versions.py`
+
+### CLI
+
+```bash
+python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
+```
+
+### Behavior
+
+- Collects release-relevant changes under `skills/<name>/`.
+- Ignores generated Codex sidecars, changelog-only edits, bytecode, and cache files.
+- Allows the first migration from an unversioned base skill.
+- Requires later changed skills to increase their SemVer release and include a `CHANGELOG.md` heading for the new version.
+
 ### Output shape (JSON mode)
 
 ```json

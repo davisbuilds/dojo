@@ -5,6 +5,7 @@ description: >
   Use when you need to ingest web content for summarization, RAG, research,
   or any AI workflow that requires readable text from URLs or HTML files.
 skill-type: workflow
+version: 1.0.0
 ---
 
 # fetchmd

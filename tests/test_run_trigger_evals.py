@@ -21,7 +21,7 @@ def write_skill(skills_root: Path, name: str, description: str, triggers: list[s
     skill_dir.mkdir(parents=True)
     trig_block = "".join(f"  - {t}\n" for t in triggers)
     (skill_dir / "SKILL.md").write_text(
-        f"---\nname: {name}\ndescription: {description}\ntriggers:\n{trig_block}---\n\n# {name}\n",
+        f"---\nname: {name}\ndescription: {description}\nversion: 1.0.0\ntriggers:\n{trig_block}---\n\n# {name}\n",
         encoding="utf-8",
     )
 

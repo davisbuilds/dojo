@@ -2,6 +2,7 @@
 name: code-review-agents
 description: "Specialized code review and quality assurance agents covering architecture, data integrity, security, performance, language-specific conventions, and deployment safety. Use when reviewing PRs, auditing code quality, checking migrations, or running an agent-native architecture audit. Triggers on 'review code', 'audit architecture', 'check data integrity', 'security review', 'heal skill'."
 skill-type: workflow
+version: 1.0.0
 ---
 
 # Code Review Agents

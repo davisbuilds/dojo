@@ -2,6 +2,7 @@
 name: handoff
 description: Create comprehensive session summaries for context preservation and seamless handoff. Use when (1) conversation approaching context limits, (2) user requests session summary, (3) preparing handoff documentation to another agent or fresh instance, (4) archiving work for future reference.
 skill-type: workflow
+version: 1.0.0
 ---
 
 # Handoff

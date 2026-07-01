@@ -19,6 +19,7 @@ from skill_standardizer_lib import apply_actions, build_audit_report, resolve_co
 SKILL_TEMPLATE = """---
 name: {name}
 description: test skill
+version: 1.0.0
 ---
 
 # {name}

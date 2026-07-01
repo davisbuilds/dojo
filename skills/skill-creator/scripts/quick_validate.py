@@ -16,10 +16,18 @@ import yaml
 MAX_SKILL_NAME_LENGTH = 64
 MAX_DESCRIPTION_LENGTH = 1024
 MAX_COMPATIBILITY_LENGTH = 500
+SEMVER_RE = re.compile(
+    r"^(0|[1-9]\d*)\."
+    r"(0|[1-9]\d*)\."
+    r"(0|[1-9]\d*)"
+    r"(?:-((?:0|[1-9A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9A-Za-z-][0-9A-Za-z-]*))*))?"
+    r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
+)
 ALLOWED_PROPERTIES = {
     "name",
     "description",
     "skill-type",
+    "version",
     "license",
     "allowed-tools",
     "metadata",
@@ -70,6 +78,8 @@ def validate_skill(skill_path):
         return False, "Missing 'name' in frontmatter"
     if "description" not in frontmatter:
         return False, "Missing 'description' in frontmatter"
+    if "version" not in frontmatter:
+        return False, "Missing 'version' in frontmatter"
 
     name = frontmatter.get("name")
     if not isinstance(name, str):
@@ -104,6 +114,17 @@ def validate_skill(skill_path):
             False,
             f"Description is too long ({len(description)} characters). Maximum is {MAX_DESCRIPTION_LENGTH} characters.",
         )
+
+    version = frontmatter.get("version")
+    if not isinstance(version, str):
+        return False, f"Version must be a string, got {type(version).__name__}"
+    version = version.strip()
+    if not version:
+        return False, "Version cannot be empty"
+    if version.startswith("v"):
+        return False, "Version must not use a leading 'v'"
+    if not SEMVER_RE.match(version):
+        return False, f"Version '{version}' must be valid SemVer, for example 1.0.0"
 
     skill_type = frontmatter.get("skill-type")
     if skill_type is not None:

@@ -2,6 +2,7 @@
 name: hookify
 description: Create and manage lightweight guard-rail hooks from markdown rule files. Harness-agnostic — works with Claude Code, Agents SDK, or any harness supporting stdin/stdout hooks. Use when the user says "hookify", "create a hook", "prevent this behavior", "add a guard rail", or wants to analyze conversation for unwanted patterns. Commands - /hookify, /hookify:list, /hookify:configure, /hookify:help.
 skill-type: workflow
+version: 1.0.0
 ---
 
 # Hookify

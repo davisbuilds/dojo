@@ -8,6 +8,7 @@ metadata:
     cli: "@google/design.md@0.1.1 (npm)"
     license: "Apache-2.0"
     exemplar-source: "https://styles.refero.design"
+version: 1.0.0
 ---
 
 # design-md

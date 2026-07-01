@@ -10,6 +10,7 @@ description: >-
   Codex, and CI/GitHub Actions. On-demand via /loop-design.
 skill-type: workflow
 compatibility: "Requires python3 (standard library only). Scaffolds a loop bundle into the target repo under .loops/ by default. Does not execute the loop — it emits the artifacts a harness runs."
+version: 1.0.0
 ---
 
 # Loop Design

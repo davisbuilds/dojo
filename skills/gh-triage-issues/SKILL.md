@@ -2,6 +2,7 @@
 name: gh-triage-issues
 description: "Triage GitHub issues using the gh CLI. Analyzes new issues to apply labels, assess priority, detect duplicates, and optionally assign owners. Use when user asks to triage issues, label issues, check for duplicates, prioritize backlog, or process incoming issues. Triggers on phrases like 'triage issue #N', 'triage issues', 'label this issue', 'is this a duplicate', 'prioritize issue', 'process new issues in repo'."
 skill-type: workflow
+version: 1.0.0
 ---
 
 # gh-triage-issues

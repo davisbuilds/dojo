@@ -7,6 +7,7 @@ allowed-tools:
   - Write # Create resolution docs
   - Bash # Create directories
   - Grep # Search existing docs
+version: 1.0.0
 ---
 
 ## When To Use
