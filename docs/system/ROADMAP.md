@@ -2,14 +2,14 @@
 
 Actionable improvement backlog for the skills catalog. This is a living snapshot, not a release contract.
 
-Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-06-28.
+Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-06-30.
 
 ## Completed Highlights
 
 | Item | What Changed |
 |------|-------------|
-| 54 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, autonomous-loop design, and meta/skill tooling |
-| 8-hook quality pipeline | Session-start catalog injection, pre/post-tool-use validation and manifest sync, spec validation, git checks, structure checks, session retro reminder |
+| 55 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, autonomous-loop design, pre-execution (brainstorm → spec → plan), and meta/skill tooling |
+| Hook quality pipeline | Session-start catalog injection, pre/post-tool-use validation and manifest sync, spec + plan validation, git checks, structure checks, session retro reminder |
 | Skill packaging and distribution | `.skill` zip format with validation |
 | Command wrappers | Deterministic slash-style entrypoints |
 | Skill installer | Supports Claude Code and Codex destinations |
@@ -41,6 +41,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 | Minimal rules/ tier | `rules/` for standing always-follow conventions (skill-authoring, doc-hygiene), composable into SKILL.md via `rules/<name>` includes; referenced from AGENTS.md/CONTRIBUTING (ECC-derived) |
 | AI-slop prose scan | `slop_scan.py` — high-precision deterministic linter for AI-slop tells in skill prose + core docs, CI-gated; complements the visual `design-critique` skill (gstack-derived) |
 | Opt-in behavioral evals | `behavioral_evals.py` — drives a real local agent to verify declared triggers route to the right skill; gated on `DOJO_BEHAVIORAL_EVALS=1`, never in CI (gstack-derived) |
+| Split write-spec into contract + plan | Closed the seam-first finding structurally: `write-spec` is now a mechanism-free **contract** (WHAT must be true — problem, falsifiable end-state, success criteria, evaluation), and the new `write-plan` owns the **execution** plan (task breakdown, files, steps, seam selection). Establishes `brainstorm (docs/design/) → spec (docs/specs/) → plan (docs/plans/)`; each layer has its own schema validator + on-write hook; brainstorming reshaped into a direction-level feeder; legacy plan-shaped specs migrated to `docs/plans/`. Follow-up: rename the cross-repo lifecycle-archive script to learn about `docs/design/` |
 
 ## Cross-Cutting Findings
 

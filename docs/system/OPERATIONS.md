@@ -46,6 +46,22 @@ python skills/skill-creator/scripts/init_skill.py <skill-name> --path ./ \
 python skills/skill-creator/scripts/quick_validate.py <path/to/skill-folder>
 ```
 
+### Validate a spec or plan
+
+The pre-execution pipeline is `brainstorm (docs/design/) → spec (docs/specs/) →
+plan (docs/plans/)`. Specs are mechanism-free contracts; plans are the execution
+breakdown. Each layer has its own schema validator (also wired as on-write hooks):
+
+```bash
+# Contract schema — rejects plan-shaped content (files/steps/task breakdowns)
+python3 skills/write-spec/scripts/validate_spec.py docs/specs/<file>-spec.md
+
+# Execution schema — task breakdown, files, ordered steps, verification matrix
+python3 skills/write-plan/scripts/validate_plan.py docs/plans/<file>-plan.md
+```
+
+Add `--strict-filename` to enforce the `-spec.md` / `-plan.md` suffix (the hooks do).
+
 ### Package a skill for distribution
 
 ```bash
