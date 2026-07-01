@@ -3,6 +3,7 @@ name: skill-evals
 description: Evaluate skill quality and routing reliability with deterministic checks. Use when creating/updating skills, validating trigger behavior (explicit/implicit/contextual/negative), applying SKILL.md contract checklists, or generating cross-skill compliance reports.
 skill-type: workflow
 compatibility: "Requires python3 and PyYAML."
+version: 1.0.0
 ---
 
 # Skill Evals
@@ -21,14 +22,18 @@ Use this skill when you need to:
 
 1. Define a target set (`--skills`) or evaluate all skills.
 2. Run contract validation.
-3. Optionally run trigger evals with case fixtures.
-4. Publish a markdown report with failures, warnings, and suggested fixes.
+3. Run release-version validation for changed skills when evaluating a branch.
+4. Optionally run trigger evals with case fixtures.
+5. Publish a markdown report with failures, warnings, and suggested fixes.
 
 ## Commands
 
 ```bash
 # Contract checks (all skills)
 python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --markdown docs/project/skill-contract-application-YYYY-MM-DD.md
+
+# Version bump checks (changed skills)
+python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
 
 # Trigger evals from fixture
 python3 skills/skill-evals/scripts/run_trigger_evals.py --cases skills/skill-evals/assets/sample-trigger-cases.json --skills-root skills --pretty
@@ -54,6 +59,7 @@ Provide:
 ## Verification
 
 - All assertions in the fixture file pass (exit code 0)
+- Changed skills either are part of the first unversioned baseline or have a version bump plus changelog entry
 - No regressions in previously-passing skills
 - Persisted report matches live validation output
 

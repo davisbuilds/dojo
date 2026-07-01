@@ -2,7 +2,7 @@
 
 Actionable improvement backlog for the skills catalog. This is a living snapshot, not a release contract.
 
-Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-06-30.
+Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-07-01.
 
 ## Completed Highlights
 
@@ -42,6 +42,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 | AI-slop prose scan | `slop_scan.py` — high-precision deterministic linter for AI-slop tells in skill prose + core docs, CI-gated; complements the visual `design-critique` skill (gstack-derived) |
 | Opt-in behavioral evals | `behavioral_evals.py` — drives a real local agent to verify declared triggers route to the right skill; gated on `DOJO_BEHAVIORAL_EVALS=1`, never in CI (gstack-derived) |
 | Split write-spec into contract + plan | Closed the seam-first finding structurally: `write-spec` is now a mechanism-free **contract** (WHAT must be true — problem, falsifiable end-state, success criteria, evaluation), and the new `write-plan` owns the **execution** plan (task breakdown, files, steps, seam selection). Establishes `brainstorm (docs/design/) → spec (docs/specs/) → plan (docs/plans/)`; each layer has its own schema validator + on-write hook; brainstorming reshaped into a direction-level feeder; legacy plan-shaped specs migrated to `docs/plans/`. Follow-up: rename the cross-repo lifecycle-archive script to learn about `docs/design/` |
+| Skill SemVer releases | Every cataloged skill declares `version: 1.0.0` as the baseline release; `skills.json` and the generated catalog expose per-skill versions; `check_skill_versions.py` enforces future release-relevant edits against a git base with required changelog entries |
 
 ## Cross-Cutting Findings
 
@@ -119,5 +120,4 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 ## Planned / Open Areas
 
 - Guarded promotion from `self-improve` proposals into harness-level canaries or rollback-aware improvement loops.
-- Skill versioning and changelog tracking.
 - Expanded test coverage for hook scripts and validation logic.

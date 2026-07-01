@@ -8,6 +8,7 @@ description: >-
   'SAST', or 'secure this code'. On-demand via /scan and /trifecta-check commands.
 skill-type: workflow
 compatibility: "Requires semgrep CLI (brew install semgrep), python3, PyYAML. Semgrep rule downloads require network on first run."
+version: 1.0.0
 ---
 
 # secure-code

@@ -2,6 +2,7 @@
 name: vercel-preview-logs
 description: Retrieve and diagnose Vercel build/runtime logs. Use when the user asks to check errors, inspect logs, debug a failed build, or correlate a PR/commit with log output from an existing environment.
 skill-type: workflow
+version: 1.0.0
 ---
 
 # Vercel Preview Logs

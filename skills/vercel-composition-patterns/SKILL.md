@@ -7,6 +7,7 @@ description:
   render props, context providers, or component architecture. Includes React 19
   API changes.
 skill-type: reference
+version: 1.0.0
 license: MIT
 metadata:
   author: vercel

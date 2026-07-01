@@ -2,6 +2,7 @@
 name: obsidian-bases
 description: Create and edit Obsidian Bases (.base files) with database-style views, filters, formulas, and summaries. Use when working with .base files, building table/card/dashboard views over a vault, or when the user mentions Bases, filters, or formulas in Obsidian.
 skill-type: reference
+version: 1.0.0
 ---
 
 # Obsidian Bases Skill

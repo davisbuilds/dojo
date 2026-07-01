@@ -10,6 +10,7 @@ description: >-
   'trust score', 'is this skill safe', or 'audit-skill'. On-demand via /audit-skill command.
 skill-type: workflow
 compatibility: "Requires python3, PyYAML. Layer 3 code audit requires semgrep CLI (brew install semgrep). Semgrep rule downloads require network on first run."
+version: 1.0.0
 ---
 
 # audit-skill

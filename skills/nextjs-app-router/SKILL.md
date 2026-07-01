@@ -2,6 +2,7 @@
 name: nextjs-app-router
 description: Next.js App Router expert guidance. Use when building, debugging, or architecting Next.js applications — routing, Server Components, Server Actions, layouts, data fetching, rendering strategies, metadata, image/font optimization, error handling, and hydration debugging. Triggers on tasks involving Next.js pages, app directory structure, RSC boundaries, or App Router migration.
 skill-type: reference
+version: 1.0.0
 license: MIT
 metadata:
   author: vercel

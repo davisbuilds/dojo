@@ -3,6 +3,7 @@ name: deep-research
 description: Use when a task needs web-backed research with controlled depth, relevance filtering, and citation-ready synthesis. Routes work to quick, standard, or deep tiers, filters low-signal context, and returns a compact packet with key findings, citations, discarded context, confidence gaps, and next queries.
 skill-type: workflow
 compatibility: "Requires python3. Requires network access for web research."
+version: 1.0.0
 ---
 
 # Deep Research

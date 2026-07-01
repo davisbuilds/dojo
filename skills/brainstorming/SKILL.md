@@ -2,6 +2,7 @@
 name: brainstorming
 description: Use this when requirements are ambiguous, multiple approaches are plausible, or trade-offs need discussion before planning or implementation. Clarifies WHAT to build through one-question-at-a-time collaboration. Can be skipped when requirements are already explicit and well constrained.
 skill-type: workflow
+version: 1.0.0
 ---
 
 # Brainstorming

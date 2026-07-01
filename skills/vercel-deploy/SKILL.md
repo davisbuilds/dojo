@@ -3,6 +3,7 @@ name: vercel-deploy
 description: Create and push new Vercel deployments. Use when the user wants to deploy, ship, go live, or create a preview — e.g. "deploy my app", "push this live", "ship it".
 skill-type: workflow
 compatibility: "Requires Vercel CLI (npm i -g vercel). Requires network access for deployment."
+version: 1.0.0
 ---
 
 # Vercel Deploy

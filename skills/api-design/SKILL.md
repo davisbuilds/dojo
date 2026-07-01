@@ -2,6 +2,7 @@
 name: api-design
 description: Design and review robust API and interface contracts. Use when creating or changing HTTP endpoints, GraphQL/RPC-style APIs, webhooks, SSE/event streams, exported DTOs/types, service-layer boundaries, CLI JSON/stdout/exit-code contracts, versioning/deprecation plans, or any compatibility-sensitive boundary between consumers and providers.
 skill-type: workflow
+version: 1.0.0
 ---
 
 # API Design

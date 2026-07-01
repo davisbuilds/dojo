@@ -5,6 +5,7 @@ skill-type: workflow
 compatibility: "Requires python3, requests package. Requires network access for GitHub API."
 metadata:
   short-description: Install curated skills from openai/skills or other repos
+version: 1.0.0
 ---
 
 # Skill Installer

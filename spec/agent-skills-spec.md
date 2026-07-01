@@ -13,7 +13,7 @@ The most recent spec is now located at <https://agentskills.io/specification>
 
 This document defines the Agent Skills format.
 
-> **dojo extensions (non-upstream):** dojo adds an optional `triggers` frontmatter field and generates per-harness sidecars + opt-in composed SKILL.md from frontmatter. These are dojo-local and documented in `docs/system/skill-contract-v1.md` and `docs/system/ARCHITECTURE.md`; they do not modify the upstream format below.
+> **dojo extensions (non-upstream):** dojo requires a top-level SemVer `version` frontmatter field, adds an optional `triggers` frontmatter field, and generates per-harness sidecars + opt-in composed SKILL.md from frontmatter. These are dojo-local and documented in `docs/system/skill-contract-v1.md` and `docs/system/ARCHITECTURE.md`; they do not modify the upstream format below.
 
 ## Directory structure
 

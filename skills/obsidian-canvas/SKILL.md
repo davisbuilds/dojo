@@ -2,6 +2,7 @@
 name: obsidian-canvas
 description: Create and edit Obsidian Canvas files (.canvas) with nodes, edges, groups, and connections. Use when working with .canvas files, creating visual canvases, mind maps, flowcharts, or when the user mentions Canvas files in Obsidian.
 skill-type: reference
+version: 1.0.0
 ---
 
 # Obsidian Canvas Skill
