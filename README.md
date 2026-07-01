@@ -214,7 +214,9 @@ tests/                    regression tests for repository scripts
 spec/                     agent skills specification
 docs/system/              architecture, operations, catalog, contract, and authoring references
 docs/project/             project vision and git history policy
-docs/plans/               implementation plans
+docs/design/              brainstorm design summaries (WHAT — chosen direction)
+docs/specs/               contracts (WHAT must be true — falsifiable target)
+docs/plans/               implementation plans (HOW — task sequencing)
 docs/downloads/           pre-packaged .skill files
 docs/archive/             historical analyses and completed plans
 ```

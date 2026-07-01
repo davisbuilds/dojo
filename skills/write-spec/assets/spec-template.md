@@ -8,71 +8,57 @@ source: conversation
 
 # Topic Title Spec
 
-## Goal
+## Problem
 
-One sentence describing what this implementation delivers.
+Who is hurting, what they do today, and why this matters now. One short paragraph,
+no solution.
+
+## Contract
+
+When this ships, *[observable behavior]* holds, verified by `command-or-check`.
+
+State the falsifiable end-state and name at least one deterministic verification
+command. Describe *what must be true*, never *how to build it* — no file paths,
+task breakdowns, or implementation steps.
+
+## Success Criteria
+
+- Concrete behavior visible when it works.
+- Another observable, checkable behavior.
+
+## Evaluation
+
+How the contract is measured.
+
+If this is a measurable product/experiment bet, set thresholds:
+- Kill: signal that says stop.
+- Scale: signal that says invest more.
+- Graduate: signal that says it is done / promote it.
+
+Omit the thresholds for mechanical or system specs.
 
 ## Scope
 
 ### In Scope
 
-- What is included in this implementation pass.
+- Outcomes included in this contract (name results, not files).
 
 ### Out of Scope
 
-- What is explicitly excluded for this pass.
+- Outcomes explicitly excluded.
 
 ## Assumptions And Constraints
 
-- Assumptions that shape the approach.
+- Assumptions that shape the target.
 - Constraints (technical, schedule, dependency, policy).
 
-## Task Breakdown
+## Open Questions
 
-### Task 1: Name
-
-**Objective**
-
-Describe the concrete outcome of this task.
-
-**Files**
-
-- Create: `path/to/new.file`
-- Modify: `path/to/existing.file`
-- Test: `tests/path/to/test.file`
-
-**Dependencies**
-
-None
-
-**Implementation Steps**
-
-1. Step with a concrete action.
-2. Step with a concrete action.
-
-**Verification**
-
-- Run: `command`
-- Expect: observable pass signal
-
-**Done When**
-
-- Acceptance criterion 1.
-- Acceptance criterion 2.
-
-## Risks And Mitigations
-
-- Risk: short description.
-  Mitigation: concrete prevention or fallback.
-
-## Verification Matrix
-
-| Requirement | Proof command | Expected signal |
-| --- | --- | --- |
-| Requirement description | `command` | Deterministic pass signal |
+- Unresolved decision that must close before or during execution.
 
 ## Handoff
 
-1. Execute in this session, task by task.
-2. Open a separate execution session.
-3. Refine this spec before implementation.
+1. Hand off to `write-plan` to sequence the build against this contract.
+2. Review the contract with a critique subagent (or `verify-before-complete`
+   inline if subagents are unavailable).
+3. Refine the contract before sequencing.

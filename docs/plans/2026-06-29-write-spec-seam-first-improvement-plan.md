@@ -1,12 +1,17 @@
 ---
 date: 2026-06-29
 topic: write-spec-seam-first
-stage: spec
-status: draft
+stage: plan
+status: superseded
 source: conversation
 ---
 
-# Write-Spec Seam-First Improvement Spec
+# Write-Spec Seam-First Improvement Plan
+
+> **Superseded** by `docs/plans/2026-06-30-spec-plan-skill-split-plan.md`. This
+> overlay bolted a contract onto the (then plan-shaped) `write-spec`; the split
+> is the clean version of the same fix, and the seam-first content now lives in
+> the `write-plan` skill (`skills/write-plan/references/seam-selection.md`).
 
 ## Goal
 

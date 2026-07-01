@@ -44,7 +44,8 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 | `pre-tool-use-git-push-protected-branch.sh` | PreToolUse (Bash) | Blocks pushes to protected branches unless an explicit override token is present |
 | `pre-tool-use-validate-skill.sh` | PreToolUse (Write/Edit) | Validates SKILL.md frontmatter; blocks on failure |
 | `post-tool-use-regen-manifest.sh` | PostToolUse (Write/Edit) | On SKILL.md or `skills/_fragments/*` edits, expands opt-in fragment composition, regenerates `skills.json`, then rebuilds the catalog |
-| `post-tool-use-validate-spec.sh` | PostToolUse (Write/Edit) | Validates `docs/specs/*-spec.md` against `write-spec` schema |
+| `post-tool-use-validate-spec.sh` | PostToolUse (Write/Edit) | Validates `docs/specs/*-spec.md` against the `write-spec` contract schema (forbids plan-shaped content) |
+| `post-tool-use-validate-plan.sh` | PostToolUse (Write/Edit) | Validates `docs/plans/*-plan.md` against the `write-plan` execution schema |
 | `stop-hook-git-check.sh` | Stop | Blocks if there are uncommitted changes or untracked files. Unpushed commits are allowed. |
 | `stop-hook-skill-structure.sh` | Stop | Validates modified skill directories have valid SKILL.md |
 | `stop-hook-session-retro.sh` | Stop | Reminds agent to run `/retro` to capture session learnings |
@@ -85,8 +86,9 @@ scripts/                  # Manifest generation + generation pipeline (Python)
 .claude/ .agents/ .agent/ # Each `skills/` is a generated relative symlink -> ../skills (Codex sidecars colocated at skills/<name>/agents/openai.yaml)
 spec/                     # Agent skills specification (upstream)
 docs/catalog/             # Generated browseable skill catalog (index.html) from skills.json
-docs/specs/               # Specs (write-spec output)
-docs/plans/               # Brainstorm summaries and historical implementation plans
+docs/design/              # Brainstorm design summaries (brainstorming output — WHAT, chosen direction)
+docs/specs/               # Contracts (write-spec output — WHAT must be true, falsifiable target)
+docs/plans/               # Implementation plans (write-plan output — HOW, task sequencing)
 docs/research/            # External comparisons and research notes
 docs/downloads/           # Pre-packaged .skill files
 docs/archive/             # Historical analysis

@@ -1,12 +1,12 @@
 ---
 date: 2026-06-30
 topic: spec-plan-skill-split
-stage: spec
-status: draft
+stage: plan
+status: complete
 source: conversation
 ---
 
-# Spec/Plan Skill Split Spec
+# Spec/Plan Skill Split Plan
 
 ## Goal
 

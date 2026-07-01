@@ -49,8 +49,9 @@ The four design skills above compose into a pipeline: `design-md` (token spec) �
 | `api-design` | Design and review robust API, event, interface, and machine-output contracts |
 | `autonomous-engineering` | Full end-to-end feature workflows (`/lfg`, `/slfg`) |
 | `loop-design` | Design verifiable autonomous loops on top of `/loop` and `/goal`; gate on an oracle, then scaffold a portable loop bundle (`/loop-design`) |
-| `brainstorming` | Explore requirements before implementation |
-| `write-spec` | Structured specs with explicit verification and handoff gates |
+| `brainstorming` | Clarify WHAT to build and capture the chosen direction (`docs/design/`) |
+| `write-spec` | Pin the falsifiable contract — WHAT must be true, mechanism-free (`docs/specs/`) |
+| `write-plan` | Sequence the build — HOW: task breakdown, files, ordered steps, seam selection (`docs/plans/`) |
 | `create-cli` | CLI parameter and UX design |
 | `agent-native-architecture` | Build agent-native apps with tool/action parity |
 | `deep-research` | Web-backed research with conditional depth and evidence filtering |
@@ -137,8 +138,9 @@ Slash-style entrypoints for harnesses that support command files:
 - `/fix-issue` — GitHub issue resolution
 - `/triage-issue` — GitHub issue triage
 - `/commit-push-pr` — commit, push, PR flow
-- `/brainstorm` — brainstorming session
-- `/plan` — implementation planning workflow
+- `/brainstorm` — brainstorming session (WHAT — chosen direction)
+- `/spec` — write the falsifiable contract (WHAT must be true)
+- `/plan` — sequence the build (HOW — task breakdown, files, steps)
 - `/standardize-skills` — skill standardization
 - `/deep-research` — route depth and filter evidence in one command
 - `/repo-audit` — generate repo-local audit artifacts and summarize hardening gaps

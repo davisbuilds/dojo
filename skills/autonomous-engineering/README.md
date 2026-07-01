@@ -13,8 +13,8 @@ Commands for fully autonomous feature development workflows from the compound-en
 
 The `/lfg` command runs a complete feature development cycle:
 
-1. **Plan** - Create implementation plan from feature description
-2. **Deepen** - Enhance plan with research and best practices
+1. **Plan** - Create an implementation plan (the HOW — task breakdown, files, ordered steps) from the feature description
+2. **Deepen** - Enhance the plan with research and best practices
 3. **Work** - Execute the implementation
 4. **Review** - Multi-agent code review
 5. **Resolve** - Fix any issues found in review

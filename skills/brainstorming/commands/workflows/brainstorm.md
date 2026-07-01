@@ -34,14 +34,14 @@ Present 2-3 options with pros/cons and your recommendation.
 
 ### 4. Capture summary
 
-Write to `docs/plans/YYYY-MM-DD-<topic>-plan.md` using the template in `skills/brainstorming/SKILL.md`.
+Write to `docs/design/YYYY-MM-DD-<topic>-design.md` using the template in `skills/brainstorming/SKILL.md`.
 
 ### 5. Handoff
 
 Ask what to do next:
-1. Proceed to planning
-2. Refine further
-3. Stop here
+1. Hand off to `/workflows:spec` (write-spec) to make the direction a contract
+2. Review the direction with a critique subagent (or `verify-before-complete` inline if subagents are unavailable)
+3. Refine further, or stop here
 
 Apply the conditional coordination rules from `skills/brainstorming/SKILL.md` before handoff. If another specialized skill is a better next step, recommend it with a one-sentence rationale and ask for confirmation.
 

@@ -1,12 +1,12 @@
 ---
 date: 2026-06-28
 topic: api-design-skill
-stage: spec
+stage: plan
 status: complete
 source: conversation
 ---
 
-# API Design Skill Spec
+# API Design Skill Plan
 
 ## Goal
 

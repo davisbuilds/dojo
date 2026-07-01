@@ -22,7 +22,8 @@ Use this skill for:
 ## Boundaries
 
 - Do not implement broad code changes directly from this skill; hand off to
-  `write-spec` when implementation spans files or phases.
+  `write-plan` when implementation spans files or phases (or `write-spec` first if
+  the target still needs to be pinned as a falsifiable contract).
 - Do not duplicate security review, CLI design, or test methodology that sibling
   skills already own.
 - Do not treat undocumented behavior as free to break; observable behavior can
@@ -115,8 +116,8 @@ For changed APIs:
 - Preserve old behavior or create a migration path when consumers may depend on it.
 
 Read `references/compatibility-review.md` and `references/implementation-verification.md`.
-Use `test-strategy` for the actual test plan and `write-spec` for multi-step
-implementation plans.
+Use `test-strategy` for the actual test plan and `write-plan` for multi-step
+implementation plans (the API contract can feed `write-spec` first).
 
 ## Output
 
@@ -127,7 +128,8 @@ Return one of these artifacts, matching the user's task:
 - **Review findings**: ordered risks with file/line references when reviewing code,
   each tied to consumer impact and a concrete fix.
 - **Implementation handoff**: scoped contract decisions plus a recommendation to
-  proceed with `write-spec`, `test-strategy`, `secure-code`, or `create-cli`.
+  proceed with `write-spec` (pin the contract) or `write-plan` (sequence multi-file
+  implementation), `test-strategy`, `secure-code`, or `create-cli`.
 
 ## Verification
 
@@ -156,8 +158,10 @@ Before calling an API design/review complete, confirm:
 
 ## Sibling Skills
 
-- `write-spec` — use after API direction is clear and implementation spans
-  multiple files, phases, migrations, or verification gates.
+- `write-spec` — make the target falsifiable: turn the API direction into a
+  contract (`docs/specs/`) before sequencing.
+- `write-plan` — sequence the build: tasks, files, steps (`docs/plans/`) when
+  implementation spans multiple files, phases, migrations, or verification gates.
 - `test-strategy` — use for behavior-first API tests, request-level integration
   tests, contract tests, and mock/real-dependency decisions.
 - `secure-code` — use for security-sensitive APIs, trust boundaries, authz/authn,

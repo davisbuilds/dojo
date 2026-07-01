@@ -1,12 +1,12 @@
 ---
 date: 2026-06-16
 topic: authoring-multiharness-pipeline
-stage: spec
+stage: plan
 status: draft
 source: conversation
 ---
 
-# Authoring + Multi-Harness Pipeline Spec
+# Authoring + Multi-Harness Pipeline Plan
 
 ## Goal
 
