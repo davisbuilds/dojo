@@ -2,7 +2,7 @@
 date: 2026-06-30
 topic: spec-plan-skill-split
 stage: plan
-status: in-progress
+status: complete
 source: conversation
 ---
 

@@ -30,7 +30,7 @@ Standing conventions for changes in this repo.
 - Completed pre-execution docs don't linger in `docs/design/`, `docs/specs/`, or
   `docs/plans/`. They move to a gitignored `docs/archive/<category>/` — kept
   locally, out of the tracked tree; preserve the emptied dir with `.gitkeep`.
-- Don't hand-sweep one at a time: `ops/scripts/archive_plans.py` archives
+- Don't hand-sweep one at a time: `ops/scripts/archive_docs.py` archives
   terminal-status docs past a settling buffer and reports anything missing
   lifecycle frontmatter. Setting `status:` correctly is what lets it run safely.
 
