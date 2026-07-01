@@ -77,8 +77,21 @@ python skills/skill-creator/scripts/generate_openai_yaml.py <path/to/skill-folde
 ### Regenerate manifest
 
 ```bash
-python scripts/generate_skills_manifest.py
+python scripts/generate_skills_manifest.py          # write
+python scripts/generate_skills_manifest.py --check  # verify no drift (CI)
 ```
+
+The top-level `skills.json` `version` is the manifest schema version. Each skill entry also includes the per-skill release `version` declared in SKILL.md frontmatter.
+
+### Check skill release versions
+
+Compares release-relevant skill changes against a git base. After the one-time unversioned baseline, changed skill contents require a strictly greater SemVer value and a matching `CHANGELOG.md` entry:
+
+```bash
+python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
+```
+
+Use `DOJO_VERSION_CHECK_BASE=<ref>` to point the stop hook at a different comparison base when working from a non-main integration branch.
 
 ### Compose opt-in shared fragments
 
@@ -155,8 +168,11 @@ GitHub Actions enforces strict contract compliance, generated-artifact sync, and
 - `.github/workflows/skill-contract-pilot.yml`
 
 ```bash
+python -m pytest tests/ -q
 python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
+python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
 python3 scripts/gen_skill_docs.py --check
+python3 scripts/generate_skills_manifest.py --check
 python3 scripts/gen_harness_adapters.py --check --skip-symlinks
 python3 scripts/gen_catalog.py --check
 python3 scripts/slop_scan.py
@@ -171,7 +187,7 @@ Hooks enforce quality at edit-time and session-stop:
 
 - Pre-tool-use hook blocks pushes to protected branches unless the command includes `DOJO_ALLOW_PROTECTED_PUSH=1`.
 - Pre-tool-use hook validates SKILL.md on every write.
-- Stop hooks verify git state and skill structure; uncommitted changes and untracked files block, but unpushed commits never do (push timing is the operator's call).
+- Stop hooks verify git state, skill structure, and required skill version bumps; uncommitted changes and untracked files block, but unpushed commits never do (push timing is the operator's call).
 
 See `docs/system/skill-contract-v1.md` for the contract checklist and `docs/system/SKILL-BEST-PRACTICES.md` for authoring guidance.
 

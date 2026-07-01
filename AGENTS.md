@@ -11,6 +11,7 @@
 - `docs/system/skill-contract-v1.md` — SKILL.md quality contract (skill types, required checks) enforced by CI.
 - `docs/system/ROADMAP.md` — improvement backlog and cross-cutting findings.
 - `docs/project/VISION.md` — long-term direction and guiding principles.
+- `docs/project/BACKLOG.md` — future-only friction points and deferred follow-ups noticed during implementation.
 - `docs/project/GIT_HISTORY_POLICY.md` — branch hygiene and merge strategy (squash disabled; merge-commit or rebase, full per-commit history preserved).
 - `spec/agent-skills-spec.md` — full skill specification.
 - `rules/` — standing always-follow conventions (skill authoring, doc/commit hygiene), separate from on-trigger skills; composable into SKILL.md via `<!-- INCLUDE: rules/<name> -->`.

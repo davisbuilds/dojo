@@ -52,7 +52,7 @@ Prefer to do it yourself? The manual steps are below.
 - **Setup and operations**: [`docs/system/OPERATIONS.md`](docs/system/OPERATIONS.md)
 - **Skill authoring guidance**: [`docs/system/SKILL-BEST-PRACTICES.md`](docs/system/SKILL-BEST-PRACTICES.md)
 - **Strict skill contract**: [`docs/system/skill-contract-v1.md`](docs/system/skill-contract-v1.md)
-- **Vision and roadmap**: [`docs/project/VISION.md`](docs/project/VISION.md), [`docs/system/ROADMAP.md`](docs/system/ROADMAP.md)
+- **Vision, roadmap, and backlog**: [`docs/project/VISION.md`](docs/project/VISION.md), [`docs/system/ROADMAP.md`](docs/system/ROADMAP.md), [`docs/project/BACKLOG.md`](docs/project/BACKLOG.md)
 - **Git history policy**: [`docs/project/GIT_HISTORY_POLICY.md`](docs/project/GIT_HISTORY_POLICY.md)
 
 The generated [`skills.json`](skills.json) manifest is the runtime inventory source of truth.
@@ -129,7 +129,9 @@ skill-name/
 
 The `SKILL.md` file contains the "brain" of the skill—the prompt instructions that are loaded into the agent's context when the skill is triggered.
 
-`SKILL.md` frontmatter should declare a `skill-type` for new or updated skills:
+`SKILL.md` frontmatter declares a per-skill SemVer `version` used by `skills.json`, the catalog, and release-bump checks. New stable skills start at `1.0.0`.
+
+`SKILL.md` frontmatter should also declare a `skill-type` for new or updated skills:
 - `workflow` for procedural, review, audit, remediation, or planning skills
 - `reference` for best-practice indexes and reference routers
 
@@ -213,7 +215,7 @@ scripts/                  manifest generation and helper scripts
 tests/                    regression tests for repository scripts
 spec/                     agent skills specification
 docs/system/              architecture, operations, catalog, contract, and authoring references
-docs/project/             project vision and git history policy
+docs/project/             project vision, backlog, and git history policy
 docs/design/              brainstorm design summaries (WHAT — chosen direction)
 docs/specs/               contracts (WHAT must be true — falsifiable target)
 docs/plans/               implementation plans (HOW — task sequencing)

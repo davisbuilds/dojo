@@ -22,6 +22,19 @@ Current repo state:
 - New and updated skills should continue to declare `skill-type`.
 - For robustness, untyped skills still default to `workflow` behavior if one appears in the future.
 
+## Skill Versions
+
+Every cataloged skill declares a top-level `version` frontmatter field. This is the skill release version, not the `skills.json` manifest schema version.
+
+Rules:
+
+- Use SemVer 2.0.0 syntax without a leading `v` (for example, `1.0.0` or `1.2.0-beta.1`).
+- Existing cataloged skills are baselined at `1.0.0`.
+- Use `PATCH` for typo fixes, clearer wording, examples, and non-behavioral documentation changes.
+- Use `MINOR` for new optional commands, references, trigger phrases, or backward-compatible capability expansion.
+- Use `MAJOR` for changed workflow contracts, removed resources, changed required outputs, narrowed trigger semantics, or incompatible script behavior.
+- Release-relevant skill edits after the baseline must increase the skill version and add a `CHANGELOG.md` heading for the new version.
+
 ## Optional Frontmatter Extensions
 
 These are dojo-specific extensions beyond the upstream `spec/agent-skills-spec.md`. They are optional; absence never fails the contract.
@@ -49,7 +62,7 @@ SKILL.md frontmatter is the source of truth. Two generation steps derive artifac
 ## Universal Required Checks (must pass)
 
 1. `frontmatter_valid`
-   - SKILL has valid frontmatter and passes `skill-creator` quick validation.
+   - SKILL has valid frontmatter and passes `skill-creator` quick validation, including required SemVer `version`.
 
 2. `description_trigger_ready`
    - Frontmatter description includes trigger-ready language (for example: `use when`, `when the user`, `triggers on`, `on-demand via`).
