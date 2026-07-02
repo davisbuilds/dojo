@@ -4,7 +4,7 @@
 PyYAML==6.0.3
 
 # Test/dev tooling — runs the repo regression tests under tests/
-pytest>=8.2
+pytest>=9.1.1
 
 # Optional — only needed by specific skills
 # Keep these pinned if you activate them and regenerate requirements.lock.
