@@ -28,6 +28,10 @@ If no arguments are passed:
 bash skills/local-review/scripts/collect_review_context.sh --mode working
 ```
 
+The `skills/local-review/...` path is the command-wrapper layout. When invoking
+the helper manually from `SKILL.md`, resolve the script relative to the
+local-review skill directory, not the repository being reviewed.
+
 3. Review the resulting context and any touched files as needed.
 
 4. Return results in this exact order:
@@ -55,6 +59,8 @@ If there are no meaningful findings, explicitly say so and still include residua
 - Never call `gh pr review` or post to GitHub from this command.
 - Prioritize concrete, evidence-backed findings over broad suggestions.
 - Use deep-review scrutiny when the diff is large, risky, or user asks for deep review.
+- `--deep` raises the helper's default diff budget; if output is still
+  truncated, inspect relevant touched files directly before reporting findings.
 
 ## Example Invocations
 
