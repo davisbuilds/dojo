@@ -2,7 +2,7 @@
 name: local-review
 description: Perform local code reviews on workspace changes without posting to GitHub. Use for requests like /review, review this diff, audit staged changes, or check branch changes. Collects git context and produces findings-first reports with severity, file line references, risks, and test gaps.
 skill-type: workflow
-version: 1.0.0
+version: 1.0.1
 ---
 
 # local-review
@@ -23,22 +23,24 @@ Run a disciplined local code review on git changes with no GitHub side effects. 
 - Staged changes only: `--mode staged`
 - Branch changes against a base: `--mode branch --base <ref> [--head <ref>]`
 
-2. Collect deterministic context.
+2. Collect deterministic context. Resolve `scripts/collect_review_context.sh`
+relative to this skill directory, not the repository being reviewed. Do not look
+for the script in the target repo unless that repo deliberately vendors a copy.
 
 ```bash
-bash scripts/collect_review_context.sh --mode working
+bash <local-review-skill-dir>/scripts/collect_review_context.sh --mode working
 ```
 
 or
 
 ```bash
-bash scripts/collect_review_context.sh --mode staged
+bash <local-review-skill-dir>/scripts/collect_review_context.sh --mode staged
 ```
 
 or
 
 ```bash
-bash scripts/collect_review_context.sh --mode branch --base origin/main
+bash <local-review-skill-dir>/scripts/collect_review_context.sh --mode branch --base origin/main
 ```
 
 3. Analyze for:
@@ -88,13 +90,13 @@ If there are no meaningful findings, state that explicitly and still include res
 
 ```bash
 # Default: review working tree changes
-bash scripts/collect_review_context.sh
+bash <local-review-skill-dir>/scripts/collect_review_context.sh
 
 # Review only staged changes
-bash scripts/collect_review_context.sh --mode staged
+bash <local-review-skill-dir>/scripts/collect_review_context.sh --mode staged
 
 # Review branch changes vs base
-bash scripts/collect_review_context.sh --mode branch --base origin/main
+bash <local-review-skill-dir>/scripts/collect_review_context.sh --mode branch --base origin/main
 ```
 
 ## Command Wrapper
