@@ -2,7 +2,7 @@
 name: local-review
 description: Perform local code reviews on workspace changes without posting to GitHub. Use for requests like /review, review this diff, audit staged changes, or check branch changes. Collects git context and produces findings-first reports with severity, file line references, risks, and test gaps.
 skill-type: workflow
-version: 1.0.1
+version: 1.1.0
 ---
 
 # local-review
@@ -22,6 +22,8 @@ Run a disciplined local code review on git changes with no GitHub side effects. 
 - Working tree changes: `--mode working` (default)
 - Staged changes only: `--mode staged`
 - Branch changes against a base: `--mode branch --base <ref> [--head <ref>]`
+- Deep review: add `--deep` to raise the default diff budget from 4000 to 8000
+  lines, or pass `--max-diff-lines <n>` explicitly.
 
 2. Collect deterministic context. Resolve `scripts/collect_review_context.sh`
 relative to this skill directory, not the repository being reviewed. Do not look
@@ -42,6 +44,9 @@ or
 ```bash
 bash <local-review-skill-dir>/scripts/collect_review_context.sh --mode branch --base origin/main
 ```
+
+If branch mode cannot resolve the default `origin/main` but local `main` exists,
+the helper falls back to `main` and prints a base note in the review target.
 
 3. Analyze for:
 - correctness and regressions
@@ -84,7 +89,7 @@ If there are no meaningful findings, state that explicitly and still include res
 
 - Quick review: small changes and low-risk files.
 - Deep review: large diff, sensitive areas (auth, migrations, payments, infra), or user request.
-- Trigger deep review automatically when diff is very large (for example, over 20 files or over 500 changed lines).
+- Trigger deep review automatically when diff is very large (for example, over 20 files or over 500 changed lines). If the context says the diff was truncated, rerun with `--deep` or a higher `--max-diff-lines`, then read high-risk touched files directly as needed.
 
 ## Commands
 
@@ -97,6 +102,9 @@ bash <local-review-skill-dir>/scripts/collect_review_context.sh --mode staged
 
 # Review branch changes vs base
 bash <local-review-skill-dir>/scripts/collect_review_context.sh --mode branch --base origin/main
+
+# Deep review with a larger default diff budget
+bash <local-review-skill-dir>/scripts/collect_review_context.sh --mode branch --base origin/main --deep
 ```
 
 ## Command Wrapper
