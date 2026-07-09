@@ -23,37 +23,39 @@ commands.
 
 ## Scope
 
-In: an opt-in runtime-health dimension added to the existing
-`scripts/skills_health.py` (fetch + `skills.json` join), a committed fixture,
+In: a new runtime-health module invoked opt-in by the existing
+`scripts/skills_health.py` (fetch + dojo-scoped join), a committed fixture,
 findings output, tests. Out (per spec): widening/fixing misfire, broadening
 version coverage, LLM judging, auto-editing skills, auto-running skill-evals,
-persistent trend storage.
+persistent trend storage, and version-drift reporting (deferred — see Open note
+in the spec).
 
 ## Assumptions And Constraints
 
-- **The consumer is an extension of `scripts/skills_health.py`, not a new
-  script.** That script already exists and produces a per-skill "Skill Health
-  Report" by merging two *static* signals (SKILL contract status + declared
-  trigger routing). The runtime signals (never-fired, invocations, misfire)
-  belong in the same per-skill view — a maintainer wants "is this skill
-  well-formed?" and "does it ever fire?" together. The spec's illustrative path
-  (`skills/skill-evals/scripts/<consumer>.py`) is superseded by this real seam.
-- **The runtime dimension is strictly opt-in and non-breaking.** The default
-  `skills_health.py` run (no new flags) must produce byte-identical output to
-  today, so the existing `tests/test_skills_health.py` stays green and the
+- **Runtime logic lives in a new module `scripts/skill_health_runtime.py`,
+  imported by `scripts/skills_health.py` and invoked only when runtime flags are
+  passed.** This keeps network/fetch/validation/enrichment/findings out of the
+  lean, network-free static aggregator (and its regression-guard test), while
+  preserving one command for the maintainer. The static path imports the module
+  but never calls it unless asked; a bare import performs no network I/O.
+- **The default `skills_health.py` run (no runtime flags) is byte-identical to
+  today**, so the existing `tests/test_skills_health.py` stays green and the
   static report keeps its zero-network, CI-safe behavior.
+- **dojo-scoping is inherent in the existing report.** `build_report` lists
+  exactly the skills under `skills/` (the contract validator globs
+  `skills_root/*/SKILL.md`), so the report's skill set *is* dojo's catalog. The
+  runtime join matches health rows by name against that set; a health row whose
+  name is not in the report is non-dojo and ignored. No separate `skills.json`
+  load is required.
 - Data source is the shipped envelope `{ data: SkillHealthRow[], coverage }`,
   `SkillHealthRow = { name, version, versionApproximate, invocations,
   lastInvokedAt, neverFired, misfireEligible, misfires, misfireRate }`.
-- dojo catalog is `skills.json` (`{ version, skills: [{ name, description, path,
-  version }] }`); the join scopes findings to dojo-owned skills.
 - Determinism: same health input (via `--health-json`) → byte-identical report.
-  No timestamps or environment data baked into the report body.
-- Python stdlib only for HTTP (`urllib.request`, per
-  `skills/skill-installer/scripts/github_utils.py`); no new dependencies.
-- Misfire is near-zero on real data and under validation (AgentMonitor BACKLOG);
-  it is displayed with its eligible denominator and labeled experimental, never
-  a ranking input.
+  No timestamps or host data baked into the report body.
+- Python stdlib only for HTTP (`urllib.request`); no new dependencies.
+- Misfire is near-zero on real data and under validation upstream; it is
+  displayed with its eligible denominator, labeled experimental, and never a
+  ranking input.
 
 ## Map Before You Cut
 
@@ -62,218 +64,259 @@ Traced ground:
 - `scripts/skills_health.py` — `build_report(skills_root)` shells out to
   `validate_skill_contract.py --json` and `run_trigger_evals.py --from-triggers`,
   merges them into `{ summary, skills: [{ skill, contract_status, warnings,
-  triggers_declared, triggers_failed, ... }] }`, keyed by skill name.
-  `format_report(report)` renders the human view; `--json` dumps the dict.
-  `main()` has `--skills-root` and `--json` only.
-- The per-skill list is the join surface: runtime fields attach to each existing
-  entry by `skill` name. The `summary` dict is the place for catalog-level
-  runtime rollups (e.g. `never_fired`).
-- `tests/test_skills_health.py` locks two behaviors:
+  triggers_declared, triggers_failed, ... }] }`, keyed by skill name (no
+  `version` field). `format_report(report)` builds a line list and returns
+  `"\n".join(...)`. `main()` (lines 120-141) has `--skills-root` and `--json`
+  only, and wraps `build_report` in a `try/except (RuntimeError,
+  JSONDecodeError)` → `print(..., file=sys.stderr); return 1`.
+- `validate_skill_contract.py` `collect_skills` globs `skills_root/*/SKILL.md`
+  (line 390) and emits no `version` field — confirming both that the report
+  equals the dojo catalog and that version-drift cannot be computed from existing
+  report data. Version-drift is therefore **out of v1** (would need a separate
+  version source; deferred).
+- `tests/test_skills_health.py` locks
   `test_build_report_aggregates_contract_and_triggers` and
-  `test_format_report_renders_summary`. These are the regression guard — the
-  no-flags path must not change.
-- `skills.json` is at repo root; `REPO_ROOT` is already resolved in the script.
-- HTTP seam: `urllib.request.urlopen` with a short timeout, mirroring
-  `github_utils.py`; wrap failures into the honest-degradation path.
+  `test_format_report_renders_summary`. These are the regression guard.
+- HTTP seam: adapt the stdlib pattern in
+  `skills/skill-installer/scripts/github_utils.py:16`
+  (`urllib.request.urlopen(req)`), adding a short `timeout`.
+- Output modes are text (default) and `--json` (there is no markdown mode;
+  `docs/system/OPERATIONS.md:136` documents exactly these two). The report's
+  human text *is* the report; no `--format` flag is introduced.
 
-Seam decision: add an **optional enrichment pass** gated behind new flags
-(`--agentmonitor-url` / `--health-json`). When neither is supplied, `build_report`
-is unchanged. When supplied, a new `enrich_with_runtime_health(report, rows)`
-folds runtime fields into the existing per-skill entries and summary, and a new
-ranking/findings step reads those fields. This is the thinnest cut that satisfies
-the contract without a parallel tool or touching the static path.
+Seam decision: a new `scripts/skill_health_runtime.py` owns fetch, envelope
+validation, enrichment, ranking, and findings. `skills_health.py` gains the
+runtime flags and calls the module only when they are set, then renders the
+enriched report. Rejected alternatives: (a) a fully separate CLI — loses the
+one-command "is this skill healthy?" UX that motivates phase 2; (b) inlining
+everything into `skills_health.py` — couples network/mocking into the lean
+static aggregator and its single regression-guard test. The module split gets
+the UX of (b) with the isolation of (a).
 
 ## Task Breakdown
 
-### Task 1: Runtime health source (fetch + file), with honest failure
+### Task 1: Runtime health source module (fetch + file), honest failure
 
-**Objective**: Obtain `SkillHealthRow[]` from either a live AgentMonitor or a
-saved JSON file, or fail clearly.
+**Objective**: Load `SkillHealthRow[]` from a live AgentMonitor or a saved JSON
+file, or fail with a clear typed error.
 
-**Files**: `scripts/skills_health.py`, `tests/test_skills_health.py`,
+**Files**: `scripts/skill_health_runtime.py` (new),
+`tests/test_skill_health_runtime.py` (new),
 `skills/skill-evals/assets/sample-skill-health.json` (new fixture).
 
 **Dependencies**: None.
 
 **Implementation Steps**:
-1. Add `load_health_rows(source)` that accepts either a URL or a file path:
-   file path → parse JSON; URL → `urllib.request.urlopen(url, timeout=…)` then
-   parse. Validate the envelope shape (`data` is a list of objects with the
-   expected keys); on connection error, timeout, non-JSON, or shape mismatch,
-   raise a typed error (`RuntimeError`) with a clear message.
-2. Add `--agentmonitor-url` (default `http://127.0.0.1:3141`) and `--health-json
-   <path>` flags; `--health-json` wins when both are usable. Add a
-   `--runtime`/enable signal so the default run stays static-only (e.g. runtime
-   enrichment activates only when `--health-json` is given or `--runtime` is
-   passed; a bare default run does not touch the network).
-3. Commit `sample-skill-health.json`: a hand-built envelope covering a never-fired
-   dojo skill, a heavily-used skill, a skill with misfire data, a skill absent
-   from `skills.json`, and a version-drift case.
+1. In the new module, add `load_health_rows(*, url: str | None, path: str | None)
+   -> list[dict]`: `path` set → read + `json.loads` the file; else `url` →
+   `urllib.request.urlopen(url, timeout=5)` and parse. Validate the envelope:
+   top-level `data` is a list whose items are dicts containing at least `name`,
+   `invocations`, `neverFired`. On connection error, timeout, non-JSON, missing
+   `data`, or item-shape mismatch, raise `RuntimeError` with a specific message.
+   Return the `data` list.
+2. Commit `sample-skill-health.json`: a `{ data: [...], coverage: {...} }`
+   envelope with rows for (a) a never-fired dojo skill, (b) a heavily-used dojo
+   skill, (c) a dojo skill with misfire data (`misfires`/`misfireEligible`
+   non-zero), (d) a rarely-fired dojo skill (invocations 1-2), (e) a skill name
+   absent from dojo's `skills/`. Use real dojo skill names for (a)-(d) so the
+   join tests are faithful.
+3. Tests in `tests/test_skill_health_runtime.py`:
+   `test_load_health_rows_from_file`,
+   `test_load_health_rows_url_error_raises` (patch `urlopen` to raise →
+   `RuntimeError`), `test_load_health_rows_malformed_shape_raises`.
 
-**Verification**: `python3 -m pytest tests/test_skills_health.py -q -k
-"load_health"` — passes for file parse, URL-error → RuntimeError, and
-malformed-shape → RuntimeError.
+**Verification**: `python3 -m pytest tests/test_skill_health_runtime.py -q -k
+load_health_rows` — all three pass.
 
-**Done When**: health rows load from a file and from a URL; unreachable/malformed
-sources raise a clear typed error (contract clause 4).
+**Done When**: rows load from file and URL; unreachable/malformed sources raise a
+clear `RuntimeError` (contract clause 4).
 
-**Assumptions Verified**: stdlib `urllib.request.urlopen` is the established HTTP
-pattern (`skills/skill-installer/scripts/github_utils.py:15`); shipped envelope
-shape confirmed against `src/api/v2/types.ts` `SkillHealthRow`.
+**Assumptions Verified**: stdlib `urllib.request.urlopen` is the repo's HTTP
+approach, adapted from `skills/skill-installer/scripts/github_utils.py:16` (which
+calls `urlopen(req)` without a timeout; the timeout is a deliberate addition).
+Envelope shape confirmed against `agentmonitor/src/api/v2/types.ts`
+`SkillHealthRow`.
 
-### Task 2: Join runtime health onto the per-skill report
+### Task 2: Dojo-scoped enrichment of the per-skill report
 
 **Objective**: Fold runtime fields into the existing per-skill entries and
-summary, scoped to the dojo catalog, without altering the static path.
+summary, scoped to dojo skills, without touching the static path.
 
-**Files**: `scripts/skills_health.py`, `tests/test_skills_health.py`.
+**Files**: `scripts/skill_health_runtime.py`, `tests/test_skill_health_runtime.py`.
 
 **Dependencies**: Task 1.
 
 **Implementation Steps**:
-1. Add `enrich_with_runtime_health(report, rows)`: index `rows` by `name`; for
-   each existing per-skill entry, attach `invocations`, `never_fired`,
-   `last_invoked_at`, `misfire_rate`, `misfire_eligible`, and a
-   `version_drift` flag (AgentMonitor `version` vs the skill's `skills.json`
-   version, when both known). Skills in `rows` but absent from the report's
-   catalog (not dojo-owned) are ignored for dojo-scoped output.
-2. Extend `summary` with runtime rollups: `never_fired`, `invoked`, and
-   `runtime_source` (the origin, for the reader) — but only when enrichment ran.
-3. Guarantee the no-enrichment path returns the original dict unchanged (guard
-   by only adding keys inside the enrichment branch).
+1. Add `enrich_report(report: dict, rows: list[dict]) -> dict` in the module:
+   index `rows` by `name`; for each existing per-skill entry (keyed by `skill`),
+   attach `invocations`, `never_fired`, `last_invoked_at`, `misfire_rate`,
+   `misfire_eligible`, `misfires`. Rows whose `name` is not an existing report
+   entry (non-dojo) are ignored. Skills with no matching row get
+   `invocations: 0, never_fired: None` (unknown — no runtime data), distinct from
+   an explicit `never_fired: True` row.
+2. Add runtime rollups to `summary` only within this function: `never_fired`
+   (count of dojo skills with `never_fired is True`), `invoked` (count with
+   `invocations > 0`), and `runtime_source` (the origin string). Return the same
+   dict object mutated in place.
+3. Do not import or call this from the static path; `skills_health.py` calls it
+   only when runtime flags are set (Task 3). The no-runtime dict is therefore
+   untouched.
 
-**Verification**: `python3 -m pytest tests/test_skills_health.py -q` — existing
-two tests unchanged/green; new test asserts a never-fired dojo skill gains
-`never_fired=True`, a non-dojo skill is excluded, and the no-flags report dict is
-byte-identical to pre-change (golden compare).
+**Verification**: `python3 -m pytest tests/test_skill_health_runtime.py -q -k
+enrich` — asserts a never-fired dojo skill gains `never_fired=True`, the non-dojo
+row (e) is absent from the enriched report, and a dojo skill with no row gets
+`never_fired=None`.
 
-**Done When**: runtime fields attach by name for dojo skills only; the static
-report is provably unchanged when enrichment is off (contract: honest scoping +
-non-breaking).
+**Done When**: runtime fields attach by name to dojo skills only; non-dojo rows
+are ignored (contract clause 1; honest scoping).
 
-**Assumptions Verified**: per-skill entries are keyed by `skill` name and the
-summary is a plain dict (`scripts/skills_health.py` `build_report`); `skills.json`
-entries expose `name` + `version`.
+**Assumptions Verified**: per-skill entries are keyed by `skill` and the summary
+is a plain dict (`scripts/skills_health.py` `build_report`, lines 57-83); report
+skill set equals dojo catalog (`validate_skill_contract.py:390`).
 
-### Task 3: Ranking + rendering (never-fired & volume; misfire experimental)
+### Task 3: Wire runtime into the CLI + ranking/render (misfire experimental)
 
-**Objective**: Rank and render the enriched report by trustworthy signals, with
-misfire shown but not ranked on.
+**Objective**: Add opt-in runtime flags to `skills_health.py`, wire loading +
+enrichment into `main()` with honest failure, and render a ranked runtime
+section.
 
-**Files**: `scripts/skills_health.py`, `tests/test_skills_health.py`.
+**Files**: `scripts/skills_health.py`, `tests/test_skills_health.py`,
+`tests/test_skill_health_runtime.py`.
 
 **Dependencies**: Task 2.
 
 **Implementation Steps**:
-1. Add a runtime section to `format_report` (only when enrichment ran): a
-   "Runtime health" block listing never-fired dojo skills first, then skills
-   ordered by invocation volume, with a rarely-fired band (invocations below a
-   small threshold) called out distinctly from never-fired.
-2. Render misfire per skill as `misfire: X/Y (experimental)` using
-   `misfires`/`misfireEligible`; never use it in the sort key. Show `—` when
-   `misfireEligible == 0`.
-3. Keep the ranking deterministic: ties broken by skill name; identical health
-   input → identical output.
+1. In `skills_health.py`, add flags: `--runtime` (bool), `--health-json <path>`,
+   `--agentmonitor-url <url>` (default `None`). Runtime is active when any of the
+   three is supplied; if only `--runtime` is given, use
+   `http://127.0.0.1:3141/api/v2/analytics/skills/health`. (No silent no-op: a
+   bare `--agentmonitor-url` activates runtime.)
+2. In `main()`, after `build_report`, if runtime is active:
+   `rows = load_health_rows(...)` then `enrich_report(report, rows)`, both inside
+   a `try/except RuntimeError` that prints to stderr and `return 1` **before**
+   any report is printed — a requested-but-failed runtime load yields no partial
+   report (contract clause 4). When inactive, control flow is unchanged.
+3. Add a "Runtime health" section to `format_report`, rendered only when
+   `summary` carries `runtime_source`. Ranking within the section:
+   **never-fired dojo skills first** (alphabetical), then a **rarely-fired band**
+   (`0 < invocations < 3`, alphabetical), then the rest by **invocations
+   ascending** (under-used surfaced first), ties broken by name. Render misfire
+   per skill as `misfire N/M (experimental)` from `misfires`/`misfire_eligible`,
+   or `misfire —` when `misfire_eligible == 0`; misfire is never in the sort key.
+   The `--json` branch emits the enriched dict unchanged.
 
-**Verification**: `python3 -m pytest tests/test_skills_health.py -q -k
-"rank or render"` — asserts never-fired skills sort first, misfire value does
-not move rank (swap misfire in fixture → same order), and two runs on the same
-fixture are byte-identical.
+**Verification**:
+- `python3 -m pytest tests/test_skills_health.py -q` — existing two tests green;
+  a new `test_default_run_is_byte_identical` golden-compares the no-flags
+  `format_report` and `--json` dict against a captured baseline.
+- `python3 -m pytest tests/test_skill_health_runtime.py -q -k "rank or render or
+  main"` — `test_never_fired_sorts_first`, `test_misfire_does_not_affect_rank`
+  (swap misfire values in the fixture → identical order),
+  `test_json_includes_runtime_fields` (`--json --health-json fixture` → enriched
+  keys present), `test_runtime_load_failure_exits_nonzero_no_report`.
 
-**Done When**: report ranks by never-fired + volume, misfire is visibly
-experimental and rank-inert, output is reproducible (contract clauses 2, 5;
-success criteria on ranking + reproducibility).
+**Done When**: runtime is opt-in and non-breaking; report ranks by never-fired +
+volume; misfire is visible, labeled experimental, and rank-inert; failed runtime
+load exits non-zero with no report; same input → identical output (contract
+clauses 2, 4, 5).
 
-**Assumptions Verified**: `format_report` builds a line list and returns
-`"\n".join(...)` (`scripts/skills_health.py`), so a bounded runtime section is
-additive.
+**Assumptions Verified**: `main()` already guards `build_report` with
+`try/except → return 1` (`scripts/skills_health.py:133-137`), so the runtime
+guard mirrors an existing pattern; `format_report` returns `"\n".join(lines)`,
+so an additive section is safe.
 
 ### Task 4: Findings output for never-fired dojo skills
 
 **Objective**: Emit paste-ready, BACKLOG-shaped findings for never-fired dojo
-skills, keeping a maintainer in the loop.
+skills; keep a maintainer in the loop.
 
-**Files**: `scripts/skills_health.py`, `tests/test_skills_health.py`.
+**Files**: `scripts/skills_health.py`, `scripts/skill_health_runtime.py`,
+`tests/test_skill_health_runtime.py`.
 
 **Dependencies**: Task 3.
 
 **Implementation Steps**:
-1. Add a `--findings` mode that prints a paste-ready `BACKLOG.md`-shaped block
-   (What / Why it matters / Sketch + `noted` status, per dojo's convention) for
-   each never-fired dojo skill — proposed, not written to any file.
-2. Include the skill's last-invoked (or "never") and the report's caveat that
-   never-fired is relative to the queried range.
-3. Do not auto-append to `BACKLOG.md` and do not invoke `skill-evals`; the block
-   is for a maintainer to commit or act on.
+1. Add `render_findings(report) -> str` in the module: for each dojo skill with
+   `never_fired is True`, a `BACKLOG.md`-shaped block — `#### <skill> never
+   fires` + `noted` status + **What** / **Why it matters** / **Sketch** bullets
+   (dojo convention). Include a fixed caveat line that never-fired is relative to
+   the queried range (static disclaimer string; not read from `coverage`).
+2. Add a `--findings` flag to `skills_health.py` that prints the block to stdout
+   instead of the report; requires runtime to be active. It writes nothing to any
+   file and does not invoke `skill-evals`.
+3. Findings order is alphabetical by skill for determinism.
 
-**Verification**: `python3 -m pytest tests/test_skills_health.py -q -k
-"findings"` — a never-fired dojo skill in the fixture yields a findings block
-matching dojo's BACKLOG item shape; no file is written (assert `BACKLOG.md`
-untouched).
+**Verification**: `python3 -m pytest tests/test_skill_health_runtime.py -q -k
+findings` — `test_findings_emits_backlog_block_for_never_fired` (block present
+with What/Why/Sketch for the fixture's never-fired skill) and
+`test_findings_writes_no_file` (assert `docs/project/BACKLOG.md` mtime/content
+unchanged across the run).
 
-**Done When**: findings are emitted for never-fired dojo skills in
-BACKLOG-ready shape, nothing is auto-written (contract clause 3; scope: no
-auto-filing).
+**Done When**: findings emit for never-fired dojo skills in BACKLOG-ready shape;
+nothing is auto-written (contract clause 3; scope: no auto-filing).
 
-**Assumptions Verified**: dojo BACKLOG convention (What / Why it matters /
-Sketch + `noted`/`in-progress`/`dropped`) from `docs/project/BACKLOG.md` header.
+**Assumptions Verified**: dojo BACKLOG item shape (What / Why it matters / Sketch
++ `noted`/`in-progress`/`dropped`) from `docs/project/BACKLOG.md` header.
 
 ### Task 5: Docs + lifecycle
 
 **Objective**: Document the runtime dimension and update lifecycle frontmatter.
 
-**Files**: `skills/skill-evals/SKILL.md` (or the script's `--help`/usage docstring
-and any `docs/system` reference that catalogs skill-management commands),
+**Files**: `docs/system/OPERATIONS.md`,
 `docs/specs/2026-07-09-skill-health-consumer-spec.md`,
 `docs/plans/2026-07-09-skill-health-consumer-plan.md`.
 
 **Dependencies**: Task 4.
 
 **Implementation Steps**:
-1. Document the new flags (`--agentmonitor-url`, `--health-json`, `--runtime`,
-   `--findings`) and the AgentMonitor dependency in the script usage docstring
-   and wherever skill-management commands are catalogued.
-2. Note the AgentMonitor endpoint + default URL as the runtime data source and
-   that it is optional/opt-in.
-3. Flip spec + plan `status:` to `complete` when landed.
+1. Extend the existing "Skill health report" section
+   (`docs/system/OPERATIONS.md:136`) with the new flags (`--runtime`,
+   `--health-json`, `--agentmonitor-url`, `--findings`), the AgentMonitor
+   endpoint + default URL as the optional runtime source, and a note that the
+   default run is unchanged and network-free.
+2. Flip spec + plan `status:` to `complete` when landed.
 
 **Verification**: `python3 scripts/skills_health.py --help` lists the new flags;
-`rg -n "agentmonitor|skills/health" scripts/skills_health.py <doc>` returns hits.
+`rg -n "agentmonitor|--runtime|skills/health" docs/system/OPERATIONS.md` returns
+hits.
 
 **Done When**: docs match shipped behavior; lifecycle frontmatter current.
 
 ## Risks And Mitigations
 
-- **Regressing the static report** → runtime enrichment is flag-gated and the
-  no-flags dict is golden-compared in a test; the existing two tests are the
-  guard.
-- **Network coupling in a previously-offline tool** → default run never touches
-  the network; `--runtime`/`--health-json` are explicit opt-in, and unreachable
-  AgentMonitor is a handled error, not a partial report.
-- **Misfire creeping into ranking** → a test swaps the fixture's misfire values
-  and asserts identical ordering; misfire is render-only.
-- **Name-join drift** (AgentMonitor names vs `skills.json`) → non-dojo names are
-  ignored for findings; version disagreement is surfaced as `version_drift`, not
-  silently reconciled.
+- **Regressing the static report** → runtime logic is in a separate module the
+  static path never calls unless flagged; `test_default_run_is_byte_identical`
+  golden-compares both text and `--json` output; the existing two tests remain.
+- **Network coupling in a previously-offline tool** → the module import does no
+  I/O; only explicit `--runtime`/`--health-json`/`--agentmonitor-url` triggers a
+  fetch, and an unreachable AgentMonitor is a handled `RuntimeError` → exit 1
+  with no report.
+- **Misfire creeping into ranking** → `test_misfire_does_not_affect_rank` swaps
+  fixture misfire values and asserts identical ordering; misfire is render-only.
 - **Non-determinism** → no timestamps/host data in the report body; same
-  `--health-json` input asserted byte-identical across runs.
+  `--health-json` input asserted byte-identical.
+- **Name-join drift** (AgentMonitor names vs dojo skill dirs) → non-dojo rows are
+  ignored; this is the intended scoping, tested via fixture row (e).
 
 ## Verification Matrix
 
 | Requirement | Proof command | Expected signal |
 | --- | --- | --- |
-| Load from file/URL, honest failure (clause 4) | `python3 -m pytest tests/test_skills_health.py -q -k load_health` | file parse ok; URL-error and malformed-shape raise RuntimeError |
-| Dojo-scoped join, static path unchanged (clause 1) | `python3 -m pytest tests/test_skills_health.py -q` | existing 2 tests green; non-dojo skill excluded; no-flags dict byte-identical |
-| Rank by never-fired + volume, misfire rank-inert (clause 2, 5) | `python3 -m pytest tests/test_skills_health.py -q -k "rank or render"` | never-fired first; misfire swap → same order; runs byte-identical |
-| Findings for never-fired, no auto-write (clause 3) | `python3 -m pytest tests/test_skills_health.py -q -k findings` | BACKLOG-shaped block emitted; `BACKLOG.md` untouched |
-| Live smoke (not a gate) | `python3 scripts/skills_health.py --runtime --format-… ` against local AgentMonitor | report over real data or clean failure if down |
+| Load from file/URL, honest failure (clause 4) | `python3 -m pytest tests/test_skill_health_runtime.py -q -k load_health_rows` | file parse ok; URL-error and malformed-shape raise RuntimeError |
+| Dojo-scoped enrichment, non-dojo ignored (clause 1) | `python3 -m pytest tests/test_skill_health_runtime.py -q -k enrich` | never-fired dojo skill enriched; non-dojo row absent; unmatched dojo skill `never_fired=None` |
+| Static path unchanged (non-breaking) | `python3 -m pytest tests/test_skills_health.py -q` | existing 2 tests green; `test_default_run_is_byte_identical` passes (text + `--json`) |
+| Rank by never-fired + volume, misfire rank-inert, honest failure (clauses 2,4,5) | `python3 -m pytest tests/test_skill_health_runtime.py -q -k "rank or render or main"` | never-fired first; misfire swap → same order; `--json` carries runtime keys; failed load → exit 1, no report |
+| Findings for never-fired, no auto-write (clause 3) | `python3 -m pytest tests/test_skill_health_runtime.py -q -k findings` | BACKLOG-shaped block emitted; `BACKLOG.md` untouched |
+| Live smoke (not a gate) | `python3 scripts/skills_health.py --runtime` against local AgentMonitor | report with runtime section, or clean exit-1 failure if down |
 | Repo gate | `python3 -m pytest tests/ -q` | all pass (new tests discovered under `tests/`) |
 
 ## Handoff
 
 Execute tasks 1 → 5 in a dojo session; each is independently verifiable and the
-existing `tests/test_skills_health.py` guards the static path throughout. After
-Task 5, the feedback loop is closed end to end: AgentMonitor measures, this
-consumer surfaces never-fired/heavy-use signal and proposes BACKLOG findings a
-maintainer acts on. Misfire-signal widening (AgentMonitor) remains the natural
-follow-up before it becomes a ranking input.
+existing `tests/test_skills_health.py` (plus the new byte-identical guard) protects
+the static path throughout. After Task 5, the feedback loop is closed end to end:
+AgentMonitor measures, this consumer surfaces never-fired/heavy-use signal and
+proposes BACKLOG findings a maintainer acts on. Misfire-signal widening
+(AgentMonitor) remains the natural follow-up before misfire becomes a ranking
+input; version-drift reporting is a deferred enhancement needing a dojo-side
+version source.

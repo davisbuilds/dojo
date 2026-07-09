@@ -47,17 +47,17 @@ signal and records findings where a maintainer will see them:
 
 Verified by:
 
-- `python3 skills/skill-evals/scripts/<consumer>.py --health-json
-  <fixture.json> --format markdown` produces a report whose top-ranked entries
-  are never-fired dojo skills, with misfire shown but not driving rank — asserted
-  against a committed fixture, no network.
-- `python3 skills/skill-evals/scripts/<consumer>.py --health-json
-  <malformed.json>` exits non-zero with a diagnostic and writes no report.
+- The consumer, run against a committed health fixture, produces a report whose
+  top-ranked entries are never-fired dojo skills, with misfire shown but not
+  driving rank — asserted in tests, no network.
+- Run against a malformed health payload, it exits non-zero with a diagnostic and
+  writes no report.
 - A test proves a never-fired dojo skill in the fixture yields a BACKLOG-shaped
-  finding, and that a skill absent from `skills.json` (installed but not
-  dojo-owned) is excluded from dojo-scoped findings.
-- Against a live local AgentMonitor, `<consumer> --format markdown` returns a
-  report over real data (smoke check; not a CI gate).
+  finding, and that a skill present in the health data but not in dojo's own
+  catalog (installed elsewhere, renamed, or a plugin) is excluded from
+  dojo-scoped findings.
+- Against a live local AgentMonitor, the consumer returns a report over real data
+  (smoke check; not a CI gate).
 
 ## Success Criteria
 
@@ -113,8 +113,9 @@ Mechanical acceptance for this spec is the verification commands above
   shipped envelope `{ data: SkillHealthRow[], coverage }` where each row carries
   `name, version, versionApproximate, invocations, lastInvokedAt, neverFired,
   misfireEligible, misfires, misfireRate`.
-- dojo's generated `skills.json` is the catalog of dojo-owned skills, used to
-  scope findings to skills dojo actually maintains.
+- dojo's own skill set (the skills under `skills/`, as reflected in the catalog)
+  is the scope for findings; skills present in the health data but not maintained
+  by dojo must not produce dojo-scoped findings.
 - Consumer runs locally against `127.0.0.1:3141` by default; AgentMonitor may not
   be running, which is an expected, handled condition — not an error to hide.
 - Deterministic and reproducible per dojo's skill-evals conventions: same health
