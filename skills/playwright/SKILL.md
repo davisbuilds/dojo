@@ -27,7 +27,7 @@ node --version
 npm --version
 
 # If missing, install Node.js/npm, then:
-npm install -g @playwright/mcp@latest
+npm install -g @playwright/cli@latest
 playwright-cli --help
 ```
 
@@ -58,7 +58,7 @@ Use the wrapper script:
 If the user prefers a global install, this is also valid:
 
 ```bash
-npm install -g @playwright/mcp@latest
+npm install -g @playwright/cli@latest
 playwright-cli --help
 ```
 
@@ -123,7 +123,7 @@ Refs can go stale. When a command fails due to a missing ref, snapshot again.
 
 ## Wrapper script
 
-The wrapper script uses `npx --package @playwright/mcp playwright-cli` so the CLI can run without a global install:
+The wrapper script uses `npx --package @playwright/cli playwright-cli` so the CLI can run without a global install:
 
 ```bash
 "$PWCLI" --help
