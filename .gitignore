@@ -69,3 +69,6 @@ anthropic/
 # skill-standardizer backup snapshots
 .skill-standardizer/backups/
 skills-lock.json
+
+# Playwright skill runtime snapshot dumps (per-run, not part of the skill)
+skills/playwright/.playwright-cli/
