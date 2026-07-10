@@ -17,6 +17,42 @@ This file stays future-only.
 
 ## Open
 
+#### skills-health: runtime join is last-wins, undercounts a version-split skill
+Status: noted
+- **What**: `skill_health_runtime.enrich_report` indexes health rows as
+  `rows_by_name = {row["name"]: row}`, so if AgentMonitor returns more than one
+  row for a skill (same name, different `version` — the phase-1 `(name, version)`
+  keying), the join silently keeps only the last row. The report then shows one
+  version's `invocations`/`misfire` numbers, not the skill's total.
+- **Why it matters**: Invocation volume is a ranking input; undercounting a
+  version-split skill would mis-rank it (e.g. a heavily-used skill that bumped
+  versions mid-window could look under-used). Not observable today — the live
+  payload has 79 rows / 79 unique names, zero splits — but it becomes wrong as
+  version churn increases.
+- **Sketch**: When multiple rows share a name, aggregate before ranking — sum
+  `invocations`/`misfires`/`misfireEligible`, `neverFired` only if all rows are
+  never-fired, and surface the newest/installed version for display. Add a
+  fixture with two rows for one dojo skill to lock the behavior.
+
+#### skills-health: 13 canonical dojo skills aren't installed globally, so they're unmeasurable
+Status: noted
+- **What**: 13 of 55 canonical `skills/` are installed in none of the global
+  catalog dirs AgentMonitor scans (`~/.claude/skills`, `~/.codex/skills`,
+  `~/.agents/skills`) and have never fired, so AgentMonitor emits no health row
+  and they land in the report's collapsed "no data" bucket
+  (agent-native-architecture, algorithmic-art, autonomous-engineering, caveman,
+  compound-docs, design-md, fetchmd, loop-design, markdown-converter,
+  self-improve, template, theme-factory, vercel-react-native-skills).
+- **Why it matters**: A skill that isn't installed anywhere the agent can trigger
+  it can't generate trigger health, so the loop can't tell whether its
+  description works. A prior skill-standardizer run likely used `--only-existing`,
+  which skips skills not already installed globally, so newly-added canonical
+  skills never got pushed out.
+- **Sketch**: Run `skill-standardizer` sync without `--only-existing` to install
+  the missing canonical skills into the primary global root, then re-check the
+  health report. Decide whether `template` (a scaffold, not a real skill) should
+  be excluded from expected-coverage counts.
+
 #### write-plan: `Assumptions Verified` must cite the file being cut, not a neighbor
 Status: noted
 - **What**: A plan's per-task `Assumptions Verified` line can cite a file:line
