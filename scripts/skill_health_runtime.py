@@ -62,3 +62,45 @@ def load_health_rows(*, url: str | None, path: str | None) -> list[dict]:
                 f"(each row needs {', '.join(_REQUIRED_ROW_KEYS)}): {row!r}"
             )
     return rows
+
+
+def enrich_report(report: dict, rows: list[dict], *, source: str) -> dict:
+    """Fold runtime health into the per-skill report, scoped to dojo skills.
+
+    Attaches runtime fields to each existing report entry (keyed by `skill`).
+    Health rows whose name is not already a dojo report entry are non-dojo and
+    ignored. Dojo skills with no matching row are marked unknown
+    (`never_fired=None`), distinct from an explicit `never_fired=False`.
+    Mutates and returns `report`.
+    """
+    rows_by_name = {row["name"]: row for row in rows}
+
+    for entry in report["skills"]:
+        row = rows_by_name.get(entry["skill"])
+        if row is None:
+            entry.update(
+                invocations=0,
+                never_fired=None,
+                last_invoked_at=None,
+                misfire_rate=None,
+                misfire_eligible=0,
+                misfires=None,
+            )
+            continue
+        entry.update(
+            invocations=row["invocations"],
+            never_fired=row["neverFired"],
+            last_invoked_at=row.get("lastInvokedAt"),
+            misfire_rate=row.get("misfireRate"),
+            misfire_eligible=row.get("misfireEligible", 0),
+            misfires=row.get("misfires"),
+        )
+
+    report["summary"]["runtime_source"] = source
+    report["summary"]["never_fired"] = sum(
+        1 for e in report["skills"] if e.get("never_fired") is True
+    )
+    report["summary"]["invoked"] = sum(
+        1 for e in report["skills"] if e.get("invocations", 0) > 0
+    )
+    return report
