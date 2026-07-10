@@ -25,6 +25,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import skill_health_runtime as runtime  # noqa: E402  (I/O-free import)
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = REPO_ROOT / "skills" / "skill-evals" / "scripts" / "validate_skill_contract.py"
 TRIGGERS = REPO_ROOT / "skills" / "skill-evals" / "scripts" / "run_trigger_evals.py"
@@ -38,6 +41,16 @@ def _run_json(args: list[str]) -> dict:
     if not out:
         raise RuntimeError(f"no JSON from {' '.join(args)}\n{proc.stderr}")
     return json.loads(out)
+
+
+def _dojo_skill_names(skills_root: Path) -> list[str]:
+    """Dojo catalog skill names: every `skills/<name>/SKILL.md` directory.
+
+    Matches how the contract validator scopes the catalog (globs
+    `skills_root/*/SKILL.md`), so findings scope stays identical to the full
+    report without running the eval subprocesses.
+    """
+    return sorted(p.parent.name for p in skills_root.glob("*/SKILL.md"))
 
 
 def build_report(skills_root: Path) -> dict:
@@ -114,6 +127,12 @@ def format_report(report: dict) -> str:
     else:
         lines.append("")
         lines.append("All skills pass the contract; no trigger routing issues.")
+
+    # Runtime section is strictly additive: rendered only when the report was
+    # enriched with runtime health (i.e. runtime flags were passed).
+    if report["summary"].get("runtime_source"):
+        lines.extend(runtime.render_runtime_section(report))
+
     return "\n".join(lines)
 
 
@@ -121,6 +140,22 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--skills-root", default="skills", help="Path to skills directory (default: skills)")
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
+    parser.add_argument(
+        "--runtime", action="store_true",
+        help="Enrich the report with AgentMonitor trigger health (default endpoint)",
+    )
+    parser.add_argument(
+        "--agentmonitor-url", default=None,
+        help="AgentMonitor skills/health endpoint (implies --runtime)",
+    )
+    parser.add_argument(
+        "--health-json", default=None,
+        help="Read health data from a saved JSON file instead of the endpoint (implies --runtime)",
+    )
+    parser.add_argument(
+        "--findings", action="store_true",
+        help="Print paste-ready BACKLOG findings for never-fired skills (requires runtime; writes nothing)",
+    )
     args = parser.parse_args()
 
     skills_root = Path(args.skills_root)
@@ -130,11 +165,47 @@ def main() -> int:
         print(f"Skills root not found: {skills_root}", file=sys.stderr)
         return 1
 
+    # Any runtime flag activates the runtime path.
+    runtime_active = (
+        args.runtime or args.agentmonitor_url is not None
+        or args.health_json is not None or args.findings
+    )
+    url = None if args.health_json else (args.agentmonitor_url or runtime.DEFAULT_URL)
+    source = args.health_json or url
+
+    # Findings mode is deliberately decoupled from the static report: it needs
+    # only the dojo catalog (for scoping) and the health rows, so it never runs
+    # the contract/trigger eval subprocesses. A failure there must not suppress
+    # a valid findings run, and findings must not invoke skill-evals (per spec).
+    if args.findings:
+        try:
+            rows = runtime.load_health_rows(url=url, path=args.health_json)
+        except RuntimeError as exc:
+            print(f"Failed to load runtime skill health: {exc}", file=sys.stderr)
+            return 1
+        report = {
+            "summary": {},
+            "skills": [{"skill": n} for n in _dojo_skill_names(skills_root)],
+        }
+        runtime.enrich_report(report, rows, source=source)
+        print(runtime.render_findings(report))
+        return 0
+
     try:
         report = build_report(skills_root)
     except (RuntimeError, json.JSONDecodeError) as exc:
         print(f"Failed to build health report: {exc}", file=sys.stderr)
         return 1
+
+    # Load + enrich happen before any report is printed, so a requested-but-failed
+    # runtime load yields no partial report.
+    if runtime_active:
+        try:
+            rows = runtime.load_health_rows(url=url, path=args.health_json)
+            runtime.enrich_report(report, rows, source=source)
+        except RuntimeError as exc:
+            print(f"Failed to load runtime skill health: {exc}", file=sys.stderr)
+            return 1
 
     print(json.dumps(report, indent=2) if args.json else format_report(report))
     return 0

@@ -69,3 +69,8 @@ anthropic/
 # skill-standardizer backup snapshots
 .skill-standardizer/backups/
 skills-lock.json
+
+# Playwright CLI runtime snapshot dumps (written under the CWD wherever the CLI
+# runs — repo root, the skill dir, or output/playwright/<label>/ — never part of
+# a skill). Repo-wide so no run leaves stray snapshots tracked.
+**/.playwright-cli/

@@ -54,14 +54,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash hooks/stop-hook-git-check.sh"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
             "command": "bash hooks/stop-hook-skill-structure.sh"
           }
         ]
