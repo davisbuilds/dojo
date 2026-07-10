@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import sys
 from pathlib import Path
 
 
@@ -109,3 +110,22 @@ def test_default_run_is_byte_identical():
     assert module.format_report(_STATIC_REPORT) == _STATIC_GOLDEN
     # A report carrying no runtime_source must produce no runtime section.
     assert "Runtime health" not in module.format_report(_STATIC_REPORT)
+
+
+FIXTURE = REPO_ROOT / "tests" / "fixtures" / "sample-skill-health.json"
+
+
+def test_findings_mode_does_not_run_static_build_report(monkeypatch, capsys):
+    """Findings must be decoupled from the eval subprocesses: a broken
+    build_report must not suppress a valid findings run (PR #33 P2)."""
+    module = load_module()
+
+    def _boom(_skills_root):
+        raise RuntimeError("static eval pipeline is broken")
+
+    monkeypatch.setattr(module, "build_report", _boom)
+    monkeypatch.setattr(sys, "argv", ["skills_health", "--findings", "--health-json", str(FIXTURE)])
+
+    assert module.main() == 0
+    out = capsys.readouterr().out
+    assert "#### find-skills" in out  # fixture's never-fired dojo skill
