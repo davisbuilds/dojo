@@ -25,6 +25,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import skill_health_runtime as runtime  # noqa: E402  (I/O-free import)
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = REPO_ROOT / "skills" / "skill-evals" / "scripts" / "validate_skill_contract.py"
 TRIGGERS = REPO_ROOT / "skills" / "skill-evals" / "scripts" / "run_trigger_evals.py"
@@ -114,6 +117,12 @@ def format_report(report: dict) -> str:
     else:
         lines.append("")
         lines.append("All skills pass the contract; no trigger routing issues.")
+
+    # Runtime section is strictly additive: rendered only when the report was
+    # enriched with runtime health (i.e. runtime flags were passed).
+    if report["summary"].get("runtime_source"):
+        lines.extend(runtime.render_runtime_section(report))
+
     return "\n".join(lines)
 
 
@@ -121,6 +130,18 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--skills-root", default="skills", help="Path to skills directory (default: skills)")
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
+    parser.add_argument(
+        "--runtime", action="store_true",
+        help="Enrich the report with AgentMonitor trigger health (default endpoint)",
+    )
+    parser.add_argument(
+        "--agentmonitor-url", default=None,
+        help="AgentMonitor skills/health endpoint (implies --runtime)",
+    )
+    parser.add_argument(
+        "--health-json", default=None,
+        help="Read health data from a saved JSON file instead of the endpoint (implies --runtime)",
+    )
     args = parser.parse_args()
 
     skills_root = Path(args.skills_root)
@@ -135,6 +156,20 @@ def main() -> int:
     except (RuntimeError, json.JSONDecodeError) as exc:
         print(f"Failed to build health report: {exc}", file=sys.stderr)
         return 1
+
+    # Runtime is active if any runtime flag is supplied. Load + enrich happen
+    # before any report is printed so a requested-but-failed runtime load yields
+    # no partial report.
+    runtime_active = args.runtime or args.agentmonitor_url is not None or args.health_json is not None
+    if runtime_active:
+        url = None if args.health_json else (args.agentmonitor_url or runtime.DEFAULT_URL)
+        source = args.health_json or url
+        try:
+            rows = runtime.load_health_rows(url=url, path=args.health_json)
+            runtime.enrich_report(report, rows, source=source)
+        except RuntimeError as exc:
+            print(f"Failed to load runtime skill health: {exc}", file=sys.stderr)
+            return 1
 
     print(json.dumps(report, indent=2) if args.json else format_report(report))
     return 0

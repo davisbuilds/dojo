@@ -74,3 +74,38 @@ def test_format_report_renders_summary(tmp_path: Path):
     assert "Skill Health Report" in text
     assert "catalog: 1 skills" in text
     assert "declare triggers" in text
+
+
+# Frozen output of the static (no-runtime) format_report for a fixed report.
+# The phase-2 runtime section must be strictly additive: a report without a
+# `runtime_source` in its summary renders byte-identically to this baseline.
+_STATIC_GOLDEN = """Skill Health Report
+  catalog: 2 skills
+  contract: pass=1 warn=1 fail=0
+  triggers: 1/2 skills declare triggers; assertions=2 passed=1 failed=1
+
+Needs attention:
+  warn  alpha                            contract=warn  warn:line-count  trigger-issues:bravo"""
+
+_STATIC_REPORT = {
+    "summary": {
+        "total": 2, "contract_pass": 1, "contract_warn": 1, "contract_fail": 0,
+        "skills_declaring_triggers": 1, "trigger_assertions": 2,
+        "trigger_passed": 1, "trigger_failed": 1,
+    },
+    "skills": [
+        {"skill": "alpha", "skill_type": "workflow", "contract_status": "warn",
+         "warnings": ["line-count"], "required_failures": [], "line_count": 10,
+         "triggers_declared": 2, "triggers_failed": ["bravo"]},
+        {"skill": "bravo", "skill_type": "workflow", "contract_status": "pass",
+         "warnings": [], "required_failures": [], "line_count": 8,
+         "triggers_declared": 0, "triggers_failed": []},
+    ],
+}
+
+
+def test_default_run_is_byte_identical():
+    module = load_module()
+    assert module.format_report(_STATIC_REPORT) == _STATIC_GOLDEN
+    # A report carrying no runtime_source must produce no runtime section.
+    assert "Runtime health" not in module.format_report(_STATIC_REPORT)

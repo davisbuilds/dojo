@@ -104,3 +104,74 @@ def enrich_report(report: dict, rows: list[dict], *, source: str) -> dict:
         1 for e in report["skills"] if e.get("invocations", 0) > 0
     )
     return report
+
+
+def _rank_key(entry: dict) -> tuple:
+    """Ordering key for the runtime section. Misfire is deliberately absent.
+
+    Groups, in order: never-fired dojo skills (0), a rarely-fired band
+    0<inv<3 (1), the measured rest by invocations ascending (2), and skills
+    with no runtime data (3). Ties within a group break by name.
+    """
+    never_fired = entry.get("never_fired")
+    invocations = entry.get("invocations", 0)
+    if never_fired is True:
+        group = 0
+    elif never_fired is None:
+        group = 3
+    elif 0 < invocations < 3:
+        group = 1
+    else:
+        group = 2
+    # Only group 2 sorts by volume; the others sort by name alone.
+    volume = invocations if group == 2 else 0
+    return (group, volume, entry["skill"])
+
+
+def rank_runtime_skills(report: dict) -> list[dict]:
+    """Return the report's dojo skills in runtime-actionability order."""
+    return sorted(report["skills"], key=_rank_key)
+
+
+def _format_misfire(entry: dict) -> str:
+    eligible = entry.get("misfire_eligible") or 0
+    if eligible == 0:
+        return "misfire —"
+    return f"misfire {entry.get('misfires', 0)}/{eligible} (experimental)"
+
+
+def _format_status(entry: dict) -> str:
+    if entry.get("never_fired") is True:
+        return "never-fired"
+    if entry.get("never_fired") is None:
+        return "no data"
+    return f"{entry.get('invocations', 0)}x"
+
+
+def render_runtime_section(report: dict) -> list[str]:
+    """Render the ranked runtime-health section as a list of lines.
+
+    Skills with runtime data are listed individually in actionability order;
+    skills with no matching health row carry no signal and are collapsed into a
+    single count line (the full set is still in the `--json` output).
+    """
+    summary = report["summary"]
+    ranked = rank_runtime_skills(report)
+    measured = [e for e in ranked if e.get("never_fired") is not None]
+    no_data = [e for e in ranked if e.get("never_fired") is None]
+
+    lines = [
+        "",
+        f"Runtime health (source: {summary.get('runtime_source')}):",
+        f"  {summary.get('invoked', 0)} invoked, "
+        f"{summary.get('never_fired', 0)} never-fired",
+    ]
+    for entry in measured:
+        lines.append(
+            f"  {_format_status(entry):<12} {entry['skill']:<32} {_format_misfire(entry)}"
+        )
+    if no_data:
+        lines.append(
+            f"  no data: {len(no_data)} dojo skills not present in the health payload"
+        )
+    return lines

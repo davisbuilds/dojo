@@ -98,3 +98,78 @@ def test_enrich_adds_summary_rollups():
     assert s["runtime_source"] == "http://example/health"
     assert s["never_fired"] == 1  # only find-skills
     assert s["invoked"] == 2  # write-spec + brainstorming
+
+
+# --- Task 3: ranking + render -------------------------------------------------
+
+def _enriched(*names):
+    report = _report(*names)
+    shr.enrich_report(report, _fixture_rows(), source="fixture")
+    return report
+
+
+def test_never_fired_sorts_first():
+    report = _enriched("write-spec", "brainstorming", "find-skills", "write-plan")
+    order = [e["skill"] for e in shr.rank_runtime_skills(report)]
+    # never-fired first, then rarely-fired band, then rest by invocations asc.
+    assert order[0] == "find-skills"
+    assert order.index("brainstorming") < order.index("write-plan")
+    assert order.index("write-plan") < order.index("write-spec")
+
+
+def test_misfire_does_not_affect_rank():
+    report = _enriched("write-spec", "write-plan", "brainstorming", "find-skills")
+    before = [e["skill"] for e in shr.rank_runtime_skills(report)]
+    # Perturb misfire fields only; ranking must not move.
+    for e in report["skills"]:
+        e["misfires"] = 999 if e.get("misfires") is not None else e.get("misfires")
+        e["misfire_rate"] = 0.99 if e.get("misfire_rate") is not None else e.get("misfire_rate")
+    after = [e["skill"] for e in shr.rank_runtime_skills(report)]
+    assert before == after
+
+
+def test_render_marks_misfire_experimental_and_never_fired():
+    report = _enriched("find-skills", "write-plan", "write-spec")
+    lines = shr.render_runtime_section(report)
+    text = "\n".join(lines)
+    assert "Runtime health" in text
+    assert "find-skills" in text and "never" in text.lower()
+    # write-plan has misfire data -> experimental label with N/M denominator.
+    assert "2/10" in text and "experimental" in text
+
+
+def test_unknown_skill_renders_no_data_and_sorts_last():
+    report = _enriched("write-spec", "audit-skill", "find-skills")
+    order = [e["skill"] for e in shr.rank_runtime_skills(report)]
+    assert order[-1] == "audit-skill"  # no runtime data -> last
+    assert "no data" in "\n".join(shr.render_runtime_section(report))
+
+
+# --- Task 3: CLI main() wiring (subprocess) -----------------------------------
+
+import subprocess  # noqa: E402
+
+SKILLS_HEALTH = REPO_ROOT / "scripts" / "skills_health.py"
+
+
+def test_json_includes_runtime_fields():
+    proc = subprocess.run(
+        [sys.executable, str(SKILLS_HEALTH), "--json", "--health-json", str(FIXTURE)],
+        capture_output=True, text=True,
+    )
+    assert proc.returncode == 0, proc.stderr
+    payload = json.loads(proc.stdout)
+    assert payload["summary"]["runtime_source"].endswith("sample-skill-health.json")
+    by_name = {s["skill"]: s for s in payload["skills"]}
+    assert by_name["write-spec"]["invocations"] == 125
+    assert by_name["find-skills"]["never_fired"] is True
+
+
+def test_runtime_load_failure_exits_nonzero_no_report():
+    proc = subprocess.run(
+        [sys.executable, str(SKILLS_HEALTH), "--health-json", "/no/such/health.json"],
+        capture_output=True, text=True,
+    )
+    assert proc.returncode == 1
+    assert proc.stdout.strip() == ""  # no partial report
+    assert "health" in proc.stderr.lower()
