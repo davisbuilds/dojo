@@ -142,6 +142,27 @@ python scripts/skills_health.py         # human-readable
 python scripts/skills_health.py --json  # machine-readable
 ```
 
+The default run is network-free and unchanged. Opt-in runtime flags enrich the
+report with per-skill trigger health from a running AgentMonitor instance
+(the sibling local observability console) via `GET /api/v2/analytics/skills/health` —
+invocation counts, never-fired status, and an experimental misfire rate:
+
+```bash
+python scripts/skills_health.py --runtime                 # fetch localhost:3141 (default endpoint)
+python scripts/skills_health.py --agentmonitor-url URL    # custom endpoint (implies --runtime)
+python scripts/skills_health.py --health-json FILE        # offline: read a saved health payload
+python scripts/skills_health.py --findings --runtime      # paste-ready BACKLOG blocks for never-fired skills
+```
+
+Any runtime flag activates the runtime path; the default endpoint is
+`http://127.0.0.1:3141/api/v2/analytics/skills/health`. The runtime section
+ranks by the trustworthy signals — never-fired first, then a rarely-fired band,
+then invocation volume ascending — while misfire is shown labeled experimental
+and never drives rank. If AgentMonitor is unreachable or returns an unexpected
+shape, the tool exits non-zero with a diagnostic and prints no partial report.
+`--findings` only proposes maintainer-reviewable blocks; it writes nothing and
+never invokes `skill-evals`.
+
 ### Behavioral trigger evals (opt-in, never in CI)
 
 Asks a real local agent which skill it would pick for each declared trigger, then checks against the owner. Requires `DOJO_BEHAVIORAL_EVALS=1` and a local agent command (`DOJO_BEHAVIORAL_AGENT`, default `claude -p`; reads the prompt on stdin). Non-deterministic and may cost tokens, so it is gated off by default and not wired into CI:

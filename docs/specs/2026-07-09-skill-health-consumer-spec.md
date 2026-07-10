@@ -2,7 +2,7 @@
 date: 2026-07-09
 topic: skill-health-consumer
 stage: spec
-status: draft
+status: complete
 source: conversation
 ---
 
