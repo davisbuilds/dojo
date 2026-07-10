@@ -1,0 +1,64 @@
+{
+  "data": [
+    {
+      "name": "find-skills",
+      "version": "1.0.0",
+      "versionApproximate": false,
+      "invocations": 0,
+      "lastInvokedAt": null,
+      "neverFired": true,
+      "misfireEligible": 0,
+      "misfires": null,
+      "misfireRate": null
+    },
+    {
+      "name": "write-spec",
+      "version": "1.2.0",
+      "versionApproximate": false,
+      "invocations": 125,
+      "lastInvokedAt": "2026-07-06T18:22:00Z",
+      "neverFired": false,
+      "misfireEligible": 120,
+      "misfires": 0,
+      "misfireRate": 0
+    },
+    {
+      "name": "write-plan",
+      "version": "1.1.0",
+      "versionApproximate": false,
+      "invocations": 40,
+      "lastInvokedAt": "2026-07-05T11:04:00Z",
+      "neverFired": false,
+      "misfireEligible": 10,
+      "misfires": 2,
+      "misfireRate": 0.2
+    },
+    {
+      "name": "brainstorming",
+      "version": "1.0.0",
+      "versionApproximate": true,
+      "invocations": 2,
+      "lastInvokedAt": "2026-07-01T09:15:00Z",
+      "neverFired": false,
+      "misfireEligible": 2,
+      "misfires": 0,
+      "misfireRate": 0
+    },
+    {
+      "name": "some-external-plugin",
+      "version": null,
+      "versionApproximate": false,
+      "invocations": 17,
+      "lastInvokedAt": "2026-07-04T14:00:00Z",
+      "neverFired": false,
+      "misfireEligible": 17,
+      "misfires": 1,
+      "misfireRate": 0.058823529411764705
+    }
+  ],
+  "coverage": {
+    "from": "2026-06-01T00:00:00Z",
+    "to": "2026-07-07T00:00:00Z",
+    "sessions": 214
+  }
+}
