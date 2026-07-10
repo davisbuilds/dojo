@@ -173,3 +173,37 @@ def test_runtime_load_failure_exits_nonzero_no_report():
     assert proc.returncode == 1
     assert proc.stdout.strip() == ""  # no partial report
     assert "health" in proc.stderr.lower()
+
+
+# --- Task 4: findings ---------------------------------------------------------
+
+def test_findings_emits_backlog_block_for_never_fired():
+    report = _enriched("find-skills", "write-spec", "brainstorming")
+    block = shr.render_findings(report)
+    assert "#### find-skills" in block
+    assert "Status: noted" in block
+    assert "**What**" in block
+    assert "**Why it matters**" in block
+    assert "**Sketch**" in block
+    # Skills that fired must not be proposed for retirement.
+    assert "#### write-spec" not in block
+    # Static caveat about the queried range is present.
+    assert "range" in block.lower()
+
+
+def test_findings_none_when_all_fired():
+    report = _enriched("write-spec", "brainstorming")
+    block = shr.render_findings(report)
+    assert "####" not in block  # no never-fired skills -> no findings blocks
+
+
+def test_findings_writes_no_file():
+    backlog = REPO_ROOT / "docs" / "project" / "BACKLOG.md"
+    before = backlog.read_bytes()
+    proc = subprocess.run(
+        [sys.executable, str(SKILLS_HEALTH), "--findings", "--health-json", str(FIXTURE)],
+        capture_output=True, text=True,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert "####" in proc.stdout  # findings printed to stdout
+    assert backlog.read_bytes() == before  # nothing auto-written

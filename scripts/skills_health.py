@@ -142,6 +142,10 @@ def main() -> int:
         "--health-json", default=None,
         help="Read health data from a saved JSON file instead of the endpoint (implies --runtime)",
     )
+    parser.add_argument(
+        "--findings", action="store_true",
+        help="Print paste-ready BACKLOG findings for never-fired skills (requires runtime; writes nothing)",
+    )
     args = parser.parse_args()
 
     skills_root = Path(args.skills_root)
@@ -160,7 +164,10 @@ def main() -> int:
     # Runtime is active if any runtime flag is supplied. Load + enrich happen
     # before any report is printed so a requested-but-failed runtime load yields
     # no partial report.
-    runtime_active = args.runtime or args.agentmonitor_url is not None or args.health_json is not None
+    runtime_active = (
+        args.runtime or args.agentmonitor_url is not None
+        or args.health_json is not None or args.findings
+    )
     if runtime_active:
         url = None if args.health_json else (args.agentmonitor_url or runtime.DEFAULT_URL)
         source = args.health_json or url
@@ -170,6 +177,13 @@ def main() -> int:
         except RuntimeError as exc:
             print(f"Failed to load runtime skill health: {exc}", file=sys.stderr)
             return 1
+
+    if args.findings:
+        if not runtime_active:  # defensive; --findings forces runtime above
+            print("--findings requires runtime health data", file=sys.stderr)
+            return 1
+        print(runtime.render_findings(report))
+        return 0
 
     print(json.dumps(report, indent=2) if args.json else format_report(report))
     return 0

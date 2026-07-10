@@ -175,3 +175,45 @@ def render_runtime_section(report: dict) -> list[str]:
             f"  no data: {len(no_data)} dojo skills not present in the health payload"
         )
     return lines
+
+
+# Static disclaimer: never-fired is always relative to the queried window.
+_FINDINGS_CAVEAT = (
+    "_Never-fired is relative to the queried range; a skill may fire outside it. "
+    "Review before filing — this is a proposal, not an auto-filed entry._"
+)
+
+
+def render_findings(report: dict) -> str:
+    """Render BACKLOG-shaped findings for never-fired dojo skills.
+
+    One block per never-fired dojo skill (alphabetical), matching the repo's
+    BACKLOG item shape (What / Why it matters / Sketch + `noted` status). Emits
+    a maintainer proposal only; nothing is written to any file.
+    """
+    never_fired = sorted(
+        (e["skill"] for e in report["skills"] if e.get("never_fired") is True)
+    )
+
+    lines = ["## Proposed findings: never-fired dojo skills", "", _FINDINGS_CAVEAT, ""]
+    if not never_fired:
+        lines.append("No never-fired dojo skills in the queried health data.")
+        return "\n".join(lines)
+
+    for skill in never_fired:
+        lines.extend(
+            [
+                f"#### {skill}: never fires in tracked sessions",
+                "Status: noted",
+                f"- **What**: `{skill}` was invoked 0 times across the tracked "
+                "AgentMonitor sessions.",
+                "- **Why it matters**: A never-fired skill is dead weight in the "
+                "catalog and the shared context budget — its description may not "
+                "trigger, or the capability may be redundant.",
+                f"- **Sketch**: Review `{skill}`'s `description` triggers against "
+                "real tasks; sharpen the trigger or retire the skill, then "
+                "re-check with `skill-evals`.",
+                "",
+            ]
+        )
+    return "\n".join(lines).rstrip() + "\n"
