@@ -102,7 +102,7 @@ file, or fail with a clear typed error.
 
 **Files**: `scripts/skill_health_runtime.py` (new),
 `tests/test_skill_health_runtime.py` (new),
-`skills/skill-evals/assets/sample-skill-health.json` (new fixture).
+`tests/fixtures/sample-skill-health.json` (new fixture).
 
 **Dependencies**: None.
 

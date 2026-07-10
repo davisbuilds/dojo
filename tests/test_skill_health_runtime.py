@@ -13,7 +13,7 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 import skill_health_runtime as shr  # noqa: E402
 
-FIXTURE = REPO_ROOT / "skills" / "skill-evals" / "assets" / "sample-skill-health.json"
+FIXTURE = REPO_ROOT / "tests" / "fixtures" / "sample-skill-health.json"
 
 
 # --- Task 1: load_health_rows -------------------------------------------------
