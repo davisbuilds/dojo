@@ -1,4 +1,4 @@
-## 2.0.0
+## 1.1.0
 
 - Add decision readiness and uncertainty triage before a contract can hand off to
   planning.
