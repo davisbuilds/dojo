@@ -33,7 +33,7 @@ and no brittle hard-fail heuristic.
 - Changes to `brainstorming`, including its design-summary schema.
 - A hard semantic validator for plan prose or a requirement to migrate historic
   plans.
-- A roadmap update while the user-owned roadmap relocation is in progress.
+- An unrelated roadmap rewrite beyond the completed-highlight entry for this work.
 
 ## Assumptions And Constraints
 
@@ -42,7 +42,7 @@ and no brittle hard-fail heuristic.
   irreducible future uncertainty.
 - Tests belong in `tests/`: CI runs `.venv/bin/python -m pytest tests/ -q`, and
   the literal suite already collects this directory.
-- Existing user changes relocating `docs/system/ROADMAP.md` must remain untouched.
+- The user-authorized `docs/project/ROADMAP.md` relocation must remain intact.
 
 ## Map Before You Cut
 
@@ -278,9 +278,9 @@ Tasks 3 and 4
 1. Apply the appropriate workflow-contract version increases and changelog
    entries for both skills.
 2. Regenerate manifest/catalog artifacts through repository generators.
-3. Remove the three now-shipped `write-plan` items from the future-only backlog.
-4. Leave the user-owned roadmap deletion/addition unchanged and report that
-   exclusion explicitly.
+3. Remove the three now-shipped `write-plan` items from the future-only backlog
+   and add one concise completed highlight to the relocated roadmap.
+4. Preserve the user-authorized roadmap relocation without unrelated rewrites.
 
 **Verification**
 

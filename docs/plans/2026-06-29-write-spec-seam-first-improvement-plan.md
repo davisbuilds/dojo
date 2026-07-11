@@ -326,7 +326,7 @@ Task 2
   also threads the template). Task 4 optional. Run strict validation, regenerate
   `skills.json` if hooks don't, and sync skill copies via skill-standardizer so the
   global harness copy picks up the change.
-- After landing, update `docs/system/ROADMAP.md` (cross-cutting findings) and, if
+- After landing, update `docs/project/ROADMAP.md` (cross-cutting findings) and, if
   the catalog/behavior changed, `docs/system/FEATURES.md`.
 - Consider filing a ROADMAP item for the larger **plan→spec reshape** (Out of
   Scope here): the skill still calls itself a "detailed implementation plan" and

@@ -9,7 +9,7 @@
 - `docs/system/OPERATIONS.md` — setup, dependency install, all skill-management commands, hook configuration, CI, optional skill dependencies.
 - `docs/system/SKILL-BEST-PRACTICES.md` — research-backed authoring guidance, design contract, anti-patterns, trigger collision guidance.
 - `docs/system/skill-contract-v1.md` — SKILL.md quality contract (skill types, required checks) enforced by CI.
-- `docs/system/ROADMAP.md` — improvement backlog and cross-cutting findings.
+- `docs/project/ROADMAP.md` — shipped highlights, improvement backlog, and cross-cutting findings.
 - `docs/project/VISION.md` — long-term direction and guiding principles.
 - `docs/project/BACKLOG.md` — future-only friction points and deferred follow-ups noticed during implementation.
 - `docs/project/GIT_HISTORY_POLICY.md` — branch hygiene and merge strategy (squash disabled; merge-commit or rebase, full per-commit history preserved).

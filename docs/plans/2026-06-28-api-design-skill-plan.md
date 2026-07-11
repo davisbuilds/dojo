@@ -201,7 +201,7 @@ Keep dojo's public documentation current after adding the skill.
 **Files**
 
 - Modify: `docs/system/FEATURES.md`
-- Modify if needed: `docs/system/ROADMAP.md`
+- Modify if needed: `docs/project/ROADMAP.md`
 
 **Dependencies**
 
@@ -215,7 +215,7 @@ Task 4
 
 **Verification**
 
-- Run: `rg -n "api-design|API" docs/system/FEATURES.md docs/system/ROADMAP.md`
+- Run: `rg -n "api-design|API" docs/system/FEATURES.md docs/project/ROADMAP.md`
 - Expect: catalog mentions the new skill and roadmap does not contradict shipped behavior.
 
 **Done When**

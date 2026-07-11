@@ -3,14 +3,14 @@
 Living list of future friction points, design gaps, and follow-up actions noticed
 during normal repo work. Lightweight: items get added when they bite, removed
 when they ship or prove not worth doing. This is not a release contract;
-`docs/system/ROADMAP.md` is the higher-bar shipped/in-progress view.
+`docs/project/ROADMAP.md` is the higher-bar shipped/in-progress view.
 
 Convention: each item has **What** (the friction), **Why it matters**, and
 optionally **Sketch** (a one-line implementation thought). Status values:
 `noted` / `in-progress` / `dropped`.
 
 When an item ships, remove it from this doc and record it as a concise completed
-highlight in `docs/system/ROADMAP.md` instead of keeping a shipped note here.
+highlight in `docs/project/ROADMAP.md` instead of keeping a shipped note here.
 This file stays future-only.
 
 ---

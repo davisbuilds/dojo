@@ -52,7 +52,7 @@ Prefer to do it yourself? The manual steps are below.
 - **Setup and operations**: [`docs/system/OPERATIONS.md`](docs/system/OPERATIONS.md)
 - **Skill authoring guidance**: [`docs/system/SKILL-BEST-PRACTICES.md`](docs/system/SKILL-BEST-PRACTICES.md)
 - **Strict skill contract**: [`docs/system/skill-contract-v1.md`](docs/system/skill-contract-v1.md)
-- **Vision, roadmap, and backlog**: [`docs/project/VISION.md`](docs/project/VISION.md), [`docs/system/ROADMAP.md`](docs/system/ROADMAP.md), [`docs/project/BACKLOG.md`](docs/project/BACKLOG.md)
+- **Vision, roadmap, and backlog**: [`docs/project/VISION.md`](docs/project/VISION.md), [`docs/project/ROADMAP.md`](docs/project/ROADMAP.md), [`docs/project/BACKLOG.md`](docs/project/BACKLOG.md)
 - **Git history policy**: [`docs/project/GIT_HISTORY_POLICY.md`](docs/project/GIT_HISTORY_POLICY.md)
 
 The generated [`skills.json`](skills.json) manifest is the runtime inventory source of truth.

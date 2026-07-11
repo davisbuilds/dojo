@@ -487,7 +487,7 @@ the split.
 **Files**
 
 - Modify: `docs/system/ARCHITECTURE.md`, `docs/system/FEATURES.md`,
-  `docs/system/OPERATIONS.md`, `docs/system/ROADMAP.md`, `README.md`
+  `docs/system/OPERATIONS.md`, `docs/project/ROADMAP.md`, `README.md`
 - Regenerate: `skills.json`, `docs/catalog/index.html`
 
 **Dependencies**
