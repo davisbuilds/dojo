@@ -36,6 +36,12 @@ TEST_FILE_LABEL_RE = re.compile(
     r"^\s*[-*]\s*Test(?:\s*\([^)]*\))?:", re.IGNORECASE | re.MULTILINE
 )
 INLINE_CODE_RE = re.compile(r"`([^`]+)`")
+ASSUMPTIONS_VERIFIED_SECTION_RE = re.compile(
+    r"^\*\*Assumptions Verified\*\*(?::[ \t]*.*)?[ \t]*$", re.MULTILINE
+)
+TEST_DISCOVERY_VERIFIED_SECTION_RE = re.compile(
+    r"^\*\*Test Discovery Verified\*\*(?::[ \t]*.*)?[ \t]*$", re.MULTILINE
+)
 
 REQUIRED_HEADINGS = [
     "## Goal",
@@ -91,6 +97,11 @@ def task_changes_tests(files: str) -> bool:
     return any(is_test_path(path) for path in INLINE_CODE_RE.findall(files))
 
 
+def has_marker_section(task: str, marker_section_re: re.Pattern[str]) -> bool:
+    """Return whether a task defines a marker field, not merely mentions it."""
+    return marker_section_re.search(task) is not None
+
+
 def collect_advisories(body: str) -> list[str]:
     """Return non-blocking grounding nudges for task metadata.
 
@@ -107,13 +118,17 @@ def collect_advisories(body: str) -> list[str]:
         if not files:
             continue
 
-        if MODIFY_FILE_RE.search(files) and "**Assumptions Verified**" not in task:
+        if MODIFY_FILE_RE.search(files) and not has_marker_section(
+            task, ASSUMPTIONS_VERIFIED_SECTION_RE
+        ):
             advisories.append(
                 f"{first_line[4:]}: modifies existing code but has no "
                 "**Assumptions Verified** marker"
             )
 
-        if task_changes_tests(files) and "**Test Discovery Verified**" not in task:
+        if task_changes_tests(files) and not has_marker_section(
+            task, TEST_DISCOVERY_VERIFIED_SECTION_RE
+        ):
             advisories.append(
                 f"{first_line[4:]}: changes tests but has no "
                 "**Test Discovery Verified** marker"
@@ -270,7 +285,7 @@ def main() -> int:
         else:
             print(f"PASS: {target}")
 
-        if not target.is_file():
+        if errors or not target.is_file():
             continue
 
         text = target.read_text(encoding="utf-8")

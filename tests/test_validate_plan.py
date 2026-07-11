@@ -19,7 +19,11 @@ def load_module():
     return module
 
 
-def plan_body(files: str, markers: str = "") -> str:
+def plan_body(
+    files: str,
+    markers: str = "",
+    implementation_steps: str = "1. Make the agreed change.",
+) -> str:
     return f"""# Grounding Example Plan
 
 ## Goal
@@ -52,7 +56,7 @@ None
 
 **Implementation Steps**
 
-1. Make the agreed change.
+{implementation_steps}
 
 **Verification**
 
@@ -152,6 +156,43 @@ def test_explicit_grounding_and_discovery_markers_suppress_advisories() -> None:
     ) == []
 
 
+def test_marker_mentions_in_task_prose_do_not_suppress_advisories() -> None:
+    module = load_module()
+
+    advisories = module.collect_advisories(
+        plan_body(
+            "- Modify: `src/example.py`\n- Test: `tests/test_example.py`",
+            implementation_steps=(
+                "1. Add `**Assumptions Verified**` to the plan template.\n"
+                "2. Add `**Test Discovery Verified**` to the plan template."
+            ),
+        )
+    )
+
+    assert advisories == [
+        "Task 1: Update the example: modifies existing code but has no "
+        "**Assumptions Verified** marker",
+        "Task 1: Update the example: changes tests but has no "
+        "**Test Discovery Verified** marker",
+    ]
+
+
+def test_inline_marker_sections_suppress_advisories() -> None:
+    module = load_module()
+
+    markers = """**Assumptions Verified**: `src/example.py:12` is the seam.
+
+**Test Discovery Verified**: `pytest tests/test_example.py -q` runs the test.
+
+"""
+
+    assert module.collect_advisories(
+        plan_body(
+            "- Modify: `src/example.py`\n- Test: `tests/test_example.py`", markers
+        )
+    ) == []
+
+
 def test_advisories_do_not_change_a_valid_plan_exit_status(tmp_path: Path) -> None:
     path = write_plan(tmp_path, "- Modify: `src/example.py`")
 
@@ -180,4 +221,21 @@ def test_missing_plan_still_reports_a_validation_error_without_a_traceback(
 
     assert proc.returncode == 1
     assert f"File not found: {missing}" in proc.stdout
+    assert "Traceback" not in proc.stderr
+
+
+def test_non_markdown_binary_target_reports_a_validation_error_without_a_traceback(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "not-a-plan.bin"
+    target.write_bytes(b"\xff\xfe")
+
+    proc = subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), str(target)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 1
+    assert f"Not a markdown file: {target}" in proc.stdout
     assert "Traceback" not in proc.stderr
