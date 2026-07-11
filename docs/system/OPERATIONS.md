@@ -61,6 +61,9 @@ python3 skills/write-plan/scripts/validate_plan.py docs/plans/<file>-plan.md
 ```
 
 Add `--strict-filename` to enforce the `-spec.md` / `-plan.md` suffix (the hooks do).
+The plan validator also prints non-blocking grounding and test-discovery advisories
+when explicit task metadata suggests an omission; these messages never change an
+otherwise valid plan's exit status.
 
 ### Package a skill for distribution
 

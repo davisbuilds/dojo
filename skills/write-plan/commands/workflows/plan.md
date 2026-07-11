@@ -24,13 +24,17 @@ proceeding.
 ### 1. Contract Gate
 
 If a `docs/specs/<topic>-spec.md` contract exists, plan against it and reuse its
-topic slug. If no contract exists and the work is non-trivial or touches coupled
-code, ask whether to switch to `/workflows:spec` first.
+topic slug. Confirm it has no unresolved question that changes scope, success
+criteria, or verification; route those back to `/workflows:spec`. If no contract
+exists and the work is non-trivial or touches coupled code, ask whether to switch
+to `/workflows:spec` first.
 
 ### 2. Map Before You Cut
 
 For tasks touching existing/coupled code, trace the data/call path, pick the
-thinnest seam that satisfies the contract, and record `Assumptions Verified`.
+thinnest seam that satisfies the contract, and record `Assumptions Verified` in
+each existing-code task against its exact target file/symbol. Resolve current
+lookups before steps; risks are only irreducible future uncertainty.
 
 ### 3. Draft Plan
 
@@ -51,6 +55,8 @@ python3 skills/write-plan/scripts/validate_plan.py docs/plans/<filename>.md
 ```
 
 Fix any validation errors before presenting the plan.
+Treat grounding and test-discovery messages as advisories: they are a prompt to
+read the code, not a verdict on prose.
 
 ### 6. Handoff
 

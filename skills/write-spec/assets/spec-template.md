@@ -51,10 +51,17 @@ Omit the thresholds for mechanical or system specs.
 
 - Assumptions that shape the target.
 - Constraints (technical, schedule, dependency, policy).
+- For irreducible future uncertainty that does not change this contract: state
+  its observable signal and containment expectation.
 
 ## Open Questions
 
-- Unresolved decision that must close before or during execution.
+- None — all decisions that affect this contract's scope, success criteria, and
+  verification are settled before planning.
+
+If a retained question is genuinely non-blocking, explain why it cannot change
+this contract. Otherwise resolve it with the user or move the future choice to
+Out of Scope before handing off to `write-plan`.
 
 ## Handoff
 

@@ -34,8 +34,11 @@ For tasks touching existing or coupled code, trace the ground before prescribing
 
 - Data/call path the change rides on (who calls what, what state flows where).
 - The thinnest seam that satisfies the contract.
-- `**Assumptions Verified**`: what you confirmed in the code (file:line, observed
-  behavior) that makes the chosen seam correct.
+- Resolve current questions by reading/grepping before writing steps. A risk is
+  an irreducible future uncertainty, not a lookup deferred to execution.
+- For each task that edits existing code, add `**Assumptions Verified**` in that
+  task: cite the exact target file/symbol and observed behavior. Label any
+  neighboring precedent as `Research Context`, not target verification.
 
 Omit only when every task is greenfield/self-contained.
 
@@ -57,6 +60,13 @@ Describe the concrete outcome of this task.
 
 None
 
+**Assumptions Verified**
+
+- Required when `**Files**` includes `Modify:`: `path/to/existing.file:line`
+  contains the observed behavior that makes this exact cut correct.
+- For create-only work, omit this marker or label useful cross-file precedent as
+  `Research Context`; do not invent a target-file citation.
+
 **Implementation Steps**
 
 1. Step with a concrete, grounded action.
@@ -67,14 +77,24 @@ None
 - Run: `command`
 - Expect: observable pass signal
 
+**Test Discovery Verified**
+
+Include only when this task creates or changes tests:
+
+- Runner/discovery evidence: `package.json`, `pyproject.toml`, or equivalent
+  includes the new test path.
+- Literal proof: `command path/to/new-test` runs the new test or exact selector.
+
 **Done When**
 
 - Acceptance criterion that traces to the contract's end-state.
 
 ## Risks And Mitigations
 
-- Risk: short description.
-  Mitigation: concrete prevention or fallback.
+- Risk: irreducible future uncertainty (not a repository lookup that can be
+  resolved now).
+  Signal: how the uncertainty is observed.
+  Mitigation: concrete prevention, containment, or fallback.
 
 ## Verification Matrix
 
