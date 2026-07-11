@@ -2,7 +2,7 @@
 name: write-plan
 description: 'Sequence the build: turn a settled target (a `write-spec` contract, a ticket, or a clear request) into an execution plan — task breakdown, files, ordered steps, seam selection, and verification commands. Use when WHAT is already decided and you need HOW: the file-level, dependency-ordered steps to implement it. If the target is not yet falsifiable, route back to `write-spec`.'
 skill-type: workflow
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Write Plan
@@ -31,6 +31,9 @@ Prefer to plan against a contract:
 - If `docs/specs/YYYY-MM-DD-<topic>-spec.md` exists, plan against it and reuse its
   topic slug. `## Goal` restates/links that contract; every `Done When` traces to
   the contract's end-state.
+- Before planning from a spec, confirm its open questions do not change scope,
+  success criteria, or verification. Route such questions back to `write-spec`;
+  a plan must not silently decide the contract.
 - If no contract exists and the work is non-trivial or touches coupled code, route
   back to `write-spec` to pin the target first.
 - For a small, clear, self-contained request, proceed directly.
@@ -96,10 +99,16 @@ the ground first — do not pick a mechanism blind:
 2. **Pick the thinnest seam** that satisfies the contract — the smallest cut that
    makes the end-state true. A cleaner realization than the contract author
    imagined is allowed, as long as `Done When` still equals the contract.
-3. **Record an `**Assumptions Verified**` line** per coupled task: what you
-   confirmed in the code that makes the chosen seam correct (file:line, observed
-   behavior). Steps stay prescriptive *because they are grounded* — verify first,
-   then prescribe; don't ship guesses as steps.
+3. **Record `**Assumptions Verified**` for each existing-code task.** When its
+   `**Files**` block contains `Modify:`, cite the exact file and symbol being
+   cut, plus the observed behavior. A neighboring file may establish useful data
+   shape, but label it `Research Context`; it is not target verification.
+   Create-only work does not need an invented target-file citation, though it may
+   include labeled research context when helpful.
+4. **Resolve the current before prescribing.** Grep/read questions that can be
+   answered now, then write facts. Do not leave conditional discovery in a step
+   (for example, "if X is already wired"). Put only irreducible future
+   uncertainty in Risks And Mitigations, with a signal and mitigation.
 
 See `references/seam-selection.md` for the worked checklist and a before/after.
 
@@ -110,8 +119,12 @@ Each task must be independently verifiable and include:
 - `**Objective**`
 - `**Files**` with exact repository paths
 - `**Dependencies**` (or `None`)
+- `**Assumptions Verified**` when the task modifies existing code; cite the exact
+  target file/symbol, not a neighboring precedent
 - `**Implementation Steps**` as ordered steps
 - `**Verification**` commands with expected signals
+- `**Test Discovery Verified**` when the task creates or changes tests; name the
+  runner/discovery evidence and the command that runs the literal new test
 - `**Done When**` acceptance bullets that trace to the contract
 
 Granularity target:
@@ -124,6 +137,9 @@ Granularity target:
 - Include at least one concrete, deterministic verification command per task.
 - Include integration or end-to-end verification when applicable.
 - Add negative-path verification for risky logic.
+- When tests change, prove their discovery before claiming readiness: confirm the
+  repository runner includes the new test path, then name a command that runs the
+  literal test file (or exact test selector).
 - Do not claim plan readiness until verification coverage is explicit.
 
 If available, apply the mindset from `verify-before-complete` when checking final
@@ -139,6 +155,11 @@ python3 skills/write-plan/scripts/validate_plan.py docs/plans/<filename>.md
 
 Fix all reported issues before handoff.
 
+The validator's grounding and test-discovery messages are advisories, not schema
+failures. They inspect only explicit `**Files**` entries and cannot determine
+whether prose citations or commands are true; resolve an advisory by grounding
+the task, not by treating the checker as a substitute for reading the code.
+
 ## Handoff
 
 End with:
@@ -149,12 +170,12 @@ Then offer:
 2. **Review the plan with a critique subagent.** If the harness supports subagents
    (e.g. a Task/agent tool), launch one seeded with the plan's path, the spec
    contract, **and** the originating context, instructed to critique the *plan* —
-   is the chosen seam the thinnest that satisfies the contract? are the
-   `Assumptions Verified` actually grounded in code? are steps
-   prescriptive-because-verified (not guesses)? is the blast radius mapped? are
-   verification commands real and deterministic? are tasks over-fragmented? — and
-   to propose improvements. Apply or discuss before executing. If subagents are
-   unavailable, run the same critique inline via `verify-before-complete`.
+   is the chosen seam the thinnest that satisfies the contract? do existing-code
+   tasks cite their exact target file/symbol? are steps prescriptive because they
+   are verified, not guesses? are risks irreducible rather than skipped lookups?
+   are changed tests actually discovered? — and to propose improvements. Apply or
+   discuss before executing. If subagents are unavailable, run the same critique
+   inline via `verify-before-complete`.
 3. Open a separate execution session, or refine the plan first.
 
 ## Command Wrapper

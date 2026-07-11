@@ -2,7 +2,7 @@
 name: write-spec
 description: 'Define the target before building: write a falsifiable contract — problem, end-state, success criteria, evaluation — that states WHAT must be true, with no files or implementation steps. Use when you need to specify or align on what "done" means before sequencing work, or are handed a feature/change and must pin its acceptance criteria. Hand off to `write-plan` for the HOW.'
 skill-type: workflow
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Write Spec
@@ -50,6 +50,33 @@ If key context is missing, ask focused questions before writing:
 - how it will be verified (the falsifiable check)
 - hard constraints and non-goals
 
+## Decision Readiness
+
+Before drafting, reduce preventable uncertainty without pretending every unknown
+can be discovered:
+
+1. **Resolve what is answerable now.** Read the relevant project, docs, and
+   existing behavior; use research when facts are missing. Do not ask the user
+   to answer a repository lookup the agent can perform.
+2. **Work with the user on contract decisions.** Ask focused questions when an
+   answer changes observable behavior, scope, success criteria, safety
+   boundaries, or the verification claim. Resolve as many as possible before
+   writing the contract.
+3. **Stress-test proportionately.** For non-trivial or risky work, consider
+   other consumers, bad/empty/old input, trust boundaries, dependency failure,
+   and detection/containment. This is a lens, not an exhaustive checklist. Route
+   high-stakes trade-offs to `first-principles` and missing evidence to
+   `deep-research`.
+4. **Classify what remains.** A blocking decision changes the current contract
+   and must close before `write-plan`. An irreducible future uncertainty that
+   does not change the contract belongs in Assumptions And Constraints with its
+   signal and containment. A future choice belongs in Out of Scope, not Open
+   Questions. Write `None` when all current-contract decisions are settled.
+
+See `references/uncertainty-triage.md` for compact prompts and examples. The
+spec records decisions and bounded uncertainty, not a transcript of every
+question asked.
+
 ## Output Path
 
 Save the contract to:
@@ -93,7 +120,8 @@ live contract from a finished one.
    one-line "if this is a measurable bet…"); omit them for mechanical/system specs.
 6. `## Scope` — in/out of scope (still mechanism-free: name outcomes, not files).
 7. `## Assumptions And Constraints`
-8. `## Open Questions`
+8. `## Open Questions` — `None` when ready to plan. Any retained question must
+   be non-blocking and state why it cannot change the current contract.
 9. `## Handoff` — route to `write-plan` for the HOW.
 
 Use `assets/spec-template.md` as the default scaffold.
@@ -103,6 +131,9 @@ Use `assets/spec-template.md` as the default scaffold.
 - The `## Contract` must name at least one concrete verification command or check.
 - Prefer deterministic checks (a command with an observable pass/fail signal) over
   prose assertions.
+- Confirm the stated check can prove the contract's outcome. Test-file placement
+  and runner discovery are plan-level details; `write-plan` verifies those when
+  tests change.
 - Do not claim the contract is ready until the end-state is falsifiable.
 
 If available, apply the mindset from `verify-before-complete` when checking final
@@ -114,7 +145,8 @@ Route to another skill only when needed:
 - requirements unclear: use `brainstorming`
 - architectural trade-off dominates risk: use `first-principles`
 - evidence/prior art needed for the contract: use `deep-research`
-- ready to sequence the build: hand off to `write-plan`
+- ready to sequence the build with no contract-affecting question open: hand off
+  to `write-plan`
 
 If a named skill is unavailable, continue with manual fallback in this skill.
 
@@ -127,12 +159,18 @@ python3 skills/write-spec/scripts/validate_spec.py docs/specs/<filename>.md
 ```
 
 Fix all reported issues before handoff. The validator fails the contract if any
-plan-shaped content (task breakdowns, file lists, implementation steps) leaked in.
+plan-shaped content (task breakdowns, file lists, implementation steps) leaked
+in. Decision readiness is an intentional human/agent reasoning gate, not a
+brittle prose heuristic for the validator.
 
 ## Handoff
 
 End with:
 `Contract complete and saved to docs/specs/<filename>.md.`
+
+Before offering a plan handoff, confirm that `Open Questions` is `None` or that
+any retained item is explicitly non-blocking. Return to decision readiness if it
+would change scope, success criteria, or verification.
 
 Then offer:
 1. Hand off to `write-plan` to sequence the build against this contract.
@@ -150,6 +188,11 @@ Then offer:
 
 If command files are supported, use `commands/workflows/spec.md` as the canonical
 `/workflows:spec` wrapper.
+
+## Resources
+
+- `references/uncertainty-triage.md` — classify uncertainty, work through
+  proportionate unknown-unknown lenses, and keep contracts ready for planning.
 
 ## Sibling skills
 

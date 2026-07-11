@@ -25,6 +25,23 @@ TABLE_HEADER_RE = re.compile(
     re.IGNORECASE | re.MULTILINE,
 )
 HANDOFF_OPTION_RE = re.compile(r"^1\. .+", re.MULTILINE)
+FILES_SECTION_RE = re.compile(
+    r"^\*\*Files\*\*:?[ \t]*(.*?)(?=^\*\*[^*]+?\*\*|\Z)",
+    re.MULTILINE | re.DOTALL,
+)
+MODIFY_FILE_RE = re.compile(
+    r"^\s*[-*]\s*Modify(?:\s*\([^)]*\))?:", re.IGNORECASE | re.MULTILINE
+)
+TEST_FILE_LABEL_RE = re.compile(
+    r"^\s*[-*]\s*Test(?:\s*\([^)]*\))?:", re.IGNORECASE | re.MULTILINE
+)
+INLINE_CODE_RE = re.compile(r"`([^`]+)`")
+ASSUMPTIONS_VERIFIED_SECTION_RE = re.compile(
+    r"^\*\*Assumptions Verified\*\*(?::[ \t]*.*)?[ \t]*$", re.MULTILINE
+)
+TEST_DISCOVERY_VERIFIED_SECTION_RE = re.compile(
+    r"^\*\*Test Discovery Verified\*\*(?::[ \t]*.*)?[ \t]*$", re.MULTILINE
+)
 
 REQUIRED_HEADINGS = [
     "## Goal",
@@ -44,6 +61,80 @@ TASK_MARKERS = [
     "**Verification**",
     "**Done When**",
 ]
+
+
+def iter_task_blocks(body: str) -> list[str]:
+    """Return task blocks without trying to interpret their free prose."""
+    return [
+        block for block in TASK_SPLIT_RE.split(body) if block.startswith("### Task ")
+    ]
+
+
+def task_files_block(task: str) -> str:
+    """Return a task's bounded Files content, or an empty string when absent."""
+    match = FILES_SECTION_RE.search(task)
+    return match.group(1) if match else ""
+
+
+def is_test_path(path: str) -> bool:
+    """Recognize common test-file locations without treating prose as a path."""
+    normalized = path.strip().replace("\\", "/")
+    filename = normalized.rsplit("/", 1)[-1].lower()
+    return (
+        "/tests/" in f"/{normalized.lower()}"
+        or filename.startswith("test_")
+        or filename.startswith("test-")
+        or ".test." in filename
+        or ".spec." in filename
+        or filename.endswith("_test.py")
+    )
+
+
+def task_changes_tests(files: str) -> bool:
+    """Detect explicit test-file entries in a Files block."""
+    if TEST_FILE_LABEL_RE.search(files):
+        return True
+    return any(is_test_path(path) for path in INLINE_CODE_RE.findall(files))
+
+
+def has_marker_section(task: str, marker_section_re: re.Pattern[str]) -> bool:
+    """Return whether a task defines a marker field, not merely mentions it."""
+    return marker_section_re.search(task) is not None
+
+
+def collect_advisories(body: str) -> list[str]:
+    """Return non-blocking grounding nudges for task metadata.
+
+    The signals are deliberately narrow: only explicit entries in a task's
+    ``Files`` block participate. They cannot determine whether a citation or
+    test command is truthful, so callers must never convert these messages into
+    schema failures.
+    """
+    advisories: list[str] = []
+
+    for task in iter_task_blocks(body):
+        first_line = task.splitlines()[0].strip()
+        files = task_files_block(task)
+        if not files:
+            continue
+
+        if MODIFY_FILE_RE.search(files) and not has_marker_section(
+            task, ASSUMPTIONS_VERIFIED_SECTION_RE
+        ):
+            advisories.append(
+                f"{first_line[4:]}: modifies existing code but has no "
+                "**Assumptions Verified** marker"
+            )
+
+        if task_changes_tests(files) and not has_marker_section(
+            task, TEST_DISCOVERY_VERIFIED_SECTION_RE
+        ):
+            advisories.append(
+                f"{first_line[4:]}: changes tests but has no "
+                "**Test Discovery Verified** marker"
+            )
+
+    return advisories
 
 
 def parse_frontmatter(text: str) -> tuple[dict[str, str], str, list[str]]:
@@ -114,10 +205,7 @@ def validate_body(body: str) -> list[str]:
     if not task_matches:
         errors.append("Missing task blocks (expected '### Task N: ...')")
     else:
-        task_blocks = [
-            block for block in TASK_SPLIT_RE.split(body) if block.startswith("### Task ")
-        ]
-        for block in task_blocks:
+        for block in iter_task_blocks(body):
             first_line = block.splitlines()[0].strip()
             for marker in TASK_MARKERS:
                 if marker not in block:
@@ -196,6 +284,16 @@ def main() -> int:
                 print(f"  - {error}")
         else:
             print(f"PASS: {target}")
+
+        if errors or not target.is_file():
+            continue
+
+        text = target.read_text(encoding="utf-8")
+        _, body, frontmatter_errors = parse_frontmatter(text)
+        if not frontmatter_errors:
+            for advisory in collect_advisories(body):
+                print(f"ADVISORY: {target}")
+                print(f"  - {advisory}")
 
     return 1 if has_errors else 0
 

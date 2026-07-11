@@ -20,9 +20,13 @@ design summary before proceeding.
 
 ## Flow
 
-### 1. Readiness Gate
+### 1. Decision-Readiness Gate
 
-If requirements are unclear, ask whether to switch to `/workflows:brainstorm` first.
+If requirements are unclear, ask whether to switch to `/workflows:brainstorm`
+first. Otherwise, resolve facts available in the project and ask the user only
+questions that change scope, success criteria, safety boundaries, or verification.
+For non-trivial work, apply the proportionate uncertainty lenses in the canonical
+skill. Do not hand off a contract with a blocking open question.
 
 ### 2. Draft Contract
 
@@ -51,6 +55,10 @@ Fix any validation errors before presenting the contract. The validator fails if
 plan-shaped content (task breakdowns, files, steps) leaked in.
 
 ### 5. Handoff
+
+Confirm `Open Questions` is `None` or any retained item is explicitly
+non-blocking before offering planning. Return to the decision-readiness gate when
+an item would change the contract.
 
 Offer:
 1. Hand off to `/workflows:plan` (write-plan) to sequence the build.
