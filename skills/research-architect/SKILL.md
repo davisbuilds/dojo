@@ -177,7 +177,8 @@ because external DR products cannot check their own citations.
 
 ### Stage 9 — Postmortem (`09-postmortem.md` + shared memory)
 
-From the report's self-report section (block A10) plus verification results,
+From the report's self-report (block A10 for external reports; the packet's
+`self_report` field for local `deep-research` runs) plus verification results,
 record: which instructions were followed, ignored, or misread; citation hit
 rate; which rubric items discriminated (items that always pass are dead
 weight). Then append durable lessons to two shared files (create on first

@@ -118,6 +118,8 @@ Required output sections:
 - key findings with citations
 - confidence gaps
 - suggested next queries (if unresolved gaps remain)
+- self-report, for standard/deep runs: instructions or source classes you
+  could not honor, and why — candor here is rewarded, not penalized
 
 ## Output Contract
 
@@ -128,6 +130,9 @@ Return this shape for downstream composition:
 - `discarded_context`
 - `confidence_gaps`
 - `next_queries`
+- `self_report` (optional on quick runs, expected on standard/deep) —
+  agent-composed at synthesis, not script-emitted; consumed by
+  `research-architect` stage-9 postmortems
 
 Do not mix discarded items back into final claims.
 
@@ -136,6 +141,10 @@ Do not mix discarded items back into final claims.
 - Recency-sensitive tasks must include current dated sources.
 - High-stakes tasks require stronger source diversity and official documentation.
 - If confidence gaps remain, report them explicitly instead of speculating.
+- Use only source classes you can actually reach. If a priority source class
+  is inaccessible (paywall, login wall, blocked platform), do not silently
+  substitute lower-grade sources for it — name the fallback you used and
+  record the gap in `confidence_gaps` and the `self_report`.
 - Keep synthesis concise; preserve traceability through citations.
 
 ## References

@@ -32,27 +32,21 @@ Status: noted
   as the first golden question, then script scoring/diffing to match the
   manual stage-8 spec.
 
-#### deep-research: epistemics gaps noticed while building research-architect
+#### deep-research: evidence_filter credibility trusts self-declared source_type
 Status: noted
-- **What**: Three gaps surfaced while wiring deep-research in as the
-  research-architect execution backend (2026-07-12). (1) `evidence_filter.py`
-  credibility is keyed off a self-declared `source_type` — the agent labels
-  its own finding "official" and gets 0.95; the scorer trusts the researcher
-  it is supposed to be filtering. (2) The search loop has no
-  accessibility-honesty rule: when a named source class is unreachable, no
-  instruction stops silent substitution with low-grade sources — the exact
-  failure the architect's scout stage exists to catch. (3) The output packet
-  has `confidence_gaps` but no A10-style self-report ("instructions I could
-  not follow"), so architect stage-9 postmortems get less signal from local
-  runs than from external DR runs.
-- **Why it matters**: (1) makes the deterministic filter gameable by its own
-  caller; (2) is the most common silent DR failure per the architect's
-  skeleton; (3) weakens the compounding loop precisely where execution is
-  cheapest to instrument.
+- **What**: `evidence_filter.py` keys credibility off a self-declared
+  `source_type` — the agent labels its own finding "official" and gets 0.95;
+  the scorer trusts the researcher it is supposed to be filtering. (Noticed
+  2026-07-12 while wiring deep-research in as the research-architect
+  execution backend; the two sibling gaps found then — no
+  accessibility-honesty rule, no `self_report` in the output contract —
+  shipped in deep-research 2.0.0.)
+- **Why it matters**: Makes the deterministic filter gameable by its own
+  caller — the score adds no information beyond what the agent already
+  believes.
 - **Sketch**: Derive credibility from the domain/URL (registry of known
-  primary domains) with source_type as a tiebreaker only; add an
-  accessibility-honesty quality rule mirroring skeleton block A6; extend the
-  output contract with an optional `self_report` field (MINOR bump).
+  primary domains: arxiv.org, *.gov, official docs hosts) with source_type as
+  a tiebreaker only; needs test updates in the filter's scoring cases.
 
 #### research-architect: instruction counter undercounts imperative-verb phrasing
 Status: noted
