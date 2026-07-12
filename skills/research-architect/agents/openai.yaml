@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Research Architect"
+  short_description: "Engineer high-quality deep-research prompts and orchestrate"
+  default_prompt: "Use $research-architect for this task."
