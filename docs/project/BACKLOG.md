@@ -67,7 +67,12 @@ Status: noted
   external run-shape constraint against the DAG heuristic; (7) stage 1 never
   tests whether entities named in the brief are exemplars or an exhaustive
   list — "experts like X, Y, Z" got silently narrowed to exactly X, Y, Z and
-  the user had to catch it.
+  the user had to catch it; (8) scout/brief summaries need the same
+  stated-vs-inferred discipline the prompt imposes on executors — the
+  social-playbooks prompt shipped an overclaim ("Willison flags authenticity
+  as unconfirmed" — he merely never confirms it) that the executor caught and
+  stage-8 verification confirmed; A4 should explicitly cover the drafter's own
+  seed-source annotations.
 - **Why it matters**: All seven are seams between stages rather than block
   content — exactly where the skill's own postmortem loop is supposed to
   accumulate fixes; this is the seed material for the first
