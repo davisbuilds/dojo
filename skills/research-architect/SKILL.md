@@ -194,12 +194,15 @@ This stage is what makes the skill compound instead of plateau. Do not skip it
 after real runs.
 
 **Cleanup (closes every run):** once durable lessons are appended, the
-per-run scratch has served its purpose. Ask where the user wants the keepers
-(the final prompt(s), the report, and the verification verdict) archived —
-they often live outside the repo — move them there, then delete
-`research/<slug>/`. If the run pauses at stage 7 for an external DR product,
-tell the user the directory is disposable once they've copied the prompt, and
-finish this cleanup when they return with the report.
+per-run scratch has served its purpose. Archive the keepers — the final
+prompt(s), the report, and the verification verdict — then delete
+`research/<slug>/`. Default archive: `docs/research/YYYY-MM-DD-<slug>-*.md`
+in the repo the research serves (matching the `docs/design/` → `docs/specs/`
+→ `docs/plans/` dating convention); for research that serves no repo, ask
+where — personal archives often live outside any repo. If the run pauses at
+stage 7 for an external DR product, tell the user the directory is disposable
+once they've copied the prompt, and finish this cleanup when they return with
+the report.
 
 ## Router quick reference
 
@@ -216,7 +219,8 @@ finish this cleanup when they return with the report.
 
 - Per-stage artifacts in `research/<slug>/` (decision brief, question, route,
   scout, prompt(s), red-team, run plan, verification, postmortem) — run-scoped
-  scratch, deleted at the end of stage 9 after keepers are archived.
+  scratch, deleted at the end of stage 9 after keepers are archived (default:
+  `docs/research/` in the repo the research serves).
 - The primary deliverables: one assembled, linted prompt per executor
   (`04-prompt-<executor>.md`), and after execution a verification verdict
   (`08-verification.md`) with citation hit rate and per-rubric-item scores.
