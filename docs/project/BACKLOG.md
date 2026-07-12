@@ -72,7 +72,10 @@ Status: noted
   social-playbooks prompt shipped an overclaim ("Willison flags authenticity
   as unconfirmed" — he merely never confirms it) that the executor caught and
   stage-8 verification confirmed; A4 should explicitly cover the drafter's own
-  seed-source annotations.
+  seed-source annotations; (9) multi-run plans have no formal synthesis
+  stage/artifact — stage 8 diffs the reports but nothing merges them into the
+  single build-ready document the decision consumer wants; the run added one
+  ad hoc.
 - **Why it matters**: All seven are seams between stages rather than block
   content — exactly where the skill's own postmortem loop is supposed to
   accumulate fixes; this is the seed material for the first
