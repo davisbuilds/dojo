@@ -72,7 +72,7 @@
       "name": "deep-research",
       "description": "Use when a task needs direct web-backed research with controlled depth, relevance filtering, and citation-ready synthesis \u2014 the user wants the answer, not a commissioned research program. Routes work to quick, standard, or deep tiers, filters low-signal context, and returns a compact packet with key findings, citations, discarded context, confidence gaps, and next queries. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead \u2014 this skill is its execution backend.",
       "path": "skills/deep-research",
-      "version": "3.0.0"
+      "version": "2.1.0"
     },
     {
       "name": "design-critique",

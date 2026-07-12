@@ -1,4 +1,4 @@
-## 3.0.0 - 2026-07-12
+## 2.1.0 - 2026-07-12
 
 - Replace self-declared credibility scoring with URL-derived hostname policy
   from a conservative, explainable registry.
