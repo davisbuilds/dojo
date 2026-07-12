@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "arxiv-preprints",
+      "host": "arxiv.org",
+      "authority": "academic_repository",
+      "document_class": "preprint",
+      "base_score": 0.82,
+      "ceiling": 0.88,
+      "compatible_source_types": ["academic", "primary"],
+      "rationale": "Established scholarly repository; submissions are not necessarily peer reviewed."
+    },
+    {
+      "id": "pubmed-index",
+      "host": "pubmed.ncbi.nlm.nih.gov",
+      "authority": "government_scholarly_index",
+      "document_class": "bibliographic_record",
+      "base_score": 0.84,
+      "ceiling": 0.9,
+      "compatible_source_types": ["academic", "government"],
+      "rationale": "Authoritative biomedical index; an index record is not itself the underlying study."
+    },
+    {
+      "id": "pubmed-central",
+      "host": "pmc.ncbi.nlm.nih.gov",
+      "authority": "government_scholarly_repository",
+      "document_class": "full_text_article",
+      "base_score": 0.88,
+      "ceiling": 0.94,
+      "compatible_source_types": ["academic", "government", "primary"],
+      "rationale": "NIH-operated full-text archive; article-level study quality still requires evaluation."
+    },
+    {
+      "id": "nature-publisher",
+      "host": "nature.com",
+      "authority": "scholarly_publisher",
+      "document_class": "mixed_publisher_content",
+      "base_score": 0.8,
+      "ceiling": 0.9,
+      "compatible_source_types": ["academic", "primary", "news"],
+      "rationale": "Established scholarly publisher whose domain also contains news and commentary."
+    },
+    {
+      "id": "science-publisher",
+      "host": "science.org",
+      "authority": "scholarly_publisher",
+      "document_class": "mixed_publisher_content",
+      "base_score": 0.8,
+      "ceiling": 0.9,
+      "compatible_source_types": ["academic", "primary", "news"],
+      "rationale": "Established scholarly publisher whose domain also contains news and commentary."
+    },
+    {
+      "id": "nejm-publisher",
+      "host": "nejm.org",
+      "authority": "scholarly_publisher",
+      "document_class": "mixed_publisher_content",
+      "base_score": 0.82,
+      "ceiling": 0.92,
+      "compatible_source_types": ["academic", "primary", "analysis"],
+      "rationale": "Established medical journal domain; article type and study quality still require evaluation."
+    },
+    {
+      "id": "jama-network",
+      "host": "jamanetwork.com",
+      "authority": "scholarly_publisher",
+      "document_class": "mixed_publisher_content",
+      "base_score": 0.82,
+      "ceiling": 0.92,
+      "compatible_source_types": ["academic", "primary", "analysis"],
+      "rationale": "Established medical journal network; article type and study quality still require evaluation."
+    },
+    {
+      "id": "lancet-publisher",
+      "host": "thelancet.com",
+      "authority": "scholarly_publisher",
+      "document_class": "mixed_publisher_content",
+      "base_score": 0.82,
+      "ceiling": 0.92,
+      "compatible_source_types": ["academic", "primary", "analysis"],
+      "rationale": "Established medical journal domain; article type and study quality still require evaluation."
+    },
+    {
+      "id": "harvard-dash",
+      "host": "dash.harvard.edu",
+      "authority": "university_repository",
+      "document_class": "institutional_repository",
+      "base_score": 0.84,
+      "ceiling": 0.9,
+      "compatible_source_types": ["academic", "primary"],
+      "rationale": "Harvard institutional repository; deposited item type and review status vary."
+    },
+    {
+      "id": "harvard-news",
+      "host": "news.harvard.edu",
+      "authority": "university_publisher",
+      "document_class": "institutional_news",
+      "base_score": 0.68,
+      "ceiling": 0.74,
+      "compatible_source_types": ["news", "official"],
+      "rationale": "Official university news, not a substitute for the underlying research."
+    },
+    {
+      "id": "harvard-root",
+      "host": "harvard.edu",
+      "authority": "university",
+      "document_class": "institutional_page",
+      "base_score": 0.7,
+      "ceiling": 0.76,
+      "compatible_source_types": ["official", "academic"],
+      "rationale": "University root domain only; subdomains require explicit registry entries."
+    },
+    {
+      "id": "stanford-hai",
+      "host": "hai.stanford.edu",
+      "authority": "university_research_center",
+      "document_class": "research_center_page",
+      "base_score": 0.78,
+      "ceiling": 0.84,
+      "compatible_source_types": ["academic", "official", "analysis"],
+      "rationale": "Official university research-center host; page type may be research, analysis, or news."
+    },
+    {
+      "id": "stanford-news",
+      "host": "news.stanford.edu",
+      "authority": "university_publisher",
+      "document_class": "institutional_news",
+      "base_score": 0.68,
+      "ceiling": 0.74,
+      "compatible_source_types": ["news", "official"],
+      "rationale": "Official university news, not a substitute for the underlying research."
+    },
+    {
+      "id": "stanford-root",
+      "host": "stanford.edu",
+      "authority": "university",
+      "document_class": "institutional_page",
+      "base_score": 0.7,
+      "ceiling": 0.76,
+      "compatible_source_types": ["official", "academic"],
+      "rationale": "University root domain only; subdomains require explicit registry entries."
+    }
+  ]
+}

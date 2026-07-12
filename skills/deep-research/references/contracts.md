@@ -73,7 +73,7 @@ python3 skills/deep-research/scripts/run_pipeline.py \
       "excerpt": "optional string",
       "source_type": "official|primary|academic|government|news|analysis|blog|forum|social|unknown",
       "published_at": "optional date/datetime string",
-      "domain": "optional string"
+      "domain": "optional compatibility field; scoring always derives the hostname from url"
     }
   ]
 }
@@ -93,6 +93,11 @@ python3 skills/deep-research/scripts/run_pipeline.py \
       "summary": "string",
       "relevance": "float 0-1",
       "credibility": "float 0-1",
+      "credibility_reason": "string",
+      "credibility_registry_id": "string|null",
+      "credibility_authority": "string",
+      "credibility_document_class": "string",
+      "source_type_consistency": "compatible|mismatch|unverified",
       "novelty": "float 0-1",
       "recency": "float 0-1",
       "score": "float 0-1"
@@ -138,10 +143,15 @@ python3 skills/deep-research/scripts/run_pipeline.py \
 ## Notes
 
 - `evidence_filter.py` is deterministic and rule-based; it does not call an LLM.
+- Credibility is a provenance prior derived from the URL hostname and
+  `credibility-registry.json`, not a claim-quality verdict. Exact registry hosts
+  and the controlled `.gov` namespace can raise the neutral prior;
+  self-declared `source_type` cannot raise an unknown host. University and
+  publisher entries carry document-class-specific ceilings.
 - If claim quality is critical, use this output as a pre-synthesis gate and run a final claim check afterward.
 - The skill-level packet (see SKILL.md Output Contract) adds a `self_report`
   field on top of the `evidence_filter.py` output. It is composed by the agent
-  at synthesis — no script emits it — and feeds `research-architect` stage-9
+  at synthesis — no script emits it — and feeds `research-architect` stage-10
   postmortems.
 
 ## `run_pipeline.py`
