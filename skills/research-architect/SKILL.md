@@ -2,7 +2,7 @@
 name: research-architect
 description: Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or research brief; commission or plan a multi-source, high-stakes, or multi-model research run; run research through external deep-research products (Claude/OpenAI/Gemini DR); or verify and score a research report someone or something else produced. Triggers on "research prompt", "research brief", "commission research", "plan a research run", "verify this report", "research architect". For a direct low-stakes web lookup where the user just wants the answer, use the deep-research skill instead — this skill sits upstream (prompt engineering, routing) and downstream (verification, postmortem) of execution.
 skill-type: workflow
-version: 1.0.0
+version: 2.0.0
 triggers:
   - research prompt
   - research brief
@@ -50,10 +50,11 @@ output.
 
 ## Workflow
 
-Stages 0–6 are drafting; 7 is execution; 8–9 are verification and memory. Each
-stage writes a small artifact to the working directory (`research/<slug>/`).
-These are run-scoped scratch, not deliverables — do not commit them, and stage
-9 ends by cleaning them up. Cheap questions can skip stages — the router
+Stages 0–6 are drafting; 7 is execution; 8 is verification; 9 is multi-run
+synthesis; and 10 is memory. Each stage writes a small artifact to the working
+directory (`research/<slug>/`). These are run-scoped scratch, not deliverables
+— do not commit them, and stage 10 ends by cleaning them up. Cheap questions
+can skip stages — the router
 (stage 2) decides — but never skip 0, 4, or 8.
 
 ### Stage 0 — Decision brief (`00-decision-brief.md`)
@@ -78,6 +79,11 @@ compared, and a first-draft rubric (5–12 checkable acceptance criteria) plus
 topic do-nots. Test each rubric item: could a verifier check it from the report
 text alone? If not, rewrite or drop.
 
+For every named entity list in the brief (people, systems, companies, papers),
+record whether it is **exemplars** or **exhaustive**. Preserve that distinction
+in the assembled prompt; never silently turn “such as X and Y” into “only X and
+Y.”
+
 ### Stage 2 — Route (`02-route.md`)
 
 Three independent routing decisions:
@@ -92,27 +98,36 @@ Three independent routing decisions:
    fetch cited URLs, spawn subagents) vs. external DR product (better at broad
    web sweeps; can't verify itself). Both is legitimate for high-stakes runs.
 3. **Run shape** — single run / multi-model merge (adds M-blocks) / DAG split.
+   Treat terminal-vs-web execution on the same question as a multi-run merge,
+   even when both runs use the same underlying model family.
    Split into a DAG when sub-questions need different source classes or
    dispositions (e.g., literature survey vs. repo inspection vs. synthesis), or
    when a single run would exceed ~10 report sections at real depth. Each DAG
-   node gets its own assembled prompt reusing the same core blocks; synthesis
-   is its own node taking the others as input.
+   research node gets its own assembled prompt reusing the same core blocks;
+   stage 9 synthesizes only after stage 8 verifies the node outputs. If an
+   external constraint fixes the number or shape of runs, record the DAG
+   reservation and use the degradation order instead of silently overriding
+   the constraint.
 
 ### Stage 3 — Scout (`03-scout.md`) — for standard/deep runs
 
 Purpose: replace hoped-for source strategies with tested ones, at ~2% of run
 cost.
 
-- **Local:** spawn a recon subagent with ~10–15 fetches: test each named
-  source class for reachability, check whether seed sources say what the
-  background notes claim, list ambiguities in the brief, and propose the five
-  highest-value queries.
+- **Local:** spawn a recon subagent with ~10–15 fetches: test each named source
+  class as reachable / unreachable / reachable-but-evidentially-worthless;
+  check whether seed sources say what the background notes claim; list
+  ambiguities in the brief; and propose the five highest-value queries.
 - **External DR:** run a short probe in the *same product* first ("Which of
-  these source classes can you access? Where will you struggle with this
-  question? What's ambiguous?").
+  these source classes can you access, and which accessible classes are too
+  weak to rely on? Where will you struggle with this question? What's
+  ambiguous?").
 
 Scout output fills the `{{ACCESSIBILITY_RESULTS}}` and `{{FALLBACKS}}` slots
-and often rewrites sub-question priorities. Skippable only for quick runs.
+and often rewrites sub-question priorities. Route reachable-but-worthless
+sources into the topic do-not list. Mark every scout/brief source annotation as
+**stated in source** or **inferred**; the drafter's summaries are claims, not
+ground truth. Skippable only for quick runs.
 
 ### Stage 4 — Draft (`04-prompt-<executor>.md`)
 
@@ -125,9 +140,10 @@ python3 skills/research-architect/scripts/lint_prompt.py --executor terminal 04-
 ```
 
 The script enforces the deterministic checks (instruction budget ≤40 web DR /
-≤60 terminal, no unfilled `{{slots}}`, no leftover drafting comments, rubric +
-degradation order + do-not list + summary block + self-report present). Two
-judgment checks remain manual:
+≤60 terminal, no unfilled `{{slots}}`, no leftover drafting comments or trailing
+harness debris, rubric + degradation order + do-not list + summary block +
+self-report present). Record its output and the two manual judgment checks in
+`04-lint-results.md`:
 
 - [ ] Every requirement checkable from report text
 - [ ] Do-not list is topic-specific, not generic virtue
@@ -152,7 +168,8 @@ what to bring back.
 
 - **Local:** hand each prompt to an executor subagent, or route through the
   `deep-research` skill (its depth router and evidence filter apply within a
-  node). DAG nodes run in parallel where independent; synthesis node last.
+  node). DAG research nodes run in parallel where independent; do not
+  synthesize them until stage 9.
 - **External:** present the prompt file(s) to the user and stop. Reports
   return as pasted text or uploads; resume at stage 8.
 
@@ -169,13 +186,24 @@ because external DR products cannot check their own citations.
 2. **Rubric pass (judgment):** spawn a fresh critique subagent — one that has
    not seen the drafting stages — to score the report against the shipped
    rubric, item by item, with evidence quotes. Pass/fail per item, not vibes.
-3. **Cross-run diff (multi-model only):** align sections; list confident
+3. **Cross-run diff (multi-run only):** align sections and evidence-grade or
+   classification tables; list confident
    specifics appearing in only one report — these are hallucination candidates;
    check each against a primary source before synthesis may use it.
 4. **Verdict:** accept / accept-with-caveats (list them) / re-run node X with
    an amended prompt (say what changed and why).
 
-### Stage 9 — Postmortem (`09-postmortem.md` + shared memory)
+### Stage 9 — Synthesize (`09-synthesis.md`) — for multi-run plans
+
+Merge only claims that survived stage 8 into the single decision- or build-ready
+document named in stage 0. Preserve meaningful disagreements instead of
+averaging them away; where verdicts converge but evidence grades or
+classifications differ, adjudicate the underlying substance explicitly. Cite
+the primary sources, not merely the input reports, and carry unresolved gaps
+into the final document. For a single-run plan, the accepted report is already
+the final synthesis and this stage is skipped.
+
+### Stage 10 — Postmortem (`10-postmortem.md` + shared memory)
 
 From the report's self-report (block A10 for external reports; the packet's
 `self_report` field for local `deep-research` runs) plus verification results,
@@ -196,7 +224,7 @@ after real runs.
 
 **Cleanup (closes every run):** once durable lessons are appended, the
 per-run scratch has served its purpose. Archive the keepers — the final
-prompt(s), the report, and the verification verdict — then delete
+prompt(s), final report or synthesis, and the verification verdict — then delete
 `research/<slug>/`. Default archive: `docs/research/YYYY-MM-DD-<slug>-*.md`
 in the repo the research serves (matching the `docs/design/` → `docs/specs/`
 → `docs/plans/` dating convention); for research that serves no repo, ask
@@ -219,12 +247,14 @@ the report.
 ## Output
 
 - Per-stage artifacts in `research/<slug>/` (decision brief, question, route,
-  scout, prompt(s), red-team, run plan, verification, postmortem) — run-scoped
-  scratch, deleted at the end of stage 9 after keepers are archived (default:
+  scout, prompt(s), lint results, red-team, run plan, verification, synthesis
+  when multi-run, postmortem) — run-scoped scratch, deleted at the end of stage
+  10 after keepers are archived (default:
   `docs/research/` in the repo the research serves).
 - The primary deliverables: one assembled, linted prompt per executor
   (`04-prompt-<executor>.md`), and after execution a verification verdict
-  (`08-verification.md`) with citation hit rate and per-rubric-item scores.
+  (`08-verification.md`) with citation hit rate and per-rubric-item scores; a
+  multi-run plan also produces one decision-ready `09-synthesis.md`.
 - Every report, regardless of executor, ends in the same summary block the
   `deep-research` skill emits (`key_findings` / `citations` /
   `confidence_gaps` / `next_queries`) — the interchange shape stage 8 consumes.
@@ -237,7 +267,9 @@ the report.
   explicitly waived it as a quick run.
 - Stage 8 verdicts cite evidence: citation hit rate from real fetches,
   pass/fail per rubric item with quotes — never vibes.
-- After real runs, stage 9 appended at least one dated lesson or explicitly
+- Multi-run stage 9 synthesis contains only stage-8-accepted claims and
+  preserves unresolved disagreements.
+- After real runs, stage 10 appended at least one dated lesson or explicitly
   recorded "no new lessons."
 - The run closed clean: keepers archived where the user chose, and
   `research/<slug>/` deleted — no stray artifacts left in the repo.
@@ -251,17 +283,18 @@ the report.
 - `scripts/lint_prompt.py` — deterministic stage-4 lint (budget, slots,
   comments, required blocks). `--json` for machine-readable output.
 - `references/postmortems.md`, `references/executor-profiles.md` — shared
-  memory; read at stages 2–5, append at stage 9; created on first use.
-- Deferred until real runs seed them (tracked in `docs/project/BACKLOG.md`,
-  do not reference as existing): `scripts/score_report.py`, `scripts/diff_runs.py`,
-  `references/rubric-library.md`, `evals/golden-questions/`. Until then, perform
-  scoring/diffing manually per stage 8.
+  memory; read at stages 2–5, append at stage 10; created on first use.
+- `evals/golden-questions/` — frozen real-run drafting artifacts used as
+  regression seeds. Deferred until 2–3 runs justify them:
+  `scripts/score_report.py`, `scripts/diff_runs.py`, and
+  `references/rubric-library.md`; until then, score and diff manually per stage
+  8.
 
 ## Sibling skills
 
 - `deep-research` — the local execution backend (depth routing, search loop,
   evidence filtering). This skill sits upstream (stages 0–6) and downstream
-  (stages 8–9) of it; quick low-stakes lookups should go to it directly.
+  (stages 8–10) of it; quick low-stakes lookups should go to it directly.
 - `brainstorming` / `first-principles` — upstream callers when the research
   question itself is still forming.
 - `write-spec` / `write-plan` — downstream consumers when the verified report

@@ -15,11 +15,15 @@ prompt by selecting blocks, filling `{{SLOTS}}`, and deleting the HTML comments
    reference designs). Insert after A5, or interleaved with V-blocks for mixed
    questions.
 4. **Merge blocks (M1–M2)** go in only for multi-run plans (multiple
-   models/executors whose reports will be diffed and synthesized).
+   models/executors whose reports will be diffed and synthesized). Two executor
+   classes on the same question — for example terminal and web DR — count even
+   if they share a model family.
 5. **Instruction budget.** Count the imperative requirements in the assembled
-   prompt (each "must/do/never/always" clause ≈ one instruction). Target **≤ 40
-   for web DR products, ≤ 60 for terminal agents**. Over budget → rank
-   instructions by "what breaks if this is dropped" and cut from the bottom.
+   prompt (explicit must/never/always clauses plus bullet-initial imperative
+   verbs are approximate signals). Target **≤ 40 for web DR products, ≤ 60 for
+   terminal agents**. Most fixed-block assemblies land well below the ceiling;
+   slot phrasing is usually where density grows. Over budget → rank instructions
+   by "what breaks if this is dropped" and cut from the bottom.
    An instruction that merely restates good general practice ("be thorough",
    "cite sources") is dead weight — the epistemics blocks already carry that
    load with specifics. Cut it.
@@ -81,7 +85,8 @@ get uniform shallowness. -->
 
 ### A4 — Verification & honesty
 
-> Any background notes, summaries, or seed material provided in this prompt are
+> Any background notes, summaries, seed material, or drafter/scout annotations
+> provided in this prompt are
 > **hypotheses to verify, not ground truth**. Confirm claims, numbers, dates,
 > and configurations against primary sources. Explicitly distinguish "reported
 > in the primary source" from "my inference." Where public material does not
@@ -89,12 +94,17 @@ get uniform shallowness. -->
 > as such. Do not invent specifics to appear complete: "unverified / not
 > public" is always a better answer than a fabricated one.
 
-### A5 — Frame-challenge license
+### A5 — Required frame check
 
-> If the framing of this prompt is wrong — the question is malformed, a stated
-> tension is not the real tension, or the most important consideration is
-> missing entirely — **say so at the top of the report** before answering the
+> **Begin the report with a frame check.** State either (a) the framing problem
+> — the question is malformed, a stated tension is not the real tension, or an
+> important consideration is missing — or (b) "frame verified" plus one sentence
+> naming what you checked. If the framing is wrong, say so before answering the
 > question as posed. You are not graded on agreement with the prompt.
+
+<!-- Stage 6's SECTION_ORDER must place the frame check first. Making the
+section unconditional distinguishes "checked and found no issue" from "did not
+check." -->
 
 ### A6 — Source strategy
 
@@ -104,7 +114,7 @@ get uniform shallowness. -->
 > repos/blogs > practitioner communities > secondary analysis; name the
 > specific venues that matter for this topic}}
 >
-> **Confirmed accessible / inaccessible (from the scout pass):**
+> **Scout status — reachable / unreachable / reachable-but-evidentially-worthless:**
 > {{ACCESSIBILITY_RESULTS}} (from stage 3)
 >
 > **Fallbacks:** where a priority source class is inaccessible, use
@@ -113,13 +123,18 @@ get uniform shallowness. -->
 > would be valuable but is unreachable, list it under research gaps rather than
 > implying coverage.
 >
+> The named seeds and source classes are a starting floor, **not a ceiling**.
+> Expand into any reachable source class that meets the evidence standard,
+> including high-grade classes the prompt did not anticipate.
+>
 > Do not pad the bibliography; a marginal low-quality source is worse than
 > none. {{SOURCE_FLOOR — optional: minimum coverage, e.g., "all seed sources
 > plus ≥10 adjacent primary sources spanning X, Y, Z"}}
 
 <!-- The accessibility slot is mandatory when a scout pass ran. This is the
 single most common silent failure of DR products: the prompt names Reddit/X/HN,
-the agent can't reach them, and it substitutes listicles without saying so. -->
+the agent can't reach them, and it substitutes listicles without saying so.
+Move reachable-but-evidentially-worthless sources into A7's do-not list. -->
 
 ### A7 — Do-not list
 
@@ -264,6 +279,10 @@ instructions when explicitly told it's safe to. -->
 > guessing. {{TERMINAL_ONLY — for terminal agents: clone and inspect the
 > repos; cite paths and line ranges}}
 
+<!-- For non-code build handoffs, adapt the columns to the destination artifact
+rather than dropping D3. Example: Concept | Source | Skill/rule file | Section |
+Fit/gap. The invariant is artifact-level traceability, not software vocabulary. -->
+
 ### D4 — Trade-offs & maturity levels
 
 > For each recommended design, provide an explicit trade-off table
@@ -287,7 +306,8 @@ instructions when explicitly told it's safe to. -->
 
 ### M1 — Fixed structure for cross-run merge
 
-> This report will be merged with reports from other models. Use the **exact
+> This report will be merged with reports from other runs/executors, including
+> terminal-vs-web runs on the same question. Use the **exact
 > section order in the output contract** with no added, removed, or reordered
 > sections, so reports align section-for-section. Confident specifics that
 > appear in only one model's report will be treated as hallucination candidates

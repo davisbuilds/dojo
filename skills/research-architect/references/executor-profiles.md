@@ -1,6 +1,6 @@
 # Executor profiles — per-executor quirks and routing facts
 
-Observed behavior of specific executors, appended at stage 9. Read at stages
+Observed behavior of specific executors, appended at stage 10. Read at stages
 2–4 to calibrate prompts and at stage 3 to seed scout expectations. Date every
 entry — access and behavior drift.
 
