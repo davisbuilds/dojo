@@ -48,12 +48,48 @@ Status: noted
   primary domains: arxiv.org, *.gov, official docs hosts) with source_type as
   a tiebreaker only; needs test updates in the filter's scoring cases.
 
+#### research-architect: pressure-test findings from the first live run (2026-07-12)
+Status: noted
+- **What**: The social-playbooks run (stages 0–6, two executors, full mixed
+  profile — friction log at `viral/research/social-playbooks/friction-log.md`)
+  surfaced seven process gaps: (1) `lint_prompt.py` has no check for stray
+  tool/harness debris — the executor subagent's Write calls left a literal
+  `</content>` trailer in both shippable prompts and lint passed them; (2)
+  M-blocks are phrased "multiple models" and nothing says terminal-vs-web on
+  the same question counts — a drafter without that instinct skips them and
+  loses the stage-8 cross-run diff; (3) the scout template is binary
+  reachable/unreachable, but "reachable-but-evidentially-worthless" was a
+  load-bearing third state with no slot (destination turned out to be the
+  do-not list); (4) the stage-4 manual lint checks have no named artifact home
+  (run invented `04-lint-results.md`); (5) D3's software-shaped table adapts
+  cleanly to non-code build handoffs (tactic → skill/rule file mapping) but
+  the pattern is undocumented; (6) no stage-2 guidance for weighing an
+  external run-shape constraint against the DAG heuristic; (7) stage 1 never
+  tests whether entities named in the brief are exemplars or an exhaustive
+  list — "experts like X, Y, Z" got silently narrowed to exactly X, Y, Z and
+  the user had to catch it.
+- **Why it matters**: All seven are seams between stages rather than block
+  content — exactly where the skill's own postmortem loop is supposed to
+  accumulate fixes; this is the seed material for the first
+  `references/postmortems.md` entries plus one lint feature.
+- **Sketch**: junk-line check in `lint_prompt.py` (fail on `</content>`-class
+  trailers); one clarifying sentence each in skeleton M-block intro, stage-2,
+  stage-3, and stage-4 sections; a documented D3 adaptation example in the
+  skeleton comment; an "exemplars or exhaustive?" bullet in stage 1; land
+  together with the stage-9 postmortem in the follow-up PR.
+
 #### research-architect: instruction counter undercounts imperative-verb phrasing
 Status: noted
 - **What**: `lint_prompt.py` counts only marker words (must/never/always/do
   not/don't). The ai-money reference prompt lints at 6/40 despite carrying far
   more real requirements phrased as bare imperatives ("Grade every major
-  claim", "Demand unit economics").
+  claim", "Demand unit economics"). Confirmed from the other direction in the
+  2026-07-12 pressure test: a fold-in that deleted 5 instruction-bearing
+  passages and added ~6 requirements left the counts unchanged (16/60, 17/40)
+  — the counter is insensitive in both directions. Related: the SKILL.md
+  framing primes drafters to expect budget fights, but a maximal 22-block
+  assembly landed at ~40% of the web budget; block text is imperative-sparse
+  by design and the pressure comes from slot phrasing.
 - **Why it matters**: The budget check is the lint's headline number; a floor
   that low can't catch genuinely over-stuffed prompts written in imperative
   style, which is exactly the bloat the budget exists to stop.
