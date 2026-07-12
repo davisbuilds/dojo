@@ -44,3 +44,20 @@ run's friction log for detail.
   and diffs reports but had no named stage/artifact for merging them into the
   single build-ready document the decision consumer actually wants; this run
   added it ad hoc after stage 8.
+- **Executor-independent verification is the load-bearing stage — confirmed.**
+  A polished, authoritative-reading web DR report failed verification at 43%
+  fully-supported citations with two refuted headline numbers; the terminal
+  report on the same question verified at ~93%. Nothing in the web report's
+  surface distinguished it. The cross-run diff adjudicated all five
+  spot-checked one-report-only claims correctly (three terminal claims
+  confirmed, two web claims refuted).
+- **Convergent verdicts can mask divergent substance.** Both reports reached
+  "small-and-boring durable core," but rated the identical tactic differently
+  underneath (Strong/validated vs. Moderate/not-yet-validated). Diff the
+  classification tables and evidence grades, not just the verdicts.
+- **Seed lists anchor; say they are not a ceiling.** When priority platforms
+  (X, Reddit) are unreachable, the fallback framing ("these named sources are
+  the floor") reads as a boundary and narrows the search universe. A6 should
+  explicitly license expansion into any reachable high-grade source class
+  (court/registry records, earnings data, platform transparency reports,
+  academic work, practitioner interviews) beyond the named seeds.
