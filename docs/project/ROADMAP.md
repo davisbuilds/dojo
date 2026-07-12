@@ -2,7 +2,7 @@
 
 Actionable improvement backlog for the skills catalog. This is a living snapshot, not a release contract.
 
-Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-07-11.
+Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-07-12.
 
 ## Completed Highlights
 
@@ -25,6 +25,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 | Extract system docs | Best practices, roadmap, contract extracted from analysis doc |
 | Add test-strategy skill | Methodology skill with verification checklist, a catalog-expanding milestone before later additions |
 | Add research-architect skill | Deep-research prompt engineering from composable skeleton blocks, pluggable execution routing, executor-independent report verification, postmortem memory; stakes-based trigger split with deep-research (bumped to 2.0.0 as its execution backend) |
+| Harden research orchestration from first live run | `research-architect` 2.0.0 formalizes verified multi-run synthesis as stage 9, moves postmortem to stage 10, closes nine stage-seam findings, and hardens prompt linting; `deep-research` 3.0.0 replaces self-declared credibility with conservative URL-host registry scoring and explainable provenance fields |
 | Design systems layer | Added `design-md` (Google `@google/design.md` CLI wrapper) and `design-critique` (closed 37-pattern slop catalog with structured findings) plus 5 Refero exemplars; sibling-skills footer convention disambiguates the four-skill design pipeline |
 | Add diagnose skill | Adapted mattpocock's feedback-loop-first debugging discipline into a six-phase workflow with a `scaffold_feedback_loop.sh` template generator (7 loop kinds) and a HITL bash harness |
 | Add caveman skill | Adapted mattpocock's ultra-compressed communication mode as a `reference`-typed skill — sticky output style with explicit Auto-Clarity Exception list and verification checklist |
