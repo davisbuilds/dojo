@@ -17,6 +17,34 @@ This file stays future-only.
 
 ## Open
 
+#### research-architect: deferred tooling awaits first real runs
+Status: noted
+- **What**: `scripts/score_report.py`, `scripts/diff_runs.py`,
+  `references/rubric-library.md`, and `evals/golden-questions/` were
+  deliberately deferred at skill creation (2026-07-12); stages 8–9 specify the
+  manual procedures they would automate.
+- **Why it matters**: Building rubric libraries and golden-question evals
+  before any real run would encode guesses; the first stage-9 postmortems are
+  the intended seed material. Once 2–3 real runs exist, automating the stage-8
+  structural pass and cross-run diff removes the most error-prone manual work.
+- **Sketch**: After the first real runs, extract rubric patterns from
+  `01-question.md` artifacts into rubric-library.md, freeze one finished brief
+  as the first golden question, then script scoring/diffing to match the
+  manual stage-8 spec.
+
+#### research-architect: instruction counter undercounts imperative-verb phrasing
+Status: noted
+- **What**: `lint_prompt.py` counts only marker words (must/never/always/do
+  not/don't). The ai-money reference prompt lints at 6/40 despite carrying far
+  more real requirements phrased as bare imperatives ("Grade every major
+  claim", "Demand unit economics").
+- **Why it matters**: The budget check is the lint's headline number; a floor
+  that low can't catch genuinely over-stuffed prompts written in imperative
+  style, which is exactly the bloat the budget exists to stop.
+- **Sketch**: Add bullet-initial imperative-verb detection (line starts with a
+  base-form verb) as a second counted class; calibrate thresholds against
+  stage-9 postmortems before tightening.
+
 #### skills-health: runtime join is last-wins, undercounts a version-split skill
 Status: noted
 - **What**: `skill_health_runtime.enrich_report` indexes health rows as

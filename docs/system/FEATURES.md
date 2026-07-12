@@ -55,6 +55,7 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 | `create-cli` | CLI parameter and UX design |
 | `agent-native-architecture` | Build agent-native apps with tool/action parity |
 | `deep-research` | Web-backed research with conditional depth and evidence filtering |
+| `research-architect` | Engineer deep-research prompts from composable blocks, route execution (local subagents or external DR products), verify reports, and compound lessons via postmortems |
 | `self-improve` | Capture learnings, compact them, and promote validated patterns into reusable artifacts |
 
 ### Disciplines
