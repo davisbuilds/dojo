@@ -8,7 +8,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 
 | Item | What Changed |
 |------|-------------|
-| 55 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, autonomous-loop design, pre-execution (brainstorm → spec → plan), and meta/skill tooling |
+| 56 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, autonomous-loop design, pre-execution (brainstorm → spec → plan), research orchestration, and meta/skill tooling |
 | Hook quality pipeline | Session-start catalog injection, pre/post-tool-use validation and manifest sync, spec + plan validation, git checks, structure checks, session retro reminder |
 | Skill packaging and distribution | `.skill` zip format with validation |
 | Command wrappers | Deterministic slash-style entrypoints |
@@ -24,6 +24,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 | Rename json-canvas | → obsidian-canvas, updated all references |
 | Extract system docs | Best practices, roadmap, contract extracted from analysis doc |
 | Add test-strategy skill | Methodology skill with verification checklist, a catalog-expanding milestone before later additions |
+| Add research-architect skill | Deep-research prompt engineering from composable skeleton blocks, pluggable execution routing, executor-independent report verification, postmortem memory; stakes-based trigger split with deep-research (bumped to 2.0.0 as its execution backend) |
 | Design systems layer | Added `design-md` (Google `@google/design.md` CLI wrapper) and `design-critique` (closed 37-pattern slop catalog with structured findings) plus 5 Refero exemplars; sibling-skills footer convention disambiguates the four-skill design pipeline |
 | Add diagnose skill | Adapted mattpocock's feedback-loop-first debugging discipline into a six-phase workflow with a `scaffold_feedback_loop.sh` template generator (7 loop kinds) and a HITL bash harness |
 | Add caveman skill | Adapted mattpocock's ultra-compressed communication mode as a `reference`-typed skill — sticky output style with explicit Auto-Clarity Exception list and verification checklist |

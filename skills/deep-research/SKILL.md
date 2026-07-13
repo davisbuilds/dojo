@@ -1,9 +1,9 @@
 ---
 name: deep-research
-description: Use when a task needs web-backed research with controlled depth, relevance filtering, and citation-ready synthesis. Routes work to quick, standard, or deep tiers, filters low-signal context, and returns a compact packet with key findings, citations, discarded context, confidence gaps, and next queries.
+description: Use when a task needs direct web-backed research with controlled depth, relevance filtering, and citation-ready synthesis — the user wants the answer, not a commissioned research program. Routes work to quick, standard, or deep tiers, filters low-signal context, and returns a compact packet with key findings, citations, discarded context, confidence gaps, and next queries. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead — this skill is its execution backend.
 skill-type: workflow
 compatibility: "Requires python3. Requires network access for web research."
-version: 1.0.0
+version: 2.0.0
 ---
 
 # Deep Research
@@ -21,6 +21,9 @@ Use this skill when the user asks for:
 Skip this skill for:
 - simple static facts that do not require web retrieval
 - tasks where user-provided context is already complete and verified
+- engineering a research prompt/brief, planning multi-model or external DR
+  runs, or verifying a report someone else produced — that is
+  `research-architect`, which calls this skill as its execution backend
 
 ## Workflow
 
@@ -115,6 +118,8 @@ Required output sections:
 - key findings with citations
 - confidence gaps
 - suggested next queries (if unresolved gaps remain)
+- self-report, for standard/deep runs: instructions or source classes you
+  could not honor, and why — candor here is rewarded, not penalized
 
 ## Output Contract
 
@@ -125,6 +130,9 @@ Return this shape for downstream composition:
 - `discarded_context`
 - `confidence_gaps`
 - `next_queries`
+- `self_report` (optional on quick runs, expected on standard/deep) —
+  agent-composed at synthesis, not script-emitted; consumed by
+  `research-architect` stage-9 postmortems
 
 Do not mix discarded items back into final claims.
 
@@ -133,6 +141,10 @@ Do not mix discarded items back into final claims.
 - Recency-sensitive tasks must include current dated sources.
 - High-stakes tasks require stronger source diversity and official documentation.
 - If confidence gaps remain, report them explicitly instead of speculating.
+- Use only source classes you can actually reach. If a priority source class
+  is inaccessible (paywall, login wall, blocked platform), do not silently
+  substitute lower-grade sources for it — name the fallback you used and
+  record the gap in `confidence_gaps` and the `self_report`.
 - Keep synthesis concise; preserve traceability through citations.
 
 ## References
@@ -143,6 +155,9 @@ Do not mix discarded items back into final claims.
 
 Parallel evidence-gathering stage in the pre-execution pipeline.
 
+- `research-architect` — upstream/downstream orchestrator: engineers the
+  prompt, routes execution (this skill is the local backend), and verifies
+  whatever comes back. High-stakes or multi-model research starts there.
 - `brainstorming` — common caller when option exploration depends on facts.
 - `first-principles` — common caller when reasoning hinges on unknowns (library behavior, API contracts).
 - `write-spec` — common caller when the contract needs grounded evidence (the WHAT).

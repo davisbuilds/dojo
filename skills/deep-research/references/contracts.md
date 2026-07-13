@@ -139,6 +139,10 @@ python3 skills/deep-research/scripts/run_pipeline.py \
 
 - `evidence_filter.py` is deterministic and rule-based; it does not call an LLM.
 - If claim quality is critical, use this output as a pre-synthesis gate and run a final claim check afterward.
+- The skill-level packet (see SKILL.md Output Contract) adds a `self_report`
+  field on top of the `evidence_filter.py` output. It is composed by the agent
+  at synthesis — no script emits it — and feeds `research-architect` stage-9
+  postmortems.
 
 ## `run_pipeline.py`
 

@@ -70,9 +70,9 @@
     },
     {
       "name": "deep-research",
-      "description": "Use when a task needs web-backed research with controlled depth, relevance filtering, and citation-ready synthesis. Routes work to quick, standard, or deep tiers, filters low-signal context, and returns a compact packet with key findings, citations, discarded context, confidence gaps, and next queries.",
+      "description": "Use when a task needs direct web-backed research with controlled depth, relevance filtering, and citation-ready synthesis \u2014 the user wants the answer, not a commissioned research program. Routes work to quick, standard, or deep tiers, filters low-signal context, and returns a compact packet with key findings, citations, discarded context, confidence gaps, and next queries. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead \u2014 this skill is its execution backend.",
       "path": "skills/deep-research",
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
     {
       "name": "design-critique",
@@ -220,6 +220,20 @@
       "description": "Audit and harden a software repo against supply-chain and workflow risks. Use when a user asks to audit a repo, harden CI, pin GitHub Actions, freeze installs, reduce bot workflow risk, review lockfile/package-manager discipline, or create repo-local security investigation artifacts. Supports Node, Python, GitHub Actions, GitLab CI, and mixed-stack repos. On-demand via /repo-audit and /repo-harden.",
       "path": "skills/repo-hardening",
       "version": "1.0.0"
+    },
+    {
+      "name": "research-architect",
+      "description": "Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or research brief; commission or plan a multi-source, high-stakes, or multi-model research run; run research through external deep-research products (Claude/OpenAI/Gemini DR); or verify and score a research report someone or something else produced. Triggers on \"research prompt\", \"research brief\", \"commission research\", \"plan a research run\", \"verify this report\", \"research architect\". For a direct low-stakes web lookup where the user just wants the answer, use the deep-research skill instead \u2014 this skill sits upstream (prompt engineering, routing) and downstream (verification, postmortem) of execution.",
+      "path": "skills/research-architect",
+      "version": "1.0.0",
+      "triggers": [
+        "research prompt",
+        "research brief",
+        "research architect",
+        "commission research",
+        "plan a research run",
+        "verify this research report"
+      ]
     },
     {
       "name": "screenshot",
