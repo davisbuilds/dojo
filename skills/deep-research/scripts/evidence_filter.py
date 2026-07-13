@@ -224,21 +224,6 @@ def credibility_assessment(source_type: str, domain: str) -> dict:
     source_key = (source_type or "unknown").strip().lower()
     normalized_domain = normalize_domain(domain)
 
-    if normalized_domain == "gov" or normalized_domain.endswith(".gov"):
-        compatible = source_key == "government"
-        base_score = 0.9
-        ceiling = 0.95
-        score = min(ceiling, base_score + (SOURCE_TYPE_TIEBREAK if compatible else 0.0))
-        return {
-            "score": round(score, 4),
-            "ceiling": ceiling,
-            "registry_id": "us-government",
-            "authority": "controlled_government_namespace",
-            "document_class": "government_page",
-            "source_type_consistency": "compatible" if compatible else "mismatch",
-            "reason": "Domain is in the controlled .gov namespace; page-level support still requires verification.",
-        }
-
     for rule in load_credibility_registry():
         if normalized_domain != normalize_domain(str(rule.get("host") or "")):
             continue
@@ -255,6 +240,21 @@ def credibility_assessment(source_type: str, domain: str) -> dict:
             "document_class": rule["document_class"],
             "source_type_consistency": "compatible" if compatible else "mismatch",
             "reason": rule["rationale"],
+        }
+
+    if normalized_domain == "gov" or normalized_domain.endswith(".gov"):
+        compatible = source_key == "government"
+        base_score = 0.9
+        ceiling = 0.95
+        score = min(ceiling, base_score + (SOURCE_TYPE_TIEBREAK if compatible else 0.0))
+        return {
+            "score": round(score, 4),
+            "ceiling": ceiling,
+            "registry_id": "us-government",
+            "authority": "controlled_government_namespace",
+            "document_class": "government_page",
+            "source_type_consistency": "compatible" if compatible else "mismatch",
+            "reason": "Domain is in the controlled .gov namespace; page-level support still requires verification.",
         }
 
     score = UNKNOWN_DOMAIN_SCORES.get(source_key, 0.5)

@@ -46,6 +46,17 @@ def test_controlled_government_namespace_has_high_domain_credibility():
     assert assessment["registry_id"] == "us-government"
 
 
+def test_specific_pubmed_rule_takes_precedence_over_generic_gov_namespace():
+    assessment = evidence_filter.credibility_assessment(
+        "academic", "pubmed.ncbi.nlm.nih.gov"
+    )
+
+    assert assessment["score"] == 0.86
+    assert assessment["registry_id"] == "pubmed-index"
+    assert assessment["document_class"] == "bibliographic_record"
+    assert assessment["source_type_consistency"] == "compatible"
+
+
 def test_approved_university_research_host_gets_specific_institutional_prior():
     assessment = evidence_filter.credibility_assessment("academic", "hai.stanford.edu")
 
