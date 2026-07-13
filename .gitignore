@@ -52,8 +52,11 @@ temp/
 
 # Misc
 anthropic/
-**/downloads/
-**/archive/
+
+# Docs
+docs/downloads/
+docs/archive/
+docs/sessions/
 
 # Agent dirs (fully user-specific)
 .agent/
