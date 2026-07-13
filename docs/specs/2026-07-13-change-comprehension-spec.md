@@ -2,7 +2,7 @@
 date: 2026-07-13
 topic: change-comprehension
 stage: spec
-status: draft
+status: in-progress
 source: conversation
 ---
 
