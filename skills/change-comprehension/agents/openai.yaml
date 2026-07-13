@@ -1,5 +1,0 @@
-# AUTO-GENERATED from SKILL.md frontmatter — do not edit
-interface:
-  display_name: "Change Comprehension"
-  short_description: "Help a human understand a specific code change — optional"
-  default_prompt: "Use $change-comprehension for this task."

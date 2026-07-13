@@ -1,10 +1,10 @@
 ---
 date: 2026-07-13
-topic: change-comprehension
+topic: blind-spots
 stage: brainstorm
 ---
 
-# Change Comprehension
+# Blind Spots
 
 ## Problem / Context
 
@@ -27,7 +27,7 @@ scope before work and test their own understanding after implementation.
   to `write-plan`, `local-review`, or PR workflows. This adds little catalog
   surface, but scatters one concern across skills whose contracts currently focus
   on agent grounding, defect detection, and delivery evidence.
-- **Create one human-centered change-comprehension skill**: Give one skill two
+- **Create one human-centered blind-spots skill**: Give one skill two
   independently invokable modes: a pre-implementation scope briefing and a
   post-implementation quiz. This creates a distinct responsibility and preserves
   the existing pipeline boundaries, at the cost of a skill that can appear at two
@@ -39,7 +39,7 @@ scope before work and test their own understanding after implementation.
 
 ## Chosen Direction
 
-Create a human-centered `change-comprehension` workflow skill with two modes that
+Create a human-centered `blind-spots` workflow skill with two modes that
 can be invoked independently.
 
 **Scope mode** helps the user understand a proposed change before implementation.
@@ -75,7 +75,7 @@ revisiting. A durable artifact is created only when explicitly requested.
 
 ## Open Questions
 
-- Whether `change-comprehension` is the final public name or a clearer user-facing
+- Whether `blind-spots` is the final public name or a clearer user-facing
   name emerges during specification.
 - Which explicit command wrappers best expose scope and quiz modes across
   harnesses.

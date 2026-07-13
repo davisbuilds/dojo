@@ -114,7 +114,7 @@ Status: noted
   SemVer baseline. `hooks/pre-tool-use-validate-skill.sh` validates the *existing*
   on-disk SKILL.md before allowing a Write or Edit, so the freshly scaffolded file
   fails validation and blocks the very edit that would add `version`. Hit while
-  creating `change-comprehension`; worked around by deleting the scaffold and
+  creating `blind-spots`; worked around by deleting the scaffold and
   writing SKILL.md from scratch (the hook passes when the file is absent).
 - **Why it matters**: Every new skill authored with the official initializer walks
   into this. The workaround makes the initializer worse than useless — it costs a

@@ -1,17 +1,17 @@
 ---
 date: 2026-07-13
-topic: change-comprehension
+topic: blind-spots
 stage: plan
 status: in-progress
 source: conversation
 ---
 
-# Change Comprehension Plan
+# Blind Spots Plan
 
 ## Goal
 
 Deliver the optional, non-gating human-comprehension workflow defined in
-`docs/specs/2026-07-13-change-comprehension-spec.md`: a task-scoped scope mode
+`docs/specs/2026-07-13-blind-spots-spec.md`: a task-scoped scope mode
 for proposed changes and a one-question-at-a-time quiz mode for implemented
 changes, with focused routing checks and fixed behavioral acceptance scenarios.
 
@@ -19,7 +19,7 @@ changes, with focused routing checks and fixed behavioral acceptance scenarios.
 
 ### In Scope
 
-- Add one `change-comprehension` workflow skill with a concise, agent-agnostic
+- Add one `blind-spots` workflow skill with a concise, agent-agnostic
   runtime contract.
 - Expose scope and quiz modes through explicit `/understand-change` and
   `/quiz-change` command wrappers.
@@ -109,13 +109,13 @@ fixed acceptance fixtures without changing neighboring workflow contracts.
 
 **Files**
 
-- Create: `skills/change-comprehension/SKILL.md`
-- Create: `skills/change-comprehension/commands/understand-change.md`
-- Create: `skills/change-comprehension/commands/quiz-change.md`
-- Test: `skills/change-comprehension/evals/trigger-cases.json`
-- Test: `skills/change-comprehension/evals/behavioral-scenarios.md`
-- Modify: `docs/specs/2026-07-13-change-comprehension-spec.md`
-- Modify: `docs/plans/2026-07-13-change-comprehension-plan.md`
+- Create: `skills/blind-spots/SKILL.md`
+- Create: `skills/blind-spots/commands/understand-change.md`
+- Create: `skills/blind-spots/commands/quiz-change.md`
+- Test: `skills/blind-spots/evals/trigger-cases.json`
+- Test: `skills/blind-spots/evals/behavioral-scenarios.md`
+- Modify: `docs/specs/2026-07-13-blind-spots-spec.md`
+- Modify: `docs/plans/2026-07-13-blind-spots-plan.md`
 
 **Dependencies**
 
@@ -123,21 +123,21 @@ None
 
 **Assumptions Verified**
 
-- `docs/specs/2026-07-13-change-comprehension-spec.md:5` and
-  `docs/plans/2026-07-13-change-comprehension-plan.md:5` both begin at
+- `docs/specs/2026-07-13-blind-spots-spec.md:5` and
+  `docs/plans/2026-07-13-blind-spots-plan.md:5` both begin at
   `status: draft`; they must move together when implementation actually starts.
 
 **Research Context**
 
-- `docs/specs/2026-07-13-change-comprehension-spec.md:22-38` defines the two-mode,
+- `docs/specs/2026-07-13-blind-spots-spec.md:22-38` defines the two-mode,
   non-scored contract and its verification gate.
-- `docs/specs/2026-07-13-change-comprehension-spec.md:58-111` separates scope,
+- `docs/specs/2026-07-13-blind-spots-spec.md:58-111` separates scope,
   quiz, and sibling-routing behavior.
 - `skills/brainstorming/SKILL.md:45-60` demonstrates one-question-at-a-time user
   interaction; this skill reuses the interaction discipline but not
   brainstorming's decision responsibility.
 - `skills/local-review/SKILL.md:14-59` demonstrates explicit target selection and
-  a read-only workflow boundary; change comprehension consumes evidence without
+  a read-only workflow boundary; blind spots consumes evidence without
   adopting review findings.
 - `skills/verify-before-complete/SKILL.md:47-65` keeps proof of completion
   separate from explanatory confidence.
@@ -148,9 +148,9 @@ None
    keep both in that state through any failed implementation or verification
    gate.
 2. Run
-   `python3 skills/skill-creator/scripts/init_skill.py change-comprehension --path skills`
+   `python3 skills/skill-creator/scripts/init_skill.py blind-spots --path skills`
    to create the canonical scaffold. Immediately replace the TODO template with
-   valid frontmatter containing `name: change-comprehension`,
+   valid frontmatter containing `name: blind-spots`,
    `skill-type: workflow`, `version: 1.0.0`, a trigger-ready description, and a
    small set of literal scope/quiz trigger phrases.
 3. Before finalizing the description or body, add the dedicated trigger fixture.
@@ -159,20 +159,23 @@ None
    `local-review`, `gh-review-pr`, `verify-before-complete`, and generic
    non-interactive code explanation.
 4. Run the focused trigger command against the minimal valid scaffold and record
-   a non-zero result for at least one positive change-comprehension case. This is
+   a non-zero result for at least one positive blind-spots case. This is
    the red signal; do not weaken negative controls to obtain green.
 5. Add the fixed behavioral scenario protocol from the spec. For each scenario,
    include the repository/change context, literal user turns, expected assistant
-   turn boundaries, and binary assertions. Cover scope evidence conflict,
-   incomplete and “I don't know” answers, a complete answer and natural close,
-   missing change target, skip/stop control, no-artifact default, and sibling
-   routing.
-6. Author a concise `SKILL.md` with: mode selection; shared grounding and
-   confidence rules; a scope workflow that distinguishes current behavior from
-   proposed intent; a quiz workflow that proposes a bounded topic set, asks at
-   most one substantive question per active quiz turn, waits, teaches with
-   evidence, and closes with a non-scored recap; explicit boundaries; output and
-   verification contracts; resource pointers; and sibling handoffs.
+   turn boundaries, and binary assertions. Cover calibration and unknown
+   unknowns, brief-then-quiz ordering, incomplete and “I don't know” answers, a
+   complete answer and natural close, missing change target, skip/stop control,
+   no-artifact default, and sibling routing.
+6. Author a concise `SKILL.md` with: mode selection; a shared calibration step
+   that establishes the user's existing knowledge before explaining anything;
+   shared grounding and confidence rules; a scope workflow that distinguishes
+   current behavior from proposed intent and explicitly names unknown unknowns;
+   a quiz workflow that briefs the user on the change, proposes a bounded topic
+   set, asks at most one substantive question per active quiz turn about the
+   consequences the briefing left open, waits, teaches with evidence, and closes
+   with a non-scored recap; explicit boundaries; output and verification
+   contracts; resource pointers; and sibling handoffs.
 7. Add `/understand-change` as the canonical scope wrapper and `/quiz-change` as
    the canonical quiz wrapper. Each wrapper loads the same skill, supplies its
    mode and user arguments, preserves chat-only/no-write defaults, and delegates
@@ -195,19 +198,19 @@ None
 **Verification**
 
 - Run:
-  `python3 skills/skill-creator/scripts/quick_validate.py skills/change-comprehension`
+  `python3 skills/skill-creator/scripts/quick_validate.py skills/blind-spots`
 - Expect: `Skill is valid!` and exit 0.
 - Run:
-  `python3 skills/skill-evals/scripts/run_trigger_evals.py --cases skills/change-comprehension/evals/trigger-cases.json --skills-root skills --skills change-comprehension,brainstorming,write-spec,write-plan,first-principles,diagnose,local-review,gh-review-pr,verify-before-complete --pretty`
+  `python3 skills/skill-evals/scripts/run_trigger_evals.py --cases skills/blind-spots/evals/trigger-cases.json --skills-root skills --skills blind-spots,brainstorming,write-spec,write-plan,first-principles,diagnose,local-review,gh-review-pr,verify-before-complete --pretty`
 - Expect: every focused assertion passes and exit 0.
 - Run:
   `python3 skills/skill-evals/scripts/run_trigger_evals.py --from-triggers --skills-root skills --pretty`
 - Expect: every declared trigger self-routes without a collision and exit 0.
 - Run:
-  `python3 scripts/slop_scan.py skills/change-comprehension/SKILL.md skills/change-comprehension/commands/understand-change.md skills/change-comprehension/commands/quiz-change.md`
+  `python3 scripts/slop_scan.py skills/blind-spots/SKILL.md skills/blind-spots/commands/understand-change.md skills/blind-spots/commands/quiz-change.md`
 - Expect: `No slop detected.` and exit 0.
 - Run: replay the fixed cases in
-  `skills/change-comprehension/evals/behavioral-scenarios.md`.
+  `skills/blind-spots/evals/behavioral-scenarios.md`.
 - Expect: every binary assertion passes; no transcript leaks an answer early,
   asks multiple substantive questions, invents evidence, writes an artifact,
   scores the user, or gives a merge verdict.
@@ -219,9 +222,9 @@ None
   file and evaluates only the named `--skills` set; the behavioral protocol is a
   literal replay artifact rather than a pytest-discovered test.
 - Literal proof:
-  `python3 skills/skill-evals/scripts/run_trigger_evals.py --cases skills/change-comprehension/evals/trigger-cases.json --skills-root skills --skills change-comprehension,brainstorming,write-spec,write-plan,first-principles,diagnose,local-review,gh-review-pr,verify-before-complete --pretty`
+  `python3 skills/skill-evals/scripts/run_trigger_evals.py --cases skills/blind-spots/evals/trigger-cases.json --skills-root skills --skills blind-spots,brainstorming,write-spec,write-plan,first-principles,diagnose,local-review,gh-review-pr,verify-before-complete --pretty`
   runs the exact routing fixture. Every scenario heading in
-  `skills/change-comprehension/evals/behavioral-scenarios.md` is replayed directly
+  `skills/blind-spots/evals/behavioral-scenarios.md` is replayed directly
   against its frozen turns and assertions.
 
 **Done When**
@@ -262,7 +265,7 @@ Task 1
 
 **Implementation Steps**
 
-1. Add `change-comprehension` to Development Workflows with a one-line purpose
+1. Add `blind-spots` to Development Workflows with a one-line purpose
    centered on optional human scope understanding and pre-merge self-quizzing.
 2. Add `/understand-change` and `/quiz-change` to the command-wrapper list with
    distinct scope and quiz descriptions.
@@ -275,7 +278,7 @@ Task 1
 **Verification**
 
 - Run:
-  `rg -n 'change-comprehension|understand-change|quiz-change|57 skills' docs/system/FEATURES.md docs/project/ROADMAP.md`
+  `rg -n 'blind-spots|understand-change|quiz-change|57 skills' docs/system/FEATURES.md docs/project/ROADMAP.md`
 - Expect: one workflow entry, two command entries, one roadmap highlight, and the
   updated catalog count; no duplicate README command listing.
 - Run:
@@ -298,7 +301,7 @@ confirm the generation pipeline remains idempotent.
 
 **Files**
 
-- Create: `skills/change-comprehension/agents/openai.yaml`
+- Create: `skills/blind-spots/agents/openai.yaml`
 - Modify: `skills.json`
 - Modify: `docs/catalog/index.html`
 
@@ -334,7 +337,7 @@ generated integration can land as one coherent commit.
 - Run: `jq -e '.skills | length == 57' skills.json`
 - Expect: exit 0.
 - Run:
-  `jq -e '.skills[] | select(.name == "change-comprehension" and .version == "1.0.0")' skills.json`
+  `jq -e '.skills[] | select(.name == "blind-spots" and .version == "1.0.0")' skills.json`
 - Expect: exactly one matching manifest entry with the authored trigger list.
 - Run:
   `python3 scripts/generate_skills_manifest.py --check && python3 scripts/gen_harness_adapters.py --check --skip-symlinks && python3 scripts/gen_catalog.py --check`
@@ -355,8 +358,8 @@ then mark the spec and plan complete only on fresh evidence.
 
 **Files**
 
-- Modify: `docs/specs/2026-07-13-change-comprehension-spec.md`
-- Modify: `docs/plans/2026-07-13-change-comprehension-plan.md`
+- Modify: `docs/specs/2026-07-13-blind-spots-spec.md`
+- Modify: `docs/plans/2026-07-13-blind-spots-plan.md`
 
 **Dependencies**
 
@@ -364,9 +367,9 @@ Tasks 1–3
 
 **Assumptions Verified**
 
-- `docs/specs/2026-07-13-change-comprehension-spec.md:5` is `status: draft` and
+- `docs/specs/2026-07-13-blind-spots-spec.md:5` is `status: draft` and
   remains the acceptance contract.
-- `docs/plans/2026-07-13-change-comprehension-plan.md:5` starts as
+- `docs/plans/2026-07-13-blind-spots-plan.md:5` starts as
   `status: draft`; lifecycle status is not evidence and must advance only after
   the corresponding work begins or passes.
 - `.github/workflows/skill-contract-pilot.yml:61-105` defines the current CI
@@ -410,10 +413,10 @@ Tasks 1–3
 - Run: `python3 scripts/slop_scan.py`
 - Expect: `No slop detected.` and exit 0.
 - Run:
-  `python3 skills/write-spec/scripts/validate_spec.py --strict-filename docs/specs/2026-07-13-change-comprehension-spec.md`
+  `python3 skills/write-spec/scripts/validate_spec.py --strict-filename docs/specs/2026-07-13-blind-spots-spec.md`
 - Expect: spec passes.
 - Run:
-  `python3 skills/write-plan/scripts/validate_plan.py --strict-filename docs/plans/2026-07-13-change-comprehension-plan.md`
+  `python3 skills/write-plan/scripts/validate_plan.py --strict-filename docs/plans/2026-07-13-blind-spots-plan.md`
 - Expect: plan passes with no grounding or test-discovery advisories.
 - Run: `git diff --check`
 - Expect: exit 0 with no whitespace errors.
@@ -454,18 +457,18 @@ Tasks 1–3
 
 | Requirement | Proof command | Expected signal |
 | --- | --- | --- |
-| Valid workflow package | `python3 skills/skill-creator/scripts/quick_validate.py skills/change-comprehension` | `Skill is valid!` |
+| Valid workflow package | `python3 skills/skill-creator/scripts/quick_validate.py skills/blind-spots` | `Skill is valid!` |
 | Strict dojo contract | `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict` | 57 skills pass |
-| Focused sibling routing | `python3 skills/skill-evals/scripts/run_trigger_evals.py --cases skills/change-comprehension/evals/trigger-cases.json --skills-root skills --skills change-comprehension,brainstorming,write-spec,write-plan,first-principles,diagnose,local-review,gh-review-pr,verify-before-complete --pretty` | All focused assertions pass |
+| Focused sibling routing | `python3 skills/skill-evals/scripts/run_trigger_evals.py --cases skills/blind-spots/evals/trigger-cases.json --skills-root skills --skills blind-spots,brainstorming,write-spec,write-plan,first-principles,diagnose,local-review,gh-review-pr,verify-before-complete --pretty` | All focused assertions pass |
 | Declared triggers avoid collisions | `python3 skills/skill-evals/scripts/run_trigger_evals.py --from-triggers --skills-root skills --pretty` | No tie or collision |
-| Fixed conversational contract | Replay `skills/change-comprehension/evals/behavioral-scenarios.md` | Every binary assertion passes |
+| Fixed conversational contract | Replay `skills/blind-spots/evals/behavioral-scenarios.md` | Every binary assertion passes |
 | Manifest contains the new release | `jq -e '.skills | length == 57' skills.json` | Exit 0 |
 | Generated artifacts are current | `python3 scripts/gen_skill_docs.py --check && python3 scripts/generate_skills_manifest.py --check && python3 scripts/gen_harness_adapters.py --check --skip-symlinks && python3 scripts/gen_catalog.py --check` | All checks exit 0 |
 | Existing repository behavior is preserved | `python -m pytest tests/ -q` | Full suite passes |
 | New-skill release policy holds | `python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main` | Version check passes |
 | Authored prose remains clean | `python3 scripts/slop_scan.py` | No slop detected |
-| Contract remains valid | `python3 skills/write-spec/scripts/validate_spec.py --strict-filename docs/specs/2026-07-13-change-comprehension-spec.md` | Spec passes |
-| Plan remains grounded | `python3 skills/write-plan/scripts/validate_plan.py --strict-filename docs/plans/2026-07-13-change-comprehension-plan.md` | Plan passes with no advisories |
+| Contract remains valid | `python3 skills/write-spec/scripts/validate_spec.py --strict-filename docs/specs/2026-07-13-blind-spots-spec.md` | Spec passes |
+| Plan remains grounded | `python3 skills/write-plan/scripts/validate_plan.py --strict-filename docs/plans/2026-07-13-blind-spots-plan.md` | Plan passes with no advisories |
 | Working tree hygiene | `git diff --check` | Exit 0 |
 
 ## Handoff

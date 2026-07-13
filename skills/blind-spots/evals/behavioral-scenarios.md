@@ -1,7 +1,7 @@
-# Change Comprehension — Behavioral Scenarios
+# Blind Spots — Behavioral Scenarios
 
-Frozen conversational acceptance for the `change-comprehension` skill, per
-`docs/specs/2026-07-13-change-comprehension-spec.md`.
+Frozen conversational acceptance for the `blind-spots` skill, per
+`docs/specs/2026-07-13-blind-spots-spec.md`.
 
 The deterministic trigger fixture (`trigger-cases.json`) checks *routing* by
 lexical overlap. It says nothing about how the skill behaves once it is running.
@@ -24,17 +24,19 @@ For **each** scenario, independently:
 5. A scenario passes only when **every** assertion passes. The suite passes only
    when every scenario passes.
 
-Two global assertions apply to every scenario and are not repeated below:
+Three global assertions apply to every scenario and are not repeated below:
 
 - **G1** — No response invents repository evidence. Every file, line, symbol, or
   behavior cited exists.
 - **G2** — No response expands into a general codebase survey.
+- **G3** — Depth matches the expertise the user declared. A user who says they
+  know the codebase gets no fundamentals lecture.
 
 On failure: revise the **minimum** instruction needed, then replay the *same*
 frozen scenario from a *new* session. Do not edit the scenario to fit the
 behavior.
 
-## Scenario 1 — Scope boundary and evidence
+## Scenario 1 — Calibration and unknown unknowns
 
 **Setup.** A repository where the user's approved intent conflicts with current
 behavior, and one boundary is genuinely unresolved. Reference setup: a service
@@ -44,20 +46,23 @@ upstream queue retries the call.
 
 **Turns.**
 
-- **User:** `Before we implement this, help me understand the scope of the proposed change — we want that swallowed error surfaced to the caller.`
+- **User:** `Do a blind spot pass on this before we build it — we want that swallowed error surfaced to the caller.`
+- **User:** *(in reply to the calibration question)* `I know this service well but I've never touched the queue side of it.`
 
 **Assertions.**
 
 | # | Assertion |
 |---|---|
-| 1.1 | Separates current behavior (repository evidence) from proposed intent (the user's request), so a reader can tell which is which |
-| 1.2 | Names the conflict between the two explicitly rather than silently adopting either |
-| 1.3 | Marks the unresolved boundary as unknown, and does not assert a retry behavior the repo does not show |
-| 1.4 | Explains a bounded entry point and call path, not every path in the system |
-| 1.5 | Prescribes **no** architecture choice, **no** acceptance criteria, and **no** task sequence |
-| 1.6 | Writes no file |
+| 1.1 | Opens by asking what the user already knows, before explaining anything |
+| 1.2 | Honors the declared expertise — explains the queue side, does not re-explain the service the user said they know |
+| 1.3 | Separates current behavior (repository evidence) from proposed intent (the user's request) |
+| 1.4 | Names the conflict between the two explicitly rather than silently adopting either |
+| 1.5 | Surfaces at least one **unknown unknown** — something the user did not ask about and would not have thought to ask |
+| 1.6 | Marks the unresolved queue-retry boundary as unknowable from the repo, and asserts no retry behavior |
+| 1.7 | Prescribes **no** architecture choice, **no** acceptance criteria, and **no** task sequence |
+| 1.8 | Writes no file |
 
-## Scenario 2 — Incomplete quiz answer
+## Scenario 2 — Brief, then incomplete answer
 
 **Setup.** An implemented, identifiable change (working tree, branch, or commit)
 with some verification evidence — at least one test covering it.
@@ -65,6 +70,7 @@ with some verification evidence — at least one test covering it.
 **Turns.**
 
 - **User:** `Quiz me on this change before I merge it.`
+- **User:** *(in reply to the calibration question)* `I know the codebase well, but I wasn't watching closely while you worked.`
 - **User:** *(after the assistant's first substantive question)* `I think it changes how the retry path handles errors, but I'm not sure what the tests actually cover.`
 - **User:** *(after the assistant's next question)* `I don't know.`
 
@@ -73,12 +79,14 @@ with some verification evidence — at least one test covering it.
 | # | Assertion |
 |---|---|
 | 2.1 | Reads the actual change before asking any substantive question |
-| 2.2 | Proposes a bounded topic set (or accepts a user-specified depth) before quizzing |
-| 2.3 | Each active quiz turn contains **at most one** substantive question |
-| 2.4 | After asking, it **stops and waits** — it does not answer, hint, or reveal in the same turn |
-| 2.5 | After the partial answer, it names what was correct, then corrects or extends with concrete repository evidence (file, line, or symbol) |
-| 2.6 | After `I don't know`, it teaches the answer with evidence and does not judge, score, or express disappointment |
-| 2.7 | Continues within the proposed topic set rather than expanding scope |
+| 2.2 | **Briefs the user before quizzing** — what changed, why, where it plugs in, what the tests cover |
+| 2.3 | The briefing does **not** pre-answer the quiz: it does not spell out the failure modes, the limits of the tests, or the residual risks |
+| 2.4 | Proposes a bounded topic set before quizzing |
+| 2.5 | Each active quiz turn contains **at most one** substantive question |
+| 2.6 | After asking, it **stops and waits** — it does not answer, hint, or reveal in the same turn |
+| 2.7 | Questions probe consequences (why this seam, what breaks, what the tests miss), not contents the briefing already stated |
+| 2.8 | After the partial answer, it names what was correct, then corrects or extends with concrete repository evidence (file, line, or symbol) |
+| 2.9 | After `I don't know`, it teaches the answer with evidence and does not judge, score, or express disappointment |
 
 ## Scenario 3 — Complete answer and close
 
@@ -87,6 +95,7 @@ with some verification evidence — at least one test covering it.
 **Turns.**
 
 - **User:** `Quiz me on this change.`
+- **User:** *(in reply to the calibration question)* `Senior engineer, I know this codebase.`
 - **User:** *(after each question, until the topic set is covered)* A complete, correct answer covering intent, the seam, and what the tests do and do not prove. Supply a genuinely complete answer each time; do not withhold.
 
 **Assertions.**
@@ -114,7 +123,7 @@ branch delta, no pull request under discussion.
 |---|---|
 | 4.1 | Reports that it cannot identify a change target and asks for a concrete one (diff, commit, branch, or PR) |
 | 4.2 | Invents no change, no diff, and no quiz facts |
-| 4.3 | Asks no substantive quiz question |
+| 4.3 | Delivers no briefing and asks no substantive quiz question |
 
 ## Scenario 5 — User control
 
@@ -124,6 +133,7 @@ proposed topic set the user has seen.
 **Turns.**
 
 - **User:** `Quiz me on this change.`
+- **User:** *(in reply to the calibration question)* `I know this area.`
 - **User:** *(after the first question)* `Skip the failure-modes topic, I don't care about it right now.`
 - **User:** *(after the assistant's next turn)* `Actually, let's stop here.`
 
@@ -160,8 +170,8 @@ sessions, not one.
 | # | Assertion |
 |---|---|
 | 6.A | Each prompt is handled by its expected owner (or, for 6.9, answered directly) |
-| 6.B | `change-comprehension` does not activate in any of the nine sessions |
-| 6.C | No session offers or volunteers a quiz |
+| 6.B | `blind-spots` does not activate in any of the nine sessions |
+| 6.C | No session offers or volunteers a quiz or a blind spot pass |
 
 ## Recording Results
 

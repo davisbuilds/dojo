@@ -1,12 +1,12 @@
 ---
 date: 2026-07-13
-topic: change-comprehension
+topic: blind-spots
 stage: spec
 status: in-progress
 source: conversation
 ---
 
-# Change Comprehension Spec
+# Blind Spots Spec
 
 ## Problem
 
@@ -22,18 +22,20 @@ or extend code they do not understand.
 ## Contract
 
 When this ships, a user can explicitly invoke one human-centered,
-task-scoped workflow either before implementation to understand a proposed
-change or after implementation to quiz their own understanding of the actual
-change. The pre-implementation mode produces an evidence-backed mental model
-without becoming a specification or plan. The post-implementation mode conducts
-an adaptive, one-question-at-a-time conversation grounded in the implemented
-diff and available verification evidence, teaches after each answer, and ends
-without a score or merge-readiness verdict.
+task-scoped workflow either before implementation to find their blind spots in a
+proposed change or after implementation to be briefed and quizzed on the actual
+change. Both modes first establish what the user already knows and pitch their
+depth to that. The pre-implementation mode produces an evidence-backed mental
+model and explicitly names the user's unknown unknowns, without becoming a
+specification or plan. The post-implementation mode briefs the user on the
+implemented change, then conducts an adaptive, one-question-at-a-time
+conversation about the consequences the briefing left open, teaches after each
+answer, and ends without a score or merge-readiness verdict.
 
 The structural and routing portions of the end state are verified by
 `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`,
 `python3 skills/skill-evals/scripts/run_trigger_evals.py --from-triggers --skills-root skills --pretty`,
-`python3 skills/skill-evals/scripts/run_trigger_evals.py --cases skills/change-comprehension/evals/trigger-cases.json --skills-root skills --skills change-comprehension,brainstorming,write-spec,write-plan,first-principles,diagnose,local-review,gh-review-pr,verify-before-complete --pretty`,
+`python3 skills/skill-evals/scripts/run_trigger_evals.py --cases skills/blind-spots/evals/trigger-cases.json --skills-root skills --skills blind-spots,brainstorming,write-spec,write-plan,first-principles,diagnose,local-review,gh-review-pr,verify-before-complete --pretty`,
 and the fixed behavioral scenario protocol below. The behavioral protocol passes
 only when every binary assertion passes; any failed assertion fails acceptance.
 
@@ -44,6 +46,11 @@ only when every binary assertion passes; any failed assertion fails acceptance.
 - The workflow activates only when the user asks to understand a specific
   proposed or implemented change; ordinary planning, implementation, review,
   verification, or merge requests do not acquire an unsolicited teaching step.
+- Both modes establish the user's existing knowledge of the area before
+  explaining anything, and pitch their depth to the answer. A user who declares
+  expertise is not given a fundamentals lecture; a user who declares unfamiliarity
+  is not given a jargon dump. When the user does not answer, the workflow states
+  the level it assumed so the user can correct it.
 - It distinguishes repository evidence from inference and says when evidence is
   missing rather than inventing a system relationship or quiz answer.
 - It remains task-scoped. If the requested subject is too broad to explain
@@ -62,6 +69,10 @@ only when every binary assertion passes; any failed assertion fails acceptance.
 - The explanation identifies the relevant entry point and system boundaries,
   traces the important call or data path, describes the likely blast radius, and
   surfaces consequential unknowns with calibrated confidence.
+- It separates the user's known unknowns from their **unknown unknowns** — the
+  things they did not ask about and would not have thought to — and from what the
+  repository genuinely cannot answer. Naming at least one unknown unknown, when
+  one exists, is the point of the mode rather than a bonus.
 - Current repository evidence is authoritative for current behavior. The user's
   approved request or contract is authoritative for proposed intent. The workflow
   distinguishes the two and labels conflicts, stale artifacts, and inference
@@ -77,10 +88,19 @@ only when every binary assertion passes; any failed assertion fails acceptance.
   target is available, the workflow asks for one instead of fabricating a quiz.
 - The workflow reads the actual change and available verification evidence before
   asking substantive questions.
+- It briefs the user before quizzing them. The quiz is not a memory test: the
+  user is typically quizzing themselves on work an agent did while they were not
+  watching, so cold-testing recall of something they never saw would teach
+  nothing. The briefing states what changed, why, where it plugs in, and what the
+  tests cover.
+- The briefing states what was **done**; the questions probe what **follows** from
+  it. The briefing therefore does not pre-answer the quiz by spelling out the
+  failure modes, the limits of the verification, or the residual risks — those are
+  the quiz.
 - During active quizzing, it asks at most one substantive quiz question per
   assistant turn, then stops and waits for the user's answer before revealing or
-  teaching the answer. Grounding, clarification, and recap turns may contain no
-  quiz question.
+  teaching the answer. Grounding, briefing, clarification, and recap turns may
+  contain no quiz question.
 - After each response—including “I don't know”—it identifies what was correct,
   corrects or extends the mental model with concrete repository evidence, and
   then continues at an appropriate depth.
@@ -127,12 +147,12 @@ scenario has binary assertions; all assertions must pass:
 
 | Scenario | Fixed interaction | Binary assertions |
 | --- | --- | --- |
-| Scope boundary and evidence | A proposed change whose approved intent differs from current behavior and includes one unresolved boundary | Separates current behavior from proposed intent; labels the conflict and uncertainty; explains a bounded path; prescribes no architecture, acceptance contract, or task sequence; writes no artifact |
-| Incomplete quiz answer | An identifiable implemented change with verification evidence, followed by a partial answer and then “I don't know” | Reads the change first; asks at most one substantive question and waits; gives neutral, evidence-backed correction after each answer; leaks no answer before the response; continues within the bounded topic set |
+| Calibration and unknown unknowns | A proposed change whose approved intent differs from current behavior and includes one unresolved boundary, with the user declaring expertise in one area and unfamiliarity with another | Asks what the user knows before explaining; honors the declared expertise in both directions; separates current behavior from proposed intent; labels the conflict and the unknowable boundary; names at least one unknown unknown; prescribes no architecture, acceptance contract, or task sequence; writes no artifact |
+| Brief, then incomplete quiz answer | An identifiable implemented change with verification evidence, followed by a partial answer and then “I don't know” | Reads the change first; briefs the user before quizzing; the briefing does not pre-answer the quiz; asks at most one substantive question and waits; questions probe consequences rather than briefing contents; gives neutral, evidence-backed correction after each answer; leaks no answer before the response |
 | Complete answer and close | The same change with a complete user answer and all proposed topics covered | Recognizes the complete answer; avoids a redundant question; closes with a concise strengths/revisit recap; emits no score, pass/fail label, correctness claim, or merge verdict |
-| Missing change target | A quiz request with no identifiable diff, commit, branch, or pull request | Requests a concrete target; invents no quiz facts; begins no substantive quiz |
+| Missing change target | A quiz request with no identifiable diff, commit, branch, or pull request | Requests a concrete target; invents no quiz facts; delivers no briefing and begins no substantive quiz |
 | User control | An active quiz followed by a request to skip one topic and then stop | Skips the topic; stops immediately; treats neither choice as failure; writes no artifact |
-| Neighbor routing | Fixed prompts for an ambiguous feature direction, a falsifiable contract, an implementation sequence, an architectural trade-off, broken-behavior diagnosis, local defect review, published pull-request review, completion evidence, and a generic non-interactive code explanation | Routes each prompt to its existing owner; does not activate change comprehension |
+| Neighbor routing | Fixed prompts for an ambiguous feature direction, a falsifiable contract, an implementation sequence, an architectural trade-off, broken-behavior diagnosis, local defect review, published pull-request review, completion evidence, and a generic non-interactive code explanation | Routes each prompt to its existing owner; does not activate blind spots |
 
 The protocol also fails if any response invents repository evidence or expands
 into a general codebase survey. Scenario inputs and assertions remain fixed
