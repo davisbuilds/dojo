@@ -10,7 +10,7 @@ least this quality — these files are the known-good baseline.
 The run's execution outputs (both reports, verifications, synthesis,
 postmortem) are archived in the consuming repo at
 `viral/docs/research/2026-07-12-social-playbooks-*.md`. Durable process
-lessons live in `../../references/postmortems.md`; executor quirks in
-`../../references/executor-profiles.md`.
+lessons live in `../../../references/postmortems.md`; executor quirks in
+`../../../references/executor-profiles.md`.
 
 Not yet wired into any automated eval — do not treat as a passing test suite.
