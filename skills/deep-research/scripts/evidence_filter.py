@@ -14,6 +14,8 @@ import re
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from functools import lru_cache
+from pathlib import Path
 from urllib.parse import urlparse
 
 
@@ -76,17 +78,12 @@ DEPTH_CONFIG = {
 }
 
 
-SOURCE_TYPE_SCORES = {
-    "official": 0.95,
-    "primary": 0.9,
-    "academic": 0.88,
-    "government": 0.9,
-    "news": 0.72,
-    "analysis": 0.65,
-    "blog": 0.45,
+REGISTRY_PATH = Path(__file__).resolve().parents[1] / "references" / "credibility-registry.json"
+SOURCE_TYPE_TIEBREAK = 0.02
+UNKNOWN_DOMAIN_SCORES = {
+    "blog": 0.4,
     "forum": 0.3,
     "social": 0.25,
-    "unknown": 0.5,
 }
 
 
@@ -200,19 +197,80 @@ def recency_score(published_at: str, now: datetime) -> float:
     return 0.2
 
 
-def credibility_score(source_type: str, domain: str) -> float:
+def normalize_domain(value: str) -> str:
+    raw = (value or "").strip().lower().rstrip(".")
+    if not raw:
+        return ""
+    parsed = urlparse(raw if "://" in raw else f"//{raw}")
+    host = (parsed.hostname or "").rstrip(".")
+    if host.startswith("www."):
+        host = host[4:]
+    try:
+        return host.encode("idna").decode("ascii")
+    except UnicodeError:
+        return host
+
+
+@lru_cache(maxsize=1)
+def load_credibility_registry() -> tuple[dict, ...]:
+    payload = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+    rules = payload.get("rules")
+    if not isinstance(rules, list):
+        raise ValueError("credibility registry must contain a rules list")
+    return tuple(rules)
+
+
+def credibility_assessment(source_type: str, domain: str) -> dict:
     source_key = (source_type or "unknown").strip().lower()
-    base = SOURCE_TYPE_SCORES.get(source_key, SOURCE_TYPE_SCORES["unknown"])
+    normalized_domain = normalize_domain(domain)
 
-    d = domain.lower()
-    if d.endswith(".gov"):
-        base = max(base, 0.9)
-    elif d.endswith(".edu"):
-        base = max(base, 0.85)
-    elif d.endswith(".org"):
-        base += 0.03
+    for rule in load_credibility_registry():
+        if normalized_domain != normalize_domain(str(rule.get("host") or "")):
+            continue
+        compatible_types = {str(item).lower() for item in rule.get("compatible_source_types", [])}
+        compatible = source_key in compatible_types
+        base_score = float(rule["base_score"])
+        ceiling = float(rule["ceiling"])
+        score = min(ceiling, base_score + (SOURCE_TYPE_TIEBREAK if compatible else 0.0))
+        return {
+            "score": round(score, 4),
+            "ceiling": ceiling,
+            "registry_id": rule["id"],
+            "authority": rule["authority"],
+            "document_class": rule["document_class"],
+            "source_type_consistency": "compatible" if compatible else "mismatch",
+            "reason": rule["rationale"],
+        }
 
-    return max(0.0, min(1.0, base))
+    if normalized_domain == "gov" or normalized_domain.endswith(".gov"):
+        compatible = source_key == "government"
+        base_score = 0.9
+        ceiling = 0.95
+        score = min(ceiling, base_score + (SOURCE_TYPE_TIEBREAK if compatible else 0.0))
+        return {
+            "score": round(score, 4),
+            "ceiling": ceiling,
+            "registry_id": "us-government",
+            "authority": "controlled_government_namespace",
+            "document_class": "government_page",
+            "source_type_consistency": "compatible" if compatible else "mismatch",
+            "reason": "Domain is in the controlled .gov namespace; page-level support still requires verification.",
+        }
+
+    score = UNKNOWN_DOMAIN_SCORES.get(source_key, 0.5)
+    return {
+        "score": score,
+        "ceiling": 0.5,
+        "registry_id": None,
+        "authority": "unverified_domain",
+        "document_class": "unknown",
+        "source_type_consistency": "unverified",
+        "reason": "Domain is not in the credibility registry; self-declared source type cannot raise credibility.",
+    }
+
+
+def credibility_score(source_type: str, domain: str) -> float:
+    return float(credibility_assessment(source_type, domain)["score"])
 
 
 def text_similarity(tokens_a: set[str], tokens_b: set[str]) -> float:
@@ -244,15 +302,7 @@ def normalize_finding(raw: dict) -> Finding:
     summary = str(raw.get("summary") or raw.get("snippet") or "").strip()
     source_type = str(raw.get("source_type") or "unknown").strip().lower()
     published_at = str(raw.get("published_at") or raw.get("date") or "").strip()
-    domain = str(raw.get("domain") or "").strip().lower()
-
-    if not domain and url:
-        try:
-            domain = urlparse(url).netloc.lower()
-            if domain.startswith("www."):
-                domain = domain[4:]
-        except Exception:
-            domain = ""
+    domain = normalize_domain(url)
 
     content_blob = " ".join(
         str(raw.get(k) or "")
@@ -340,12 +390,12 @@ def main() -> int:
             discarded.append({"title": f.title, "url": f.url, "reason": "off_topic", "score": round(relevance, 4)})
             continue
 
-        credibility = credibility_score(f.source_type, f.domain)
+        credibility = credibility_assessment(f.source_type, f.domain)
         recency = recency_score(f.published_at, now)
 
         preliminary = (
             config["weights"]["relevance"] * relevance
-            + config["weights"]["credibility"] * credibility
+            + config["weights"]["credibility"] * credibility["score"]
             + config["weights"]["recency"] * recency
         )
 
@@ -353,7 +403,8 @@ def main() -> int:
             "finding": f,
             "terms": terms,
             "relevance": relevance,
-            "credibility": credibility,
+            "credibility": credibility["score"],
+            "credibility_assessment": credibility,
             "recency": recency,
             "preliminary_score": preliminary,
         }
@@ -470,6 +521,11 @@ def main() -> int:
                 "summary": summary,
                 "relevance": round(record["relevance"], 4),
                 "credibility": round(record["credibility"], 4),
+                "credibility_reason": record["credibility_assessment"]["reason"],
+                "credibility_registry_id": record["credibility_assessment"]["registry_id"],
+                "credibility_authority": record["credibility_assessment"]["authority"],
+                "credibility_document_class": record["credibility_assessment"]["document_class"],
+                "source_type_consistency": record["credibility_assessment"]["source_type_consistency"],
                 "novelty": round(record.get("novelty", 0.0), 4),
                 "recency": round(record["recency"], 4),
                 "score": round(record["final_score"], 4),

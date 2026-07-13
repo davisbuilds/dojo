@@ -19,91 +19,18 @@ This file stays future-only.
 
 #### research-architect: deferred tooling awaits first real runs
 Status: noted
-- **What**: `scripts/score_report.py`, `scripts/diff_runs.py`,
-  `references/rubric-library.md`, and `evals/golden-questions/` were
-  deliberately deferred at skill creation (2026-07-12); stages 8–9 specify the
-  manual procedures they would automate.
+- **What**: `scripts/score_report.py`, `scripts/diff_runs.py`, and
+  `references/rubric-library.md` remain deliberately deferred. The first
+  golden-question seed now exists at `evals/golden-questions/social-playbooks/`;
+  stages 8–9 specify the manual verification and synthesis procedures the
+  scripts would automate.
 - **Why it matters**: Building rubric libraries and golden-question evals
-  before any real run would encode guesses; the first stage-9 postmortems are
+  before any real run would encode guesses; the first stage-10 postmortems are
   the intended seed material. Once 2–3 real runs exist, automating the stage-8
   structural pass and cross-run diff removes the most error-prone manual work.
-- **Sketch**: After the first real runs, extract rubric patterns from
-  `01-question.md` artifacts into rubric-library.md, freeze one finished brief
-  as the first golden question, then script scoring/diffing to match the
-  manual stage-8 spec.
-
-#### deep-research: evidence_filter credibility trusts self-declared source_type
-Status: noted
-- **What**: `evidence_filter.py` keys credibility off a self-declared
-  `source_type` — the agent labels its own finding "official" and gets 0.95;
-  the scorer trusts the researcher it is supposed to be filtering. (Noticed
-  2026-07-12 while wiring deep-research in as the research-architect
-  execution backend; the two sibling gaps found then — no
-  accessibility-honesty rule, no `self_report` in the output contract —
-  shipped in deep-research 2.0.0.)
-- **Why it matters**: Makes the deterministic filter gameable by its own
-  caller — the score adds no information beyond what the agent already
-  believes.
-- **Sketch**: Derive credibility from the domain/URL (registry of known
-  primary domains: arxiv.org, *.gov, official docs hosts) with source_type as
-  a tiebreaker only; needs test updates in the filter's scoring cases.
-
-#### research-architect: pressure-test findings from the first live run (2026-07-12)
-Status: noted
-- **What**: The social-playbooks run (stages 0–6, two executors, full mixed
-  profile — friction log at `viral/research/social-playbooks/friction-log.md`)
-  surfaced seven process gaps: (1) `lint_prompt.py` has no check for stray
-  tool/harness debris — the executor subagent's Write calls left a literal
-  `</content>` trailer in both shippable prompts and lint passed them; (2)
-  M-blocks are phrased "multiple models" and nothing says terminal-vs-web on
-  the same question counts — a drafter without that instinct skips them and
-  loses the stage-8 cross-run diff; (3) the scout template is binary
-  reachable/unreachable, but "reachable-but-evidentially-worthless" was a
-  load-bearing third state with no slot (destination turned out to be the
-  do-not list); (4) the stage-4 manual lint checks have no named artifact home
-  (run invented `04-lint-results.md`); (5) D3's software-shaped table adapts
-  cleanly to non-code build handoffs (tactic → skill/rule file mapping) but
-  the pattern is undocumented; (6) no stage-2 guidance for weighing an
-  external run-shape constraint against the DAG heuristic; (7) stage 1 never
-  tests whether entities named in the brief are exemplars or an exhaustive
-  list — "experts like X, Y, Z" got silently narrowed to exactly X, Y, Z and
-  the user had to catch it; (8) scout/brief summaries need the same
-  stated-vs-inferred discipline the prompt imposes on executors — the
-  social-playbooks prompt shipped an overclaim ("Willison flags authenticity
-  as unconfirmed" — he merely never confirms it) that the executor caught and
-  stage-8 verification confirmed; A4 should explicitly cover the drafter's own
-  seed-source annotations; (9) multi-run plans have no formal synthesis
-  stage/artifact — stage 8 diffs the reports but nothing merges them into the
-  single build-ready document the decision consumer wants; the run added one
-  ad hoc.
-- **Why it matters**: All seven are seams between stages rather than block
-  content — exactly where the skill's own postmortem loop is supposed to
-  accumulate fixes; this is the seed material for the first
-  `references/postmortems.md` entries plus one lint feature.
-- **Sketch**: junk-line check in `lint_prompt.py` (fail on `</content>`-class
-  trailers); one clarifying sentence each in skeleton M-block intro, stage-2,
-  stage-3, and stage-4 sections; a documented D3 adaptation example in the
-  skeleton comment; an "exemplars or exhaustive?" bullet in stage 1; land
-  together with the stage-9 postmortem in the follow-up PR.
-
-#### research-architect: instruction counter undercounts imperative-verb phrasing
-Status: noted
-- **What**: `lint_prompt.py` counts only marker words (must/never/always/do
-  not/don't). The ai-money reference prompt lints at 6/40 despite carrying far
-  more real requirements phrased as bare imperatives ("Grade every major
-  claim", "Demand unit economics"). Confirmed from the other direction in the
-  2026-07-12 pressure test: a fold-in that deleted 5 instruction-bearing
-  passages and added ~6 requirements left the counts unchanged (16/60, 17/40)
-  — the counter is insensitive in both directions. Related: the SKILL.md
-  framing primes drafters to expect budget fights, but a maximal 22-block
-  assembly landed at ~40% of the web budget; block text is imperative-sparse
-  by design and the pressure comes from slot phrasing.
-- **Why it matters**: The budget check is the lint's headline number; a floor
-  that low can't catch genuinely over-stuffed prompts written in imperative
-  style, which is exactly the bloat the budget exists to stop.
-- **Sketch**: Add bullet-initial imperative-verb detection (line starts with a
-  base-form verb) as a second counted class; calibrate thresholds against
-  stage-9 postmortems before tightening.
+- **Sketch**: After 2–3 real runs, extract discriminating rubric patterns from
+  `01-question.md` artifacts into rubric-library.md, then script scoring and
+  diffing to match the manual stage-8 spec.
 
 #### skills-health: runtime join is last-wins, undercounts a version-split skill
 Status: noted

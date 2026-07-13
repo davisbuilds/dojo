@@ -1,3 +1,15 @@
+## 2.1.0 - 2026-07-12
+
+- Replace self-declared credibility scoring with URL-derived hostname policy
+  from a conservative, explainable registry.
+- Treat `source_type` only as a known-domain tiebreaker or an unknown-domain
+  downgrade; it can no longer promote an unknown host above neutral.
+- Derive hostnames from URLs instead of trusting caller-supplied `domain`, and
+  emit registry, authority, document-class, consistency, and rationale fields.
+- Seed exact rules for scholarly repositories/publishers and selected
+  university repository, research-center, news, and root hosts; keep unlisted
+  university subdomains neutral.
+
 ## 2.0.0
 
 - Narrow trigger semantics to direct, answer-seeking web research

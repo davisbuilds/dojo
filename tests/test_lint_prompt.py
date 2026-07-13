@@ -92,6 +92,20 @@ def test_count_instructions_zero_on_plain_prose():
     assert lint_prompt.count_instructions("A useful null result is a success.") == 0
 
 
+def test_count_instructions_counts_bullet_initial_imperatives():
+    text = "- Grade every major claim.\n- Demand unit economics.\n"
+    assert lint_prompt.count_instructions(text) == 2
+
+
+def test_count_instructions_does_not_double_count_marked_bullet():
+    assert lint_prompt.count_instructions("- Always cite primary sources.\n") == 1
+
+
+def test_count_instructions_ignores_descriptive_bullets():
+    text = "- Sources include registries and filings.\n- Findings are dated.\n"
+    assert lint_prompt.count_instructions(text) == 0
+
+
 # --- individual checks ----------------------------------------------------
 
 
@@ -112,6 +126,20 @@ def test_unfilled_slots_fail_and_are_named():
 def test_leftover_drafting_comments_fail():
     result = lint_prompt.evaluate(make_prompt(comments=True), executor="terminal")
     assert check(result, "drafting_comments")["status"] == "fail"
+
+
+@pytest.mark.parametrize("trailer", ["</content>", "</tool_result>", "</write>"])
+def test_trailing_harness_debris_fails(trailer):
+    result = lint_prompt.evaluate(make_prompt(extra=f"\n{trailer}\n"), executor="terminal")
+    c = check(result, "harness_debris")
+    assert c["status"] == "fail"
+    assert trailer in c["detail"]
+
+
+def test_xml_like_text_inside_prompt_is_not_treated_as_trailing_debris():
+    text = make_prompt(extra="Use <content>example</content> as the fixture.\nThen summarize it.\n")
+    result = lint_prompt.evaluate(text, executor="terminal")
+    assert check(result, "harness_debris")["status"] == "pass"
 
 
 @pytest.mark.parametrize(

@@ -3,7 +3,7 @@ name: deep-research
 description: Use when a task needs direct web-backed research with controlled depth, relevance filtering, and citation-ready synthesis — the user wants the answer, not a commissioned research program. Routes work to quick, standard, or deep tiers, filters low-signal context, and returns a compact packet with key findings, citations, discarded context, confidence gaps, and next queries. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead — this skill is its execution backend.
 skill-type: workflow
 compatibility: "Requires python3. Requires network access for web research."
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Deep Research
@@ -104,10 +104,17 @@ JSON
 ```
 
 The script:
-- scores findings (relevance, credibility, novelty, recency)
+- scores findings (relevance, domain-derived credibility, novelty, recency)
 - deduplicates by canonical URL and semantic overlap
 - discards low-signal entries with explicit reasons
-- emits compact, citation-ready findings and confidence gaps
+- emits compact, citation-ready findings, credibility reasons, and confidence
+  gaps
+
+Credibility comes from the URL hostname and the conservative policy in
+`references/credibility-registry.json`. A self-declared `source_type` can break
+ties for a known domain or lower an unknown-domain prior, but it cannot raise an
+unknown domain above neutral. Treat the score as a provenance prior, never as a
+substitute for checking whether the cited page supports the claim.
 
 ### 5) Synthesis
 
@@ -132,7 +139,7 @@ Return this shape for downstream composition:
 - `next_queries`
 - `self_report` (optional on quick runs, expected on standard/deep) —
   agent-composed at synthesis, not script-emitted; consumed by
-  `research-architect` stage-9 postmortems
+  `research-architect` stage-10 postmortems
 
 Do not mix discarded items back into final claims.
 
@@ -141,6 +148,9 @@ Do not mix discarded items back into final claims.
 - Recency-sensitive tasks must include current dated sources.
 - High-stakes tasks require stronger source diversity and official documentation.
 - If confidence gaps remain, report them explicitly instead of speculating.
+- Do not infer article quality from institutional branding alone: repositories,
+  peer-reviewed articles, institutional research pages, and university news all
+  carry different credibility ceilings.
 - Use only source classes you can actually reach. If a priority source class
   is inaccessible (paywall, login wall, blocked platform), do not silently
   substitute lower-grade sources for it — name the fallback you used and
@@ -150,6 +160,9 @@ Do not mix discarded items back into final claims.
 ## References
 
 - `references/contracts.md`: input schemas, output schemas, and composable usage notes.
+- `references/credibility-registry.json`: versioned hostname authority,
+  document-class, score, ceiling, and rationale rules used by the evidence
+  filter. Add hosts conservatively; exact matches are intentional.
 
 ## Sibling skills
 
