@@ -8,7 +8,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 
 | Item | What Changed |
 |------|-------------|
-| 56 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, autonomous-loop design, pre-execution (brainstorm → spec → plan), research orchestration, and meta/skill tooling |
+| 57 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, autonomous-loop design, pre-execution (brainstorm → spec → plan), change comprehension, research orchestration, and meta/skill tooling |
 | Hook quality pipeline | Session-start catalog injection, pre/post-tool-use validation and manifest sync, spec + plan validation, git checks, structure checks, session retro reminder |
 | Skill packaging and distribution | `.skill` zip format with validation |
 | Command wrappers | Deterministic slash-style entrypoints |
@@ -46,6 +46,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 | Split write-spec into contract + plan | Closed the seam-first finding structurally: `write-spec` is now a mechanism-free **contract** (WHAT must be true — problem, falsifiable end-state, success criteria, evaluation), and the new `write-plan` owns the **execution** plan (task breakdown, files, steps, seam selection). Establishes `brainstorm (docs/design/) → spec (docs/specs/) → plan (docs/plans/)`; each layer has its own schema validator + on-write hook; brainstorming reshaped into a direction-level feeder; legacy plan-shaped specs migrated to `docs/plans/`. Follow-up: rename the cross-repo lifecycle-archive script to learn about `docs/design/` |
 | Skill SemVer releases | Every cataloged skill declares `version: 1.0.0` as the baseline release; `skills.json` and the generated catalog expose per-skill versions; `check_skill_versions.py` enforces future release-relevant edits against a git base with required changelog entries |
 | Skill feedback loop (phase 2) | `skills_health.py` gained an opt-in runtime layer (`skill_health_runtime.py`) that consumes AgentMonitor's `GET /api/v2/analytics/skills/health` and ranks dojo skills by trustworthy trigger signal — never-fired first, then a rarely-fired band, then invocation volume — with misfire shown labeled experimental and never in the sort key. `--findings` emits paste-ready BACKLOG blocks for never-fired skills (writes nothing); honest non-zero exit on unreachable/malformed AgentMonitor; the default run stays network-free and byte-identical. Closes the measure→improve loop AgentMonitor's phase-1 health endpoint opened |
+| Add change-comprehension skill | Closes the human side of the pre-execution stack: existing skills ground the *agent*, none help the *human* keep ownership of an agent-made change. Two independently invokable modes — scope (`/understand-change`: entry points, call paths, blast radius, unknowns, with current behavior held distinct from proposed intent) and quiz (`/quiz-change`: reads the real diff, one substantive question per turn, evidence-backed teaching after each answer, unscored recap). Deliberately non-gating: no score, no pass/fail, no merge verdict, no unsolicited invocation. Ships a focused routing fixture (5 positive, 8 sibling negative controls, 1 generic-explanation control) plus frozen behavioral scenarios replayed by a human, since no runner here can drive a multi-turn conversation |
 | Grounded spec → plan handoff | `write-spec` now resolves contract-affecting questions before planning and records bounded uncertainty honestly; `write-plan` requires exact target evidence, resolve-now risk triage, and test-discovery proof. Advisory-only validator nudges surface missing grounding without changing a valid plan's exit status; both skills released as 1.1.0 with regression coverage. |
 
 ## Cross-Cutting Findings
@@ -91,7 +92,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 
 ### Resource Distribution
 
-_Counts are from the 2026-03-07 analysis (~44-skill baseline) and are approximate; the catalog is now 54 skills. Treat as directional until recomputed._
+_Counts are from the 2026-03-07 analysis (~44-skill baseline) and are approximate; the catalog is now 57 skills. Treat as directional until recomputed._
 
 | Resource Type | Count | Skills With | Skills Without |
 |---------------|-------|-------------|----------------|

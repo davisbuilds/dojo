@@ -106,3 +106,19 @@ Status: noted
   can say whether a local copy is behind, ahead, or divergent.
 - **Sketch**: Extend skill install/standardization reports to show source and
   destination versions alongside existing drift information.
+
+#### `init_skill.py` scaffold deadlocks the pre-write validation hook
+Status: noted
+- **What**: `skills/skill-creator/scripts/init_skill.py` emits a SKILL.md template
+  with no top-level `version` field, which the contract has required since the
+  SemVer baseline. `hooks/pre-tool-use-validate-skill.sh` validates the *existing*
+  on-disk SKILL.md before allowing a Write or Edit, so the freshly scaffolded file
+  fails validation and blocks the very edit that would add `version`. Hit while
+  creating `change-comprehension`; worked around by deleting the scaffold and
+  writing SKILL.md from scratch (the hook passes when the file is absent).
+- **Why it matters**: Every new skill authored with the official initializer walks
+  into this. The workaround makes the initializer worse than useless — it costs a
+  delete before you can proceed.
+- **Sketch**: Add `version: 1.0.0` to `SKILL_TEMPLATE`. Optionally have the hook
+  skip files whose content is still the unmodified TODO scaffold, so a broken
+  template degrades to a warning rather than a deadlock.

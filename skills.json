@@ -45,6 +45,19 @@
       "version": "1.0.0"
     },
     {
+      "name": "change-comprehension",
+      "description": "Help a human understand a specific code change \u2014 optional, conversational, never gating. Use when the user asks to understand the scope of a proposed change before it is implemented, or asks to be quizzed on an implemented change before merging it. Scope mode explains entry points, call paths, blast radius, and unknowns without becoming a spec or a plan. Quiz mode reads the actual diff, asks a single question per turn, waits for the answer, then teaches with repository evidence. Triggers on \"help me understand this change\", \"understand the scope of this change\", \"quiz me on this change\", \"test my comprehension of this change\", \"change comprehension\". Never scores the user, judges correctness, or gates delivery.",
+      "path": "skills/change-comprehension",
+      "version": "1.0.0",
+      "triggers": [
+        "help me understand this change",
+        "understand the scope of this change",
+        "quiz me on this change",
+        "test my comprehension of this change",
+        "change comprehension"
+      ]
+    },
+    {
       "name": "code-review-agents",
       "description": "Specialized code review and quality assurance agents covering architecture, data integrity, security, performance, language-specific conventions, and deployment safety. Use when reviewing PRs, auditing code quality, checking migrations, or running an agent-native architecture audit. Triggers on 'review code', 'audit architecture', 'check data integrity', 'security review', 'heal skill'.",
       "path": "skills/code-review-agents",
