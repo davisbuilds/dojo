@@ -2,7 +2,7 @@
 date: 2026-07-13
 topic: blind-spots
 stage: spec
-status: in-progress
+status: complete
 source: conversation
 ---
 

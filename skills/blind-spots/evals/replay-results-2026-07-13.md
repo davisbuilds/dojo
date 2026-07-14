@@ -16,7 +16,18 @@ fresh session per case.
 
 Scenarios 1, 2, 3, and 5 measure how the workflow responds to a *human's* mental
 model. An agent cannot stand in for the learner without making the result
-meaningless, so they remain open pending a human replay.
+meaningless, so they were not run as a scored per-assertion replay.
+
+## Acceptance
+
+The user, as the acceptance authority named in the spec, accepted the skill for
+merge on 2026-07-14. That decision rests on: the mechanical gate (strict
+contract, both trigger-eval modes, generated artifacts, spec/plan validators),
+the two scored behavioral scenarios below, and the user's own informal
+exercise of scope and quiz mode in a separate working session. Scenarios 1, 2,
+3, and 5 were **not** formally scored against their binary assertions and remain
+available for a future scored replay. This receipt does not claim they passed —
+only that the acceptance owner was satisfied enough to merge.
 
 ## Scenario 4 — Missing change target (PASS)
 
