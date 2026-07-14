@@ -122,3 +122,21 @@ Status: noted
 - **Sketch**: Add `version: 1.0.0` to `SKILL_TEMPLATE`. Optionally have the hook
   skip files whose content is still the unmodified TODO scaffold, so a broken
   template degrades to a warning rather than a deadlock.
+
+#### Command wrappers are documented but never wired into any harness
+Status: noted
+- **What**: `docs/system/FEATURES.md` lists 15 command wrappers under "Slash-style
+  entrypoints for harnesses that support command files", but nothing populates
+  `.claude/commands/`. Claude Code reads slash commands from there, so `/review`,
+  `/brainstorm`, `/quiz-change`, and every other advertised wrapper fails to
+  resolve in this repo. `scripts/gen_harness_adapters.py` symlinks `.claude/skills`
+  and emits Codex sidecars but has no notion of `commands/` at all.
+- **Why it matters**: The wrappers are canonical runbooks and are treated as part
+  of each skill, yet the one harness that natively supports command files cannot
+  see them. Users following FEATURES.md hit a dead slash command; skills are only
+  reachable by trigger phrase or by name.
+- **Sketch**: Extend `gen_harness_adapters.py` to symlink each skill's
+  `commands/**/*.md` into `.claude/commands/`, preserving the nested `workflows/`
+  layout that yields namespaced names (`workflows:brainstorm`). Needs a collision
+  check across skills rather than a blind symlink, and a `--check` mode so CI
+  catches drift like the other generated artifacts.
