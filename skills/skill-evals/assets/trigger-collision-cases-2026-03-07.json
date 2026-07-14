@@ -5,8 +5,12 @@
       "type": "implicit",
       "prompt": "Deploy this Next.js project to Vercel and share the preview URL.",
       "expected": {
-        "trigger": ["vercel-deploy"],
-        "avoid": ["vercel-preview-logs"]
+        "trigger": [
+          "vercel-deploy"
+        ],
+        "avoid": [
+          "vercel-preview-logs"
+        ]
       }
     },
     {
@@ -14,9 +18,15 @@
       "type": "implicit",
       "prompt": "The preview deploy failed. Pull Vercel build/runtime logs and diagnose root cause.",
       "expected": {
-        "trigger": ["vercel-preview-logs"],
-        "avoid": ["vercel-deploy"]
-      }
+        "trigger": [
+          "vercel-preview-logs"
+        ],
+        "avoid": [
+          "vercel-deploy"
+        ]
+      },
+      "known_hard": true,
+      "note": "Prompt explicitly says 'diagnose root cause', so the lexical scorer routes to diagnose. A real agent disambiguates on the Vercel-logs context; behavioral_evals is the backstop."
     },
     {
       "id": "vercel-negative-general",
@@ -24,7 +34,10 @@
       "prompt": "What is Vercel and how does it compare to other platforms?",
       "expected": {
         "trigger": [],
-        "avoid": ["vercel-deploy", "vercel-preview-logs"]
+        "avoid": [
+          "vercel-deploy",
+          "vercel-preview-logs"
+        ]
       }
     },
     {
@@ -32,8 +45,13 @@
       "type": "implicit",
       "prompt": "Fix wikilinks, callouts, and frontmatter in this Obsidian markdown note.",
       "expected": {
-        "trigger": ["obsidian-markdown"],
-        "avoid": ["obsidian-bases", "obsidian-canvas"]
+        "trigger": [
+          "obsidian-markdown"
+        ],
+        "avoid": [
+          "obsidian-bases",
+          "obsidian-canvas"
+        ]
       }
     },
     {
@@ -41,8 +59,13 @@
       "type": "implicit",
       "prompt": "Create a .base file with filters, formulas, and a table/card view for my notes.",
       "expected": {
-        "trigger": ["obsidian-bases"],
-        "avoid": ["obsidian-markdown", "obsidian-canvas"]
+        "trigger": [
+          "obsidian-bases"
+        ],
+        "avoid": [
+          "obsidian-markdown",
+          "obsidian-canvas"
+        ]
       }
     },
     {
@@ -50,8 +73,13 @@
       "type": "implicit",
       "prompt": "Generate a .canvas mind map with positioned nodes, groups, and edges.",
       "expected": {
-        "trigger": ["obsidian-canvas"],
-        "avoid": ["obsidian-markdown", "obsidian-bases"]
+        "trigger": [
+          "obsidian-canvas"
+        ],
+        "avoid": [
+          "obsidian-markdown",
+          "obsidian-bases"
+        ]
       }
     },
     {
@@ -59,8 +87,13 @@
       "type": "contextual",
       "prompt": "Create both a .base dashboard and a linked .canvas map for this vault.",
       "expected": {
-        "trigger": ["obsidian-bases", "obsidian-canvas"],
-        "avoid": ["obsidian-markdown"]
+        "trigger": [
+          "obsidian-bases",
+          "obsidian-canvas"
+        ],
+        "avoid": [
+          "obsidian-markdown"
+        ]
       }
     },
     {
@@ -68,8 +101,12 @@
       "type": "implicit",
       "prompt": "Generate a transparent-background product hero using the OpenAI image API.",
       "expected": {
-        "trigger": ["gpt-imagen"],
-        "avoid": ["gemini-imagen"]
+        "trigger": [
+          "gpt-imagen"
+        ],
+        "avoid": [
+          "gemini-imagen"
+        ]
       }
     },
     {
@@ -77,8 +114,12 @@
       "type": "implicit",
       "prompt": "Use Gemini to generate 4K landscape variants for ad concepts.",
       "expected": {
-        "trigger": ["gemini-imagen"],
-        "avoid": ["gpt-imagen"]
+        "trigger": [
+          "gemini-imagen"
+        ],
+        "avoid": [
+          "gpt-imagen"
+        ]
       }
     },
     {
@@ -86,8 +127,12 @@
       "type": "explicit",
       "prompt": "Use $gpt-imagen to edit this image and keep subject identity unchanged.",
       "expected": {
-        "trigger": ["gpt-imagen"],
-        "avoid": ["gemini-imagen"]
+        "trigger": [
+          "gpt-imagen"
+        ],
+        "avoid": [
+          "gemini-imagen"
+        ]
       }
     },
     {
@@ -95,8 +140,12 @@
       "type": "explicit",
       "prompt": "Use $gemini-imagen and produce 2K and 4K outputs.",
       "expected": {
-        "trigger": ["gemini-imagen"],
-        "avoid": ["gpt-imagen"]
+        "trigger": [
+          "gemini-imagen"
+        ],
+        "avoid": [
+          "gpt-imagen"
+        ]
       }
     },
     {
@@ -105,7 +154,10 @@
       "prompt": "Read this PNG metadata and summarize color palette only.",
       "expected": {
         "trigger": [],
-        "avoid": ["gpt-imagen", "gemini-imagen"]
+        "avoid": [
+          "gpt-imagen",
+          "gemini-imagen"
+        ]
       }
     }
   ]

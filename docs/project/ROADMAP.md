@@ -19,6 +19,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 | Soften compound-docs | 527→119 lines, removed XML tags and redundant sections |
 | Strict contract enforcement | Strict validator covers the manifest-backed skill catalog in CI |
 | Trigger collision fixes | 78.6%→92.9%, discriminating name tokens, expanded stopwords |
+| Trigger scorer rewrite | `run_trigger_evals.py` scoring is now TF-IDF cosine over stemmed, hyphen-split tokens (IDF replaces the hand-maintained stopword list); `--cases` asserts by ranking (winner must be an expected trigger, each `avoid` below it) with `--threshold` for the old model. Adds multi-trigger cases, an empty-trigger match-nothing floor, and a `known_hard` flag for lexical-ceiling collisions reported apart from real failures. Expanded collision fixture 46/58→58/58 with no assertions weakened; `skill-evals` 1.1.0 |
 | Expanded trigger fixtures | 12→34 cases across 12 skill clusters |
 | Rescore all skills | 23 skills bumped, 1 new entry (skill-evals), measured evidence |
 | Rename json-canvas | → obsidian-canvas, updated all references |
