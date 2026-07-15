@@ -60,7 +60,7 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 SKILL.md frontmatter is the single source of truth; two deterministic, idempotent generators derive artifacts from it, each with a `--check` mode that fails on drift:
 
 - `scripts/gen_skill_docs.py` — **opt-in** shared-fragment composition. Expands declared includes into SKILL.md between `<!-- AUTO-GENERATED -->` markers. Bare names resolve to `skills/_fragments/<name>.md`; namespaced `rules/<name>` includes resolve to the `rules/` tier. Skills that declare no include are left untouched.
-- `scripts/gen_harness_adapters.py` — emits per-skill harness sidecars for the target set: `.claude/`, `.agents/`, `.agent/`, and Codex. Sidecars are generated artifacts (do not hand-edit); CI runs `--check` to enforce they stay synced with frontmatter.
+- `scripts/gen_harness_adapters.py` — emits per-skill harness sidecars for the target set: `.claude/`, `.agents/`, `.agent/`, and Codex. Sidecars are generated artifacts (do not hand-edit); CI runs `--check` to enforce they stay synced with frontmatter. It also links each skill's `commands/*.md` into `.claude/commands/` (local-only, gitignored) so Claude Code resolves them as slash commands, with collision refusal and stale-link pruning.
 - `scripts/gen_catalog.py` — renders a self-contained, searchable `docs/catalog/index.html` from `skills.json`. Regenerated after the manifest by the post-tool-use hook; CI runs `--check`.
 
 ## Validation Pipeline

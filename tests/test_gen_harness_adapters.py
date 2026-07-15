@@ -142,3 +142,93 @@ def test_hand_authored_sidecar_preserved(tmp_path: Path):
     assert out == curated
     # and --check is satisfied by its existence
     assert _invoke(module, tmp_path, ["--check"]) == 0
+
+
+# --- Command wrapper wiring into .claude/commands/ -------------------------
+
+
+def _add_command(skill_dir: Path, rel: str, body: str = "# cmd\n"):
+    target = skill_dir / "commands" / rel
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(body, encoding="utf-8")
+    return target
+
+
+def test_wires_commands_into_claude_commands(tmp_path: Path):
+    module = load_module()
+    skills_root, make_skill = make_repo(tmp_path)
+    d = make_skill("local-review", "Use when reviewing local diffs.")
+    _add_command(d, "review.md")
+    d2 = make_skill("brainstorming", "Use when clarifying what to build.")
+    _add_command(d2, "workflows/brainstorm.md")
+
+    assert _invoke(module, tmp_path, []) == 0
+
+    flat = tmp_path / ".claude" / "commands" / "review.md"
+    nested = tmp_path / ".claude" / "commands" / "workflows" / "brainstorm.md"
+    assert flat.is_symlink() and flat.resolve() == (skills_root / "local-review" / "commands" / "review.md")
+    assert nested.is_symlink() and nested.resolve() == (
+        skills_root / "brainstorming" / "commands" / "workflows" / "brainstorm.md"
+    )
+
+
+def test_command_links_are_clean_on_recheck(tmp_path: Path):
+    module = load_module()
+    skills_root, make_skill = make_repo(tmp_path)
+    _add_command(make_skill("local-review", "Use when reviewing."), "review.md")
+    assert _invoke(module, tmp_path, []) == 0
+    assert _invoke(module, tmp_path, ["--check"]) == 0
+
+
+def test_check_reports_missing_command_link(tmp_path: Path):
+    module = load_module()
+    skills_root, make_skill = make_repo(tmp_path)
+    _add_command(make_skill("local-review", "Use when reviewing."), "review.md")
+    # Symlinks + sidecar + command link all missing -> drift.
+    assert _invoke(module, tmp_path, ["--check"]) == 1
+
+
+def test_collision_across_skills_errors(tmp_path: Path):
+    module = load_module()
+    skills_root, make_skill = make_repo(tmp_path)
+    _add_command(make_skill("local-review", "Use when reviewing."), "review.md")
+    _add_command(make_skill("gh-review-pr", "Use when reviewing PRs."), "review.md")
+    # Two skills map to .claude/commands/review.md -> refuse, non-zero, no clobber.
+    assert _invoke(module, tmp_path, []) == 1
+    link = tmp_path / ".claude" / "commands" / "review.md"
+    assert not link.exists()
+
+
+def test_prunes_stale_command_symlink(tmp_path: Path):
+    module = load_module()
+    skills_root, make_skill = make_repo(tmp_path)
+    d = make_skill("local-review", "Use when reviewing.")
+    cmd = _add_command(d, "review.md")
+    assert _invoke(module, tmp_path, []) == 0
+    link = tmp_path / ".claude" / "commands" / "review.md"
+    assert link.is_symlink()
+    # Remove the source command; re-run must prune the now-dangling managed link.
+    cmd.unlink()
+    assert _invoke(module, tmp_path, []) == 0
+    assert not link.exists() and not link.is_symlink()
+
+
+def test_does_not_touch_a_real_command_file(tmp_path: Path):
+    module = load_module()
+    skills_root, make_skill = make_repo(tmp_path)
+    _add_command(make_skill("local-review", "Use when reviewing."), "review.md")
+    # A user's hand-authored command that maps to no skill source.
+    hand = tmp_path / ".claude" / "commands" / "my-own.md"
+    hand.parent.mkdir(parents=True, exist_ok=True)
+    hand.write_text("mine", encoding="utf-8")
+    assert _invoke(module, tmp_path, []) == 0
+    assert hand.is_file() and not hand.is_symlink() and hand.read_text() == "mine"
+
+
+def test_skip_symlinks_skips_commands(tmp_path: Path):
+    module = load_module()
+    skills_root, make_skill = make_repo(tmp_path)
+    _add_command(make_skill("local-review", "Use when reviewing."), "review.md")
+    assert _invoke(module, tmp_path, ["--skip-symlinks"]) == 0
+    assert not (tmp_path / ".claude" / "commands" / "review.md").exists()
+    assert _invoke(module, tmp_path, ["--check", "--skip-symlinks"]) == 0

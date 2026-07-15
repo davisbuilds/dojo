@@ -110,12 +110,14 @@ python scripts/gen_skill_docs.py --check  # verify no drift (CI)
 Creates the local `.claude/.agents/.agent` `skills/` symlinks and the colocated Codex `openai.yaml` sidecars from frontmatter. Run after cloning (symlinks are gitignored) and after editing skill descriptions:
 
 ```bash
-python scripts/gen_harness_adapters.py                      # write symlinks + sidecars
-python scripts/gen_harness_adapters.py --check              # verify both locally
+python scripts/gen_harness_adapters.py                      # write symlinks, .claude/commands links, and sidecars
+python scripts/gen_harness_adapters.py --check              # verify all locally
 python scripts/gen_harness_adapters.py --check --skip-symlinks  # verify committed sidecars only (CI)
 ```
 
 Hand-curated sidecars (no `AUTO-GENERATED` marker) are preserved; for those, author with `skills/skill-creator/scripts/generate_openai_yaml.py`.
+
+The same generator links each skill's `commands/*.md` into `.claude/commands/` (local-only, gitignored) so Claude Code exposes them as slash commands. It refuses when two skills' commands map to the same name (rename one), prunes symlinks whose source was removed, and never touches a hand-authored file in `.claude/commands/`. Commands are governed by the symlink phase, so `--skip-symlinks` (CI) ignores them.
 
 ### Regenerate the skill catalog
 

@@ -145,6 +145,7 @@ The agent-agnostic claim is backed by generated adapters, not duplicated content
 
 - **Dir-level relative symlinks** so SKILL.md-native harnesses see every skill: `.claude/skills`, `.agents/skills`, and `.agent/skills` each point to `../skills`. These live under gitignored harness dirs, so they are **local-only and regenerated per clone** — run the generator after cloning.
 - **A colocated Codex sidecar** at `skills/<name>/agents/openai.yaml`. These are committed, portable artifacts. Generated sidecars carry an `AUTO-GENERATED` marker; hand-curated ones (with icons, polished copy) are preserved and never overwritten.
+- **Slash-command links** from each skill's `commands/*.md` into `.claude/commands/` so Claude Code resolves them as real slash commands (`/review`, `/quiz-change`, `/workflows:brainstorm`). Local-only and gitignored, like the skill symlinks.
 
 Run `python3 scripts/gen_harness_adapters.py` to regenerate everything locally. CI enforces the committed sidecars with `gen_harness_adapters.py --check --skip-symlinks`.
 

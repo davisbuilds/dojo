@@ -134,7 +134,7 @@ The four design skills above compose into a pipeline: `design-md` (token spec) �
 
 ## Command Wrappers
 
-Slash-style entrypoints for harnesses that support command files:
+Slash-style entrypoints for harnesses that support command files. `scripts/gen_harness_adapters.py` links each skill's `commands/<rel>.md` into `.claude/commands/<rel>.md` (local-only, gitignored), so Claude Code resolves them as real slash commands — nested files like `commands/workflows/brainstorm.md` become `/workflows:brainstorm`. Run the generator after a clone to populate them:
 
 - `/review` — local code review
 - `/review-pr` — GitHub PR review
