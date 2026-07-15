@@ -225,6 +225,23 @@ def test_does_not_touch_a_real_command_file(tmp_path: Path):
     assert hand.is_file() and not hand.is_symlink() and hand.read_text() == "mine"
 
 
+def test_foreign_command_symlink_is_reported_not_clobbered(tmp_path: Path):
+    module = load_module()
+    skills_root, make_skill = make_repo(tmp_path)
+    _add_command(make_skill("local-review", "Use when reviewing."), "review.md")
+    # A user's own symlink at the generated target, pointing outside skills/*/commands/.
+    foreign_source = tmp_path / "dotfiles" / "review.md"
+    foreign_source.parent.mkdir(parents=True, exist_ok=True)
+    foreign_source.write_text("mine", encoding="utf-8")
+    link = tmp_path / ".claude" / "commands" / "review.md"
+    link.parent.mkdir(parents=True, exist_ok=True)
+    os.symlink(os.path.relpath(foreign_source, link.parent), link)
+    # Must refuse (like a real file), leaving the foreign symlink intact.
+    assert _invoke(module, tmp_path, []) == 1
+    assert link.is_symlink()
+    assert link.resolve().read_text() == "mine"
+
+
 def test_skip_symlinks_skips_commands(tmp_path: Path):
     module = load_module()
     skills_root, make_skill = make_repo(tmp_path)

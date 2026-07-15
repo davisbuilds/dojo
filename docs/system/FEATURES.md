@@ -141,9 +141,9 @@ Slash-style entrypoints for harnesses that support command files. `scripts/gen_h
 - `/fix-issue` — GitHub issue resolution
 - `/triage-issue` — GitHub issue triage
 - `/commit-push-pr` — commit, push, PR flow
-- `/brainstorm` — brainstorming session (WHAT — chosen direction)
-- `/spec` — write the falsifiable contract (WHAT must be true)
-- `/plan` — sequence the build (HOW — task breakdown, files, steps)
+- `/workflows:brainstorm` — brainstorming session (WHAT — chosen direction)
+- `/workflows:spec` — write the falsifiable contract (WHAT must be true)
+- `/workflows:plan` — sequence the build (HOW — task breakdown, files, steps)
 - `/understand-change` — blind spot pass on a proposed change: scope, blast radius, and unknown unknowns
 - `/quiz-change` — get briefed on an implemented change, then quizzed on it one question at a time
 - `/standardize-skills` — skill standardization

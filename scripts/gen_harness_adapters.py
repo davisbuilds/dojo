@@ -172,6 +172,17 @@ def _symlink_target_abs(link: Path) -> Path:
     return Path(os.path.normpath(link.parent / raw))
 
 
+def _is_managed_command_link(link: Path, skills_root: Path) -> bool:
+    """True if ``link`` is a symlink pointing into skills/*/commands/ (ours to manage)."""
+    if not link.is_symlink():
+        return False
+    try:
+        rel = _symlink_target_abs(link).relative_to(skills_root)
+    except ValueError:
+        return False
+    return len(rel.parts) >= 2 and rel.parts[1] == "commands"
+
+
 def managed_command_links(commands_root: Path, skills_root: Path) -> list[Path]:
     """Existing symlinks under commands_root that point into skills/*/commands/.
 
@@ -182,24 +193,22 @@ def managed_command_links(commands_root: Path, skills_root: Path) -> list[Path]:
     if not commands_root.is_dir():
         return found
     for path in sorted(commands_root.rglob("*")):
-        if not path.is_symlink():
-            continue
-        target = _symlink_target_abs(path)
-        try:
-            rel = target.relative_to(skills_root)
-        except ValueError:
-            continue
-        if len(rel.parts) >= 2 and rel.parts[1] == "commands":
+        if _is_managed_command_link(path, skills_root):
             found.append(path)
     return found
 
 
-def ensure_command_symlink(link: Path, source: Path, write: bool) -> tuple[bool, str | None]:
-    """Ensure ``link`` is a relative symlink to ``source``. Never clobber a real file."""
+def ensure_command_symlink(
+    link: Path, source: Path, skills_root: Path, write: bool
+) -> tuple[bool, str | None]:
+    """Ensure ``link`` is a relative symlink to ``source``. Never clobber a real file
+    or a foreign symlink; only a managed link (into skills/*/commands/) is replaceable."""
     rel_target = os.path.relpath(source, link.parent)
     if link.is_symlink():
         if os.readlink(link) == rel_target:
             return True, None
+        if not _is_managed_command_link(link, skills_root):
+            return False, f"{link} is a foreign symlink; move it aside"
         if not write:
             return False, None
         link.unlink()  # wrong/broken managed symlink: safe to replace
@@ -286,7 +295,7 @@ def main() -> int:
         for c in collisions:
             errors.append(f"command collision (rename one to disambiguate): {c}")
         for link, source in sorted(desired.items()):
-            ok, error = ensure_command_symlink(link, source, write)
+            ok, error = ensure_command_symlink(link, source, skills_root, write)
             if error:
                 errors.append(error)
             elif not ok:
