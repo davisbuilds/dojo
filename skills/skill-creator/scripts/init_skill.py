@@ -30,6 +30,7 @@ SKILL_TEMPLATE = """---
 name: {skill_name}
 description: "TODO: Complete and informative explanation of what the skill does and when to use it. Include specific scenarios, file types, or tasks that should trigger this skill."
 skill-type: workflow
+version: 1.0.0
 ---
 
 # {skill_title}

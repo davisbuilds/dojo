@@ -1,0 +1,190 @@
+{
+  "description": "Focused routing fixture for blind-spots. Positive cases assert both modes route to the skill. Negative controls assert that neighboring planning, review, verification, debugging, and generic-explanation intents keep their existing owners and do NOT activate blind-spots — the boundary that matters, since the skill must never volunteer itself.",
+  "notes": "The runner scores lexical token overlap against skill name + description, per skill, against a fixed threshold. It has no notion of ranking, so `avoid` on a positive case asserts a sibling scores below threshold in absolute terms. Several siblings carry generic vocabulary in their own descriptions (write-spec's contains both 'change' and 'what'; local-review's contains 'diff'), so any realistic scope or quiz prompt lands them above threshold no matter how blind-spots is worded. Asserting otherwise would test sibling descriptions, not this skill. Positive cases therefore assert only that blind-spots triggers; over-triggering is asserted by the eight sibling negative controls plus the generic-explanation control.",
+  "cases": [
+    {
+      "id": "scope-blind-spot-pass",
+      "type": "implicit",
+      "prompt": "I've never touched the auth module. Do a blind spot pass on this change so I know what I'm not seeing.",
+      "expected": {
+        "trigger": [
+          "blind-spots"
+        ],
+        "avoid": []
+      }
+    },
+    {
+      "id": "scope-understand-proposed-change",
+      "type": "implicit",
+      "prompt": "Before we implement this, help me understand the scope of the proposed change and its blast radius.",
+      "expected": {
+        "trigger": [
+          "blind-spots"
+        ],
+        "avoid": []
+      }
+    },
+    {
+      "id": "scope-mental-model",
+      "type": "implicit",
+      "prompt": "Walk me through what this change touches so I have a mental model of it before you build.",
+      "expected": {
+        "trigger": [
+          "blind-spots"
+        ],
+        "avoid": []
+      }
+    },
+    {
+      "id": "quiz-me-before-merge",
+      "type": "implicit",
+      "prompt": "Quiz me on this change before I merge it so I know I actually understand it.",
+      "expected": {
+        "trigger": [
+          "blind-spots"
+        ],
+        "avoid": []
+      }
+    },
+    {
+      "id": "quiz-test-my-understanding",
+      "type": "implicit",
+      "prompt": "Test my comprehension of the diff you just implemented and correct me where I'm wrong.",
+      "expected": {
+        "trigger": [
+          "blind-spots"
+        ],
+        "avoid": []
+      }
+    },
+    {
+      "id": "explicit-understand-change",
+      "type": "explicit",
+      "prompt": "Use $blind-spots to brief me on what this refactor affects.",
+      "expected": {
+        "trigger": [
+          "blind-spots"
+        ],
+        "avoid": [
+          "write-plan",
+          "first-principles"
+        ]
+      }
+    },
+    {
+      "id": "negative-brainstorming",
+      "type": "implicit",
+      "prompt": "I'm not sure what we should build here. Let's talk through the options and trade-offs one at a time.",
+      "expected": {
+        "trigger": [
+          "brainstorming"
+        ],
+        "avoid": [
+          "blind-spots"
+        ]
+      }
+    },
+    {
+      "id": "negative-write-spec",
+      "type": "implicit",
+      "prompt": "Pin the falsifiable contract and acceptance criteria for this feature before anyone writes code.",
+      "expected": {
+        "trigger": [
+          "write-spec"
+        ],
+        "avoid": [
+          "blind-spots"
+        ]
+      }
+    },
+    {
+      "id": "negative-write-plan",
+      "type": "implicit",
+      "prompt": "Sequence the implementation into ordered tasks with the files to touch and verification commands.",
+      "expected": {
+        "trigger": [
+          "write-plan"
+        ],
+        "avoid": [
+          "blind-spots"
+        ]
+      }
+    },
+    {
+      "id": "negative-first-principles",
+      "type": "implicit",
+      "prompt": "Which architecture should we pick here? Reason from first principles about the trade-offs.",
+      "expected": {
+        "trigger": [
+          "first-principles"
+        ],
+        "avoid": [
+          "blind-spots"
+        ]
+      }
+    },
+    {
+      "id": "negative-diagnose",
+      "type": "implicit",
+      "prompt": "This endpoint throws intermittently in production. Debug it and find the root cause.",
+      "expected": {
+        "trigger": [
+          "diagnose"
+        ],
+        "avoid": [
+          "blind-spots"
+        ]
+      }
+    },
+    {
+      "id": "negative-local-review",
+      "type": "implicit",
+      "prompt": "Review my staged diff and give me severity-ranked findings with file and line references.",
+      "expected": {
+        "trigger": [
+          "local-review"
+        ],
+        "avoid": [
+          "blind-spots"
+        ]
+      }
+    },
+    {
+      "id": "negative-gh-review-pr",
+      "type": "implicit",
+      "prompt": "Review pull request 42 on GitHub, check CI, and post a merge recommendation.",
+      "expected": {
+        "trigger": [
+          "gh-review-pr"
+        ],
+        "avoid": [
+          "blind-spots"
+        ]
+      }
+    },
+    {
+      "id": "negative-verify-before-complete",
+      "type": "implicit",
+      "prompt": "Before you claim this is done, show me the evidence that it actually passes.",
+      "expected": {
+        "trigger": [
+          "verify-before-complete"
+        ],
+        "avoid": [
+          "blind-spots"
+        ]
+      }
+    },
+    {
+      "id": "negative-generic-explanation",
+      "type": "negative",
+      "prompt": "What does this function do?",
+      "expected": {
+        "trigger": [],
+        "avoid": [
+          "blind-spots"
+        ]
+      }
+    }
+  ]
+}

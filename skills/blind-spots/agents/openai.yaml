@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Blind Spots"
+  short_description: "Find the gaps in a user's understanding of a code change"
+  default_prompt: "Use $blind-spots for this task."
