@@ -3,7 +3,7 @@ name: skill-evals
 description: Evaluate skill quality and routing reliability with deterministic checks. Use when creating/updating skills, validating trigger behavior (explicit/implicit/contextual/negative), applying SKILL.md contract checklists, or generating cross-skill compliance reports.
 skill-type: workflow
 compatibility: "Requires python3 and PyYAML."
-version: 1.1.0
+version: 1.2.0
 ---
 
 # Skill Evals
@@ -34,6 +34,9 @@ python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skil
 
 # Version bump checks (changed skills)
 python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
+
+# Perform the bump the check requires: update SKILL.md version + prepend a CHANGELOG heading
+python3 skills/skill-evals/scripts/bump_skill_version.py skills/<name> patch -m "What changed."
 
 # Trigger evals from fixture
 python3 skills/skill-evals/scripts/run_trigger_evals.py --cases skills/skill-evals/assets/sample-trigger-cases.json --skills-root skills --pretty

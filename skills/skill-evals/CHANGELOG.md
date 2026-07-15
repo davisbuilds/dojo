@@ -1,3 +1,7 @@
+## 1.2.0 - 2026-07-15
+
+- Add bump_skill_version.py: bump a skill's SemVer and prepend a CHANGELOG heading in one command (major/minor/patch or --set), dogfooding the release-version contract.
+
 ## 1.1.0
 
 - Rewrite the trigger scorer: TF-IDF cosine over stemmed tokens with

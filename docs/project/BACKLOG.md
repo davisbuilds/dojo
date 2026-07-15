@@ -84,17 +84,6 @@ Status: noted
   module under `skills/skill-evals/scripts/` or `scripts/lib/`, then have
   validators and generators use the same implementation.
 
-#### Skill version bump helper
-Status: noted
-- **What**: The release check requires authors to bump SKILL.md and add a
-  changelog heading, but no command helps perform that edit.
-- **Why it matters**: The policy is enforceable, but manual edits are repetitive
-  and easy to get slightly wrong during frequent skill maintenance.
-- **Sketch**: Add a small helper such as
-  `python3 skills/skill-evals/scripts/bump_skill_version.py skills/api-design patch`
-  that updates the top-level `version` field and prepends a `CHANGELOG.md`
-  heading for the new release.
-
 #### Changelog entry format hardening
 Status: noted
 - **What**: Version checks currently require a `CHANGELOG.md` heading containing
