@@ -17,6 +17,26 @@ This file stays future-only.
 
 ## Open
 
+#### verify-before-complete: broad trigger turns a useful gate into routine ceremony
+Status: noted
+- **What**: The skill description triggers whenever an agent is about to say work
+  is fixed, passing, done, or complete. In practice that means nearly every
+  implementation turn can load the full skill even when the repository already
+  defines exact verification gates in `AGENTS.md` and the change is routine.
+  The evidence-before-assertions principle remains valuable, but repeated skill
+  activation, announcement, and rereading add context and workflow overhead
+  without necessarily changing frontier-model behavior.
+- **Why it matters**: The skill is most useful as a circuit breaker against stale
+  evidence, unverified delegated work, and high-risk completion claims. If it
+  fires indiscriminately, users experience it as ritual and the high-signal
+  cases become harder to distinguish from ordinary pre-push hygiene.
+- **Sketch**: Preserve the verification invariant as a concise standing rule,
+  but narrow the on-trigger skill to explicit completion audits, missing or
+  conflicting evidence, delegated work, and high-risk changes. Add negative
+  trigger evals for routine changes in repos with concrete local gates, and test
+  whether the default path can rely on those repo gates without loading the full
+  skill.
+
 #### research-architect: deferred tooling awaits first real runs
 Status: noted
 - **What**: `scripts/score_report.py`, `scripts/diff_runs.py`, and
