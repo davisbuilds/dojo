@@ -1,6 +1,6 @@
 {
   "description": "Focused routing fixture for blind-spots. Positive cases assert both modes route to the skill. Negative controls assert that neighboring planning, review, verification, debugging, and generic-explanation intents keep their existing owners and do NOT activate blind-spots — the boundary that matters, since the skill must never volunteer itself.",
-  "notes": "The runner scores lexical token overlap against skill name + description, per skill, against a fixed threshold. It has no notion of ranking, so `avoid` on a positive case asserts a sibling scores below threshold in absolute terms. Several siblings carry generic vocabulary in their own descriptions (write-spec's contains both 'change' and 'what'; local-review's contains 'diff'), so any realistic scope or quiz prompt lands them above threshold no matter how blind-spots is worded. Asserting otherwise would test sibling descriptions, not this skill. Positive cases therefore assert only that blind-spots triggers; over-triggering is asserted by the eight sibling negative controls plus the generic-explanation control.",
+  "notes": "Scored by run_trigger_evals under the ranking model (default): the top-scoring skill must be an expected trigger, and each 'avoid' skill must score below it. Positive cases now assert the siblings blind-spots must outrank — assertions the older absolute-threshold model could not express, since siblings like write-spec carry generic vocabulary ('change', 'what') that no wording could push under a fixed threshold. The generic-explanation case asserts blind-spots stays under the match-nothing floor. 'quiz-test-my-understanding' is flagged known_hard: a natural paraphrase the lexical scorer misses but a real agent routes correctly.",
   "cases": [
     {
       "id": "scope-blind-spot-pass",
@@ -10,7 +10,11 @@
         "trigger": [
           "blind-spots"
         ],
-        "avoid": []
+        "avoid": [
+          "write-plan",
+          "diagnose",
+          "local-review"
+        ]
       }
     },
     {
@@ -21,7 +25,11 @@
         "trigger": [
           "blind-spots"
         ],
-        "avoid": []
+        "avoid": [
+          "write-plan",
+          "local-review",
+          "diagnose"
+        ]
       }
     },
     {
@@ -32,7 +40,11 @@
         "trigger": [
           "blind-spots"
         ],
-        "avoid": []
+        "avoid": [
+          "write-spec",
+          "gh-review-pr",
+          "verify-before-complete"
+        ]
       }
     },
     {
@@ -43,7 +55,11 @@
         "trigger": [
           "blind-spots"
         ],
-        "avoid": []
+        "avoid": [
+          "local-review",
+          "gh-review-pr",
+          "verify-before-complete"
+        ]
       }
     },
     {
@@ -55,7 +71,9 @@
           "blind-spots"
         ],
         "avoid": []
-      }
+      },
+      "known_hard": true,
+      "note": "A natural paraphrase ('test my comprehension of the diff') whose content words are absent from the description; the exact declared trigger routes fine and behavioral_evals shows real-agent routing works. Revisit if the description gains 'comprehension' vocabulary."
     },
     {
       "id": "explicit-understand-change",

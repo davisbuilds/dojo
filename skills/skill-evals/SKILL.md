@@ -3,7 +3,7 @@ name: skill-evals
 description: Evaluate skill quality and routing reliability with deterministic checks. Use when creating/updating skills, validating trigger behavior (explicit/implicit/contextual/negative), applying SKILL.md contract checklists, or generating cross-skill compliance reports.
 skill-type: workflow
 compatibility: "Requires python3 and PyYAML."
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Skill Evals
@@ -51,8 +51,10 @@ Provide:
 
 ## Boundaries
 
-- Do not treat lexical trigger scoring as a replacement for end-to-end LLM evals.
-- `--from-triggers` uses lexical/name overlap, so declared `triggers:` should echo the skill's name/description vocabulary; a phrase sharing no tokens with its skill may not self-route under this deterministic scorer.
+- Do not treat lexical trigger scoring as a replacement for end-to-end LLM evals. Scoring is TF-IDF cosine over stemmed tokens — a deterministic proxy for routing, not a real agent. `scripts/behavioral_evals.py` is the real-agent backstop.
+- `--cases` asserts by ranking (default): the top-scoring skill must be an expected `trigger`, and each `avoid` skill must score below it; a case with an empty `trigger` must keep every `avoid` under the match-nothing floor. Pass `--threshold` for the older absolute-score model.
+- A fixture case may set `"known_hard": true` for a genuine lexical-ceiling collision (e.g. a prompt naming a competing skill's core verb). It is reported under `known_hard_*` and excluded from `failed`, so it stays visible without a fake pass or deletion.
+- `--from-triggers` still asserts each declared `triggers:` phrase self-routes to its owner without being tied or beaten; phrases should echo the skill's name/description vocabulary.
 - Do not auto-edit skills unless explicitly requested.
 - Keep recommendations deterministic and reproducible.
 
