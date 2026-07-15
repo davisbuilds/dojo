@@ -5,6 +5,7 @@ content already on disk. Validating the on-disk file deadlocks: an invalid
 SKILL.md blocks the very edit that would fix it.
 """
 
+import importlib.util
 import json
 import subprocess
 import sys
@@ -14,6 +15,13 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 HOOK = REPO_ROOT / "hooks" / "validate_skill_payload.py"
+
+
+def load_hook_module():
+    spec = importlib.util.spec_from_file_location("validate_skill_payload", HOOK)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 VALID = """---
 name: demo-skill
@@ -149,3 +157,35 @@ def test_malformed_hook_input_does_not_block(skill_dir: Path):
         [sys.executable, str(HOOK)], input="not json", capture_output=True, text=True
     )
     assert result.returncode == 0
+
+
+def test_missing_validator_dependency_degrades_to_allow(skill_dir, monkeypatch):
+    """A guard hook must not block edits because its own dependency is missing."""
+    module = load_hook_module()
+    # Simulate PyYAML (or the validator) being unimportable.
+    monkeypatch.setattr(module, "_load_validator", lambda: None)
+    target = skill_dir / "SKILL.md"
+    monkeypatch.setattr("sys.stdin", _StdinStub(json.dumps(write_payload(target, MISSING_VERSION))))
+    assert module.main() == 0
+
+
+def test_load_validator_returns_none_on_import_error(monkeypatch):
+    module = load_hook_module()
+    import builtins
+    real_import = builtins.__import__
+
+    def boom(name, *args, **kwargs):
+        if name == "quick_validate":
+            raise ImportError("simulated missing dependency")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", boom)
+    assert module._load_validator() is None
+
+
+class _StdinStub:
+    def __init__(self, text):
+        self._text = text
+
+    def read(self):
+        return self._text

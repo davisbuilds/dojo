@@ -28,9 +28,20 @@ import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "skills" / "skill-creator" / "scripts"))
 
-from quick_validate import validate_skill  # noqa: E402
+
+def _load_validator():
+    """Import the skill validator lazily, returning None if it is unavailable.
+
+    A guard hook must never block an edit because of its own missing dependency
+    (e.g. PyYAML absent in a fresh checkout). Callers treat None as "skip".
+    """
+    sys.path.insert(0, str(REPO_ROOT / "skills" / "skill-creator" / "scripts"))
+    try:
+        from quick_validate import validate_skill
+    except Exception:  # missing dependency, broken import — degrade to allow
+        return None
+    return validate_skill
 
 
 def project_content(tool_input: dict, target: Path) -> str | None:
@@ -69,6 +80,12 @@ def main() -> int:
 
     projected = project_content(tool_input, file_path)
     if projected is None:
+        return 0
+
+    validate_skill = _load_validator()
+    if validate_skill is None:
+        # Dependency unavailable — allow the edit rather than block it. The Stop
+        # hook's skill-structure check and CI remain the backstops.
         return 0
 
     # Validate a throwaway copy so the real file is untouched on failure.
