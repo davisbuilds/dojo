@@ -131,6 +131,14 @@ Status: resolved (2026-07-15)
   on cross-skill name collisions, prunes symlinks whose source was removed, never
   touches a hand-authored file, and reports drift under `--check`. Commands are
   governed by the symlink phase, so CI's `--skip-symlinks` run is unaffected.
-- **Follow-up (optional)**: only `.claude/commands/` is wired; other harnesses
-  (Codex prompts, `.agents`) use different command mechanisms and were left out.
-  Wire those if/when a consuming harness needs them.
+- **Why Claude Code only**: verified on `codex-cli 0.144.1` that Codex has no
+  user-populated slash-command directory — its only `$CODEX_HOME/` filesystem
+  surfaces are `config`, `generated`, `skills`, and `themes`. Slash commands in
+  Codex are built-in TUI actions, plugin/marketplace-provided, or MCP-server
+  prompts (`prompts/list`); none are wireable from a repo `.md` file. Codex
+  instead consumes dojo skills via `~/.codex/skills/` (synced by the
+  standardizer) and invokes them with `$skill-name` from each skill's generated
+  `default_prompt`. So there is nothing to wire for Codex — the command wrappers
+  are a Claude Code affordance, and the capability reaches Codex as the skill.
+- **Follow-up (optional)**: `.agents` uses its own convention; wire it only if a
+  consuming harness there needs command files.
