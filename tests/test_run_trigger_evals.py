@@ -188,6 +188,50 @@ def test_ranking_accepts_any_of_multiple_valid_triggers(tmp_path: Path) -> None:
     assert result["summary"]["failed"] == 0
 
 
+def test_declared_trigger_not_in_scored_vector(tmp_path: Path) -> None:
+    """A trigger unrelated to name/description must NOT self-route.
+
+    If declared triggers were folded into the owner's vector, the self-route check
+    would be circular — a database skill could declare 'paint watercolors' and pass.
+    """
+    module = load_module()
+    root = tmp_path / "skills"
+    root.mkdir()
+    write_skill(root, "db-tool", "Manage relational databases and queries.", ["paint watercolors"])
+    skills = module.build_skill_index(root, None)
+    result = module.evaluate_declared_triggers(skills)
+    assert any(a["skill"] == "db-tool" and not a["passed"] for a in result["assertions"])
+
+
+def test_declared_trigger_echoing_description_still_self_routes(tmp_path: Path) -> None:
+    """The legitimate case must keep working: a trigger echoed by the description routes."""
+    module = load_module()
+    root = tmp_path / "skills"
+    root.mkdir()
+    write_skill(root, "db-tool", "Manage relational databases and run queries.", ["run a query"])
+    write_skill(root, "paint-tool", "Paint watercolors on a canvas.", ["paint watercolors"])
+    skills = module.build_skill_index(root, None)
+    result = module.evaluate_declared_triggers(skills)
+    assert result["summary"]["failed"] == 0
+
+
+def test_ranking_winner_must_clear_score_floor(tmp_path: Path) -> None:
+    """A vacuous win (only-skill selected, or a total-miss prompt) must not pass."""
+    module = load_module()
+    root = tmp_path / "skills"
+    root.mkdir()
+    write_plain_skill(root, "only-skill", "Manage relational databases.")
+    write_plain_skill(root, "other", "Render three-dimensional animations.")
+    cases = [{
+        "id": "vacuous", "type": "implicit",
+        "prompt": "qzxwv mmnbb gibberish tokens",
+        "expected": {"trigger": ["only-skill"], "avoid": []},
+    }]
+    skills = module.build_skill_index(root, {"only-skill"})  # narrow to the one skill
+    result = module.evaluate_cases(skills, cases, mode="ranking")
+    assert result["summary"]["failed"] >= 1
+
+
 def test_known_hard_case_reported_but_not_counted_as_failure(tmp_path: Path) -> None:
     """A case flagged known_hard that fails is tallied separately, not as a failure."""
     module = load_module()

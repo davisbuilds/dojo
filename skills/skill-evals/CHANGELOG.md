@@ -12,3 +12,8 @@
   separately from real failures.
 - Expanded collision fixture rises from 46/58 to 58/58 under ranking with no
   fixture assertions weakened.
+- Score the skill vector on name + description only (declared triggers excluded),
+  so `--from-triggers` stays a real check rather than matching a phrase against
+  its own copy in the vector.
+- Require a ranking winner to clear a small score floor, so a positive case with
+  a single selected skill or an all-zero field cannot pass vacuously.

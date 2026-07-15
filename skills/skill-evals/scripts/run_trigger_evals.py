@@ -50,6 +50,13 @@ GRAMMAR = {
 # genuinely unrelated prompts.
 MATCH_NOTHING_FLOOR = 0.30
 
+# Minimum score a ranking winner must clear to count as a real route. Without it,
+# argmax "wins" at 0.0 when `--skills` is narrowed to one candidate or the whole
+# field ties at zero on an unrelated prompt, passing a positive case vacuously.
+# Kept low: legitimate weak-signal routes score around 0.10, so this only rejects
+# the degenerate "nothing actually matched" case.
+MIN_WINNER_SCORE = 0.05
+
 
 def parse_frontmatter(skill_md: Path) -> dict[str, Any]:
     text = skill_md.read_text(encoding="utf-8")
@@ -141,7 +148,11 @@ def build_skill_index(skills_root: Path, selected: set[str] | None) -> dict[str,
             declared = []
         declared = [t.strip() for t in declared if isinstance(t, str) and t.strip()]
 
-        doc_text = f"{skill.replace('-', ' ')} {description} {' '.join(declared)}"
+        # The scored vector is name + description only. Declared triggers are
+        # deliberately excluded: folding them in would make `--from-triggers`
+        # circular (a skill's own trigger phrase would always match its vector),
+        # defeating the check that the description actually carries the phrase.
+        doc_text = f"{skill.replace('-', ' ')} {description}"
         tokens = normalize_tokens(doc_text)
         name_tokens = set(skill.lower().split("-"))
         corpus[skill] = {
@@ -284,8 +295,9 @@ def evaluate_cases(
             winner = max(scores, key=scores.get)
             winner_score = scores[winner]
             # Any expected trigger winning is correct; passing is case-level, so a
-            # non-winning-but-acceptable trigger is not a failure.
-            case_ok = winner in should_trigger
+            # non-winning-but-acceptable trigger is not a failure. The winner must
+            # also clear the floor, or nothing really routed.
+            case_ok = winner in should_trigger and winner_score >= MIN_WINNER_SCORE
             for skill in should_trigger:
                 rec(skill, True, case_ok, scores[skill], winner=winner)
             for skill in should_avoid:
