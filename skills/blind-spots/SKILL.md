@@ -2,7 +2,7 @@
 name: blind-spots
 description: Find the gaps in a user's understanding of a code change — before it gets built, or after an agent has built it. Use when the user asks for a blind spot pass, asks to understand the scope and blast radius of a proposed change, or asks to be quizzed on a change an agent just made. Scope mode calibrates to the user's existing knowledge, then maps entry points, call paths, blast radius, and unknown unknowns into a mental model the user can steer with. Quiz mode reads the actual diff, briefs the user on the change, then asks a single question per turn about consequences the briefing left open, teaching with repository evidence after each answer so comprehension sticks. Triggers on "blind spot pass", "find my blind spots", "unknown unknowns", "help me understand this change", "quiz me on this change". Optional and conversational — never scores the user, never gates delivery.
 skill-type: workflow
-version: 1.0.0
+version: 1.0.1
 triggers:
   - blind spot pass
   - find my blind spots
