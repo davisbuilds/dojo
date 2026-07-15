@@ -66,6 +66,7 @@ docs/sessions/
 # `.claude/skills` is a generated symlink -> ../skills (regenerated per clone
 # by scripts/gen_harness_adapters.py), so ignore it as a file or directory.
 .claude/skills
+.claude/commands
 .claude/todos/
 .claude/projects/
 

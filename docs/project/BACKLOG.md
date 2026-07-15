@@ -124,19 +124,21 @@ Status: noted
   template degrades to a warning rather than a deadlock.
 
 #### Command wrappers are documented but never wired into any harness
-Status: noted
-- **What**: `docs/system/FEATURES.md` lists 15 command wrappers under "Slash-style
-  entrypoints for harnesses that support command files", but nothing populates
-  `.claude/commands/`. Claude Code reads slash commands from there, so `/review`,
-  `/brainstorm`, `/quiz-change`, and every other advertised wrapper fails to
-  resolve in this repo. `scripts/gen_harness_adapters.py` symlinks `.claude/skills`
-  and emits Codex sidecars but has no notion of `commands/` at all.
-- **Why it matters**: The wrappers are canonical runbooks and are treated as part
-  of each skill, yet the one harness that natively supports command files cannot
-  see them. Users following FEATURES.md hit a dead slash command; skills are only
-  reachable by trigger phrase or by name.
-- **Sketch**: Extend `gen_harness_adapters.py` to symlink each skill's
-  `commands/**/*.md` into `.claude/commands/`, preserving the nested `workflows/`
-  layout that yields namespaced names (`workflows:brainstorm`). Needs a collision
-  check across skills rather than a blind symlink, and a `--check` mode so CI
-  catches drift like the other generated artifacts.
+Status: resolved (2026-07-15)
+- **Resolution**: `scripts/gen_harness_adapters.py` now links each skill's
+  `commands/<rel>.md` into `.claude/commands/<rel>.md` (local-only, gitignored),
+  preserving the nested `workflows/` layout (`/workflows:brainstorm`). It refuses
+  on cross-skill name collisions, prunes symlinks whose source was removed, never
+  touches a hand-authored file, and reports drift under `--check`. Commands are
+  governed by the symlink phase, so CI's `--skip-symlinks` run is unaffected.
+- **Why Claude Code only**: verified on `codex-cli 0.144.1` that Codex has no
+  user-populated slash-command directory — its only `$CODEX_HOME/` filesystem
+  surfaces are `config`, `generated`, `skills`, and `themes`. Slash commands in
+  Codex are built-in TUI actions, plugin/marketplace-provided, or MCP-server
+  prompts (`prompts/list`); none are wireable from a repo `.md` file. Codex
+  instead consumes dojo skills via `~/.codex/skills/` (synced by the
+  standardizer) and invokes them with `$skill-name` from each skill's generated
+  `default_prompt`. So there is nothing to wire for Codex — the command wrappers
+  are a Claude Code affordance, and the capability reaches Codex as the skill.
+- **Follow-up (optional)**: `.agents` uses its own convention; wire it only if a
+  consuming harness there needs command files.
