@@ -2,7 +2,7 @@
 name: verify-before-complete
 description: Guard against false completion claims when the cost of being wrong is high. Use when accepting delegated or subagent work, shipping high-risk changes (auth, migrations, infra, security, broad refactors), lacking fresh verification evidence (missing, stale, or conflicting), or being explicitly asked to confirm something is really done or audit a completion claim. Skip routine low-risk changes already covered by the repo's own checks — running those checks is enough.
 skill-type: reference
-version: 1.1.0
+version: 2.0.0
 ---
 
 # Verify Before Complete
