@@ -9,6 +9,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 | Item | What Changed |
 |------|-------------|
 | 57 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, autonomous-loop design, pre-execution (brainstorm → spec → plan), blind spots, research orchestration, and meta/skill tooling |
+| Retune verify-before-complete trigger | `verify-before-complete` 1.1.0 narrows the description from the universal "about to say fixed/passing/done/complete" (coextensive with *finishing work*, so it over-fired after nearly every chunk, Codex especially) to four circuit-breaker cases — delegated/subagent work, high-risk changes, missing/stale/conflicting evidence, explicit audits — plus a `Skip When` fast-exit for routine changes the repo's own checks already cover. Adds a `trigger-cases.json` fixture (19/19; the high-risk completion claim now routes here, red→green) and a `behavioral-scenarios.md` documenting the semantic over-fire the lexical scorer cannot measure |
 | Hook quality pipeline | Session-start catalog injection, pre/post-tool-use validation and manifest sync, spec + plan validation, git checks, structure checks, session retro reminder |
 | Skill packaging and distribution | `.skill` zip format with validation |
 | Command wrappers | Deterministic slash-style entrypoints |

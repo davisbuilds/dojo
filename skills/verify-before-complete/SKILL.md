@@ -1,8 +1,8 @@
 ---
 name: verify-before-complete
-description: Enforce evidence-based completion claims. Use when you are about to state work is fixed, passing, done, or complete, and run verification first.
+description: Guard against false completion claims when the cost of being wrong is high. Use when accepting delegated or subagent work, shipping high-risk changes (auth, migrations, infra, security, broad refactors), lacking fresh verification evidence (missing, stale, or conflicting), or being explicitly asked to confirm something is really done or audit a completion claim. Skip routine low-risk changes already covered by the repo's own checks — running those checks is enough.
 skill-type: reference
-version: 1.0.0
+version: 2.0.0
 ---
 
 # Verify Before Complete
@@ -13,20 +13,37 @@ Do not claim success without fresh verification evidence.
 
 Core principle: evidence before assertions.
 
-## When To Use
+This is a **circuit breaker for high-stakes completion claims**, not a ritual to
+run after every chunk of work. It earns its keep when the claim is risky,
+delegated, or unsupported — not when a routine change is already covered by the
+repo's own checks.
 
-Use this skill when you are about to say any of the following:
-- "fixed"
-- "passing"
-- "done"
-- "ready to merge/commit"
-- "requirements complete"
+## Skip When (fast exit)
 
-Apply before:
-- commits
-- PR creation
-- task handoff
-- phase completion statements
+If **all** of these hold, you are already done. Do not run the gate below and do
+not emit a verification report:
+
+- the change is routine and low-risk (docs, comments, formatting, a small
+  isolated edit), and
+- the repo's own named checks (from `AGENTS.md` / CI) cover it and you have
+  fresh passing output from this session, and
+- no delegated work is being accepted on trust.
+
+Running the repo's stated checks and reporting their result *is* sufficient
+here. Do not layer extra ceremony on top.
+
+## When To Use (the circuit-breaker cases)
+
+Engage the full gate when a completion claim carries real risk of being wrong:
+
+- **Delegated / subagent work** you are about to accept — never treat "the
+  subagent said it's done" as evidence.
+- **High-risk changes** — auth, migrations, infrastructure, security, or broad
+  and cross-module refactors.
+- **Missing, stale, or conflicting evidence** — nothing re-run since the last
+  edit, or one signal green while another is red.
+- **Explicit completion audits** — you are asked to confirm something is "really
+  done", to prove it passes, or to check whether it was actually verified.
 
 ## Freshness Rule
 
@@ -107,6 +124,7 @@ Do not:
 - treat lint success as build/test success
 - claim global completion from partial checks
 - skip reruns after new edits
+- run the full gate on routine changes the repo's own checks already cover
 
 ## Output
 

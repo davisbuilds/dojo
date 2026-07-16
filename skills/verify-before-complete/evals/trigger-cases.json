@@ -1,0 +1,120 @@
+{
+  "description": "Routing fixture for verify-before-complete after the precision retune. Positive cases assert the circuit-breaker situations still route here: delegated/subagent work, high-risk changes (auth/migrations/infra/security/broad refactor), missing or stale evidence, and explicit completion audits. Negative controls assert that routine, low-risk completion phrasing ('renamed it, tests pass, done') no longer routes here — that phrasing is exactly what the old broad description over-caught, firing the skill after nearly every chunk of work.",
+  "notes": "Scored by run_trigger_evals under the ranking model (default). Positive cases: verify-before-complete must be the top-scoring skill. Negative controls use the matches-nothing model (empty trigger): verify-before-complete must stay under the 0.30 floor, i.e. routine completion no longer pulls the skill. These negatives are the red step — they fail against the pre-retune description whose trigger words were the universal 'fixed / passing / done / complete'.",
+  "cases": [
+    {
+      "id": "explicit-completion-audit",
+      "type": "implicit",
+      "prompt": "Before you claim this is done, show me the evidence that it actually passes.",
+      "expected": {
+        "trigger": [
+          "verify-before-complete"
+        ],
+        "avoid": [
+          "blind-spots",
+          "local-review"
+        ]
+      }
+    },
+    {
+      "id": "delegated-work-acceptance",
+      "type": "implicit",
+      "prompt": "The subagent reports it finished the migration. Verify that delegated work locally before we call it complete.",
+      "expected": {
+        "trigger": [
+          "verify-before-complete"
+        ],
+        "avoid": [
+          "local-review",
+          "test-strategy"
+        ]
+      }
+    },
+    {
+      "id": "high-risk-change-claim",
+      "type": "implicit",
+      "prompt": "I reworked the auth and session migration across several modules. Confirm it is actually verified with fresh evidence before I merge.",
+      "expected": {
+        "trigger": [
+          "verify-before-complete"
+        ],
+        "avoid": [
+          "blind-spots",
+          "local-review",
+          "gh-review-pr"
+        ]
+      }
+    },
+    {
+      "id": "stale-missing-evidence",
+      "type": "implicit",
+      "prompt": "You are about to claim this is complete, but no verification has run since the last edit — the passing evidence is stale. Confirm it with fresh proof before we call it done.",
+      "expected": {
+        "trigger": [
+          "verify-before-complete"
+        ],
+        "avoid": [
+          "test-strategy",
+          "diagnose"
+        ]
+      }
+    },
+    {
+      "id": "explicit-invocation",
+      "type": "explicit",
+      "prompt": "Use $verify-before-complete to gate this completion claim on real evidence.",
+      "expected": {
+        "trigger": [
+          "verify-before-complete"
+        ],
+        "avoid": [
+          "test-strategy"
+        ]
+      }
+    },
+    {
+      "id": "negative-routine-rename",
+      "type": "negative",
+      "prompt": "Renamed the helper and the unit tests pass. Done.",
+      "expected": {
+        "trigger": [],
+        "avoid": [
+          "verify-before-complete"
+        ]
+      }
+    },
+    {
+      "id": "negative-routine-typo",
+      "type": "negative",
+      "prompt": "Fixed the typo in the README. Ready to commit.",
+      "expected": {
+        "trigger": [],
+        "avoid": [
+          "verify-before-complete"
+        ]
+      }
+    },
+    {
+      "id": "negative-routine-config-comment",
+      "type": "negative",
+      "prompt": "Updated the config comment. That change is complete.",
+      "expected": {
+        "trigger": [],
+        "avoid": [
+          "verify-before-complete"
+        ]
+      }
+    },
+    {
+      "id": "negative-routine-dep-bump",
+      "type": "negative",
+      "prompt": "Bumped the lint dependency and the build is green. All set.",
+      "expected": {
+        "trigger": [],
+        "avoid": [
+          "verify-before-complete"
+        ]
+      }
+    }
+  ]
+}
