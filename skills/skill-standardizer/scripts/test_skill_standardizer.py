@@ -447,10 +447,107 @@ def test_audit_exit_code_reports_real_drift() -> None:
         assert_true(exit_code == 2, f"audit with real drift should exit 2, got {exit_code}")
 
 
+def _audit_fixture(base: Path) -> Path:
+    repo = base / "repo"
+    skills = repo / "skills"
+    skills.mkdir(parents=True)
+    (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+    write_skill(skills, "alpha")
+
+    for home in [base / ".agents", base / ".codex", base / ".claude"]:
+        (home / "skills").mkdir(parents=True)
+
+    os.environ["AGENTS_HOME"] = str(base / ".agents")
+    os.environ["CODEX_HOME"] = str(base / ".codex")
+    os.environ["CLAUDE_HOME"] = str(base / ".claude")
+    os.chdir(repo)
+    return skills
+
+
+def _invalid_for(report: dict, path: Path) -> list[str]:
+    for root in report["roots"]:
+        if root["path"] == str(path):
+            return root["invalid_entries"]
+    raise AssertionError(f"root not found in report: {path}")
+
+
+def test_known_non_skill_dir_ignored_in_owning_root() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        skills = _audit_fixture(base)
+        (base / ".codex" / "skills" / "codex-primary-runtime").mkdir()
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=True,
+            codex_agents_dedupe=True,
+        )
+
+        assert_true(
+            "codex-primary-runtime" not in _invalid_for(report, (base / ".codex" / "skills").resolve()),
+            f"codex-primary-runtime should be ignored in the codex root: {report['roots']}",
+        )
+        assert_true(
+            all(issue.get("skill") != "codex-primary-runtime" for issue in report["issues"]),
+            f"codex-primary-runtime should raise no issue: {report['issues']}",
+        )
+
+
+def test_known_non_skill_dir_still_reported_in_other_roots() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        skills = _audit_fixture(base)
+        # Same name, wrong root: the allowlist is scoped, so this is still odd.
+        (skills / "codex-primary-runtime").mkdir()
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=True,
+            codex_agents_dedupe=True,
+        )
+
+        assert_true(
+            "codex-primary-runtime" in _invalid_for(report, skills.resolve()),
+            f"allowlist must not leak into the canonical root: {report['roots']}",
+        )
+
+
+def test_ignore_dir_flag_suppresses_custom_dir() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        skills = _audit_fixture(base)
+        (base / ".agents" / "skills" / "vendor-runtime").mkdir()
+
+        exit_code = audit_main(
+            [
+                "--canonical-root",
+                str(skills),
+                "--global-policy",
+                "prefer-primary-link",
+                "--only-existing",
+                "--ignore-dir",
+                "vendor-runtime",
+                "--format",
+                "text",
+            ]
+        )
+
+        assert_true(exit_code == 0, f"--ignore-dir should suppress the warning, got exit {exit_code}")
+
+
 def main() -> int:
     tests = [
         test_invalid_entries_do_not_emit_missing_actions,
         test_underscore_dirs_are_not_invalid_in_full_scan,
+        test_known_non_skill_dir_ignored_in_owning_root,
+        test_known_non_skill_dir_still_reported_in_other_roots,
+        test_ignore_dir_flag_suppresses_custom_dir,
         test_audit_exit_code_tracks_drift_not_warnings,
         test_audit_exit_code_reports_real_drift,
         test_deprecated_replacement_uses_real_source,

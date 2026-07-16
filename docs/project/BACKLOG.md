@@ -75,18 +75,37 @@ Status: noted
   be excluded from expected-coverage counts.
 
 #### Standardizer has no allowlist for foreign non-skill dirs in mirror roots
-Status: noted
+Status: resolved (2026-07-16)
 - **What**: `~/.codex/skills/codex-primary-runtime` is a Codex-specific runtime
-  directory with no `SKILL.md`, so every full-scan audit reports it as
-  `INVALID_SKILL_DIR`. It is intentional and will never be a skill. Since 1.0.1
-  this no longer forces a nonzero exit, but the warning recurs on every run.
-- **Why it matters**: The standardizer owns the canonical repo but only mirrors
-  the global roots — other tools legitimately put non-skill dirs there. The
-  `_`-prefix convention added in 1.0.1 fixes this for dirs dojo controls
-  (`skills/_fragments`), but we can't rename a directory Codex owns.
-- **Sketch**: Add a repeatable `--ignore-dir NAME` flag, or a small per-root
-  allowlist, so known non-skill directories are skipped rather than reported.
-  Low priority: the warning is now cosmetic, not a false failure.
+  directory with no `SKILL.md`, so every full-scan audit reported it as
+  `INVALID_SKILL_DIR`. The `_`-prefix convention added in 1.0.1 covers dirs dojo
+  controls (`skills/_fragments`), but Codex owns that path and won't rename it.
+- **Resolution** (1.1.0): `KNOWN_NON_SKILL_DIRS` in `skill_standardizer_lib.py`
+  is a built-in allowlist keyed by **root kind**, so `codex-primary-runtime` is
+  exempt in `global-codex` only and the exemption cannot leak into the canonical
+  root (covered by `test_known_non_skill_dir_still_reported_in_other_roots`).
+  `--ignore-dir NAME` (repeatable, on both `audit.py` and `sync.py`) handles
+  ad-hoc cases.
+- **Why both**: the flag alone would not have fixed the reported problem — the
+  warning only stops recurring if the operator remembers to pass it every run.
+  Built-in for permanent tool-owned dirs, flag for one-offs.
+
+#### skill-standardizer regression tests never run in CI
+Status: noted
+- **What**: CI runs `python -m pytest tests/ -q`, which only collects the
+  top-level `tests/` directory. The standardizer's 13-test regression suite lives
+  at `skills/skill-standardizer/scripts/test_skill_standardizer.py` and is not
+  referenced from `tests/`, so it runs only when invoked by hand.
+- **Why it matters**: This is the same failure shape as the `_fragments` bug
+  fixed in 1.0.1 — a test file that *looks* like coverage but doesn't enforce
+  anything. Any skill shipping tests beside its scripts has the same hole; worth
+  checking whether other skills do.
+- **Not a quick fix**: the suite mutates process-global state (`os.chdir`,
+  `os.environ["AGENTS_HOME"]` / `CODEX_HOME` / `CLAUDE_HOME`) with no teardown,
+  and chdirs into tempdirs that are then deleted. Collecting it into the shared
+  pytest run as-is risks cross-test pollution. Needs fixtures (`monkeypatch`,
+  `tmp_path`) before it can join `tests/`, or a separate CI step that invokes the
+  file directly.
 
 #### bump_skill_version.py could regenerate the manifest itself
 Status: noted

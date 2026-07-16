@@ -70,6 +70,16 @@ def parse_args(argv: list[str]) -> Args:
         help="Limit audit planning to a single skill name (repeatable).",
     )
     parser.add_argument(
+        "--ignore-dir",
+        action="append",
+        metavar="NAME",
+        help=(
+            "Directory name to treat as a non-skill support dir rather than a "
+            "malformed skill (repeatable). Underscore-prefixed dirs and known "
+            "tool-owned dirs are already ignored."
+        ),
+    )
+    parser.add_argument(
         "--enforce-mirror",
         action="store_true",
         help="Treat missing canonical skills in globals as drift and propose creation.",
@@ -124,6 +134,7 @@ def main(argv: list[str]) -> int:
         only_existing=args.only_existing,
         normalize_primary=args.normalize_primary,
         selected_skills=set(args.skill or []),
+        ignore_dirs=set(args.ignore_dir or []),
     )
 
     if args.report_out:

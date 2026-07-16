@@ -18,6 +18,12 @@ CLAUDE_HOME_ENV = "CLAUDE_HOME"
 
 IGNORE_NAMES = {".DS_Store", "__pycache__", ".git", ".pytest_cache"}
 IGNORE_FILE_SUFFIXES = {".pyc", ".pyo"}
+# Directories another tool owns and deliberately keeps in a skills root. They are
+# not skills and never will be, but we cannot rename them to the `_` non-skill
+# convention. Keyed by root kind so the exemption cannot leak into other roots.
+KNOWN_NON_SKILL_DIRS = {
+    "global-codex": {"codex-primary-runtime"},
+}
 DEPRECATED_SKILL_REPLACEMENTS = {
     "json-canvas": "obsidian-canvas",
     "imagegen": "gpt-imagen",
@@ -193,9 +199,10 @@ def hash_directory(path: Path) -> str:
     return digest.hexdigest()
 
 
-def scan_root(root: RootSpec) -> RootInventory:
+def scan_root(root: RootSpec, ignore_dirs: set[str] | None = None) -> RootInventory:
     skills: dict[str, SkillEntry] = {}
     invalid_entries: list[str] = []
+    non_skill_dirs = KNOWN_NON_SKILL_DIRS.get(root.kind, set()) | (ignore_dirs or set())
 
     if not root.exists:
         return RootInventory(root=root, skills=skills, invalid_entries=invalid_entries)
@@ -208,6 +215,8 @@ def scan_root(root: RootSpec) -> RootInventory:
         if child.name.startswith("_"):
             continue
         if child.name in IGNORE_NAMES:
+            continue
+        if child.name in non_skill_dirs:
             continue
         if not child.is_dir() and not child.is_symlink():
             continue
@@ -338,11 +347,12 @@ def build_audit_report(
     only_existing: bool = False,
     normalize_primary: bool = False,
     selected_skills: set[str] | None = None,
+    ignore_dirs: set[str] | None = None,
 ) -> dict[str, Any]:
     keep_local_skills = keep_local_skills or set()
     selected_skills = selected_skills or set()
 
-    inventories = [scan_root(root) for root in context.roots]
+    inventories = [scan_root(root, ignore_dirs) for root in context.roots]
     by_path = {inv.root.path: inv for inv in inventories}
     by_kind = {inv.root.kind: inv for inv in inventories}
     canonical_inventory = by_path.get(context.canonical_root) if context.canonical_root else None
@@ -1162,8 +1172,8 @@ def print_json(payload: dict[str, Any]) -> None:
     print(json.dumps(payload, indent=2))
 
 
-def root_describe(context: Context) -> dict[str, Any]:
-    inventories = [scan_root(root) for root in context.roots]
+def root_describe(context: Context, ignore_dirs: set[str] | None = None) -> dict[str, Any]:
+    inventories = [scan_root(root, ignore_dirs) for root in context.roots]
     return {
         "generated_at": utc_now_iso(),
         "cwd": str(Path.cwd()),
