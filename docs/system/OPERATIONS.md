@@ -192,6 +192,9 @@ DOJO_BEHAVIORAL_EVALS=1 python scripts/behavioral_evals.py --json
 
 ### Run skill-standardizer regression tests
 
+This suite ships beside the skill rather than in `tests/`, so `pytest tests/` does
+not collect it. CI runs it as its own step; invoke it directly to run it locally:
+
 ```bash
 python3 skills/skill-standardizer/scripts/test_skill_standardizer.py
 ```

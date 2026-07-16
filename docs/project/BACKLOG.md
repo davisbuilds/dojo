@@ -91,21 +91,46 @@ Status: resolved (2026-07-16)
   Built-in for permanent tool-owned dirs, flag for one-offs.
 
 #### skill-standardizer regression tests never run in CI
-Status: noted
+Status: resolved (2026-07-16)
 - **What**: CI runs `python -m pytest tests/ -q`, which only collects the
   top-level `tests/` directory. The standardizer's 13-test regression suite lives
   at `skills/skill-standardizer/scripts/test_skill_standardizer.py` and is not
-  referenced from `tests/`, so it runs only when invoked by hand.
-- **Why it matters**: This is the same failure shape as the `_fragments` bug
-  fixed in 1.0.1 — a test file that *looks* like coverage but doesn't enforce
-  anything. Any skill shipping tests beside its scripts has the same hole; worth
-  checking whether other skills do.
-- **Not a quick fix**: the suite mutates process-global state (`os.chdir`,
-  `os.environ["AGENTS_HOME"]` / `CODEX_HOME` / `CLAUDE_HOME`) with no teardown,
-  and chdirs into tempdirs that are then deleted. Collecting it into the shared
-  pytest run as-is risks cross-test pollution. Needs fixtures (`monkeypatch`,
-  `tmp_path`) before it can join `tests/`, or a separate CI step that invokes the
-  file directly.
+  referenced from `tests/`, so it ran only when invoked by hand — the same
+  failure shape as the `_fragments` bug fixed in 1.0.1, where a test file looked
+  like coverage but enforced nothing.
+- **Resolution**: added a `Run skill-standardizer regression tests` step to
+  `.github/workflows/skill-contract-pilot.yml` that invokes the file directly.
+  Verified the step has real signal: injecting a regression into
+  `KNOWN_NON_SKILL_DIRS` made it exit 1, and it exits 0 restored.
+- **Scope**: this is the only test file outside `tests/` — no other skill has the
+  hole.
+- **Follow-up**: see "Port skill-standardizer tests to pytest" below.
+
+#### Port skill-standardizer tests to pytest under tests/
+Status: noted
+- **What**: `skills/skill-standardizer/scripts/test_skill_standardizer.py` uses a
+  hand-rolled `main()` runner and an `assert_true` helper instead of pytest. It
+  is the only test file outside `tests/`, and CI needs a dedicated step for it.
+- **Why it matters**: `tests/` already tests skill-owned scripts —
+  `tests/test_bump_skill_version.py` covers `skills/skill-evals/scripts/`
+  via `importlib.spec_from_file_location`, and skill-evals ships no tests of its
+  own. The standardizer is the sole outlier.
+- **The leak**: the suite mutates process-global state (`os.chdir`, and
+  `AGENTS_HOME`/`CODEX_HOME`/`CLAUDE_HOME`) with no teardown, and leaves `cwd`
+  pointing at a deleted tempdir. Verified this collides with nothing today —
+  nothing in `tests/` or `scripts/` reads `cwd` or those vars — so the risk is
+  latent, not active. `monkeypatch.setenv`/`monkeypatch.chdir` auto-restore and
+  would remove it. (An earlier note here called this an active pollution risk;
+  that was overstated.)
+- **Tension to settle first**: sync copies the suite out to
+  `~/.agents/skills/skill-standardizer/scripts/`, so the skill currently ships
+  its own tests as a distributable unit. Moving them to `tests/` means the
+  installed global copy has none. skill-evals shows the repo already accepts that
+  trade, but it should be a deliberate call.
+- **Sketch**: port ~13 tests to `tests/test_skill_standardizer.py` with
+  `tmp_path`/`monkeypatch`, delete the original, drop the dedicated CI step, and
+  update the `Run skill-standardizer regression tests` section of
+  `docs/system/OPERATIONS.md`.
 
 #### bump_skill_version.py could regenerate the manifest itself
 Status: noted
