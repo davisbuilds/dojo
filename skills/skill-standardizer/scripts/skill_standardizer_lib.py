@@ -203,6 +203,10 @@ def scan_root(root: RootSpec) -> RootInventory:
     for child in sorted(root.path.iterdir(), key=lambda p: p.name):
         if child.name.startswith("."):
             continue
+        # Underscore-prefixed directories are deliberate non-skill support dirs
+        # (e.g. skills/_fragments), not malformed skills.
+        if child.name.startswith("_"):
+            continue
         if child.name in IGNORE_NAMES:
             continue
         if not child.is_dir() and not child.is_symlink():

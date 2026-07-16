@@ -74,6 +74,20 @@ Status: noted
   health report. Decide whether `template` (a scaffold, not a real skill) should
   be excluded from expected-coverage counts.
 
+#### Standardizer has no allowlist for foreign non-skill dirs in mirror roots
+Status: noted
+- **What**: `~/.codex/skills/codex-primary-runtime` is a Codex-specific runtime
+  directory with no `SKILL.md`, so every full-scan audit reports it as
+  `INVALID_SKILL_DIR`. It is intentional and will never be a skill. Since 1.0.1
+  this no longer forces a nonzero exit, but the warning recurs on every run.
+- **Why it matters**: The standardizer owns the canonical repo but only mirrors
+  the global roots — other tools legitimately put non-skill dirs there. The
+  `_`-prefix convention added in 1.0.1 fixes this for dirs dojo controls
+  (`skills/_fragments`), but we can't rename a directory Codex owns.
+- **Sketch**: Add a repeatable `--ignore-dir NAME` flag, or a small per-root
+  allowlist, so known non-skill directories are skipped rather than reported.
+  Low priority: the warning is now cosmetic, not a false failure.
+
 #### bump_skill_version.py could regenerate the manifest itself
 Status: noted
 - **What**: `bump_skill_version.py` writes SKILL.md directly (subprocess, not the

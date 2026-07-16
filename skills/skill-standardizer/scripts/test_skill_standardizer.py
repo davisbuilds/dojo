@@ -13,6 +13,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+from audit import main as audit_main
 from skill_standardizer_lib import apply_actions, build_audit_report, resolve_context
 
 
@@ -323,9 +324,135 @@ def test_selected_missing_skill_reports_typo() -> None:
         assert_true(not report["actions"], f"missing selected skill should not plan actions: {report['actions']}")
 
 
+def test_underscore_dirs_are_not_invalid_in_full_scan() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        write_skill(skills, "alpha")
+        (skills / "_fragments").mkdir()
+        (skills / "_fragments" / "shared.md").write_text("fragment", encoding="utf-8")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=True,
+            codex_agents_dedupe=True,
+        )
+
+        assert_true(
+            all("_fragments" not in root["invalid_entries"] for root in report["roots"]),
+            f"full-scan audit should not treat _fragments as invalid: {report['roots']}",
+        )
+        assert_true(
+            all(issue.get("skill") != "_fragments" for issue in report["issues"]),
+            f"full-scan audit should not raise issues for _fragments: {report['issues']}",
+        )
+
+
+def test_audit_exit_code_tracks_drift_not_warnings() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        write_skill(skills, "alpha")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+
+        # An intentional non-skill directory in a global root: warning-level,
+        # not drift. Mirrors codex-primary-runtime in the real ~/.codex/skills.
+        (codex_home / "skills" / "codex-primary-runtime").mkdir()
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        exit_code = audit_main(
+            [
+                "--canonical-root",
+                str(skills),
+                "--global-policy",
+                "prefer-primary-link",
+                "--only-existing",
+                "--format",
+                "text",
+            ]
+        )
+
+        assert_true(
+            exit_code == 0,
+            f"audit with warnings but no planned actions should exit 0, got {exit_code}",
+        )
+
+
+def test_audit_exit_code_reports_real_drift() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        write_skill(skills, "alpha")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+
+        # Installed globally but with drifted content: must still exit 2.
+        drifted = agents_home / "skills" / "alpha"
+        drifted.mkdir(parents=True)
+        (drifted / "SKILL.md").write_text("---\nname: alpha\n---\n\n# drifted\n", encoding="utf-8")
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        exit_code = audit_main(
+            [
+                "--canonical-root",
+                str(skills),
+                "--global-policy",
+                "prefer-primary-link",
+                "--only-existing",
+                "--format",
+                "text",
+            ]
+        )
+
+        assert_true(exit_code == 2, f"audit with real drift should exit 2, got {exit_code}")
+
+
 def main() -> int:
     tests = [
         test_invalid_entries_do_not_emit_missing_actions,
+        test_underscore_dirs_are_not_invalid_in_full_scan,
+        test_audit_exit_code_tracks_drift_not_warnings,
+        test_audit_exit_code_reports_real_drift,
         test_deprecated_replacement_uses_real_source,
         test_apply_orders_copy_before_link,
         test_apply_copy_ignores_generated_files,

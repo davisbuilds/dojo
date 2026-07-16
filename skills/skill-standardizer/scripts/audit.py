@@ -134,8 +134,9 @@ def main(argv: list[str]) -> int:
     else:
         print(summarize_report(report))
 
-    issue_count = len(report["issues"])
-    if issue_count:
+    if any(issue.get("severity") == "error" for issue in report["issues"]):
+        return 1
+    if report["actions"]:
         return 2
     return 0
 

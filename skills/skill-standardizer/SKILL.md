@@ -2,7 +2,7 @@
 name: skill-standardizer
 description: Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.
 skill-type: workflow
-version: 1.0.0
+version: 1.0.1
 ---
 
 # Skill Standardizer
@@ -81,7 +81,8 @@ Run from anywhere; scripts auto-discover repo root when possible.
 - `scripts/audit.py`
   - Detects drift and emits a JSON report plus readable summary.
   - Use `--skill <name>` to limit planning to one skill; repeat for multiple skills.
-  - Exit codes: `0` no drift, `2` drift found, `1` error.
+  - Exit codes: `0` no drift, `2` drift found (one or more actions planned), `1` error.
+  - Warning-level issues that plan no action (for example an unrecognized non-skill directory) are reported but do not change the exit code.
 - `scripts/sync.py`
   - Applies planned actions (copy/symlink) with backups.
   - Use `--skill <name>` to apply only the selected skill's planned changes.
@@ -202,7 +203,8 @@ See `references/policy.md` for policy details and tradeoffs.
 
 ## Verification
 
-- Post-sync audit exits with code `0` (no drift remaining)
+- Post-sync audit exits with code `0` (no drift remaining). Remaining warning-level
+  issues about non-skill directories are informational and do not fail this check.
 - All symlinks resolve to valid targets
 - No plugin cache directories were mutated unless explicitly included
 - Canonical and target roots are printed before any apply operation
