@@ -74,6 +74,20 @@ Status: noted
   health report. Decide whether `template` (a scaffold, not a real skill) should
   be excluded from expected-coverage counts.
 
+#### bump_skill_version.py could regenerate the manifest itself
+Status: noted
+- **What**: `bump_skill_version.py` writes SKILL.md directly (subprocess, not the
+  agent's Write/Edit tool), so the post-tool-use manifest-regen hook never fires
+  and `skills.json`/catalog are left stale. It prints a reminder to run the
+  generators, but the operator can still forget and fail CI's `--check`.
+- **Why it matters**: The helper's whole point is doing the mechanical release
+  edits in one command; a forgotten manifest regen re-introduces the friction it
+  set out to remove.
+- **Sketch**: Optionally invoke `generate_skills_manifest.py` and `gen_catalog.py`
+  after a successful non-dry-run bump (behind a `--no-regen` escape hatch), or
+  have the stop-hook manifest check auto-heal. Keep it opt-outable so scripted
+  batch bumps can regenerate once at the end.
+
 #### Shared SemVer helper
 Status: noted
 - **What**: SemVer parsing/validation now exists in multiple scripts.

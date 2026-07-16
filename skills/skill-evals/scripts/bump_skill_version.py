@@ -36,7 +36,11 @@ SemVer = _check.SemVer
 FRONTMATTER_RE = _check.FRONTMATTER_RE
 CHANGELOG_HEADING_RE = _check.CHANGELOG_HEADING_RE
 
-_VERSION_LINE_RE = re.compile(r"^(version:[ \t]*)(\S.*?)[ \t]*$", re.MULTILINE)
+# Rewrites only the scalar, preserving optional quotes and any inline comment.
+_VERSION_LINE_RE = re.compile(
+    r"""^(?P<pre>version:[ \t]*)(?P<q>["']?)(?P<val>[^"'#\n]*?)(?P=q)(?P<post>[ \t]*(?:\#.*)?)$""",
+    re.MULTILINE,
+)
 
 
 class BumpError(Exception):
@@ -56,23 +60,27 @@ def bump_version(current: str, part: str) -> str:
 
 
 def _read_current_version(skill_md: Path) -> str:
+    # Parse via YAML (matching check_skill_versions.py) so quoted scalars and
+    # inline comments resolve to the same value CI reads.
+    version = _check.current_skill_version(skill_md)
+    if version is None:
+        raise BumpError(f"{skill_md} frontmatter has no string `version` field")
+    return version
+
+
+def _replace_version_line(skill_md: Path, new_version: str) -> None:
+    """Rewrite only the frontmatter `version:` scalar, preserving quotes, any inline
+    comment, and every other byte of the file."""
     text = skill_md.read_text(encoding="utf-8")
     fm = FRONTMATTER_RE.match(text)
     if not fm:
         raise BumpError(f"{skill_md} has no YAML frontmatter")
-    match = _VERSION_LINE_RE.search(fm.group(1))
-    if not match:
-        raise BumpError(f"{skill_md} frontmatter has no `version` field")
-    return match.group(2)
-
-
-def _replace_version_line(skill_md: Path, new_version: str) -> None:
-    """Rewrite only the frontmatter `version:` line, leaving everything else byte-identical."""
-    text = skill_md.read_text(encoding="utf-8")
-    fm = FRONTMATTER_RE.match(text)
-    assert fm is not None  # _read_current_version already validated
     fm_body = fm.group(1)
-    new_fm_body, count = _VERSION_LINE_RE.subn(rf"\g<1>{new_version}", fm_body, count=1)
+
+    def _sub(m: re.Match[str]) -> str:
+        return f"{m.group('pre')}{m.group('q')}{new_version}{m.group('q')}{m.group('post')}"
+
+    new_fm_body, count = _VERSION_LINE_RE.subn(_sub, fm_body, count=1)
     if count != 1:
         raise BumpError(f"{skill_md} frontmatter has no `version` field")
     skill_md.write_text(text[: fm.start(1)] + new_fm_body + text[fm.end(1) :], encoding="utf-8")
@@ -168,6 +176,10 @@ def main(argv: list[str] | None = None) -> int:
 
     prefix = "would bump" if args.dry_run else "bumped"
     print(f"{prefix} {args.skill}: {old} -> {new}")
+    if not args.dry_run:
+        # This script writes SKILL.md directly, so the post-tool-use manifest hook
+        # does not fire. Regenerate so skills.json/catalog don't fail CI's --check.
+        print("next: python3 scripts/generate_skills_manifest.py && python3 scripts/gen_catalog.py")
     return 0
 
 

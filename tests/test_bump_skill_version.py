@@ -143,6 +143,31 @@ def test_missing_skill_md_errors(tmp_path: Path):
         m.apply_bump(tmp_path / "nope", part="patch", date="2026-07-15")
 
 
+def _write_skill_md(tmp_path: Path, version_line: str) -> Path:
+    d = tmp_path / "my-skill"
+    d.mkdir()
+    (d / "SKILL.md").write_text(
+        f"---\nname: my-skill\ndescription: Does a thing.\n{version_line}\n---\n\n# my-skill\n",
+        encoding="utf-8",
+    )
+    return d
+
+
+def test_reads_and_rewrites_quoted_version(tmp_path: Path):
+    m = load_module()
+    d = _write_skill_md(tmp_path, 'version: "1.2.3"')
+    old, new = m.apply_bump(d, part="patch", date="2026-07-15")
+    assert (old, new) == ("1.2.3", "1.2.4")
+    assert 'version: "1.2.4"' in (d / "SKILL.md").read_text()
+
+
+def test_preserves_inline_comment(tmp_path: Path):
+    m = load_module()
+    d = _write_skill_md(tmp_path, "version: 1.2.3  # pinned")
+    m.apply_bump(d, part="patch", date="2026-07-15")
+    assert "version: 1.2.4  # pinned" in (d / "SKILL.md").read_text()
+
+
 def test_entry_text_becomes_bullet(tmp_path: Path):
     m = load_module()
     d = make_skill(tmp_path, "1.2.3")
