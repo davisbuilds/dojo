@@ -2,7 +2,7 @@
 name: skill-standardizer
 description: Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.
 skill-type: workflow
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Skill Standardizer
@@ -81,11 +81,32 @@ Run from anywhere; scripts auto-discover repo root when possible.
 - `scripts/audit.py`
   - Detects drift and emits a JSON report plus readable summary.
   - Use `--skill <name>` to limit planning to one skill; repeat for multiple skills.
-  - Exit codes: `0` no drift, `2` drift found, `1` error.
+  - Exit codes: `0` no drift, `2` drift found (one or more actions planned), `1` error.
+  - Warning-level issues that plan no action (for example an unrecognized non-skill directory) are reported but do not change the exit code.
+  - Use `--ignore-dir <name>` to treat a directory as a non-skill support dir; repeat for multiple names.
 - `scripts/sync.py`
   - Applies planned actions (copy/symlink) with backups.
   - Use `--skill <name>` to apply only the selected skill's planned changes.
+  - Use `--ignore-dir <name>` as with `audit.py`.
   - Default is dry run; use `--apply` to execute.
+
+## Non-Skill Directories
+
+A directory inside a skills root that has no `SKILL.md` is normally reported as
+`INVALID_SKILL_DIR`. Three kinds are exempt:
+
+- **Underscore-prefixed** (`skills/_fragments`) — the convention for support
+  directories this repo owns. Preferred for anything you control.
+- **Known tool-owned dirs** — `KNOWN_NON_SKILL_DIRS` in
+  `scripts/skill_standardizer_lib.py`, keyed by root kind so an exemption cannot
+  leak into a root it was not meant for. `codex-primary-runtime` in
+  `~/.codex/skills` is exempt this way: Codex owns that path, so it cannot be
+  renamed to the underscore convention.
+- **`--ignore-dir <name>`** — ad-hoc, for a directory you cannot rename and that
+  is not worth a built-in entry.
+
+Add a built-in entry when a directory is permanent and tool-owned; use the flag
+otherwise.
 
 ## Standard Workflow
 
@@ -202,7 +223,8 @@ See `references/policy.md` for policy details and tradeoffs.
 
 ## Verification
 
-- Post-sync audit exits with code `0` (no drift remaining)
+- Post-sync audit exits with code `0` (no drift remaining). Remaining warning-level
+  issues about non-skill directories are informational and do not fail this check.
 - All symlinks resolve to valid targets
 - No plugin cache directories were mutated unless explicitly included
 - Canonical and target roots are printed before any apply operation
