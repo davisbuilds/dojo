@@ -1,3 +1,11 @@
+## 1.2.1 - 2026-07-15
+
+- Read the SKILL.md version via YAML (matching check_skill_versions) so quoted scalars and inline comments bump correctly; preserve quotes and inline comments on write.
+
+## 1.2.0 - 2026-07-15
+
+- Add bump_skill_version.py: bump a skill's SemVer and prepend a CHANGELOG heading in one command (major/minor/patch or --set), dogfooding the release-version contract.
+
 ## 1.1.0
 
 - Rewrite the trigger scorer: TF-IDF cosine over stemmed tokens with

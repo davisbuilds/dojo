@@ -49,15 +49,21 @@ Status: noted
   never-fired, and surface the newest/installed version for display. Add a
   fixture with two rows for one dojo skill to lock the behavior.
 
-#### skills-health: 13 canonical dojo skills aren't installed globally, so they're unmeasurable
+#### skills-health: many canonical dojo skills aren't installed globally, so they're unmeasurable
 Status: noted
-- **What**: 13 of 55 canonical `skills/` are installed in none of the global
-  catalog dirs AgentMonitor scans (`~/.claude/skills`, `~/.codex/skills`,
-  `~/.agents/skills`) and have never fired, so AgentMonitor emits no health row
-  and they land in the report's collapsed "no data" bucket
+- **What**: As of 2026-07-15, 26 of 57 canonical `skills/` are installed in none
+  of the global catalog dirs AgentMonitor scans (`~/.claude/skills`,
+  `~/.codex/skills`, `~/.agents/skills`) and have never fired, so AgentMonitor
+  emits no health row and they land in the report's collapsed "no data" bucket
   (agent-native-architecture, algorithmic-art, autonomous-engineering, caveman,
-  compound-docs, design-md, fetchmd, loop-design, markdown-converter,
-  self-improve, template, theme-factory, vercel-react-native-skills).
+  code-review-agents, compound-docs, design-md, fetchmd, gh-commit-push-pr,
+  gh-fix-issue, gh-review-pr, gh-triage-issues, hookify, loop-design,
+  markdown-converter, nextjs-app-router, repo-hardening, self-improve,
+  skill-evals, skill-installer, template, theme-factory,
+  vercel-composition-patterns, vercel-deploy, vercel-preview-logs,
+  vercel-react-native-skills). The earlier "13 of 55" figure was a stale
+  point-in-time AgentMonitor snapshot; the catalog has since grown and prior
+  syncs used `--only-existing`.
 - **Why it matters**: A skill that isn't installed anywhere the agent can trigger
   it can't generate trigger health, so the loop can't tell whether its
   description works. A prior skill-standardizer run likely used `--only-existing`,
@@ -68,6 +74,20 @@ Status: noted
   health report. Decide whether `template` (a scaffold, not a real skill) should
   be excluded from expected-coverage counts.
 
+#### bump_skill_version.py could regenerate the manifest itself
+Status: noted
+- **What**: `bump_skill_version.py` writes SKILL.md directly (subprocess, not the
+  agent's Write/Edit tool), so the post-tool-use manifest-regen hook never fires
+  and `skills.json`/catalog are left stale. It prints a reminder to run the
+  generators, but the operator can still forget and fail CI's `--check`.
+- **Why it matters**: The helper's whole point is doing the mechanical release
+  edits in one command; a forgotten manifest regen re-introduces the friction it
+  set out to remove.
+- **Sketch**: Optionally invoke `generate_skills_manifest.py` and `gen_catalog.py`
+  after a successful non-dry-run bump (behind a `--no-regen` escape hatch), or
+  have the stop-hook manifest check auto-heal. Keep it opt-outable so scripted
+  batch bumps can regenerate once at the end.
+
 #### Shared SemVer helper
 Status: noted
 - **What**: SemVer parsing/validation now exists in multiple scripts.
@@ -77,17 +97,6 @@ Status: noted
 - **Sketch**: Move the regex plus parse/compare helpers into a small importable
   module under `skills/skill-evals/scripts/` or `scripts/lib/`, then have
   validators and generators use the same implementation.
-
-#### Skill version bump helper
-Status: noted
-- **What**: The release check requires authors to bump SKILL.md and add a
-  changelog heading, but no command helps perform that edit.
-- **Why it matters**: The policy is enforceable, but manual edits are repetitive
-  and easy to get slightly wrong during frequent skill maintenance.
-- **Sketch**: Add a small helper such as
-  `python3 skills/skill-evals/scripts/bump_skill_version.py skills/api-design patch`
-  that updates the top-level `version` field and prepends a `CHANGELOG.md`
-  heading for the new release.
 
 #### Changelog entry format hardening
 Status: noted
@@ -106,22 +115,6 @@ Status: noted
   can say whether a local copy is behind, ahead, or divergent.
 - **Sketch**: Extend skill install/standardization reports to show source and
   destination versions alongside existing drift information.
-
-#### `init_skill.py` scaffold deadlocks the pre-write validation hook
-Status: noted
-- **What**: `skills/skill-creator/scripts/init_skill.py` emits a SKILL.md template
-  with no top-level `version` field, which the contract has required since the
-  SemVer baseline. `hooks/pre-tool-use-validate-skill.sh` validates the *existing*
-  on-disk SKILL.md before allowing a Write or Edit, so the freshly scaffolded file
-  fails validation and blocks the very edit that would add `version`. Hit while
-  creating `blind-spots`; worked around by deleting the scaffold and
-  writing SKILL.md from scratch (the hook passes when the file is absent).
-- **Why it matters**: Every new skill authored with the official initializer walks
-  into this. The workaround makes the initializer worse than useless — it costs a
-  delete before you can proceed.
-- **Sketch**: Add `version: 1.0.0` to `SKILL_TEMPLATE`. Optionally have the hook
-  skip files whose content is still the unmodified TODO scaffold, so a broken
-  template degrades to a warning rather than a deadlock.
 
 #### Command wrappers are documented but never wired into any harness
 Status: resolved (2026-07-15)
