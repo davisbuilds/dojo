@@ -13,11 +13,18 @@
 ```
 skill-name/
 ├── SKILL.md           # Required: YAML frontmatter + Markdown instructions
+├── CHANGELOG.md       # Required alongside a version bump (see Validation Pipeline)
 ├── commands/          # Optional: command-wrapper docs for slash-style entrypoints
 ├── scripts/           # Optional: executable Python/Bash code
+├── evals/             # Optional: trigger-cases.json + behavioral-scenarios.md (see Test Tiers)
 ├── references/        # Optional: documentation loaded into context as needed
 └── assets/            # Optional: templates, images, fonts for output
 ```
+
+Everything in a skill directory is a **shipped artifact**: `skill-standardizer`
+sync copies the directory wholesale into the global roots
+(`~/.agents/skills/<name>` and its mirrors). Anything that should not reach an
+installed copy does not belong here — see Test Tiers.
 
 ### SKILL.md Frontmatter
 
@@ -79,6 +86,31 @@ SKILL.md frontmatter is the single source of truth; two deterministic, idempoten
 
 Uses a polyglot shebang — works with both `python` and `python3`.
 
+## Test Tiers
+
+Two tiers, split by what they test and whether they ship:
+
+| Tier | Tests | Lives in | Ships to globals? | Runner |
+| --- | --- | --- | --- | --- |
+| `evals/` | The skill **as a prompt** — does it trigger on the right inputs, does it behave | `skills/<name>/evals/` | Yes | `run_trigger_evals.py`, `behavioral_evals.py` |
+| `tests/` | The skill **as code** — do its scripts work | `tests/test_<script>.py` | No | `pytest tests/ -q` |
+
+**Behavior ships; code tests do not.** An installed skill needs its evals — they
+describe the skill itself. It does not need its unit tests: nothing in a global
+install invokes them, and a skill's scripts are consumed there as a release, not
+re-verified.
+
+So a skill's Python script is tested centrally from `tests/`, loaded with
+`importlib.util.spec_from_file_location` against a `REPO_ROOT`-relative path —
+see `tests/test_bump_skill_version.py`, which covers a script owned by
+`skills/skill-evals/`. The skill directory stays free of test code.
+
+Known exception: `skills/skill-standardizer/scripts/test_skill_standardizer.py`
+is skill-local code tests — a third category that predates this rule. It is the
+only test file outside `tests/`, needs its own CI step because `pytest tests/`
+cannot see it, and ships to globals as dead weight. Porting it is tracked in
+`docs/project/BACKLOG.md`; do not use it as a pattern for new skills.
+
 ## Directory Map
 
 ```text
@@ -87,6 +119,7 @@ skills/_fragments/        # Shared include fragments for opt-in SKILL.md composi
 rules/                    # Standing always-follow conventions (composable via rules/<name> includes)
 hooks/                    # lifecycle hook scripts (bash)
 scripts/                  # Manifest generation + generation pipeline (Python)
+tests/                    # pytest suite for scripts/, hooks/, and skill-owned scripts (see Test Tiers); flat, one test file per script, plus tests/fixtures/
 .claude/ .agents/ .agent/ # Each `skills/` is a generated relative symlink -> ../skills (Codex sidecars colocated at skills/<name>/agents/openai.yaml)
 spec/                     # Agent skills specification (upstream)
 docs/catalog/             # Generated browseable skill catalog (index.html) from skills.json

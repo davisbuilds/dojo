@@ -122,15 +122,25 @@ Status: noted
   latent, not active. `monkeypatch.setenv`/`monkeypatch.chdir` auto-restore and
   would remove it. (An earlier note here called this an active pollution risk;
   that was overstated.)
-- **Tension to settle first**: sync copies the suite out to
-  `~/.agents/skills/skill-standardizer/scripts/`, so the skill currently ships
-  its own tests as a distributable unit. Moving them to `tests/` means the
-  installed global copy has none. skill-evals shows the repo already accepts that
-  trade, but it should be a deliberate call.
+- **No longer blocked**: an earlier version of this entry said the port needed a
+  call on whether the skill should keep shipping its own tests, since sync copies
+  them to `~/.agents/skills/skill-standardizer/scripts/`. Settled — the Test
+  Tiers rule in `docs/system/ARCHITECTURE.md` says behavior ships (`evals/`) and
+  code tests do not. Nothing in a global install invokes the suite. It does run
+  there (stdlib-only, hermetic tempdir fixtures — verified passing from `/tmp`),
+  but "can run" is not "has a consumer". Losing it from the global copy costs
+  nothing, so the port is plain conformance.
 - **Sketch**: port ~13 tests to `tests/test_skill_standardizer.py` with
   `tmp_path`/`monkeypatch`, delete the original, drop the dedicated CI step, and
-  update the `Run skill-standardizer regression tests` section of
-  `docs/system/OPERATIONS.md`.
+  update both the `Run skill-standardizer regression tests` section of
+  `docs/system/OPERATIONS.md` and the "known exception" paragraph under Test
+  Tiers in `docs/system/ARCHITECTURE.md`.
+- **Rejected alternative**: symlinking `tests/test_skill_standardizer.py` to the
+  skill's copy so pytest collects it while the skill still ships it. It would
+  work (pytest collects module-level `test_*` functions; `assert_true` raises
+  `AssertionError`), but it moves the `os.chdir`/`os.environ` leak into the
+  shared 184-test run and leaves a dead `main()` plus two ways to invoke one
+  file. It preserves the anomaly instead of resolving it.
 
 #### bump_skill_version.py could regenerate the manifest itself
 Status: noted
