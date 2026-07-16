@@ -103,7 +103,7 @@
       "name": "diagnose",
       "description": "Disciplined debugging loop for hard bugs and performance regressions \u2014 build a deterministic pass/fail signal first, then reproduce, hypothesise, instrument, fix, regression-test. Use when the user says \"diagnose this\", \"debug this\", \"this is broken/throwing/failing\", reports a bug whose cause is non-obvious, or describes a performance regression. For completion-time evidence checks use verify-before-complete; for new-test methodology use test-strategy; for post-hoc code review use local-review.",
       "path": "skills/diagnose",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "fetchmd",
@@ -351,9 +351,9 @@
     },
     {
       "name": "verify-before-complete",
-      "description": "Enforce evidence-based completion claims. Use when you are about to state work is fixed, passing, done, or complete, and run verification first.",
+      "description": "Guard against false completion claims when the cost of being wrong is high. Use when accepting delegated or subagent work, shipping high-risk changes (auth, migrations, infra, security, broad refactors), lacking fresh verification evidence (missing, stale, or conflicting), or being explicitly asked to confirm something is really done or audit a completion claim. Skip routine low-risk changes already covered by the repo's own checks \u2014 running those checks is enough.",
       "path": "skills/verify-before-complete",
-      "version": "1.0.0"
+      "version": "1.1.0"
     },
     {
       "name": "web-design-guidelines",
