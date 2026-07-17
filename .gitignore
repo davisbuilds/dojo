@@ -72,6 +72,8 @@ docs/sessions/
 
 # skill-standardizer backup snapshots
 .skill-standardizer/backups/
+# per-checkout debounce state for the SessionStart drift notice
+.skill-standardizer/drift-state.json
 skills-lock.json
 
 # Playwright CLI runtime snapshot dumps (written under the CWD wherever the CLI

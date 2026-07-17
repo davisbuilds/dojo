@@ -49,6 +49,7 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 | Hook | Event | Purpose |
 |------|-------|---------|
 | `session-start-skill-catalog.sh` | SessionStart | Injects skill catalog, recent git log, and AGENTS.md pointer |
+| `session-start-skill-drift.sh` | SessionStart | Notes once when installed global skill copies diverged from canonical (`CONTENT_DRIFT`). Informational, never blocks; debounced via `hooks/skill_drift_state.py` so it speaks only when the drifted set changes |
 | `pre-tool-use-git-push-protected-branch.sh` | PreToolUse (Bash) | Blocks pushes to protected branches unless an explicit override token is present |
 | `pre-tool-use-validate-skill.sh` | PreToolUse (Write/Edit) | Validates SKILL.md frontmatter; blocks on failure |
 | `post-tool-use-regen-manifest.sh` | PostToolUse (Write/Edit) | On SKILL.md or `skills/_fragments/*` edits, expands opt-in fragment composition, regenerates `skills.json`, then rebuilds the catalog |

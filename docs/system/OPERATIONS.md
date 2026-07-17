@@ -203,6 +203,10 @@ python3 skills/skill-standardizer/scripts/test_skill_standardizer.py
 
 Hooks are configured in `.claude/settings.json` and `.agents/settings.json`. No manual installation is needed — they activate automatically when opening the repo in a supported harness.
 
+The SessionStart drift notice (`session-start-skill-drift.sh`) keeps per-checkout
+debounce state in `.skill-standardizer/drift-state.json` (gitignored). To force
+the next session to re-report current drift, delete that file.
+
 ## CI
 
 GitHub Actions enforces strict contract compliance, generated-artifact sync, and an AI-slop prose scan on the manifest-backed skill catalog via:
@@ -211,6 +215,7 @@ GitHub Actions enforces strict contract compliance, generated-artifact sync, and
 
 ```bash
 python -m pytest tests/ -q
+python3 skills/skill-standardizer/scripts/test_skill_standardizer.py
 python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
 python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
 python3 scripts/gen_skill_docs.py --check
