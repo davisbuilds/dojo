@@ -58,9 +58,11 @@ docs/downloads/
 docs/archive/
 docs/sessions/
 
-# Agent dirs (fully user-specific)
-.agent/
-.agents/
+# Codex / agents harnesses — mirror the .claude convention below:
+# settings.json is tracked; the skills symlink is generated per clone
+# by scripts/gen_harness_adapters.py. (Local overrides via *.local.json.)
+.agent/skills
+.agents/skills
 
 # Claude Code — ignore user-specific subdirs; settings.json is tracked.
 # `.claude/skills` is a generated symlink -> ../skills (regenerated per clone
