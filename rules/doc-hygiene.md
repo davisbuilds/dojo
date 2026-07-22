@@ -21,8 +21,11 @@ Standing conventions for changes in this repo.
   composed SKILL.md blocks) are never hand-edited — change the source and
   regenerate.
 
-## Plans & specs
+## Pre-execution artifacts
 
+- Newly authored design summaries, specs, and plans carry `author:` with the
+  producing agent's most specific available model or harness identifier. Do not
+  attribute the user or a reviewer, and do not leave `<agent>` unresolved.
 - Plans and specs carry a `status:` that follows a lifecycle:
   `draft → in-progress → complete` (terminal synonyms: `shipped`, `implemented`,
   `superseded`). Update it honestly as work progresses — downstream tooling keys

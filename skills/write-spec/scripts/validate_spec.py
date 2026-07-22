@@ -11,6 +11,7 @@ schema is present, and plan-shaped sections are absent.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import re
 import sys
 from pathlib import Path
@@ -44,6 +45,19 @@ FORBIDDEN_MARKERS = [
     "**Files**",
 ]
 FORBIDDEN_TASK_HEADER_RE = re.compile(r"^### Task \d+: ", re.MULTILINE)
+SUCCESS_CRITERION_ID_RE = re.compile(r"\bSC-\d{2}\b")
+SCENARIO_ID_RE = re.compile(r"\bEV-(?:NEG|REC|CON|LEG)-\d{2}\b")
+HIGH_RISK_HEADINGS = [
+    "## Authority And Safety",
+    "## Evaluation Scenarios",
+    "## Readiness Review",
+]
+SCENARIO_CLASSES = {
+    "negative": "EV-NEG-",
+    "recovery": "EV-REC-",
+    "concurrency": "EV-CON-",
+    "legacy": "EV-LEG-",
+}
 
 
 def parse_frontmatter(text: str) -> tuple[dict[str, str], str, list[str]]:
@@ -75,9 +89,14 @@ def validate_frontmatter(
     errors: list[str] = []
 
     required = ["date", "topic", "stage", "status", "source"]
+    if "risk_profile" in frontmatter or "readiness" in frontmatter:
+        required.append("author")
     for key in required:
         if key not in frontmatter or not frontmatter[key]:
             errors.append(f"Missing required frontmatter key: {key}")
+
+    if frontmatter.get("author") == "<agent>":
+        errors.append("Frontmatter 'author' must name the producing agent")
 
     date_value = frontmatter.get("date", "")
     if date_value and date_value != "YYYY-MM-DD" and not DATE_RE.match(date_value):
@@ -154,6 +173,73 @@ def validate_body(body: str) -> list[str]:
     return errors
 
 
+def validate_high_risk(frontmatter: dict[str, str], body: str) -> list[str]:
+    """Validate the conditional high-risk contract extension."""
+    errors: list[str] = []
+    risk_profile = frontmatter.get("risk_profile", "routine")
+    readiness = frontmatter.get("readiness", "draft")
+
+    if risk_profile not in {"routine", "high"}:
+        errors.append("Frontmatter 'risk_profile' must be 'routine' or 'high'")
+    if readiness not in {"draft", "ready"}:
+        errors.append("Frontmatter 'readiness' must be 'draft' or 'ready'")
+    if risk_profile != "high":
+        return errors
+
+    if "readiness" not in frontmatter:
+        errors.append("High-risk contracts must declare frontmatter 'readiness'")
+
+    for heading in HIGH_RISK_HEADINGS:
+        if section_body(body, heading) is None:
+            errors.append(f"High-risk contract missing required heading: {heading}")
+
+    criteria = section_body(body, "## Success Criteria") or ""
+    criterion_ids = SUCCESS_CRITERION_ID_RE.findall(criteria)
+    if not criterion_ids:
+        errors.append("High-risk contract must give success criteria stable SC-NN IDs")
+    for identifier, count in Counter(criterion_ids).items():
+        if count > 1:
+            errors.append(f"High-risk contract has duplicate success criterion ID {identifier}")
+
+    scenarios = section_body(body, "## Evaluation Scenarios") or ""
+    scenario_ids = SCENARIO_ID_RE.findall(scenarios)
+    for identifier, count in Counter(scenario_ids).items():
+        if count > 1:
+            errors.append(f"High-risk contract has duplicate evaluation scenario ID {identifier}")
+    for label, prefix in SCENARIO_CLASSES.items():
+        if not any(identifier.startswith(prefix) for identifier in scenario_ids):
+            errors.append(
+                f"High-risk contract must include a {label} evaluation scenario "
+                f"with an {prefix}NN ID"
+            )
+
+    if readiness == "ready":
+        review = section_body(body, "## Readiness Review") or ""
+        critique_markers = [
+            r"^- Deterministic validation:\s*passed\s*$",
+            r"^- Adversarial critique:\s*complete\s*$",
+            r"^- Closure critique:\s*complete\s*$",
+        ]
+        if not all(
+            re.search(marker, review, re.IGNORECASE | re.MULTILINE)
+            for marker in critique_markers
+        ):
+            errors.append(
+                "High-risk contract readiness requires deterministic validation, "
+                "adversarial critique, and closure critique"
+            )
+        if not re.search(
+            r"^- Blocking findings:\s*none\s*$",
+            review,
+            re.IGNORECASE | re.MULTILINE,
+        ):
+            errors.append(
+                "High-risk contract cannot be ready while blocking findings remain"
+            )
+
+    return errors
+
+
 def validate_file(path: Path, expected_stage: str, strict_filename: bool) -> list[str]:
     errors: list[str] = []
     if not path.exists():
@@ -171,6 +257,7 @@ def validate_file(path: Path, expected_stage: str, strict_filename: bool) -> lis
         )
 
     errors.extend(validate_body(body))
+    errors.extend(validate_high_risk(frontmatter, body))
     return errors
 
 

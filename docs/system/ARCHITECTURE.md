@@ -53,8 +53,8 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 | `pre-tool-use-git-push-protected-branch.sh` | PreToolUse (Bash) | Blocks pushes to protected branches unless an explicit override token is present |
 | `pre-tool-use-validate-skill.sh` | PreToolUse (Write/Edit) | Validates SKILL.md frontmatter; blocks on failure |
 | `post-tool-use-regen-manifest.sh` | PostToolUse (Write/Edit) | On SKILL.md or `skills/_fragments/*` edits, expands opt-in fragment composition, regenerates `skills.json`, then rebuilds the catalog |
-| `post-tool-use-validate-spec.sh` | PostToolUse (Write/Edit) | Validates `docs/specs/*-spec.md` against the `write-spec` contract schema (forbids plan-shaped content) |
-| `post-tool-use-validate-plan.sh` | PostToolUse (Write/Edit) | Validates `docs/plans/*-plan.md` against the `write-plan` execution schema |
+| `post-tool-use-validate-spec.sh` | PostToolUse (Write/Edit) | Validates `docs/specs/*-spec.md` against the `write-spec` contract schema; forbids plan-shaped content and conditionally enforces high-risk IDs/scenarios/readiness |
+| `post-tool-use-validate-plan.sh` | PostToolUse (Write/Edit) | Validates `docs/plans/*-plan.md` against the `write-plan` execution schema; conditionally enforces linked-spec coverage, task/file grounding, and high-risk readiness |
 | `stop-hook-git-check.sh` | (unregistered) | Blocks if there are uncommitted changes or untracked files. Script kept in `hooks/` but no longer wired into `.claude/settings.json`. |
 | `stop-hook-skill-structure.sh` | Stop | Validates modified skill directories have valid SKILL.md and release-version bumps |
 | `stop-hook-session-retro.sh` | Stop | Reminds agent to run `/retro` to capture session learnings |
@@ -86,6 +86,22 @@ SKILL.md frontmatter is the single source of truth; two deterministic, idempoten
 `skills/skill-evals/scripts/check_skill_versions.py` compares changed skill files against a git base ref. Release-relevant skill edits require a strictly greater version than the base SKILL.md and a matching `CHANGELOG.md` entry. The initial migration from unversioned skills is allowed without reconstructing historical changelogs.
 
 Uses a polyglot shebang — works with both `python` and `python3`.
+
+### Pre-execution artifact metadata
+
+New brainstorming design summaries, specs, and plans declare `author:` with the
+producing agent's most specific available model or harness identifier (for
+example, `gpt-5.6-sol`). The value attributes the document author, not the user
+or a later reviewer. Current-schema spec/plan validation rejects a missing or
+unresolved author; legacy artifacts remain valid without retroactive attribution.
+
+New `write-spec` and `write-plan` artifacts declare `risk_profile: routine|high`
+and `readiness: draft|ready` separately from delivery `status`. Missing fields on
+legacy artifacts default to routine/draft. Routine artifacts keep the existing
+schema. High-risk artifacts activate progressively disclosed authority, safety,
+traceability, evidence-lifecycle, capability-gate, and critique-closure sections;
+the validators enforce their deterministic structure while semantic correctness
+remains an adversarial-review responsibility.
 
 ## Test Tiers
 

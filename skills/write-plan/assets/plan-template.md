@@ -1,9 +1,12 @@
 ---
 date: YYYY-MM-DD
+author: <agent>
 topic: topic-slug
 stage: plan
 status: draft
 source: conversation
+risk_profile: routine
+readiness: draft
 ---
 
 # Topic Title Plan

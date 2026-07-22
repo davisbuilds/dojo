@@ -34,7 +34,10 @@ Present 2-3 options with pros/cons and your recommendation.
 
 ### 4. Capture summary
 
-Write to `docs/design/YYYY-MM-DD-<topic>-design.md` using the template in `skills/brainstorming/SKILL.md`.
+Write to `docs/design/YYYY-MM-DD-<topic>-design.md` using the template in
+`skills/brainstorming/SKILL.md`. Replace `author: <agent>` with the producing
+agent's most specific available model or harness identifier; never leave the
+placeholder unresolved.
 
 ### 5. Handoff
 

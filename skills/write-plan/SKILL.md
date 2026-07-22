@@ -2,7 +2,7 @@
 name: write-plan
 description: 'Sequence the build: turn a settled target (a `write-spec` contract, a ticket, or a clear request) into an execution plan — task breakdown, files, ordered steps, seam selection, and verification commands. Use when WHAT is already decided and you need HOW: the file-level, dependency-ordered steps to implement it. If the target is not yet falsifiable, route back to `write-spec`.'
 skill-type: workflow
-version: 1.1.0
+version: 2.0.0
 ---
 
 # Write Plan
@@ -48,6 +48,24 @@ If key context is missing, ask focused questions before writing:
 - constraints and non-goals
 - affected files or systems (if known)
 
+<!-- INCLUDE: risk-profile-gate -->
+<!-- AUTO-GENERATED from skills/_fragments/risk-profile-gate.md — do not edit -->
+## Risk Profile Gate
+
+Classify each new artifact before drafting:
+
+- `routine` — the default; keep the normal template and validation path lean.
+- `high` — use when credentials or privilege separation, remote/destructive
+  effects, cross-system state agreement, retries/concurrency/queues, executable
+  untrusted input, external policy decisions, or persisted-state migration can
+  make a plausible-looking artifact unsafe or infeasible.
+
+Record `risk_profile: routine|high` and `readiness: draft|ready` separately from
+delivery `status`. Legacy artifacts without these fields remain routine/draft.
+For `high`, load this skill's high-risk reference and addendum; do not add those
+sections to routine work. Reclassify when repository evidence reveals a trigger.
+<!-- /INCLUDE: risk-profile-gate -->
+
 ## Output Path
 
 Save the plan to:
@@ -62,12 +80,20 @@ Every plan must include YAML frontmatter and the required sections below.
 ```yaml
 ---
 date: YYYY-MM-DD
+author: <agent>
 topic: <kebab-case-topic>
 stage: plan
 status: draft
 source: conversation
+risk_profile: routine
+readiness: draft
 ---
 ```
+
+Replace `<agent>` with the producing agent's most specific available model or
+harness identifier (for example, `author: gpt-5.6-sol`). Attribute the agent
+that writes the plan, not the user or a later reviewer, and never leave the
+placeholder unresolved. Legacy plans without `author` remain valid.
 
 `status:` is born `draft` and follows the lifecycle `draft → in-progress →
 complete` (terminal synonyms: `shipped`, `implemented`, `superseded`). Update it
@@ -88,6 +114,12 @@ live plan from a finished one.
 Add `## Map Before You Cut` (below) whenever a task touches existing or coupled
 code — strongly recommended, and included in the template. Use
 `assets/plan-template.md` as the default scaffold.
+
+For `risk_profile: high`, also add a repository-relative `spec:` frontmatter
+path, use `assets/high-risk-plan-addendum.md`, and follow
+`references/high-risk-readiness.md`. The linked spec must be high-risk and every
+contract ID must trace to a task and proof. Do not plan from a high-risk spec
+until it has `readiness: ready`.
 
 ## Map Before You Cut
 
@@ -141,6 +173,9 @@ Granularity target:
   repository runner includes the new test path, then name a command that runs the
   literal test file (or exact test selector).
 - Do not claim plan readiness until verification coverage is explicit.
+- For high-risk plans, do not set `readiness: ready` or announce completion until
+  deterministic validation passes, adversarial critique findings are revised,
+  and a closure critique confirms no blocking finding remains.
 
 If available, apply the mindset from `verify-before-complete` when checking final
 plan quality.
@@ -155,15 +190,27 @@ python3 skills/write-plan/scripts/validate_plan.py docs/plans/<filename>.md
 
 Fix all reported issues before handoff.
 
-The validator's grounding and test-discovery messages are advisories, not schema
-failures. They inspect only explicit `**Files**` entries and cannot determine
-whether prose citations or commands are true; resolve an advisory by grounding
-the task, not by treating the checker as a substitute for reading the code.
+The validator's routine grounding and test-discovery messages are advisories,
+not schema failures. For high-risk plans, conditional structure, linked-spec ID
+coverage, task references, modified-file existence, and readiness closure are
+hard failures. No validator can determine whether prose claims or commands are
+true; ground the task and use semantic critique rather than treating the checker
+as a substitute for reading the code.
 
 ## Handoff
 
 End with:
 `Plan complete and saved to docs/plans/<filename>.md.`
+
+Use that completion line immediately for routine plans after validation. For
+high-risk plans, keep `readiness: draft` through deterministic validation,
+adversarial critique, revision, and closure critique; use the completion line
+only after `readiness: ready` validates.
+
+For high-risk plans, run the required critic described in
+`references/high-risk-readiness.md` before handoff. Use a critique subagent when
+the harness supports and authorizes one; otherwise run the same critique inline.
+For routine plans, critique remains optional and is offered explicitly below.
 
 Then offer:
 1. Execute in this session, task by task.
@@ -182,6 +229,14 @@ Then offer:
 
 If command files are supported, use `commands/workflows/plan.md` as the canonical
 `/workflows:plan` wrapper.
+
+## Resources
+
+- `references/seam-selection.md` — grounded seam selection and test discovery.
+- `references/high-risk-readiness.md` — conditional traceability, authority,
+  evidence, consumer-closure, stop-gate, and critique protocol.
+- `assets/high-risk-plan-addendum.md` — conditional scaffold for high-risk plans;
+  do not copy it into routine plans.
 
 ## Sibling skills
 

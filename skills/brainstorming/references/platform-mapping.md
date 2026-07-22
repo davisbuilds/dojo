@@ -6,6 +6,8 @@ This file keeps the core `brainstorming` skill model-agnostic and moves platform
 
 - Design summary path: `docs/design/YYYY-MM-DD-<topic>-design.md`
 - Stage marker in frontmatter: `stage: brainstorm`
+- Author marker in frontmatter: resolve `author: <agent>` to the producing
+  agent's most specific available model or harness identifier
 
 ## Spec Handoff Mapping
 

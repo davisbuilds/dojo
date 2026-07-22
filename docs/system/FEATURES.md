@@ -50,8 +50,8 @@ The four design skills above compose into a pipeline: `design-md` (token spec) �
 | `autonomous-engineering` | Full end-to-end feature workflows (`/lfg`, `/slfg`) |
 | `loop-design` | Design verifiable autonomous loops on top of `/loop` and `/goal`; gate on an oracle, then scaffold a portable loop bundle (`/loop-design`) |
 | `brainstorming` | Clarify WHAT to build and capture the chosen direction (`docs/design/`) |
-| `write-spec` | Pin the falsifiable contract — WHAT must be true, mechanism-free (`docs/specs/`) |
-| `write-plan` | Sequence the build — HOW: task breakdown, files, ordered steps, seam selection (`docs/plans/`) |
+| `write-spec` | Pin the falsifiable contract — WHAT must be true, mechanism-free; conditionally add high-risk authority/invariant scenarios and review closure (`docs/specs/`) |
+| `write-plan` | Sequence the build — HOW: tasks, files, seam selection, and verification; conditionally add high-risk traceability, evidence, capability gates, and review closure (`docs/plans/`) |
 | `blind-spots` | Find what you don't know about one change — blind spot pass before it's built, or a brief-then-quiz before you merge (never scored, never gating) |
 | `create-cli` | CLI parameter and UX design |
 | `agent-native-architecture` | Build agent-native apps with tool/action parity |
@@ -67,7 +67,7 @@ The four design skills above compose into a pipeline: `design-md` (token spec) �
 |-------|---------|
 | `caveman` | Sticky ultra-compressed output mode (~75% token cut) until the user says "stop caveman" |
 | `first-principles` | Systems reasoning for high-stakes decisions — epistemic framework, decision matrix, principle tensions |
-| `test-strategy` | Testing methodology: TDD, real dependencies over mocks, behavior-based tests |
+| `test-strategy` | Testing methodology: TDD, real dependencies over mocks, behavior-based tests, and conditional effective authority-boundary probes |
 | `verify-before-complete` | Evidence-based completion gate; require verification before claiming done |
 
 ### Security
@@ -128,7 +128,11 @@ The four design skills above compose into a pipeline: `design-md` (token spec) �
 - Every skill declares a SemVer `version`; release-relevant skill edits require a version bump and changelog entry against the selected git base.
 - Pushes to protected branches are blocked unless the command includes an explicit `DOJO_ALLOW_PROTECTED_PUSH=1` override.
 - `skills.json` manifest regenerated after every SKILL.md change (post-tool-use).
-- `docs/specs/*-spec.md` validated after every write/edit (post-tool-use).
+- Newly authored design summaries, specs, and plans identify the producing agent
+  in `author:` frontmatter; current-schema spec/plan validation rejects missing
+  or unresolved attribution while accepting legacy artifacts.
+- `docs/specs/*-spec.md` and `docs/plans/*-plan.md` validated after every
+  write/edit (post-tool-use).
 - Uncommitted changes and untracked files blocked at session stop. Unpushed commits no longer block — push timing is the operator's call.
 - Skill directory structure and skill release-version bumps validated at session stop.
 

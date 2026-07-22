@@ -49,7 +49,7 @@
       "name": "brainstorming",
       "description": "Use this when requirements are ambiguous, multiple approaches are plausible, or trade-offs need discussion before planning or implementation. Clarifies WHAT to build through one-question-at-a-time collaboration. Can be skipped when requirements are already explicit and well constrained.",
       "path": "skills/brainstorming",
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
     {
       "name": "caveman",
@@ -305,9 +305,9 @@
     },
     {
       "name": "test-strategy",
-      "description": "Guide agents to follow preferred testing methodology \u2014 red/green TDD, real dependencies over mocks, behavior-based tests. Use when writing tests, planning test coverage, deciding between TDD and test-after, or when the agent defaults to excessive mocking. Triggers on 'write tests', 'add test coverage', 'how should I test this', 'TDD', 'test strategy', 'test plan'.",
+      "description": "Guide agents to follow preferred testing methodology \u2014 red/green TDD, real dependencies over mocks, behavior-based tests, and effective-runtime authority-boundary probes. Use when writing tests, planning test coverage, deciding between TDD and test-after, correcting excessive mocking, or testing filesystem, credential, process, network, or remote-mutation permissions. Triggers on 'write tests', 'add test coverage', 'how should I test this', 'TDD', 'test strategy', 'test plan', 'test the permission boundary'.",
       "path": "skills/test-strategy",
-      "version": "1.0.0"
+      "version": "1.1.0"
     },
     {
       "name": "theme-factory",
@@ -365,13 +365,13 @@
       "name": "write-plan",
       "description": "Sequence the build: turn a settled target (a `write-spec` contract, a ticket, or a clear request) into an execution plan \u2014 task breakdown, files, ordered steps, seam selection, and verification commands. Use when WHAT is already decided and you need HOW: the file-level, dependency-ordered steps to implement it. If the target is not yet falsifiable, route back to `write-spec`.",
       "path": "skills/write-plan",
-      "version": "1.1.0"
+      "version": "2.0.0"
     },
     {
       "name": "write-spec",
       "description": "Define the target before building: write a falsifiable contract \u2014 problem, end-state, success criteria, evaluation \u2014 that states WHAT must be true, with no files or implementation steps. Use when you need to specify or align on what \"done\" means before sequencing work, or are handed a feature/change and must pin its acceptance criteria. Hand off to `write-plan` for the HOW.",
       "path": "skills/write-spec",
-      "version": "1.1.0"
+      "version": "2.0.0"
     }
   ]
 }

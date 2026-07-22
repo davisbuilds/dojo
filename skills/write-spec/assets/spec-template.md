@@ -1,9 +1,12 @@
 ---
 date: YYYY-MM-DD
+author: <agent>
 topic: topic-slug
 stage: spec
 status: draft
 source: conversation
+risk_profile: routine
+readiness: draft
 ---
 
 # Topic Title Spec
