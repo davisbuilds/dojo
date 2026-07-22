@@ -3,6 +3,9 @@
 These frozen scenarios test prompt behavior after routing. Replay each in a new
 session and mark every assertion pass/fail.
 
+Every scenario also requires a resolved `author:` value naming the producing
+agent; the literal `<agent>` placeholder is a failure.
+
 ## S1 — Routine multi-file feature stays lean
 
 - **Turn:** `Plan the implementation of a read-only report filter from its settled routine spec.`

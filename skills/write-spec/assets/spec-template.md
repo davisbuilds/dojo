@@ -1,5 +1,6 @@
 ---
 date: YYYY-MM-DD
+author: <agent>
 topic: topic-slug
 stage: spec
 status: draft

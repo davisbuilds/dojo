@@ -89,9 +89,14 @@ def validate_frontmatter(
     errors: list[str] = []
 
     required = ["date", "topic", "stage", "status", "source"]
+    if "risk_profile" in frontmatter or "readiness" in frontmatter:
+        required.append("author")
     for key in required:
         if key not in frontmatter or not frontmatter[key]:
             errors.append(f"Missing required frontmatter key: {key}")
+
+    if frontmatter.get("author") == "<agent>":
+        errors.append("Frontmatter 'author' must name the producing agent")
 
     date_value = frontmatter.get("date", "")
     if date_value and date_value != "YYYY-MM-DD" and not DATE_RE.match(date_value):

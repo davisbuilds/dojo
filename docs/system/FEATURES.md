@@ -128,7 +128,11 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 - Every skill declares a SemVer `version`; release-relevant skill edits require a version bump and changelog entry against the selected git base.
 - Pushes to protected branches are blocked unless the command includes an explicit `DOJO_ALLOW_PROTECTED_PUSH=1` override.
 - `skills.json` manifest regenerated after every SKILL.md change (post-tool-use).
-- `docs/specs/*-spec.md` validated after every write/edit (post-tool-use).
+- Newly authored design summaries, specs, and plans identify the producing agent
+  in `author:` frontmatter; current-schema spec/plan validation rejects missing
+  or unresolved attribution while accepting legacy artifacts.
+- `docs/specs/*-spec.md` and `docs/plans/*-plan.md` validated after every
+  write/edit (post-tool-use).
 - Uncommitted changes and untracked files blocked at session stop. Unpushed commits no longer block â€” push timing is the operator's call.
 - Skill directory structure and skill release-version bumps validated at session stop.
 

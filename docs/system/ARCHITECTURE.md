@@ -87,7 +87,13 @@ SKILL.md frontmatter is the single source of truth; two deterministic, idempoten
 
 Uses a polyglot shebang — works with both `python` and `python3`.
 
-### Spec and plan risk metadata
+### Pre-execution artifact metadata
+
+New brainstorming design summaries, specs, and plans declare `author:` with the
+producing agent's most specific available model or harness identifier (for
+example, `gpt-5.6-sol`). The value attributes the document author, not the user
+or a later reviewer. Current-schema spec/plan validation rejects a missing or
+unresolved author; legacy artifacts remain valid without retroactive attribution.
 
 New `write-spec` and `write-plan` artifacts declare `risk_profile: routine|high`
 and `readiness: draft|ready` separately from delivery `status`. Missing fields on

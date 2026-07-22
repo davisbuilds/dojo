@@ -1,5 +1,7 @@
 ## 2.0.0 - 2026-07-22
 
+- Require current-schema plans to identify the producing agent in frontmatter
+  while preserving validation compatibility for legacy plans.
 - Add a conditional high-risk plan-readiness contract with linked-spec
   traceability, authority/evidence maps, consumer closure, failure windows,
   empirical capability gates, and critique closure.

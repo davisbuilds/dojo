@@ -19,6 +19,42 @@ def load_module():
     return module
 
 
+def test_modern_plan_frontmatter_requires_resolved_author(tmp_path: Path) -> None:
+    module = load_module()
+    base = {
+        "date": "2026-07-22",
+        "topic": "example",
+        "stage": "plan",
+        "status": "draft",
+        "source": "test",
+        "risk_profile": "routine",
+        "readiness": "draft",
+    }
+
+    missing = module.validate_frontmatter(base, "plan", False, tmp_path / "plan.md")
+    unresolved = module.validate_frontmatter(
+        {**base, "author": "<agent>"}, "plan", False, tmp_path / "plan.md"
+    )
+
+    assert "Missing required frontmatter key: author" in missing
+    assert "Frontmatter 'author' must name the producing agent" in unresolved
+
+
+def test_legacy_plan_frontmatter_remains_valid_without_author(tmp_path: Path) -> None:
+    module = load_module()
+    frontmatter = {
+        "date": "2026-07-22",
+        "topic": "example",
+        "stage": "plan",
+        "status": "draft",
+        "source": "test",
+    }
+
+    assert module.validate_frontmatter(
+        frontmatter, "plan", False, tmp_path / "plan.md"
+    ) == []
+
+
 def plan_body(
     files: str,
     markers: str = "",

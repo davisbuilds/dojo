@@ -41,7 +41,9 @@ lookups before steps; risks are only irreducible future uncertainty.
 ### 3. Draft Plan
 
 Use `skills/write-plan/assets/plan-template.md` as the scaffold. Each `Done When`
-must trace to the contract's end-state.
+must trace to the contract's end-state. Replace `author: <agent>` with the
+producing agent's most specific available model or harness identifier; never
+leave the placeholder unresolved.
 
 Classify `risk_profile` using the canonical gate. For `high`, add the linked spec
 to frontmatter, load `references/high-risk-readiness.md`, append

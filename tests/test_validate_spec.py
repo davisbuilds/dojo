@@ -18,6 +18,42 @@ def load_module():
     return module
 
 
+def test_modern_contract_frontmatter_requires_resolved_author(tmp_path: Path) -> None:
+    module = load_module()
+    base = {
+        "date": "2026-07-22",
+        "topic": "example",
+        "stage": "spec",
+        "status": "draft",
+        "source": "test",
+        "risk_profile": "routine",
+        "readiness": "draft",
+    }
+
+    missing = module.validate_frontmatter(base, "spec", False, tmp_path / "spec.md")
+    unresolved = module.validate_frontmatter(
+        {**base, "author": "<agent>"}, "spec", False, tmp_path / "spec.md"
+    )
+
+    assert "Missing required frontmatter key: author" in missing
+    assert "Frontmatter 'author' must name the producing agent" in unresolved
+
+
+def test_legacy_contract_frontmatter_remains_valid_without_author(tmp_path: Path) -> None:
+    module = load_module()
+    frontmatter = {
+        "date": "2026-07-22",
+        "topic": "example",
+        "stage": "spec",
+        "status": "draft",
+        "source": "test",
+    }
+
+    assert module.validate_frontmatter(
+        frontmatter, "spec", False, tmp_path / "spec.md"
+    ) == []
+
+
 def contract_body(high_risk_sections: str = "") -> str:
     return f"""# Example Spec
 

@@ -2,7 +2,7 @@
 name: brainstorming
 description: Use this when requirements are ambiguous, multiple approaches are plausible, or trade-offs need discussion before planning or implementation. Clarifies WHAT to build through one-question-at-a-time collaboration. Can be skipped when requirements are already explicit and well constrained.
 skill-type: workflow
-version: 1.0.0
+version: 2.0.0
 ---
 
 # Brainstorming
@@ -85,6 +85,7 @@ Use this structure:
 ```markdown
 ---
 date: YYYY-MM-DD
+author: <agent>
 topic: <kebab-case-topic>
 stage: brainstorm
 ---
@@ -109,6 +110,11 @@ stage: brainstorm
 ## Constraints
 - [Constraint]
 ```
+
+Replace `<agent>` with the producing agent's most specific available model or
+harness identifier (for example, `author: gpt-5.6-sol`). Attribute the agent
+that writes the document, not the user or a later reviewer, and never leave the
+placeholder unresolved.
 
 ### Phase 4: Handoff
 
@@ -139,7 +145,8 @@ Explain why in one sentence and ask for confirmation. If the target skill is una
 
 ## Verification
 
-- Design summary has YAML frontmatter with `stage: brainstorm`
+- Design summary has YAML frontmatter with `stage: brainstorm` and a resolved
+  `author:` value
 - The chosen direction is clear and traceable to the alternatives it beat
 - `What Good Looks Like` is directional (falsifiable criteria are deferred to `write-spec`)
 - At least one approach was evaluated with pros/cons before choosing

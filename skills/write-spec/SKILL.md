@@ -112,6 +112,7 @@ Every spec must include YAML frontmatter and the required sections below.
 ```yaml
 ---
 date: YYYY-MM-DD
+author: <agent>
 topic: <kebab-case-topic>
 stage: spec
 status: draft
@@ -120,6 +121,11 @@ risk_profile: routine
 readiness: draft
 ---
 ```
+
+Replace `<agent>` with the producing agent's most specific available model or
+harness identifier (for example, `author: gpt-5.6-sol`). Attribute the agent
+that writes the contract, not the user or a later reviewer, and never leave the
+placeholder unresolved. Legacy specs without `author` remain valid.
 
 `status:` is born `draft` and follows the lifecycle `draft → in-progress →
 complete` (terminal synonyms: `shipped`, `implemented`, `superseded`). Update it

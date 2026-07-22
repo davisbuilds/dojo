@@ -73,6 +73,12 @@ ID coverage, task dependencies, modified files, conditional readiness sections,
 or unresolved blocking findings. Semantic authority and recovery claims still
 require adversarial review.
 
+Every newly authored design summary, spec, or plan also declares `author:` with
+the producing agent's most specific available model or harness identifier (for
+example, `gpt-5.6-sol`); the literal `<agent>` template placeholder must be
+resolved. Spec/plan validators enforce this for current-schema artifacts while
+continuing to accept legacy documents without fabricated attribution.
+
 ### Package a skill for distribution
 
 ```bash

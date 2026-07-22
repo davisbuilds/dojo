@@ -80,6 +80,7 @@ Every plan must include YAML frontmatter and the required sections below.
 ```yaml
 ---
 date: YYYY-MM-DD
+author: <agent>
 topic: <kebab-case-topic>
 stage: plan
 status: draft
@@ -88,6 +89,11 @@ risk_profile: routine
 readiness: draft
 ---
 ```
+
+Replace `<agent>` with the producing agent's most specific available model or
+harness identifier (for example, `author: gpt-5.6-sol`). Attribute the agent
+that writes the plan, not the user or a later reviewer, and never leave the
+placeholder unresolved. Legacy plans without `author` remain valid.
 
 `status:` is born `draft` and follows the lifecycle `draft → in-progress →
 complete` (terminal synonyms: `shipped`, `implemented`, `superseded`). Update it

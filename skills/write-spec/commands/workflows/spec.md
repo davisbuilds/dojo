@@ -33,7 +33,9 @@ skill. Do not hand off a contract with a blocking open question.
 Use `skills/write-spec/assets/spec-template.md` as the scaffold. State the
 problem, the falsifiable contract (with at least one verification command),
 success criteria, and evaluation. Keep mechanism out — no files, task breakdowns,
-or implementation steps.
+or implementation steps. Replace `author: <agent>` with the producing agent's
+most specific available model or harness identifier; never leave the placeholder
+unresolved.
 
 Classify `risk_profile` using the canonical gate. For `high`, load
 `references/high-risk-contract.md`, append `assets/high-risk-spec-addendum.md`,
