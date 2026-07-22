@@ -1,0 +1,41 @@
+{
+  "description": "Routing fixture for test-strategy authority-boundary coverage. Positive cases keep test-design intent with test-strategy; negative controls keep security auditing and completion-proof intents with their existing owners.",
+  "cases": [
+    {
+      "id": "authority-capability-matrix",
+      "type": "implicit",
+      "prompt": "Design the test strategy for this credentialed runner: prove allowed filesystem operations work and forbidden writes fail in the effective runtime.",
+      "expected": {
+        "trigger": ["test-strategy"],
+        "avoid": ["secure-code", "repo-hardening", "verify-before-complete"]
+      }
+    },
+    {
+      "id": "authority-red-green",
+      "type": "implicit",
+      "prompt": "Write a red-green regression test that reproduces this sandbox permission leak, then proves the hardened runtime blocks it without breaking allowed behavior.",
+      "expected": {
+        "trigger": ["test-strategy"],
+        "avoid": ["diagnose", "secure-code"]
+      }
+    },
+    {
+      "id": "negative-security-audit",
+      "type": "implicit",
+      "prompt": "Run semgrep static analysis on this repository, find credential-exposure vulnerabilities, and rank the security findings by severity.",
+      "expected": {
+        "trigger": ["secure-code"],
+        "avoid": ["test-strategy"]
+      }
+    },
+    {
+      "id": "negative-completion-proof",
+      "type": "implicit",
+      "prompt": "The permission hardening is implemented. Before calling it done, verify the existing evidence is fresh and sufficient.",
+      "expected": {
+        "trigger": ["verify-before-complete"],
+        "avoid": ["test-strategy"]
+      }
+    }
+  ]
+}

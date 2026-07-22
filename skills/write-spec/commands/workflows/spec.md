@@ -35,6 +35,10 @@ problem, the falsifiable contract (with at least one verification command),
 success criteria, and evaluation. Keep mechanism out — no files, task breakdowns,
 or implementation steps.
 
+Classify `risk_profile` using the canonical gate. For `high`, load
+`references/high-risk-contract.md`, append `assets/high-risk-spec-addendum.md`,
+and keep `readiness: draft` through critique closure. Keep routine specs lean.
+
 ### 3. Save Contract
 
 Write the contract to:
@@ -52,7 +56,9 @@ python3 skills/write-spec/scripts/validate_spec.py docs/specs/<filename>.md
 ```
 
 Fix any validation errors before presenting the contract. The validator fails if
-plan-shaped content (task breakdowns, files, steps) leaked in.
+plan-shaped content (task breakdowns, files, steps) leaked in. For high-risk
+contracts it also fails missing scenario classes, duplicate IDs, or incomplete
+structural readiness evidence.
 
 ### 5. Handoff
 
@@ -60,13 +66,12 @@ Confirm `Open Questions` is `None` or any retained item is explicitly
 non-blocking before offering planning. Return to the decision-readiness gate when
 an item would change the contract.
 
-Offer:
+For `risk_profile: high`, run adversarial critique, revise blocking findings,
+run closure critique, and set `readiness: ready` only when none remain. Use a
+critique subagent when supported and authorized; otherwise critique inline.
+
+Then offer:
 1. Hand off to `/workflows:plan` (write-plan) to sequence the build.
-2. Review the contract with a critique subagent: if the harness supports
-   subagents, launch one seeded with the spec's path and the originating context
-   to critique the contract (falsifiable? mechanism leaked? criteria concrete?
-   evaluation gate right? problem real?) and propose improvements. If subagents
-   are unavailable, run the same critique inline via `verify-before-complete`.
-3. Refine the contract first.
+2. Review or refine a routine contract first.
 
 Do not implement code in this workflow.

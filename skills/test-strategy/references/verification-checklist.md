@@ -35,3 +35,12 @@ Run through this checklist before considering test work complete.
 - [ ] No sleep/wait calls unless testing async behavior with proper timeouts
 - [ ] Tests run in <10s individually (flag slow tests explicitly)
 - [ ] Project-specific test conventions were followed (checked AGENTS.md/CLAUDE.md)
+
+## Authority Boundaries (when applicable)
+
+- [ ] Allowed operations succeed and forbidden operations fail without side effects
+- [ ] A real isolated effective-runtime probe complements policy/rendering tests
+- [ ] Before/after evidence is observed outside the constrained subject
+- [ ] Direct, indirect, ambient, state-class, network, and remote paths are covered when in scope
+- [ ] The red test reproduced the actual authority leak before the fix
+- [ ] Cached proof is invalidated when policy, binary, host, auth mode, or runtime inputs change

@@ -1,8 +1,8 @@
 ---
 name: test-strategy
-description: Guide agents to follow preferred testing methodology — red/green TDD, real dependencies over mocks, behavior-based tests. Use when writing tests, planning test coverage, deciding between TDD and test-after, or when the agent defaults to excessive mocking. Triggers on 'write tests', 'add test coverage', 'how should I test this', 'TDD', 'test strategy', 'test plan'.
+description: Guide agents to follow preferred testing methodology — red/green TDD, real dependencies over mocks, behavior-based tests, and effective-runtime authority-boundary probes. Use when writing tests, planning test coverage, deciding between TDD and test-after, correcting excessive mocking, or testing filesystem, credential, process, network, or remote-mutation permissions. Triggers on 'write tests', 'add test coverage', 'how should I test this', 'TDD', 'test strategy', 'test plan', 'test the permission boundary'.
 skill-type: reference
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Test Strategy
@@ -16,6 +16,8 @@ Testing methodology that encodes preferred practices for how agents should appro
 - Choosing between real dependencies and mocks
 - Planning what to test and at what granularity
 - Reviewing existing tests for methodology issues
+- Testing software that mediates filesystem, credential, process, network, or
+  remote-mutation authority
 
 ## Core Principles
 
@@ -77,14 +79,24 @@ Mocks are not acceptable when:
 | UI component | E2E or visual test | Playwright when available in project tooling |
 | Database migration | Migration test or manual verification | Test both up and down migrations |
 
+## Conditional Authority-Boundary Testing
+
+When the system mediates privileged authority, read
+`references/authority-boundary-testing.md`. Prove a two-sided capability matrix:
+allowed operations succeed and forbidden operations fail without prohibited
+side effects. Pair deterministic policy/rendering tests with an isolated
+effective-runtime probe and host-observed before/after evidence. Keep this path
+out of routine test work that does not cross an authority boundary.
+
 ## Workflow
 
 1. Identify the change type and select test granularity from the guide above.
-2. Decide TDD vs test-after based on the criteria in "When To TDD."
-3. Choose the dependency approach using the mock decision framework.
-4. Write tests that assert on behavior and observable outcomes.
-5. Name tests to describe what the system does, not how it does it.
-6. Run the full relevant test suite before claiming done.
+2. Decide whether an authority boundary activates the conditional reference.
+3. Decide TDD vs test-after based on the criteria in "When To TDD."
+4. Choose the dependency approach using the mock decision framework.
+5. Write tests that assert on behavior and observable outcomes.
+6. Name tests to describe what the system does, not how it does it.
+7. Run the full relevant test suite before claiming done.
 
 ## Boundaries
 
@@ -107,10 +119,14 @@ Mocks are not acceptable when:
 - TDD was used for high-risk changes; test-after was justified for others
 - Test names are readable as behavior descriptions
 - The verification checklist in `references/verification-checklist.md` passes
+- When authority is in scope, allowed and forbidden behavior is proven against
+  the effective runtime with host-observed evidence and a freshness fingerprint
 
 ## Resources
 
 - `references/verification-checklist.md` — post-test self-review checklist
+- `references/authority-boundary-testing.md` — conditional capability matrix,
+  effective-runtime probe, ambient/indirect path, and proof-freshness guidance
 
 ## Sibling skills
 

@@ -2,7 +2,7 @@
 name: write-spec
 description: 'Define the target before building: write a falsifiable contract — problem, end-state, success criteria, evaluation — that states WHAT must be true, with no files or implementation steps. Use when you need to specify or align on what "done" means before sequencing work, or are handed a feature/change and must pin its acceptance criteria. Hand off to `write-plan` for the HOW.'
 skill-type: workflow
-version: 1.1.0
+version: 2.0.0
 ---
 
 # Write Spec
@@ -77,6 +77,24 @@ See `references/uncertainty-triage.md` for compact prompts and examples. The
 spec records decisions and bounded uncertainty, not a transcript of every
 question asked.
 
+<!-- INCLUDE: risk-profile-gate -->
+<!-- AUTO-GENERATED from skills/_fragments/risk-profile-gate.md — do not edit -->
+## Risk Profile Gate
+
+Classify each new artifact before drafting:
+
+- `routine` — the default; keep the normal template and validation path lean.
+- `high` — use when credentials or privilege separation, remote/destructive
+  effects, cross-system state agreement, retries/concurrency/queues, executable
+  untrusted input, external policy decisions, or persisted-state migration can
+  make a plausible-looking artifact unsafe or infeasible.
+
+Record `risk_profile: routine|high` and `readiness: draft|ready` separately from
+delivery `status`. Legacy artifacts without these fields remain routine/draft.
+For `high`, load this skill's high-risk reference and addendum; do not add those
+sections to routine work. Reclassify when repository evidence reveals a trigger.
+<!-- /INCLUDE: risk-profile-gate -->
+
 ## Output Path
 
 Save the contract to:
@@ -98,6 +116,8 @@ topic: <kebab-case-topic>
 stage: spec
 status: draft
 source: conversation
+risk_profile: routine
+readiness: draft
 ---
 ```
 
@@ -126,6 +146,11 @@ live contract from a finished one.
 
 Use `assets/spec-template.md` as the default scaffold.
 
+For `risk_profile: high`, also use `assets/high-risk-spec-addendum.md` and follow
+`references/high-risk-contract.md`. High-risk contracts add stable success
+criterion and evaluation-scenario IDs, observable authority/safety outcomes, and
+a readiness review while remaining mechanism-free.
+
 ## Verification Requirements
 
 - The `## Contract` must name at least one concrete verification command or check.
@@ -135,6 +160,9 @@ Use `assets/spec-template.md` as the default scaffold.
   and runner discovery are plan-level details; `write-plan` verifies those when
   tests change.
 - Do not claim the contract is ready until the end-state is falsifiable.
+- For high-risk contracts, do not set `readiness: ready` or announce completion
+  until deterministic validation passes, adversarial critique findings are
+  revised, and a closure critique confirms no blocking finding remains.
 
 If available, apply the mindset from `verify-before-complete` when checking final
 contract quality.
@@ -160,29 +188,32 @@ python3 skills/write-spec/scripts/validate_spec.py docs/specs/<filename>.md
 
 Fix all reported issues before handoff. The validator fails the contract if any
 plan-shaped content (task breakdowns, file lists, implementation steps) leaked
-in. Decision readiness is an intentional human/agent reasoning gate, not a
-brittle prose heuristic for the validator.
+in. For high-risk contracts it also enforces the conditional addendum, stable ID
+classes, and structural review closure. Decision readiness and semantic safety
+remain human/agent reasoning gates, not brittle prose heuristics.
 
 ## Handoff
 
 End with:
 `Contract complete and saved to docs/specs/<filename>.md.`
 
+Use that completion line immediately for routine contracts after validation. For
+high-risk contracts, keep `readiness: draft` through deterministic validation,
+adversarial critique, revision, and closure critique; use the completion line
+only after `readiness: ready` validates.
+
 Before offering a plan handoff, confirm that `Open Questions` is `None` or that
 any retained item is explicitly non-blocking. Return to decision readiness if it
 would change scope, success criteria, or verification.
 
+For high-risk contracts, run the required critic described in
+`references/high-risk-contract.md` before handoff. Use a critique subagent when
+the harness supports and authorizes one; otherwise run the same critique inline.
+For routine contracts, critique remains optional.
+
 Then offer:
 1. Hand off to `write-plan` to sequence the build against this contract.
-2. **Review the contract with a critique subagent.** If the harness supports
-   subagents (e.g. a Task/agent tool), launch one seeded with the spec's path
-   **and** the originating goal/context, instructed to critique the *contract* —
-   is the end-state falsifiable? did any mechanism (files/steps) leak in? are
-   success criteria concrete? is the evaluation gate right? is the problem real? —
-   and to propose concrete improvements. Apply or discuss before handing off. If
-   subagents are unavailable, run the same critique inline via
-   `verify-before-complete`.
-3. Refine the contract before sequencing.
+2. Review or refine a routine contract before sequencing.
 
 ## Command Wrapper
 
@@ -193,6 +224,10 @@ If command files are supported, use `commands/workflows/spec.md` as the canonica
 
 - `references/uncertainty-triage.md` — classify uncertainty, work through
   proportionate unknown-unknown lenses, and keep contracts ready for planning.
+- `references/high-risk-contract.md` — conditional authority, invariant,
+  scenario-ID, and critique-closure protocol.
+- `assets/high-risk-spec-addendum.md` — conditional scaffold for high-risk
+  contracts; do not copy it into routine specs.
 
 ## Sibling skills
 

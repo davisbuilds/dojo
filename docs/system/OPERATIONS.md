@@ -65,6 +65,14 @@ The plan validator also prints non-blocking grounding and test-discovery advisor
 when explicit task metadata suggests an omission; these messages never change an
 otherwise valid plan's exit status.
 
+New artifacts declare `risk_profile: routine|high` and
+`readiness: draft|ready`; legacy artifacts default to routine/draft. High-risk
+specs add stable criteria/scenario IDs and critique closure. High-risk plans link
+the spec through repository-relative `spec:` frontmatter and hard-fail on missing
+ID coverage, task dependencies, modified files, conditional readiness sections,
+or unresolved blocking findings. Semantic authority and recovery claims still
+require adversarial review.
+
 ### Package a skill for distribution
 
 ```bash

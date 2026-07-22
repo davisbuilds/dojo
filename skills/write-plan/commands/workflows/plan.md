@@ -29,6 +29,8 @@ criteria, or verification; route those back to `/workflows:spec`. If no contract
 exists and the work is non-trivial or touches coupled code, ask whether to switch
 to `/workflows:spec` first.
 
+If the spec is high-risk, require `readiness: ready` before planning.
+
 ### 2. Map Before You Cut
 
 For tasks touching existing/coupled code, trace the data/call path, pick the
@@ -40,6 +42,11 @@ lookups before steps; risks are only irreducible future uncertainty.
 
 Use `skills/write-plan/assets/plan-template.md` as the scaffold. Each `Done When`
 must trace to the contract's end-state.
+
+Classify `risk_profile` using the canonical gate. For `high`, add the linked spec
+to frontmatter, load `references/high-risk-readiness.md`, append
+`assets/high-risk-plan-addendum.md`, and keep `readiness: draft` through critique
+closure. Keep routine plans lean.
 
 ### 4. Save Plan
 
@@ -56,16 +63,16 @@ python3 skills/write-plan/scripts/validate_plan.py docs/plans/<filename>.md
 
 Fix any validation errors before presenting the plan.
 Treat grounding and test-discovery messages as advisories: they are a prompt to
-read the code, not a verdict on prose.
+read the code, not a verdict on prose. High-risk structure, linked-spec coverage,
+task references, modified-file existence, and readiness closure are hard gates.
 
 ### 6. Handoff
 
-Offer:
+For `risk_profile: high`, run adversarial critique, revise blocking findings,
+run closure critique, and set `readiness: ready` only when none remain. Use a
+critique subagent when supported and authorized; otherwise critique inline.
+
+Then offer:
 1. Execute in this session, task by task.
-2. Review the plan with a critique subagent: if the harness supports subagents,
-   launch one seeded with the plan's path, the spec contract, and originating
-   context to critique the plan (thinnest seam? assumptions grounded? steps
-   verified not guessed? blast radius mapped? verification real?) and propose
-   improvements. If subagents are unavailable, run the same critique inline via
-   `verify-before-complete`.
-3. Open a separate execution session, or refine the plan first.
+2. Review or refine a routine plan first.
+3. Open a separate execution session.

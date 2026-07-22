@@ -17,51 +17,6 @@ This file stays future-only.
 
 ## Open
 
-#### write-spec/write-plan: add a risk-adaptive readiness protocol
-Status: noted
-- **What**: The current workflow is strong for ordinary feature work, but its
-  high-risk guidance remains a proportionate lens and its critique happens after
-  the artifact can already be called complete. In a credentialed, cross-system
-  landing workflow, both validators passed before adversarial review exposed
-  architecture-level gaps: unproven capability boundaries, ambient credential
-  paths, remote/local side-effect crash windows, identity and policy ambiguity,
-  executable dependency hooks, lifecycle supersession, and contradictory
-  immutability claims. Some misses were session errors against existing guidance,
-  but the workflow made premature readiness too easy and could repeat that shape
-  across repos.
-- **Why it matters**: High-risk plans should reach critique with the transaction,
-  authority, and recovery model already explicit. The goal is not to eliminate a
-  second pass; it is for that pass to find refinements rather than first-order
-  safety or feasibility blockers, without burdening routine specs and plans with
-  heavyweight ceremony.
-- **Sketch**:
-  - Add a shared, progressively disclosed high-risk reference, triggered by
-    credentials or privilege separation, remote/destructive effects, multiple
-    systems that must agree on state, retries/concurrency/queues, executable
-    untrusted input, external policy APIs, or persisted-state migration.
-  - In `write-spec`, keep the contract mechanism-free but require stable criterion
-    and scenario IDs plus observable authority boundaries, safety invariants,
-    identity/freshness rules, failure and recovery outcomes, unsupported-policy
-    behavior, and fixed negative/recovery/concurrency/legacy evaluation scenarios.
-  - In `write-plan`, require criterion-to-task/proof traceability, a capability and
-    authority map, side-effect inventory, before/after failure-window table,
-    lifecycle/backward-compatibility coverage, execution-hook review, and Task 0
-    stop gates for any unproven security or platform assumption.
-  - Change high-risk readiness to `draft -> deterministic validation -> adversarial
-    critique -> revision -> closure critique -> reviewed/ready`; do not announce
-    completion before blocking critique findings close. Seed the critic explicitly
-    to attack ambient credentials, executable hooks, contradictory invariants,
-    crash windows, external identity/policy semantics, retry/idempotency behavior,
-    and legacy states.
-  - Extend deterministic validation without pretending regex proves architecture:
-    conditionally require the high-risk sections, verify unique criterion/scenario
-    IDs and spec-to-plan coverage, check task/dependency references and cited file
-    existence, and leave semantic correctness to the required critique.
-  - Evaluate the revision against a routine multi-file feature, a remote
-    transactional workflow, and a persisted-state migration. The routine fixture
-    should stay lean; the two high-risk fixtures should surface known safety gaps
-    before either artifact is marked ready.
-
 #### research-architect: deferred tooling awaits first real runs
 Status: noted
 - **What**: `scripts/score_report.py`, `scripts/diff_runs.py`, and

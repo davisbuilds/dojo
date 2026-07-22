@@ -10,9 +10,13 @@ write-spec became the contract skill).
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import re
 import sys
 from pathlib import Path
+
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
 
 FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n?", re.DOTALL)
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -42,6 +46,33 @@ ASSUMPTIONS_VERIFIED_SECTION_RE = re.compile(
 TEST_DISCOVERY_VERIFIED_SECTION_RE = re.compile(
     r"^\*\*Test Discovery Verified\*\*(?::[ \t]*.*)?[ \t]*$", re.MULTILINE
 )
+DEPENDENCIES_SECTION_RE = re.compile(
+    r"^\*\*Dependencies\*\*:?[ \t]*(.*?)(?=^\*\*[^*]+?\*\*|\Z)",
+    re.MULTILINE | re.DOTALL,
+)
+TASK_NUMBER_RE = re.compile(r"^### Task (\d+): ", re.MULTILINE)
+CONTRACT_ID_RE = re.compile(r"\b(?:SC-\d{2}|EV-(?:NEG|REC|CON|LEG)-\d{2})\b")
+HIGH_RISK_SUBHEADINGS = [
+    "### Traceability",
+    "### Capability And Authority Map",
+    "### Side Effects And Failure Windows",
+    "### Evidence Lifecycle",
+    "### Consumer Closure",
+    "### Lifecycle And Compatibility",
+    "### Execution Hooks",
+    "### Capability Stop Gates",
+    "### Readiness Review",
+]
+HIGH_RISK_TABLE_HEADERS = {
+    "Traceability": "| Contract ID | Task | Proof |",
+    "Capability And Authority Map": (
+        "| Actor | Allowed | Forbidden | Effective-runtime proof |"
+    ),
+    "Side Effects And Failure Windows": "| Effect | Before | After | Recovery |",
+    "Evidence Lifecycle": (
+        "| Evidence | Trusted producer | Created | Claim | Consumers | Freshness |"
+    ),
+}
 
 REQUIRED_HEADINGS = [
     "## Goal",
@@ -222,6 +253,164 @@ def validate_body(body: str) -> list[str]:
     return errors
 
 
+def section_body(body: str, heading: str) -> str | None:
+    """Return text beneath a level-two or level-three heading."""
+    level = heading.split(" ", 1)[0]
+    pattern = re.compile(
+        rf"^{re.escape(heading)}\s*$(.*?)(?=^{re.escape(level)} |\Z)",
+        re.MULTILINE | re.DOTALL,
+    )
+    match = pattern.search(body)
+    return match.group(1) if match else None
+
+
+def resolve_repo_path(raw: str) -> Path | None:
+    """Resolve a repository-relative path without allowing an escape."""
+    candidate = Path(raw)
+    if candidate.is_absolute() or ".." in candidate.parts:
+        return None
+    resolved = (REPO_ROOT / candidate).resolve()
+    try:
+        resolved.relative_to(REPO_ROOT.resolve())
+    except ValueError:
+        return None
+    return resolved
+
+
+def task_dependency_errors(body: str) -> list[str]:
+    errors: list[str] = []
+    blocks = iter_task_blocks(body)
+    task_numbers = [int(number) for number in TASK_NUMBER_RE.findall(body)]
+    for number, count in Counter(task_numbers).items():
+        if count > 1:
+            errors.append(f"High-risk plan has duplicate task number Task {number}")
+
+    known = set(task_numbers)
+    for block in blocks:
+        first_line = block.splitlines()[0].strip()
+        match = DEPENDENCIES_SECTION_RE.search(block)
+        if not match:
+            continue
+        for dependency in re.findall(r"\bTask (\d+)\b", match.group(1)):
+            if int(dependency) not in known:
+                errors.append(f"{first_line[4:]}: unknown dependency Task {dependency}")
+    return errors
+
+
+def traceability_task_errors(body: str, high_risk_section: str) -> list[str]:
+    errors: list[str] = []
+    known = {int(number) for number in TASK_NUMBER_RE.findall(body)}
+    traceability = section_body(high_risk_section, "### Traceability") or ""
+    for task_number in re.findall(r"\bTask (\d+)\b", traceability):
+        if int(task_number) not in known:
+            errors.append(
+                f"High-risk plan traceability references unknown Task {task_number}"
+            )
+    return errors
+
+
+def modified_file_errors(body: str) -> list[str]:
+    errors: list[str] = []
+    for task in iter_task_blocks(body):
+        files = task_files_block(task)
+        for line in files.splitlines():
+            if not re.match(r"^\s*[-*]\s*Modify(?:\s*\([^)]*\))?:", line, re.IGNORECASE):
+                continue
+            for raw in INLINE_CODE_RE.findall(line):
+                target = resolve_repo_path(raw)
+                if target is None:
+                    errors.append(f"High-risk plan has invalid repository path: {raw}")
+                elif not target.exists():
+                    errors.append(f"High-risk plan cites missing modified file: {raw}")
+    return errors
+
+
+def validate_high_risk(
+    frontmatter: dict[str, str], body: str, _path: Path
+) -> list[str]:
+    """Validate the conditional high-risk planning extension."""
+    errors: list[str] = []
+    risk_profile = frontmatter.get("risk_profile", "routine")
+    readiness = frontmatter.get("readiness", "draft")
+
+    if risk_profile not in {"routine", "high"}:
+        errors.append("Frontmatter 'risk_profile' must be 'routine' or 'high'")
+    if readiness not in {"draft", "ready"}:
+        errors.append("Frontmatter 'readiness' must be 'draft' or 'ready'")
+    if risk_profile != "high":
+        return errors
+
+    if "readiness" not in frontmatter:
+        errors.append("High-risk plans must declare frontmatter 'readiness'")
+
+    high_risk_section = section_body(body, "## High-Risk Readiness")
+    if high_risk_section is None:
+        errors.append("High-risk plan missing required heading: ## High-Risk Readiness")
+    else:
+        for heading in HIGH_RISK_SUBHEADINGS:
+            if section_body(high_risk_section, heading) is None:
+                errors.append(f"High-risk plan missing required heading: {heading}")
+        for label, header in HIGH_RISK_TABLE_HEADERS.items():
+            if header not in high_risk_section:
+                errors.append(f"High-risk plan missing required {label} table header")
+
+    spec_value = frontmatter.get("spec", "")
+    if not spec_value:
+        errors.append("High-risk plans must link a repository-relative spec in frontmatter 'spec'")
+    else:
+        spec_path = resolve_repo_path(spec_value)
+        if spec_path is None:
+            errors.append("High-risk plan frontmatter 'spec' must be repository-relative")
+        elif not spec_path.exists():
+            errors.append(f"High-risk plan linked spec does not exist: {spec_value}")
+        else:
+            spec_text = spec_path.read_text(encoding="utf-8")
+            spec_frontmatter, _, spec_parse_errors = parse_frontmatter(spec_text)
+            if spec_parse_errors:
+                errors.append(f"High-risk plan linked spec has invalid frontmatter: {spec_value}")
+            elif spec_frontmatter.get("risk_profile") != "high":
+                errors.append("High-risk plan must link a spec with risk_profile: high")
+            elif spec_frontmatter.get("readiness") != "ready":
+                errors.append("High-risk plan requires linked spec with readiness: ready")
+
+            spec_ids = set(CONTRACT_ID_RE.findall(spec_text))
+            plan_ids = set(CONTRACT_ID_RE.findall(body))
+            if not spec_ids:
+                errors.append("High-risk linked spec must define SC-NN and EV-*-NN IDs")
+            for identifier in sorted(spec_ids - plan_ids):
+                errors.append(f"High-risk plan does not cover linked spec ID {identifier}")
+            for identifier in sorted(plan_ids - spec_ids):
+                errors.append(f"High-risk plan references unknown linked spec ID {identifier}")
+
+    errors.extend(task_dependency_errors(body))
+    errors.extend(traceability_task_errors(body, high_risk_section or ""))
+    errors.extend(modified_file_errors(body))
+
+    if readiness == "ready":
+        review = section_body(high_risk_section or "", "### Readiness Review") or ""
+        critique_markers = [
+            r"^- Deterministic validation:\s*passed\s*$",
+            r"^- Adversarial critique:\s*complete\s*$",
+            r"^- Closure critique:\s*complete\s*$",
+        ]
+        if not all(
+            re.search(marker, review, re.IGNORECASE | re.MULTILINE)
+            for marker in critique_markers
+        ):
+            errors.append(
+                "High-risk plan readiness requires deterministic validation, "
+                "adversarial critique, and closure critique"
+            )
+        if not re.search(
+            r"^- Blocking findings:\s*none\s*$",
+            review,
+            re.IGNORECASE | re.MULTILINE,
+        ):
+            errors.append("High-risk plan cannot be ready while blocking findings remain")
+
+    return errors
+
+
 def validate_file(path: Path, expected_stage: str, strict_filename: bool) -> list[str]:
     errors: list[str] = []
     if not path.exists():
@@ -239,6 +428,7 @@ def validate_file(path: Path, expected_stage: str, strict_filename: bool) -> lis
         )
 
     errors.extend(validate_body(body))
+    errors.extend(validate_high_risk(frontmatter, body, path))
     return errors
 
 
