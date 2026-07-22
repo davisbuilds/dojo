@@ -2,6 +2,8 @@
 
 - Require current-schema plans to identify the producing agent in frontmatter
   while preserving validation compatibility for legacy plans.
+- Preserve the detailed optional critique-subagent handoff for routine plans
+  while making critique closure mandatory only for high-risk plans.
 - Add a conditional high-risk plan-readiness contract with linked-spec
   traceability, authority/evidence maps, consumer closure, failure windows,
   empirical capability gates, and critique closure.

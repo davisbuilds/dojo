@@ -210,12 +210,20 @@ only after `readiness: ready` validates.
 For high-risk plans, run the required critic described in
 `references/high-risk-readiness.md` before handoff. Use a critique subagent when
 the harness supports and authorizes one; otherwise run the same critique inline.
-For routine plans, critique remains optional.
+For routine plans, critique remains optional and is offered explicitly below.
 
 Then offer:
 1. Execute in this session, task by task.
-2. Review or refine a routine plan before execution.
-3. Open a separate execution session.
+2. **Review the plan with a critique subagent.** If the harness supports subagents
+   (e.g. a Task/agent tool), launch one seeded with the plan's path, the spec
+   contract, **and** the originating context, instructed to critique the *plan* —
+   is the chosen seam the thinnest that satisfies the contract? do existing-code
+   tasks cite their exact target file/symbol? are steps prescriptive because they
+   are verified, not guesses? are risks irreducible rather than skipped lookups?
+   are changed tests actually discovered? — and to propose improvements. Apply or
+   discuss before executing. If subagents are unavailable, run the same critique
+   inline via `verify-before-complete`.
+3. Open a separate execution session, or refine the plan first.
 
 ## Command Wrapper
 

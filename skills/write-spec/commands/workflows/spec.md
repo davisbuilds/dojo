@@ -74,6 +74,10 @@ critique subagent when supported and authorized; otherwise critique inline.
 
 Then offer:
 1. Hand off to `/workflows:plan` (write-plan) to sequence the build.
-2. Review or refine a routine contract first.
+2. Review a routine contract with a critique subagent (or
+   `verify-before-complete` inline when subagents are unavailable), seeded with
+   the contract path and originating context. Check falsifiability, mechanism
+   leaks, concrete success criteria, evaluation, and problem grounding.
+3. Refine the contract before sequencing.
 
 Do not implement code in this workflow.

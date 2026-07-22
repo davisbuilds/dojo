@@ -76,5 +76,8 @@ critique subagent when supported and authorized; otherwise critique inline.
 
 Then offer:
 1. Execute in this session, task by task.
-2. Review or refine a routine plan first.
-3. Open a separate execution session.
+2. Review a routine plan with a critique subagent (or `verify-before-complete`
+   inline when subagents are unavailable), seeded with the plan path, spec, and
+   originating context. Check seam choice, exact target grounding, verified
+   steps, irreducible risks, and test discovery.
+3. Open a separate execution session, or refine the plan first.

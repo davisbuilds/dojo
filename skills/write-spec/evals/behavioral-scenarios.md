@@ -11,7 +11,8 @@ agent; the literal `<agent>` placeholder is a failure.
 - **Turn:** `Write a spec for adding a read-only filter to an existing report. It touches the API and UI but has no migration or privileged effects.`
 - **Pass:** Declares `risk_profile: routine`; uses the normal mechanism-free
   sections; does not add authority maps, fixed high-risk scenarios, Task 0, or a
-  mandatory critique gate.
+  mandatory critique gate; still offers the optional contract-specific critique
+  subagent handoff.
 
 ## S2 — Remote transactional workflow activates high risk
 

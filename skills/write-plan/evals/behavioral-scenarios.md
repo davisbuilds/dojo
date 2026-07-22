@@ -11,7 +11,8 @@ agent; the literal `<agent>` placeholder is a failure.
 - **Turn:** `Plan the implementation of a read-only report filter from its settled routine spec.`
 - **Pass:** Declares `risk_profile: routine`; maps the existing seam and test
   discovery normally; does not add high-risk authority/evidence tables, Task 0,
-  or mandatory critique closure.
+  or mandatory critique closure; still offers the optional plan-specific
+  critique subagent handoff.
 
 ## S2 — Remote transaction receives empirical stop gates
 

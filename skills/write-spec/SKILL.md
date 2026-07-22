@@ -215,11 +215,20 @@ would change scope, success criteria, or verification.
 For high-risk contracts, run the required critic described in
 `references/high-risk-contract.md` before handoff. Use a critique subagent when
 the harness supports and authorizes one; otherwise run the same critique inline.
-For routine contracts, critique remains optional.
+For routine contracts, critique remains optional and is offered explicitly
+below.
 
 Then offer:
 1. Hand off to `write-plan` to sequence the build against this contract.
-2. Review or refine a routine contract before sequencing.
+2. **Review the contract with a critique subagent.** If the harness supports
+   subagents (e.g. a Task/agent tool), launch one seeded with the spec's path
+   **and** the originating goal/context, instructed to critique the *contract* —
+   is the end-state falsifiable? did any mechanism (files/steps) leak in? are
+   success criteria concrete? is the evaluation gate right? is the problem real? —
+   and to propose concrete improvements. Apply or discuss before handing off. If
+   subagents are unavailable, run the same critique inline via
+   `verify-before-complete`.
+3. Refine the contract before sequencing.
 
 ## Command Wrapper
 
