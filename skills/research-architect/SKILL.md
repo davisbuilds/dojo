@@ -2,7 +2,7 @@
 name: research-architect
 description: Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or research brief; commission or plan a multi-source, high-stakes, or multi-model research run; run research through external deep-research products (Claude/OpenAI/Gemini DR); or verify and score a research report someone or something else produced. Triggers on "research prompt", "research brief", "commission research", "plan a research run", "verify this report", "research architect". For a direct low-stakes web lookup where the user just wants the answer, use the deep-research skill instead — this skill sits upstream (prompt engineering, routing) and downstream (verification, postmortem) of execution.
 skill-type: workflow
-version: 2.1.0
+version: 2.1.1
 triggers:
   - research prompt
   - research brief
@@ -153,8 +153,10 @@ python3 skills/research-architect/scripts/lint_prompt.py --executor terminal 04-
 The script enforces the deterministic checks (instruction budget ≤40 web DR /
 ≤60 terminal, no unfilled `{{slots}}`, no leftover drafting comments or trailing
 harness debris, rubric + degradation order + do-not list + summary block +
-self-report present). Record its output and the two manual judgment checks in
-`04-lint-results.md`:
+self-report present). It also **warns on statistics seeded without a retrievable
+source** — identify the source or drop the number; a floating magnitude is an
+attractor for fabricated corroboration. Record its output and the two manual
+judgment checks in `04-lint-results.md`:
 
 - [ ] Every requirement checkable from report text
 - [ ] Do-not list is topic-specific, not generic virtue

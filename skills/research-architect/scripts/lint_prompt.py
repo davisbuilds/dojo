@@ -3,8 +3,9 @@
 
 Checks the structural invariants the research-architect skeleton requires:
 instruction budget per executor, no unfilled {{slots}}, no leftover drafting
-comments, and the presence of the required blocks (do-not list, degradation
-order, rubric, summary block, self-report).
+comments, the presence of the required blocks (do-not list, degradation order,
+rubric, summary block, self-report), and no unsourced statistics seeded into the
+background material.
 
 Instruction counting is a documented approximation: each occurrence of an
 imperative marker (must / never / always / do not / don't) and each bullet that
@@ -32,6 +33,26 @@ HARNESS_TRAILER_RE = re.compile(
     re.IGNORECASE,
 )
 SUMMARY_TOKENS = ("key_findings", "citations", "confidence_gaps", "next_queries")
+
+# A seeded statistic with no retrievable source is an attractor for fabricated
+# corroboration: the executor "confirms" it by inventing a citation that matches
+# the number. Scoped to the seed/background region, because numbers the report
+# is asked to *produce* are not seeds.
+SEED_BLOCK_START_RE = re.compile(r"^\s*\**\s*(?:seed sources|background)", re.IGNORECASE)
+SEED_BLOCK_END_RE = re.compile(r"^\s*(?:\*\*|#)")
+SEED_ENTRY_SPLIT_RE = re.compile(r"\n(?=\s*[-*+] )")
+MAGNITUDE_RE = re.compile(
+    r"""\b\d{1,3}(?:,\d{3})+\b            # 1,234,567
+      | \b\d+(?:\.\d+)?\s*%               # 43%
+      | \b\d+(?:\.\d+)?\s*(?:[KMB]\b|thousand|million|billion|trillion)
+      | \b\d{3,}(?:\.\d+)?\b              # bare 3+ digit magnitude
+    """,
+    re.VERBOSE | re.IGNORECASE,
+)
+IDENTIFIER_RE = re.compile(
+    r"https?://|arxiv|doi[:\s/]|ssrn|pubmed|nber|isbn|github\.com|\b\w+/\w+\.(?:md|py|ts|go)\b",
+    re.IGNORECASE,
+)
 
 # Deliberately curated rather than pretending to parse English grammar. These
 # are common instruction-leading verbs in assembled research prompts.
@@ -69,6 +90,36 @@ def count_instructions(text: str) -> int:
         if match.group(1).lower() in IMPERATIVE_VERBS:
             bullet_count += 1
     return marker_count + bullet_count
+
+
+def seed_block(text: str) -> str:
+    """Return the seed-sources / background region, or '' when absent."""
+    lines = text.splitlines()
+    collected: list[str] = []
+    inside = False
+    for line in lines:
+        if inside:
+            if SEED_BLOCK_END_RE.match(line) and not SEED_BLOCK_START_RE.match(line):
+                inside = False
+                continue
+            collected.append(line)
+        elif SEED_BLOCK_START_RE.match(line):
+            inside = True
+            collected.append(line)
+    return "\n".join(collected)
+
+
+def unsourced_magnitudes(text: str) -> list[str]:
+    """Magnitudes seeded without a retrievable identifier, in document order."""
+    found: list[str] = []
+    for entry in SEED_ENTRY_SPLIT_RE.split(seed_block(text)):
+        if IDENTIFIER_RE.search(entry):
+            continue
+        for match in MAGNITUDE_RE.finditer(entry):
+            magnitude = match.group(0).strip()
+            if magnitude not in found:
+                found.append(magnitude)
+    return found
 
 
 def evaluate(text: str, executor: str) -> dict:
@@ -119,6 +170,16 @@ def evaluate(text: str, executor: str) -> dict:
             "status": "pass" if present else "fail",
             "detail": f"{label} {'present' if present else 'missing'}",
         })
+
+    floating = unsourced_magnitudes(text)
+    checks.append({
+        "name": "seeded_statistics",
+        "status": "warn" if floating else "pass",
+        "detail": "seeded magnitudes with no retrievable source: "
+        f"{', '.join(floating)} — identify each source (name + arXiv/DOI/SSRN/URL) "
+        "or drop the number"
+        if floating else "no unsourced seeded magnitudes",
+    })
 
     missing_tokens = [t for t in SUMMARY_TOKENS if t not in text]
     checks.append({
