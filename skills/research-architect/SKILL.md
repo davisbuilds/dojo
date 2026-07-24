@@ -2,7 +2,7 @@
 name: research-architect
 description: Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or research brief; commission or plan a multi-source, high-stakes, or multi-model research run; run research through external deep-research products (Claude/OpenAI/Gemini DR); or verify and score a research report someone or something else produced. Triggers on "research prompt", "research brief", "commission research", "plan a research run", "verify this report", "research architect". For a direct low-stakes web lookup where the user just wants the answer, use the deep-research skill instead — this skill sits upstream (prompt engineering, routing) and downstream (verification, postmortem) of execution.
 skill-type: workflow
-version: 2.1.1
+version: 2.2.0
 triggers:
   - research prompt
   - research brief
@@ -199,12 +199,23 @@ node's prompt while amending is still cheap. Only step 3 genuinely needs all
 reports in hand.
 
 1. **Structural pass (deterministic):** required sections present; summary
-   block present; sample 10–15 citations (all, if fewer) and fetch each —
-   is the URL live, and does the page actually support the claim it's
-   attached to? Record hit rate. **Weight the sample toward quantitative and
-   source-attribution claims**: across every executor profiled so far, mutated
-   numbers and mischaracterized findings are the dominant failure mode, and a
-   uniform sample under-tests exactly where reports break.
+   block present; sample citations and fetch each — is the URL live, and does
+   the page actually support the claim it's attached to? Record hit rate.
+   `scripts/score_report.py` does the mechanical half:
+
+   ```bash
+   python3 skills/research-architect/scripts/score_report.py worksheet report.md > 08-worksheet.json
+   # fetch each sampled claim's citations; fill "verdicts" with
+   # supported / partial / unsupported / unreachable
+   python3 skills/research-architect/scripts/score_report.py score 08-worksheet.json
+   ```
+
+   The sample is **weighted toward quantitative and source-attribution
+   claims**: across every executor profiled so far, mutated numbers and
+   mischaracterized findings are the dominant failure mode, and a uniform
+   sample under-tests exactly where reports break. The script never fetches —
+   deciding whether a page supports its claim is the judgment this stage
+   exists for, and a "URL resolves" hit rate would be worse than none.
 2. **Rubric pass (judgment):** spawn a fresh critique subagent — one that has
    not seen the drafting stages — to score the report against the shipped
    rubric, item by item, with evidence quotes. Pass/fail per item, not vibes.
@@ -308,11 +319,13 @@ the report.
   memory; read at stages 2–5, append at stage 10. Append-only run memory:
   exempt from the repo's skill release-version check, so recording a lesson
   never costs a version bump.
+- `scripts/score_report.py` — stage-8 structural pass: `worksheet` extracts
+  claims and citations and samples what to check; `score` computes the hit rate
+  from your verdicts. Never fetches.
 - `evals/golden-questions/` — frozen real-run drafting artifacts used as
-  regression seeds. Deferred until 2–3 runs justify them:
-  `scripts/score_report.py`, `scripts/diff_runs.py`, and
-  `references/rubric-library.md`; until then, score and diff manually per stage
-  8.
+  regression seeds. Still deferred until more runs justify them:
+  `scripts/diff_runs.py` and `references/rubric-library.md`; until then, diff
+  cross-run reports manually per stage 8 step 3.
 
 ## Sibling skills
 

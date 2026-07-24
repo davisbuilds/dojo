@@ -1,3 +1,7 @@
+## 2.2.0 - 2026-07-24
+
+- Add scripts/score_report.py: worksheet extracts claims/citations from a report and samples what to verify (weighted toward quantitative and source-attribution claims); score computes the citation hit rate from filled-in verdicts, excluding unreachable URLs from the denominator. Never fetches -- judging page support stays with the verifying agent.
+
 ## 2.1.1 - 2026-07-24
 
 - Lint warns on statistics seeded into the background with no retrievable source (name + arXiv/DOI/SSRN/URL), scoped to the seed/background region so numbers the report is asked to produce are untouched.

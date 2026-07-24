@@ -112,20 +112,22 @@ Status: noted
 - **Sketch**: Tighten A4/A6 guidance — seed either a fully-identified source
   (name + arXiv/SSRN/DOI id, framed as a verify-this target) or no number at all.
 
-#### research-architect: deferred tooling awaits first real runs
-Status: noted
-- **What**: `scripts/score_report.py`, `scripts/diff_runs.py`, and
-  `references/rubric-library.md` remain deliberately deferred. The first
-  golden-question seed now exists at `evals/golden-questions/social-playbooks/`;
-  stages 8–9 specify the manual verification and synthesis procedures the
-  scripts would automate.
-- **Why it matters**: Building rubric libraries and golden-question evals
-  before any real run would encode guesses; the first stage-10 postmortems are
-  the intended seed material. Once 2–3 real runs exist, automating the stage-8
-  structural pass and cross-run diff removes the most error-prone manual work.
-- **Sketch**: After 2–3 real runs, extract discriminating rubric patterns from
-  `01-question.md` artifacts into rubric-library.md, then script scoring and
-  diffing to match the manual stage-8 spec.
+#### research-architect: remaining deferred tooling
+Status: partially resolved (2026-07-24)
+- **What**: `scripts/score_report.py` shipped in 2.2.0 — two real runs made the
+  stage-8 sampling and hit-rate arithmetic worth mechanizing. `scripts/diff_runs.py`
+  and `references/rubric-library.md` remain deliberately deferred.
+- **Why it matters**: Across two runs there is exactly one confirmed
+  discriminating rubric item (the per-tactic evidence floor, 2026-07-12).
+  Building a rubric library on one data point would encode guesses — the mistake
+  the deferral exists to avoid. `diff_runs.py` only pays off on multi-run plans
+  and depends on M1 section alignment holding in practice.
+- **Sketch**: Seed `rubric-library.md` once 2–3 more runs identify rubric items
+  that actually discriminate (items that always pass are dead weight and belong
+  in the postmortem, not the library). Build `diff_runs.py` on top of
+  `score_report.py`'s claim/citation extraction rather than duplicating it: align
+  sections by the M1 fixed order, then surface confident specifics appearing in
+  only one report as hallucination candidates.
 
 #### skills-health: runtime join is last-wins, undercounts a version-split skill
 Status: noted
