@@ -162,3 +162,51 @@ def test_cli_emits_explainable_credibility_fields(tmp_path):
     assert finding["credibility_document_class"] == "preprint"
     assert finding["source_type_consistency"] == "compatible"
     assert "not necessarily peer reviewed" in finding["credibility_reason"]
+
+
+# --- on-chain and code hosts ----------------------------------------------
+
+
+def test_block_explorer_outranks_an_unknown_domain():
+    assessment = evidence_filter.credibility_assessment("primary", "etherscan.io")
+
+    assert assessment["registry_id"] == "etherscan-explorer"
+    assert assessment["authority"] == "onchain_explorer"
+    assert assessment["score"] > 0.8
+
+
+def test_community_query_platform_ranks_below_raw_chain_data():
+    # Dune queries are user-authored SQL: the underlying data is authoritative,
+    # the aggregation is not.
+    dune = evidence_filter.credibility_assessment("primary", "dune.com")
+    etherscan = evidence_filter.credibility_assessment("primary", "etherscan.io")
+
+    assert dune["registry_id"] == "dune-analytics"
+    assert dune["ceiling"] < etherscan["ceiling"]
+
+
+def test_raw_source_file_outranks_the_repository_page():
+    # A file's bytes are what they are; a repo page is mostly README prose.
+    raw = evidence_filter.credibility_assessment("primary", "raw.githubusercontent.com")
+    repo = evidence_filter.credibility_assessment("primary", "github.com")
+
+    assert raw["ceiling"] > repo["ceiling"]
+    assert repo["registry_id"] == "github-repository"
+
+
+def test_code_host_stays_below_peer_reviewed_ceiling():
+    repo = evidence_filter.credibility_assessment("primary", "github.com")
+    journal = evidence_filter.credibility_assessment("academic", "nejm.org")
+
+    assert repo["ceiling"] < journal["ceiling"]
+
+
+def test_registry_rules_are_wellformed():
+    required = {"id", "host", "authority", "document_class", "base_score",
+                "ceiling", "compatible_source_types", "rationale"}
+    ids = set()
+    for rule in evidence_filter.load_credibility_registry():
+        assert required <= set(rule), f"{rule.get('id')} missing {required - set(rule)}"
+        assert rule["id"] not in ids, f"duplicate registry id: {rule['id']}"
+        ids.add(rule["id"])
+        assert 0.0 <= rule["base_score"] <= rule["ceiling"] <= 1.0, rule["id"]

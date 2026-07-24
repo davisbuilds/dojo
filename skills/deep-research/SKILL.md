@@ -3,7 +3,7 @@ name: deep-research
 description: Use when a task needs direct web-backed research with controlled depth, relevance filtering, and citation-ready synthesis — the user wants the answer, not a commissioned research program. Routes work to quick, standard, or deep tiers, filters low-signal context, and returns a compact packet with key findings, citations, discarded context, confidence gaps, and next queries. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead — this skill is its execution backend.
 skill-type: workflow
 compatibility: "Requires python3. Requires network access for web research."
-version: 2.1.0
+version: 2.2.0
 ---
 
 # Deep Research
@@ -115,6 +115,20 @@ Credibility comes from the URL hostname and the conservative policy in
 ties for a known domain or lower an unknown-domain prior, but it cannot raise an
 unknown domain above neutral. Treat the score as a provenance prior, never as a
 substitute for checking whether the cited page supports the claim.
+
+The registry covers scholarly, government, and university hosts alongside
+on-chain explorers and code hosts — for market and tooling questions the
+ground-truth sources are chain data and repository source, and scoring them as
+unknown domains biased whole task classes against their own primary sources.
+Ceilings encode what each class can actually establish: raw chain state and raw
+source files are high-provenance and low-interpretation, a community-authored
+Dune query is only as good as its SQL, and a repository README is a claim about
+the code rather than evidence for it.
+
+Credibility is a **reliability** prior only. It says nothing about whether a
+finding is still current — that is a separate axis. A high-scoring source
+reporting a closed window is reliable and irrelevant, so weigh recency
+independently rather than letting a strong host stand in for a fresh fact.
 
 ### 5) Synthesis
 
