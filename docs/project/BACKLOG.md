@@ -45,78 +45,11 @@ Status: noted
   high-risk amendment, (3) an external repository with valid `spec:`/`Modify:`
   paths, and (4) partial-ID input that must fail rather than silently downgrade.
 
-#### research-architect: source ranking conflates reliability with edge-relevance
-Status: noted
-- **What**: A6 source-priorities and the V1 evidence-grade ladder both rank
-  sources by *verifiability* only. There is no axis for information/edge-relevance
-  or recency-decay. For "what's actually working / where is exploitable edge"
-  questions this over-weights peer-reviewed and other high-reliability-but-lagging
-  sources, whose selection bias runs toward "the market is efficient / the edge is
-  gone" (efficiency findings are publishable; a live edge is not). Surfaced on the
-  2026-07-23 predmarket-alpha run — saved there only because on-chain data and
-  inspected code were manually placed co-top.
-- **Why it matters**: A reliably-true but stale/aggregate finding can be reliably
-  misleading about current edge. Collapsing both concerns into one "primary source"
-  hierarchy silently biases alpha-hunting and market-timing research toward null.
-- **Sketch**: Add an explicit second axis to A6/V-blocks — rate sources on
-  reliability *and* edge-relevance × recency, and for "find what's working"
-  routing add a do-not/warn line that academic efficiency literature is a lagging,
-  selection-biased indicator of live edge (context, not target). Consider making
-  V5 carry a per-source edge-relevance tag alongside the strategy tags.
-
-#### deep-research: credibility registry has no first-class on-chain/code authority
-Status: noted
-- **What**: `references/credibility-registry.json` is dominated by academic /
-  gov / journal / university hosts (high base_score + ceiling). It has no entry
-  class for on-chain explorers (Dune, Polygonscan/Etherscan, block explorers) or
-  code hosts (github.com, raw.githubusercontent.com). Those land as "unknown host"
-  and get the low neutral prior, and a self-declared `source_type` cannot raise
-  them. Surfaced 2026-07-23 (predmarket-alpha): for market/trading and
-  code-inspection questions the ground-truth sources are exactly on-chain data and
-  repo code, yet the credibility axis structurally down-weights them.
-- **Why it matters**: `evidence_filter.py` credibility is deterministic and
-  hostname-derived; for whole task classes (crypto/markets, tooling/repo surveys)
-  the most decision-relevant sources are penalized on the one axis that gates
-  provenance trust. Relevance/recency/novelty partially compensate, but a
-  systematic prior against the right sources biases synthesis.
-- **Sketch**: Add registry entries for major on-chain explorers and code hosts
-  with an authority/document_class that reflects "primary machine-verifiable data"
-  (explorer/on-chain tx) and "inspectable source" (VCS), plus honest ceilings
-  (raw on-chain = high provenance, low interpretation; a repo README ≠ its code).
-  Pair with the research-architect two-axis (reliability × edge-relevance) note so
-  discovery weighting and belief weighting stay separate.
-
-#### research-architect: encourage fresh subagents for stages 3/5/8; note web-executor limits
-Status: noted
-- **What**: Stages 3 (scout), 5 (red-team), 8 (verify) specify fresh, independent
-  subagents, but the skill reads as if they might be unavailable. On the
-  2026-07-23 run they were done inline (host "don't spawn unless asked" default),
-  silently forfeiting the independence those stages exist to provide.
-- **Why it matters**: A self-red-team / self-verify is structurally weaker than a
-  blind one — the deletion mandate and rubric pass lose their value. In terminal
-  harnesses (Claude Code, Codex) subagents are always available, so the default
-  should be to spawn them.
-- **Sketch**: Reword stages 3/5/8 to *default* to fresh subagents in terminal
-  harnesses; add an explicit caveat that web DR executors generally cannot spawn
-  subagents, so external-only runs lose in-run independence and must rely on the
-  terminal-side Stage 8 verification.
-
-#### research-architect: seed identified sources, never floating statistics
-Status: noted
-- **What**: Seeding a paraphrased stat ("a large-N study reportedly finds X") into
-  the prompt invited the executor to fabricate a precise-but-wrong matching
-  citation (2026-07-23: claimed 1.2B trades vs. the real 292M-trade paper, and
-  mischaracterized its finding).
-- **Why it matters**: A half-anonymous number is an attractor for hallucinated
-  corroboration; it actively degrades citation quality.
-- **Sketch**: Tighten A4/A6 guidance — seed either a fully-identified source
-  (name + arXiv/SSRN/DOI id, framed as a verify-this target) or no number at all.
-
 #### research-architect: remaining deferred tooling
-Status: partially resolved (2026-07-24)
-- **What**: `scripts/score_report.py` shipped in 2.2.0 — two real runs made the
-  stage-8 sampling and hit-rate arithmetic worth mechanizing. `scripts/diff_runs.py`
-  and `references/rubric-library.md` remain deliberately deferred.
+Status: noted
+- **What**: `scripts/diff_runs.py` and `references/rubric-library.md` remain
+  deliberately deferred. (`scripts/score_report.py`, the third of the original
+  trio, shipped in 2.2.0 once two real runs justified it.)
 - **Why it matters**: Across two runs there is exactly one confirmed
   discriminating rubric item (the per-tactic evidence floor, 2026-07-12).
   Building a rubric library on one data point would encode guesses — the mistake
