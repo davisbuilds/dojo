@@ -92,7 +92,9 @@ get uniform shallowness. -->
 > in the primary source" from "my inference." Where public material does not
 > support a detail, say so and present plausible hypotheses separately, labeled
 > as such. Do not invent specifics to appear complete: "unverified / not
-> public" is always a better answer than a fabricated one.
+> public" is always a better answer than a fabricated one. Where this prompt
+> gives a number without naming a retrievable source, do not go looking for a
+> source that matches it — report it as unsourced and move on.
 
 ### A5 — Required frame check
 
@@ -108,33 +110,61 @@ check." -->
 
 ### A6 — Source strategy
 
-> **Seed sources (vetted; start here):** {{SEED_SOURCES}}
+> **Seed sources (vetted; start here):** {{SEED_SOURCES — each carrying a
+> stable identifier: URL, arXiv/DOI/SSRN id, or repo path}}
 >
-> **Source priorities:** {{SOURCE_PRIORITIES — e.g., primary papers > official
-> repos/blogs > practitioner communities > secondary analysis; name the
-> specific venues that matter for this topic}}
+> **Rank sources on two independent axes; a source can be high on one and low
+> on the other:**
+>
+> - **Reliability** — how likely the claim is true. {{RELIABILITY_ORDER — e.g.,
+>   primary papers > official repos/blogs > practitioner communities >
+>   secondary analysis; name the specific venues that matter for this topic}}
+> - **Edge-relevance × recency** — how likely the claim still describes the
+>   present. {{EDGE_ORDER — e.g., live telemetry/on-chain data and inspected
+>   working code > dated practitioner reports > aggregate published findings}}
+>
+> {{LAG_WARNING — include for "what is actually working now" questions, e.g.,
+> "published efficiency results are lagging and selection-biased — an efficient
+> market is publishable, a live edge is not — so treat them as evidence about
+> the past, never as evidence that the edge is gone today"}}
 >
 > **Scout status — reachable / unreachable / reachable-but-evidentially-worthless:**
 > {{ACCESSIBILITY_RESULTS}} (from stage 3)
 >
 > **Fallbacks:** where a priority source class is inaccessible, use
-> {{FALLBACKS}} instead — do not silently substitute low-grade sources (SEO
-> listicles, content farms) for inaccessible high-grade ones. If a source class
-> would be valuable but is unreachable, list it under research gaps rather than
-> implying coverage.
+> {{FALLBACKS}} instead — never silently substitute low-grade sources (SEO
+> listicles, content farms) for inaccessible high-grade ones. An unreachable
+> but valuable source class belongs under research gaps, not implied coverage.
 >
 > The named seeds and source classes are a starting floor, **not a ceiling**.
 > Expand into any reachable source class that meets the evidence standard,
 > including high-grade classes the prompt did not anticipate.
 >
-> Do not pad the bibliography; a marginal low-quality source is worse than
-> none. {{SOURCE_FLOOR — optional: minimum coverage, e.g., "all seed sources
-> plus ≥10 adjacent primary sources spanning X, Y, Z"}}
+> {{SOURCE_FLOOR — optional: minimum coverage, e.g., "all seed sources plus ≥10
+> adjacent primary sources spanning X, Y, Z"}}
 
 <!-- The accessibility slot is mandatory when a scout pass ran. This is the
 single most common silent failure of DR products: the prompt names Reddit/X/HN,
 the agent can't reach them, and it substitutes listicles without saying so.
-Move reachable-but-evidentially-worthless sources into A7's do-not list. -->
+Move reachable-but-evidentially-worthless sources into A7's do-not list.
+
+Deleted here: "do not pad the bibliography; a marginal low-quality source is
+worse than none." It contradicted M2 ("completeness matters more than curation")
+on multi-run assemblies, and the evidence standard above already excludes weak
+sources. If you assemble without M-blocks and the topic invites padding, the
+do-not list is the place for it.
+
+Two axes, because one ranking cannot carry both jobs. Collapsing them ranks
+sources by verifiability alone, which systematically over-weights rigorous but
+lagging evidence — fine for "is X true", quietly biasing for "what is working
+now" (2026-07-23 postmortem). Rank discovery on edge-relevance, belief on
+reliability.
+
+SEED_SOURCES entries must be identified, never paraphrased statistics. A
+floating "a large study reportedly found X" is an attractor: the executor
+fabricates a precise citation that matches the number (2026-07-23: a real
+292M-trade paper was "confirmed" as 1.2B trades with the opposite finding).
+Seed the identified source as a verify-this target, or omit the number. -->
 
 ### A7 — Do-not list
 
@@ -143,14 +173,19 @@ Move reachable-but-evidentially-worthless sources into A7's do-not list. -->
 > makes on THIS topic, e.g., "do not treat k-anonymity as equivalent to formal
 > DP", "do not conflate gross revenue with owner income"}} (from stages 1 & 5)
 >
-> And universally: do not present a claim's confidence above its evidence; do
-> not reconstruct unpublished internals of any organization beyond what public
-> sources support; do not fill a section with filler when evidence is thin —
-> write "insufficient evidence" and move on.
+> And universally: do not reconstruct unpublished internals of any organization
+> beyond what public sources support.
 
 <!-- Topic do-nots are the highest-value-per-token content in the prompt. Write
 them by asking: "if a competent-but-lazy executor ran this, what would it get
-wrong?" The red-team stage (stage 5) exists to expand this list. -->
+wrong?" The red-team stage (stage 5) exists to expand this list.
+
+Two deletions from the universal tail. "Do not present a claim's confidence
+above its evidence" — V1 carries it with specifics ("never present a claim above
+its grade"). "Do not fill a section with filler when evidence is thin" — A8
+carries it and ties it to scoring, which this did not. Add either back when you
+assemble without the block that replaced it; with that block they are duplicates,
+and duplicates spend budget without adding enforcement. -->
 
 ### A8 — Output contract
 
@@ -215,6 +250,10 @@ instructions when explicitly told it's safe to. -->
 > - **Marketing/noise** — claim attached to a sales funnel for the claim itself
 >   (course, affiliate link, paid community, lead magnet). Treat as noise
 >   unless independently verified.
+>
+> A grade says the claim *was* true, not that it *still* holds. Currency is the
+> separate axis A6 ranks and V2 dates — a Strong finding about a closed window
+> is Strong and irrelevant. Never let a grade substitute for an as-of date.
 
 ### V2 — Claim hygiene
 
@@ -249,6 +288,10 @@ instructions when explicitly told it's safe to. -->
 > stage 1). Apply the scheme consistently — the point is to make unlike things
 > comparable and to expose category errors ({{CATEGORY_ERROR_EXAMPLE — e.g.,
 > "'AI-necessary' vs 'AI-cosmetic' exposes most fake AI businesses"}}).
+>
+> {{EDGE_TAG — include when the question asks what currently works: tag each
+> example live / decaying / historical with the as-of evidence behind the tag,
+> so a well-evidenced dead example cannot read as a live one}}
 
 ---
 
@@ -266,7 +309,7 @@ instructions when explicitly told it's safe to. -->
 > When reconstructing any architecture or pipeline, mark every stage as
 > **stated in sources** or **inferred**. For systems with unpublished
 > internals, separate published facts from plausible-but-unconfirmed design
-> patterns; do not over-reconstruct.
+> patterns.
 
 ### D3 — Artifact-level evidence
 
@@ -331,5 +374,4 @@ Apply after assembly, before shipping:
 | **Claude Research (web)** | ≤40 instructions. No repo cloning — D3 rows default to "not inspected" unless web-viewable. Strip DAG language; single-run framing. |
 | **OpenAI / Gemini DR (web)** | ≤40 instructions. Known tendency to paraphrase repos at README level — if D3 included, state the "not inspected" rule twice (once in D3, once in the do-not list). Verify source-class access via scout probe in the same product first; X/Twitter usually unreachable, Reddit spotty. |
 
-Record new executor quirks in `executor-profiles.md` as postmortems reveal them
-(create the file on first use).
+Record new executor quirks in `executor-profiles.md` as postmortems reveal them.
