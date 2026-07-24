@@ -61,3 +61,42 @@ run's friction log for detail.
   explicitly license expansion into any reachable high-grade source class
   (court/registry records, earnings data, platform transparency reports,
   academic work, practitioner interviews) beyond the named seeds.
+
+## 2026-07-23 — predmarket-alpha (mixed profile, terminal + web DR; verification mid-run)
+
+- **Fresh subagents for stages 3/5/8 are the design, and the orchestrator must
+  actually spawn them.** This run ran scout, red-team, and the first Stage-8
+  pass inline (host harness defaulted to "don't spawn unless asked"), which
+  silently forfeits the independence the red-team and rubric passes depend on —
+  a self-red-team is structurally weaker than a blind one. In terminal harnesses
+  (Claude Code, Codex) subagents are always available; the workflow should
+  *encourage* fresh independent subagents for 3/5/8 rather than read as if they
+  might be unavailable. Caveat worth stating in-skill: web DR executors usually
+  cannot spawn subagents, so an external-only run loses all in-run independence
+  and must lean entirely on the terminal-side Stage 8.
+- **Never seed a paraphrased statistic; it is an attractor for fabrication.**
+  A5/A6 carried a scout finding as "at least one large-N study reportedly finds
+  no general longshot bias." The executor "confirmed" it by inventing a
+  precise-but-wrong matching citation (claimed 1.2B trades / "finds bias"; the
+  actual paper, arXiv 2602.19520, is 292M trades about *underconfidence /
+  compression toward 50%*). Sharpen A4/A6: seed either a fully-identified source
+  (name + arXiv/SSRN id, framed as a verify-this target) or no number at all —
+  a floating "a study found X" invites a hallucinated match.
+- **Executor-independent verification load-bearing — reconfirmed.** A single
+  spot-check of the terminal report's two weakest-sourced (SSRN-403) claims
+  confirmed one against the primary source (arXiv 2605.00864: 173 games, 7
+  executable single-market episodes) and caught the miscite above. Consistent
+  with the 2026-07-12 finding.
+- **Verify each node as it lands, not batched.** Running the Stage-8 structural
+  spot-check on the first-returning report while the second run was still going
+  paid off immediately and pre-loaded the cross-run diff. Stage 8's framing as a
+  post-all-runs batch step could note this.
+- **Source-priority ranking optimizes reliability, not edge-relevance — a real
+  bias for "find what's working" questions.** The A6 ordering (peer-reviewed
+  papers co-top) and V1 evidence grades both rank *verifiability*. For an
+  alpha-hunting question that structurally over-weights academic efficiency
+  findings — high-reliability but lagging, aggregate, and selection-biased
+  (efficiency is publishable; a live edge is not) — tilting the verdict toward
+  "no edge / arbitraged away." On-chain ground truth and inspected working code
+  were correctly co-top here, which saved it. See BACKLOG: A6/V-block needs an
+  explicit edge-relevance × recency axis distinct from reliability.
