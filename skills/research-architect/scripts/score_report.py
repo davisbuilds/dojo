@@ -156,21 +156,20 @@ def spread(items: list[dict], count: int) -> list[dict]:
 def select_sample(claims: list[dict], size: int = DEFAULT_SAMPLE_SIZE) -> list[str]:
     """Claim ids to verify, weighted toward quantitative and attribution claims."""
     priority = [c for c in claims if c.get("quantitative") or c.get("attribution")]
-    rest = [c for c in claims if c not in priority]
+    priority_ids = {c["id"] for c in priority}
+    rest = [c for c in claims if c["id"] not in priority_ids]
 
-    take_priority = min(len(priority), round(size * QUANTITATIVE_SHARE))
-    chosen = spread(priority, take_priority)
-
-    remaining = size - len(chosen)
-    chosen += spread(rest, min(len(rest), remaining))
+    chosen = spread(priority, min(len(priority), round(size * QUANTITATIVE_SHARE)))
+    chosen += spread(rest, min(len(rest), size - len(chosen)))
 
     # Scarce ordinary claims: spend the leftover budget on more priority claims.
     shortfall = size - len(chosen)
     if shortfall > 0:
-        chosen += [c for c in priority if c not in chosen][:shortfall]
+        taken = {c["id"] for c in chosen}
+        chosen += [c for c in priority if c["id"] not in taken][:shortfall]
 
     order = {c["id"]: index for index, c in enumerate(claims)}
-    return [c["id"] for c in sorted(chosen, key=lambda c: order[c["id"]])]
+    return sorted((c["id"] for c in chosen), key=lambda cid: order[cid])
 
 
 def build_worksheet(text: str, size: int = DEFAULT_SAMPLE_SIZE) -> dict:

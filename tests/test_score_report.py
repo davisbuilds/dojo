@@ -101,7 +101,7 @@ def test_claim_text_stops_at_headings_and_paragraph_breaks():
     assert "Findings" not in first["text"]
 
 
-def test_claim_line_number_points_at_the_claim(tmp_path):
+def test_claim_line_number_points_at_the_claim():
     citations = score_report.extract_citations(REPORT)
     claims = score_report.extract_claims(REPORT, citations)
     first = next(c for c in claims if "292M" in c["text"])
