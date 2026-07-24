@@ -1,3 +1,7 @@
+## 1.3.0 - 2026-07-24
+
+- Exempt append-only run memory (references/postmortems.md, references/executor-profiles.md) from the release-relevance check: a skill accumulates these as it is used, not as it is changed, so appending a lesson no longer forces a SemVer bump on an unchanged workflow.
+
 ## 1.2.1 - 2026-07-15
 
 - Read the SKILL.md version via YAML (matching check_skill_versions) so quoted scalars and inline comments bump correctly; preserve quotes and inline comments on write.
