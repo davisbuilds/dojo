@@ -24,9 +24,14 @@ SEMVER_RE = re.compile(
 FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n?", re.DOTALL)
 CHANGELOG_HEADING_RE = re.compile(r"^##+\s+(?:\[)?{version}(?:\])?(?:\s|$)", re.MULTILINE)
 
+# Append-only run memory: a skill accumulates these as it is *used*, not as it
+# is changed. Requiring a SemVer bump per appended lesson would version the
+# skill on every real run while its workflow stayed identical.
 IGNORED_EXACT = {
     "CHANGELOG.md",
     "agents/openai.yaml",
+    "references/postmortems.md",
+    "references/executor-profiles.md",
 }
 IGNORED_PARTS = {"__pycache__", ".pytest_cache"}
 IGNORED_SUFFIXES = {".pyc", ".pyo"}

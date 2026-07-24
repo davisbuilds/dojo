@@ -17,20 +17,50 @@ This file stays future-only.
 
 ## Open
 
-#### research-architect: deferred tooling awaits first real runs
+#### write-spec/write-plan: make high-risk validation incrementally adoptable across repositories
 Status: noted
-- **What**: `scripts/score_report.py`, `scripts/diff_runs.py`, and
-  `references/rubric-library.md` remain deliberately deferred. The first
-  golden-question seed now exists at `evals/golden-questions/social-playbooks/`;
-  stages 8–9 specify the manual verification and synthesis procedures the
-  scripts would automate.
-- **Why it matters**: Building rubric libraries and golden-question evals
-  before any real run would encode guesses; the first stage-10 postmortems are
-  the intended seed material. Once 2–3 real runs exist, automating the stage-8
-  structural pass and cross-run diff removes the most error-prone manual work.
-- **Sketch**: After 2–3 real runs, extract discriminating rubric patterns from
-  `01-question.md` artifacts into rubric-library.md, then script scoring and
-  diffing to match the manual stage-8 spec.
+- **What**: adding `risk_profile: high` / `readiness` to a mature legacy spec or
+  plan currently activates the entire new-contract gate at once. A pre-existing
+  accepted artifact without `SC-NN` / `EV-*-NN` IDs must be retrofitted wholesale
+  before the validator will accept even a narrow high-risk amendment. The plan
+  validator also resolves `spec:` and every `Modify:` path against the installed
+  skill package (`REPO_ROOT = Path(__file__).resolve().parents[3]`) rather than
+  the repository containing the plan, so valid cross-repo paths are reported
+  missing. Surfaced while revising tokenmaxxing's final actionable-Dependabot
+  dogfood task.
+- **Why it matters**: the conditional high-risk YAML is supposed to let existing
+  workflows adopt stronger authority/evidence/readiness checks where they matter.
+  An all-or-nothing migration plus skill-root path resolution encourages agents
+  to omit the metadata entirely—the opposite of progressive, risk-adaptive
+  adoption—and makes the shipped validator unreliable in its normal external-repo
+  use case.
+- **Sketch**: resolve repository-relative paths from an explicit `--repo-root`
+  (defaulting to the target plan's Git root, with a clear no-Git fallback), not
+  the skill install. Make ID enforcement conditional without weakening new
+  contracts: for example, require full `SC`/`EV` closure when an ID-bearing
+  schema/version is declared or any contract IDs exist, while allowing a
+  high-risk legacy artifact to use named contract surfaces plus all other
+  authority, failure-window, evidence, and readiness gates. Add fixtures for
+  (1) a new ID-based high-risk spec/plan, (2) a legacy no-ID artifact receiving a
+  high-risk amendment, (3) an external repository with valid `spec:`/`Modify:`
+  paths, and (4) partial-ID input that must fail rather than silently downgrade.
+
+#### research-architect: remaining deferred tooling
+Status: noted
+- **What**: `scripts/diff_runs.py` and `references/rubric-library.md` remain
+  deliberately deferred. (`scripts/score_report.py`, the third of the original
+  trio, shipped in 2.2.0 once two real runs justified it.)
+- **Why it matters**: Across two runs there is exactly one confirmed
+  discriminating rubric item (the per-tactic evidence floor, 2026-07-12).
+  Building a rubric library on one data point would encode guesses — the mistake
+  the deferral exists to avoid. `diff_runs.py` only pays off on multi-run plans
+  and depends on M1 section alignment holding in practice.
+- **Sketch**: Seed `rubric-library.md` once 2–3 more runs identify rubric items
+  that actually discriminate (items that always pass are dead weight and belong
+  in the postmortem, not the library). Build `diff_runs.py` on top of
+  `score_report.py`'s claim/citation extraction rather than duplicating it: align
+  sections by the M1 fixed order, then surface confident specifics appearing in
+  only one report as hallucination candidates.
 
 #### skills-health: runtime join is last-wins, undercounts a version-split skill
 Status: noted

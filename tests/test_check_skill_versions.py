@@ -104,6 +104,46 @@ def test_generated_sidecar_and_changelog_only_changes_are_ignored(tmp_path: Path
     assert module.check_versions(repo, skills_root, "HEAD", include_untracked=True) == []
 
 
+def test_appended_run_memory_does_not_require_a_version_bump(tmp_path: Path) -> None:
+    module = load_module()
+    repo = init_repo(tmp_path)
+    skills_root = repo / "skills"
+    write_skill(repo, "alpha", "1.0.0")
+    references = skills_root / "alpha" / "references"
+    references.mkdir(parents=True)
+    (references / "postmortems.md").write_text("# Postmortems\n", encoding="utf-8")
+    (references / "executor-profiles.md").write_text("# Profiles\n", encoding="utf-8")
+    git(repo, "add", ".")
+    git(repo, "commit", "-m", "baseline")
+
+    (references / "postmortems.md").write_text(
+        "# Postmortems\n\n## 2026-07-23 — a run\n\n- A durable lesson.\n", encoding="utf-8"
+    )
+    (references / "executor-profiles.md").write_text(
+        "# Profiles\n\n## Some executor — as of 2026-07-23\n\n- A quirk.\n", encoding="utf-8"
+    )
+
+    assert module.check_versions(repo, skills_root, "HEAD", include_untracked=True) == []
+
+
+def test_other_reference_files_still_require_a_version_bump(tmp_path: Path) -> None:
+    module = load_module()
+    repo = init_repo(tmp_path)
+    skills_root = repo / "skills"
+    write_skill(repo, "alpha", "1.0.0")
+    references = skills_root / "alpha" / "references"
+    references.mkdir(parents=True)
+    (references / "skeleton.md").write_text("# Skeleton\n", encoding="utf-8")
+    git(repo, "add", ".")
+    git(repo, "commit", "-m", "baseline")
+
+    (references / "skeleton.md").write_text("# Skeleton\n\nA behavior change.\n", encoding="utf-8")
+
+    findings = module.check_versions(repo, skills_root, "HEAD", include_untracked=True)
+    assert len(findings) == 1
+    assert "version did not increase" in findings[0]
+
+
 def test_invalid_base_ref_fails_explicitly(tmp_path: Path) -> None:
     module = load_module()
     repo = init_repo(tmp_path)

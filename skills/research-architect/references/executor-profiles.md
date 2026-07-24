@@ -24,6 +24,22 @@ entry — access and behavior drift.
   commissioning prompt itself). Instruction-following on the do-not list held
   under a 300-line report.
 
+### Sonnet 5 `general-purpose` as terminal DR executor — as of 2026-07-23
+
+- **Strong on infrastructure/artifact tasks.** Cloned 5 repos, ran 6 read-only
+  API probes, wrote the report to the exact requested path, honored the
+  read-only/no-trades safety constraint, and produced a 759-line report on the
+  full section contract. Followed clone-and-cite-paths (D3 terminal clause) as
+  intended — the whole reason to route repo-inspection to a terminal executor.
+- **Mutates cited numbers and mischaracterizes sources — verify every citation.**
+  Reported a paper as "1.2B trades, finds longshot bias"; the actual paper
+  (arXiv 2602.19520) is 292M trades about underconfidence/compression. Same
+  numeric-drift failure class as Gemini DR (2026-07-12). Do not ship its
+  quantitative or source-attribution claims without a Stage-8 fetch.
+- **Candid self-report includes what it cloned/probed vs. only read about** when
+  the prompt asks for it (self-report item added in the terminal prompt) — makes
+  the postmortem's "actually verified vs. paraphrased" split cheap.
+
 ## Gemini Deep Research (web) — as of 2026-07-12 (one full run + verification)
 
 - Reaches and cites Reddit directly — inverse of the terminal harness. Do not

@@ -2,7 +2,7 @@
 name: research-architect
 description: Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or research brief; commission or plan a multi-source, high-stakes, or multi-model research run; run research through external deep-research products (Claude/OpenAI/Gemini DR); or verify and score a research report someone or something else produced. Triggers on "research prompt", "research brief", "commission research", "plan a research run", "verify this report", "research architect". For a direct low-stakes web lookup where the user just wants the answer, use the deep-research skill instead — this skill sits upstream (prompt engineering, routing) and downstream (verification, postmortem) of execution.
 skill-type: workflow
-version: 2.0.0
+version: 2.2.0
 triggers:
   - research prompt
   - research brief
@@ -56,6 +56,17 @@ directory (`research/<slug>/`). These are run-scoped scratch, not deliverables
 — do not commit them, and stage 10 ends by cleaning them up. Cheap questions
 can skip stages — the router
 (stage 2) decides — but never skip 0, 4, or 8.
+
+**Stages 3, 5, and 8 run in fresh subagents by default.** Their whole value is
+independence: a scout that already believes the brief, a red-teamer critiquing
+its own draft, or a verifier scoring a report it helped shape are all
+structurally weaker than blind ones. Terminal harnesses (Claude Code, Codex)
+always have subagents available, so spawn them even when the host's general
+disposition is to avoid delegation — that default is about cost, and these three
+stages are where the money goes. Running them inline is a degradation to record
+in the run plan, not a neutral choice. Web DR executors generally cannot spawn
+subagents at all, so an external-only run has no in-run independence and leans
+entirely on terminal-side stage 8.
 
 ### Stage 0 — Decision brief (`00-decision-brief.md`)
 
@@ -142,8 +153,10 @@ python3 skills/research-architect/scripts/lint_prompt.py --executor terminal 04-
 The script enforces the deterministic checks (instruction budget ≤40 web DR /
 ≤60 terminal, no unfilled `{{slots}}`, no leftover drafting comments or trailing
 harness debris, rubric + degradation order + do-not list + summary block +
-self-report present). Record its output and the two manual judgment checks in
-`04-lint-results.md`:
+self-report present). It also **warns on statistics seeded without a retrievable
+source** — identify the source or drop the number; a floating magnitude is an
+attractor for fabricated corroboration. Record its output and the two manual
+judgment checks in `04-lint-results.md`:
 
 - [ ] Every requirement checkable from report text
 - [ ] Do-not list is topic-specific, not generic virtue
@@ -179,10 +192,34 @@ Executor-independent: every report — including one pasted from Gemini — gets
 the same treatment. This is the highest-leverage use of a terminal agent,
 because external DR products cannot check their own citations.
 
+**Verify each node as it lands, not as a batch after every run returns.**
+Spot-checking the first report while later runs are still executing costs
+nothing extra, pre-loads the cross-run diff, and can amend a still-pending
+node's prompt while amending is still cheap. Only step 3 genuinely needs all
+reports in hand.
+
 1. **Structural pass (deterministic):** required sections present; summary
-   block present; sample 10–15 citations (all, if fewer) and fetch each —
-   is the URL live, and does the page actually support the claim it's
-   attached to? Record hit rate.
+   block present; sample citations and fetch each — is the URL live, and does
+   the page actually support the claim it's attached to? Record hit rate.
+   `scripts/score_report.py` does the mechanical half:
+
+   ```bash
+   python3 skills/research-architect/scripts/score_report.py worksheet report.md > 08-worksheet.json
+   # each sampled check is one claim/citation pair: fetch its url, then fill
+   # "verdicts" with supported / partial / unsupported / unreachable
+   python3 skills/research-architect/scripts/score_report.py score 08-worksheet.json
+   ```
+
+   Checks are per **claim/citation pair**, not per claim — a claim resting on
+   three citations is three things to fetch, and one citation refuting it must
+   not be hidden by another supporting it.
+
+   The sample is **weighted toward quantitative and source-attribution
+   claims**: across every executor profiled so far, mutated numbers and
+   mischaracterized findings are the dominant failure mode, and a uniform
+   sample under-tests exactly where reports break. The script never fetches —
+   deciding whether a page supports its claim is the judgment this stage
+   exists for, and a "URL resolves" hit rate would be worse than none.
 2. **Rubric pass (judgment):** spawn a fresh critique subagent — one that has
    not seen the drafting stages — to score the report against the shipped
    rubric, item by item, with evidence quotes. Pass/fail per item, not vibes.
@@ -209,8 +246,7 @@ From the report's self-report (block A10 for external reports; the packet's
 `self_report` field for local `deep-research` runs) plus verification results,
 record: which instructions were followed, ignored, or misread; citation hit
 rate; which rubric items discriminated (items that always pass are dead
-weight). Then append durable lessons to two shared files (create on first
-use):
+weight). Then append durable lessons to two shared files:
 
 - `references/postmortems.md` — dated lessons about the *skeleton and process*
   ("do-not lists beyond 8 items get ignored"; "rubric item X never fails —
@@ -240,6 +276,7 @@ the report.
 | "Is X true / what's actually working / compare vendors" | Verification-heavy |
 | "How would I build / design study / reference architecture" | Design-heavy |
 | Both a market claim and a build handoff | Mixed |
+| "What's working *now*" / where is the live edge | Verification-heavy, and fill A6's `LAG_WARNING` and V5's `EDGE_TAG` — reliability alone biases toward "already arbitraged away" |
 | Stakes high, or topic contested | Add multi-model merge |
 | Sub-questions need different source classes or dispositions | DAG split |
 | Quick factual sweep, low stakes | Skip 3 and 5; consider handing straight to the `deep-research` skill |
@@ -283,12 +320,16 @@ the report.
 - `scripts/lint_prompt.py` — deterministic stage-4 lint (budget, slots,
   comments, required blocks). `--json` for machine-readable output.
 - `references/postmortems.md`, `references/executor-profiles.md` — shared
-  memory; read at stages 2–5, append at stage 10; created on first use.
+  memory; read at stages 2–5, append at stage 10. Append-only run memory:
+  exempt from the repo's skill release-version check, so recording a lesson
+  never costs a version bump.
+- `scripts/score_report.py` — stage-8 structural pass: `worksheet` extracts
+  claims and citations and samples what to check; `score` computes the hit rate
+  from your verdicts. Never fetches.
 - `evals/golden-questions/` — frozen real-run drafting artifacts used as
-  regression seeds. Deferred until 2–3 runs justify them:
-  `scripts/score_report.py`, `scripts/diff_runs.py`, and
-  `references/rubric-library.md`; until then, score and diff manually per stage
-  8.
+  regression seeds. Still deferred until more runs justify them:
+  `scripts/diff_runs.py` and `references/rubric-library.md`; until then, diff
+  cross-run reports manually per stage 8 step 3.
 
 ## Sibling skills
 

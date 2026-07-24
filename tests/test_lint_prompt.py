@@ -241,3 +241,54 @@ def test_cli_missing_file_exits_two(tmp_path):
         text=True,
     )
     assert proc.returncode == 2
+
+
+# --- seeded statistics ----------------------------------------------------
+
+
+SEEDED_FLOATING = (
+    "**Seed sources (vetted; start here):**\n"
+    "- A large-N study reportedly finds 1.2B trades show no longshot bias.\n"
+)
+
+SEEDED_IDENTIFIED = (
+    "**Seed sources (vetted; start here):**\n"
+    "- Underconfidence in prediction markets, arXiv 2602.19520 — reports 292M\n"
+    "  trades; verify the headline finding before relying on it.\n"
+)
+
+
+def test_floating_statistic_in_seed_block_warns():
+    result = lint_prompt.evaluate(make_prompt(extra=SEEDED_FLOATING), "terminal")
+    entry = check(result, "seeded_statistics")
+    assert entry["status"] == "warn"
+    assert "1.2B" in entry["detail"]
+
+
+def test_identified_statistic_in_seed_block_passes():
+    result = lint_prompt.evaluate(make_prompt(extra=SEEDED_IDENTIFIED), "terminal")
+    assert check(result, "seeded_statistics")["status"] == "pass"
+
+
+def test_magnitudes_outside_the_seed_block_are_ignored():
+    # The seed block ends at the next bold label, so the 1.5M below is body
+    # prose the executor is asked to produce -- not seeded background.
+    extra = SEEDED_IDENTIFIED + "\n**Source floor:** report the 1.5M-case base rate.\n"
+    result = lint_prompt.evaluate(make_prompt(extra=extra), "terminal")
+    assert check(result, "seeded_statistics")["status"] == "pass"
+
+
+def test_small_counts_inside_the_seed_block_are_not_statistics():
+    extra = (
+        "**Seed sources (vetted; start here):**\n"
+        "- All seed sources plus >=10 adjacent primary sources spanning X, Y, Z.\n"
+    )
+    result = lint_prompt.evaluate(make_prompt(extra=extra), "terminal")
+    assert check(result, "seeded_statistics")["status"] == "pass"
+
+
+def test_seeded_statistics_warning_does_not_fail_the_run(tmp_path):
+    assert run_cli(tmp_path, make_prompt(extra=SEEDED_FLOATING),
+                   "--executor", "terminal").returncode == 0
+    assert run_cli(tmp_path, make_prompt(extra=SEEDED_FLOATING),
+                   "--executor", "terminal", "--strict").returncode == 1

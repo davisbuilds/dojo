@@ -8,7 +8,10 @@
       "document_class": "preprint",
       "base_score": 0.82,
       "ceiling": 0.88,
-      "compatible_source_types": ["academic", "primary"],
+      "compatible_source_types": [
+        "academic",
+        "primary"
+      ],
       "rationale": "Established scholarly repository; submissions are not necessarily peer reviewed."
     },
     {
@@ -18,7 +21,10 @@
       "document_class": "bibliographic_record",
       "base_score": 0.84,
       "ceiling": 0.9,
-      "compatible_source_types": ["academic", "government"],
+      "compatible_source_types": [
+        "academic",
+        "government"
+      ],
       "rationale": "Authoritative biomedical index; an index record is not itself the underlying study."
     },
     {
@@ -28,7 +34,11 @@
       "document_class": "full_text_article",
       "base_score": 0.88,
       "ceiling": 0.94,
-      "compatible_source_types": ["academic", "government", "primary"],
+      "compatible_source_types": [
+        "academic",
+        "government",
+        "primary"
+      ],
       "rationale": "NIH-operated full-text archive; article-level study quality still requires evaluation."
     },
     {
@@ -38,7 +48,11 @@
       "document_class": "mixed_publisher_content",
       "base_score": 0.8,
       "ceiling": 0.9,
-      "compatible_source_types": ["academic", "primary", "news"],
+      "compatible_source_types": [
+        "academic",
+        "primary",
+        "news"
+      ],
       "rationale": "Established scholarly publisher whose domain also contains news and commentary."
     },
     {
@@ -48,7 +62,11 @@
       "document_class": "mixed_publisher_content",
       "base_score": 0.8,
       "ceiling": 0.9,
-      "compatible_source_types": ["academic", "primary", "news"],
+      "compatible_source_types": [
+        "academic",
+        "primary",
+        "news"
+      ],
       "rationale": "Established scholarly publisher whose domain also contains news and commentary."
     },
     {
@@ -58,7 +76,11 @@
       "document_class": "mixed_publisher_content",
       "base_score": 0.82,
       "ceiling": 0.92,
-      "compatible_source_types": ["academic", "primary", "analysis"],
+      "compatible_source_types": [
+        "academic",
+        "primary",
+        "analysis"
+      ],
       "rationale": "Established medical journal domain; article type and study quality still require evaluation."
     },
     {
@@ -68,7 +90,11 @@
       "document_class": "mixed_publisher_content",
       "base_score": 0.82,
       "ceiling": 0.92,
-      "compatible_source_types": ["academic", "primary", "analysis"],
+      "compatible_source_types": [
+        "academic",
+        "primary",
+        "analysis"
+      ],
       "rationale": "Established medical journal network; article type and study quality still require evaluation."
     },
     {
@@ -78,7 +104,11 @@
       "document_class": "mixed_publisher_content",
       "base_score": 0.82,
       "ceiling": 0.92,
-      "compatible_source_types": ["academic", "primary", "analysis"],
+      "compatible_source_types": [
+        "academic",
+        "primary",
+        "analysis"
+      ],
       "rationale": "Established medical journal domain; article type and study quality still require evaluation."
     },
     {
@@ -88,7 +118,10 @@
       "document_class": "institutional_repository",
       "base_score": 0.84,
       "ceiling": 0.9,
-      "compatible_source_types": ["academic", "primary"],
+      "compatible_source_types": [
+        "academic",
+        "primary"
+      ],
       "rationale": "Harvard institutional repository; deposited item type and review status vary."
     },
     {
@@ -98,7 +131,10 @@
       "document_class": "institutional_news",
       "base_score": 0.68,
       "ceiling": 0.74,
-      "compatible_source_types": ["news", "official"],
+      "compatible_source_types": [
+        "news",
+        "official"
+      ],
       "rationale": "Official university news, not a substitute for the underlying research."
     },
     {
@@ -108,7 +144,10 @@
       "document_class": "institutional_page",
       "base_score": 0.7,
       "ceiling": 0.76,
-      "compatible_source_types": ["official", "academic"],
+      "compatible_source_types": [
+        "official",
+        "academic"
+      ],
       "rationale": "University root domain only; subdomains require explicit registry entries."
     },
     {
@@ -118,7 +157,11 @@
       "document_class": "research_center_page",
       "base_score": 0.78,
       "ceiling": 0.84,
-      "compatible_source_types": ["academic", "official", "analysis"],
+      "compatible_source_types": [
+        "academic",
+        "official",
+        "analysis"
+      ],
       "rationale": "Official university research-center host; page type may be research, analysis, or news."
     },
     {
@@ -128,7 +171,10 @@
       "document_class": "institutional_news",
       "base_score": 0.68,
       "ceiling": 0.74,
-      "compatible_source_types": ["news", "official"],
+      "compatible_source_types": [
+        "news",
+        "official"
+      ],
       "rationale": "Official university news, not a substitute for the underlying research."
     },
     {
@@ -138,8 +184,115 @@
       "document_class": "institutional_page",
       "base_score": 0.7,
       "ceiling": 0.76,
-      "compatible_source_types": ["official", "academic"],
+      "compatible_source_types": [
+        "official",
+        "academic"
+      ],
       "rationale": "University root domain only; subdomains require explicit registry entries."
+    },
+    {
+      "id": "etherscan-explorer",
+      "host": "etherscan.io",
+      "authority": "onchain_explorer",
+      "document_class": "chain_state_record",
+      "base_score": 0.85,
+      "ceiling": 0.9,
+      "compatible_source_types": [
+        "primary",
+        "official"
+      ],
+      "rationale": "Ethereum block explorer. Reads canonical chain state; transaction, balance, and contract records are machine-verifiable. Token names, address labels, and contract nicknames are user-supplied and spoofable."
+    },
+    {
+      "id": "polygonscan-explorer",
+      "host": "polygonscan.com",
+      "authority": "onchain_explorer",
+      "document_class": "chain_state_record",
+      "base_score": 0.85,
+      "ceiling": 0.9,
+      "compatible_source_types": [
+        "primary",
+        "official"
+      ],
+      "rationale": "Polygon block explorer. Reads canonical chain state; transaction, balance, and contract records are machine-verifiable. Token names, address labels, and contract nicknames are user-supplied and spoofable."
+    },
+    {
+      "id": "basescan-explorer",
+      "host": "basescan.org",
+      "authority": "onchain_explorer",
+      "document_class": "chain_state_record",
+      "base_score": 0.85,
+      "ceiling": 0.9,
+      "compatible_source_types": [
+        "primary",
+        "official"
+      ],
+      "rationale": "Base block explorer. Reads canonical chain state; transaction, balance, and contract records are machine-verifiable. Token names, address labels, and contract nicknames are user-supplied and spoofable."
+    },
+    {
+      "id": "arbiscan-explorer",
+      "host": "arbiscan.io",
+      "authority": "onchain_explorer",
+      "document_class": "chain_state_record",
+      "base_score": 0.85,
+      "ceiling": 0.9,
+      "compatible_source_types": [
+        "primary",
+        "official"
+      ],
+      "rationale": "Arbitrum block explorer. Reads canonical chain state; transaction, balance, and contract records are machine-verifiable. Token names, address labels, and contract nicknames are user-supplied and spoofable."
+    },
+    {
+      "id": "dune-analytics",
+      "host": "dune.com",
+      "authority": "community_analytics_platform",
+      "document_class": "user_authored_query_result",
+      "base_score": 0.64,
+      "ceiling": 0.74,
+      "compatible_source_types": [
+        "primary",
+        "analysis"
+      ],
+      "rationale": "Queries run over authoritative chain data, but the SQL, filters, and labels are user-authored and frequently wrong. Credibility attaches to the query as read, not to the chart."
+    },
+    {
+      "id": "github-repository",
+      "host": "github.com",
+      "authority": "source_repository_host",
+      "document_class": "mixed_repository_content",
+      "base_score": 0.7,
+      "ceiling": 0.8,
+      "compatible_source_types": [
+        "primary",
+        "official"
+      ],
+      "rationale": "Source is inspectable and authoritative for what the code does. READMEs, docs, issues, and star counts are self-published claims about the code, not evidence for them; anyone can publish a repository."
+    },
+    {
+      "id": "github-raw-file",
+      "host": "raw.githubusercontent.com",
+      "authority": "source_file_content",
+      "document_class": "raw_source_file",
+      "base_score": 0.78,
+      "ceiling": 0.86,
+      "compatible_source_types": [
+        "primary",
+        "official"
+      ],
+      "rationale": "Exact file bytes at a given ref \u2014 authoritative for what the code contains. Carries no evidence that the code is correct, used, or current."
+    },
+    {
+      "id": "gitlab-repository",
+      "host": "gitlab.com",
+      "authority": "source_repository_host",
+      "document_class": "mixed_repository_content",
+      "base_score": 0.7,
+      "ceiling": 0.8,
+      "compatible_source_types": [
+        "primary",
+        "official"
+      ],
+      "rationale": "Source is inspectable and authoritative for what the code does. Project pages and docs are self-published claims about it; anyone can publish."
     }
   ]
 }
