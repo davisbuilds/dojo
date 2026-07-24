@@ -117,33 +117,33 @@ def test_uncited_prose_is_not_a_claim():
 # --- sampling -------------------------------------------------------------
 
 
-def build_claims(n_quant: int, n_plain: int) -> list[dict]:
-    claims = []
+def build_checks(n_quant: int, n_plain: int) -> list[dict]:
+    checks = []
     for i in range(n_quant):
-        claims.append({"id": f"Q{i + 1}", "quantitative": True, "attribution": False})
+        checks.append({"id": f"Q{i + 1}", "quantitative": True, "attribution": False})
     for i in range(n_plain):
-        claims.append({"id": f"P{i + 1}", "quantitative": False, "attribution": False})
-    return claims
+        checks.append({"id": f"P{i + 1}", "quantitative": False, "attribution": False})
+    return checks
 
 
 def test_sample_prefers_quantitative_claims():
-    sample = score_report.select_sample(build_claims(20, 20), size=10)
+    sample = score_report.select_sample(build_checks(20, 20), size=10)
     quant = [cid for cid in sample if cid.startswith("Q")]
     assert len(quant) == 7  # QUANTITATIVE_SHARE of 10
 
 
 def test_sample_backfills_when_quantitative_claims_are_scarce():
-    sample = score_report.select_sample(build_claims(2, 20), size=10)
+    sample = score_report.select_sample(build_checks(2, 20), size=10)
     assert len(sample) == 10
     assert {"Q1", "Q2"} <= set(sample)
 
 
 def test_sample_is_capped_by_available_claims():
-    assert len(score_report.select_sample(build_claims(2, 3), size=10)) == 5
+    assert len(score_report.select_sample(build_checks(2, 3), size=10)) == 5
 
 
 def test_sample_is_deterministic():
-    claims = build_claims(20, 20)
+    claims = build_checks(20, 20)
     assert score_report.select_sample(claims, 10) == score_report.select_sample(claims, 10)
 
 
@@ -152,7 +152,7 @@ def test_sample_is_deterministic():
 
 def worksheet_with(verdicts: dict[str, str]) -> dict:
     return {
-        "claims": [
+        "checks": [
             {"id": "Q1", "quantitative": True, "attribution": False},
             {"id": "Q2", "quantitative": True, "attribution": False},
             {"id": "P1", "quantitative": False, "attribution": False},
@@ -249,3 +249,68 @@ def test_cli_missing_file_exits_two(tmp_path):
         capture_output=True, text=True,
     )
     assert proc.returncode == 2
+
+
+# --- per-citation checks --------------------------------------------------
+
+
+MULTI_CITE = (
+    "## Findings\n\n"
+    "Two datasets put disputes at 43% "
+    "([Dune](https://dune.com/queries/1), [Etherscan](https://etherscan.io/tx/0xabc)).\n"
+)
+
+
+def test_a_claim_with_two_citations_yields_two_checks():
+    worksheet = score_report.build_worksheet(MULTI_CITE)
+    assert len(worksheet["claims"]) == 1
+    assert len(worksheet["checks"]) == 2
+    assert {c["citation"] for c in worksheet["checks"]} == {"C1", "C2"}
+    assert {c["claim"] for c in worksheet["checks"]} == {"Q1"}
+
+
+def test_check_carries_the_url_the_verifier_must_fetch():
+    checks = score_report.build_worksheet(MULTI_CITE)["checks"]
+    assert {c["url"] for c in checks} == {
+        "https://dune.com/queries/1", "https://etherscan.io/tx/0xabc"
+    }
+
+
+def test_check_inherits_the_claim_kind_for_weighting():
+    checks = score_report.build_worksheet(MULTI_CITE)["checks"]
+    assert all(c["quantitative"] for c in checks)
+
+
+def test_one_bad_citation_is_not_hidden_by_a_good_one():
+    # The whole point: C1 supporting the claim must not mask C2 refuting it.
+    worksheet = score_report.build_worksheet(MULTI_CITE)
+    ids = [c["id"] for c in worksheet["checks"]]
+    worksheet["verdicts"] = {ids[0]: "supported", ids[1]: "unsupported"}
+    result = score_report.score_worksheet(worksheet)
+    assert result["judged"] == 2
+    assert result["hit_rate"] == 0.5
+
+
+def test_uncited_claims_contribute_no_checks():
+    worksheet = score_report.build_worksheet("## F\n\nNothing is cited here.\n")
+    assert worksheet["checks"] == []
+    assert worksheet["sample"] == []
+
+
+# --- CLI input validation -------------------------------------------------
+
+
+def test_cli_rejects_a_zero_sample_size(tmp_path):
+    report = tmp_path / "report.md"
+    report.write_text(REPORT, encoding="utf-8")
+    proc = subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), "worksheet", str(report), "--size", "0"],
+        capture_output=True, text=True,
+    )
+    assert proc.returncode == 2
+    assert "ZeroDivisionError" not in proc.stderr
+    assert "positive" in proc.stderr.lower()
+
+
+def test_spread_of_zero_is_empty_not_a_crash():
+    assert score_report.spread([{"id": "a"}, {"id": "b"}], 0) == []

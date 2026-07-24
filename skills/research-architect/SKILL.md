@@ -205,10 +205,14 @@ reports in hand.
 
    ```bash
    python3 skills/research-architect/scripts/score_report.py worksheet report.md > 08-worksheet.json
-   # fetch each sampled claim's citations; fill "verdicts" with
-   # supported / partial / unsupported / unreachable
+   # each sampled check is one claim/citation pair: fetch its url, then fill
+   # "verdicts" with supported / partial / unsupported / unreachable
    python3 skills/research-architect/scripts/score_report.py score 08-worksheet.json
    ```
+
+   Checks are per **claim/citation pair**, not per claim — a claim resting on
+   three citations is three things to fetch, and one citation refuting it must
+   not be hidden by another supporting it.
 
    The sample is **weighted toward quantitative and source-attribution
    claims**: across every executor profiled so far, mutated numbers and

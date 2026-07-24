@@ -145,40 +145,68 @@ def extract_claims(text: str, citations: list[dict]) -> list[dict]:
     return claims
 
 
+def build_checks(claims: list[dict], citations: list[dict]) -> list[dict]:
+    """One check per (claim, citation) pair — the unit stage 8 actually measures.
+
+    A claim resting on three citations is three things to fetch, and one of them
+    refuting the claim must not be hidden by another supporting it. Scoring per
+    claim would collapse that into a single verdict and overstate the hit rate.
+    """
+    urls = {c["id"]: c["url"] for c in citations}
+    checks = []
+    for claim in claims:
+        for citation_id in claim["citations"]:
+            checks.append({
+                "id": f"K{len(checks) + 1}",
+                "claim": claim["id"],
+                "citation": citation_id,
+                "url": urls.get(citation_id, ""),
+                "line": claim["line"],
+                "quantitative": claim["quantitative"],
+                "attribution": claim["attribution"],
+                "text": claim["text"],
+            })
+    return checks
+
+
 def spread(items: list[dict], count: int) -> list[dict]:
     """`count` items spaced evenly across `items`, preserving document order."""
+    if count <= 0:
+        return []
     if count >= len(items):
         return list(items)
     step = len(items) / count
     return [items[int(index * step)] for index in range(count)]
 
 
-def select_sample(claims: list[dict], size: int = DEFAULT_SAMPLE_SIZE) -> list[str]:
-    """Claim ids to verify, weighted toward quantitative and attribution claims."""
-    priority = [c for c in claims if c.get("quantitative") or c.get("attribution")]
+def select_sample(checks: list[dict], size: int = DEFAULT_SAMPLE_SIZE) -> list[str]:
+    """Check ids to verify, weighted toward quantitative and attribution claims."""
+    priority = [c for c in checks if c.get("quantitative") or c.get("attribution")]
     priority_ids = {c["id"] for c in priority}
-    rest = [c for c in claims if c["id"] not in priority_ids]
+    rest = [c for c in checks if c["id"] not in priority_ids]
 
     chosen = spread(priority, min(len(priority), round(size * QUANTITATIVE_SHARE)))
     chosen += spread(rest, min(len(rest), size - len(chosen)))
 
-    # Scarce ordinary claims: spend the leftover budget on more priority claims.
+    # Scarce ordinary checks: spend the leftover budget on more priority checks.
     shortfall = size - len(chosen)
     if shortfall > 0:
         taken = {c["id"] for c in chosen}
         chosen += [c for c in priority if c["id"] not in taken][:shortfall]
 
-    order = {c["id"]: index for index, c in enumerate(claims)}
+    order = {c["id"]: index for index, c in enumerate(checks)}
     return sorted((c["id"] for c in chosen), key=lambda cid: order[cid])
 
 
 def build_worksheet(text: str, size: int = DEFAULT_SAMPLE_SIZE) -> dict:
     citations = extract_citations(text)
     claims = extract_claims(text, citations)
+    checks = build_checks(claims, citations)
     return {
         "citations": citations,
         "claims": claims,
-        "sample": select_sample(claims, size),
+        "checks": checks,
+        "sample": select_sample(checks, size),
         "verdicts": {},
     }
 
@@ -192,7 +220,7 @@ def score_worksheet(worksheet: dict) -> dict:
     """
     verdicts = worksheet.get("verdicts") or {}
     sample = worksheet.get("sample") or []
-    claims = {c["id"]: c for c in worksheet.get("claims") or []}
+    checks = {c["id"]: c for c in worksheet.get("checks") or []}
 
     unknown = {v for v in verdicts.values() if v not in VERDICTS}
     if unknown:
@@ -210,8 +238,8 @@ def score_worksheet(worksheet: dict) -> dict:
             "hit_rate": round(len(hits) / len(judged), 4) if judged else 0.0,
         }
 
-    quantitative_ids = [i for i in sample if claims.get(i, {}).get("quantitative")]
-    attribution_ids = [i for i in sample if claims.get(i, {}).get("attribution")]
+    quantitative_ids = [i for i in sample if checks.get(i, {}).get("quantitative")]
+    attribution_ids = [i for i in sample if checks.get(i, {}).get("attribution")]
     qualitative_ids = [i for i in sample if i not in quantitative_ids]
 
     unjudged = [i for i in sample if i not in verdicts]
@@ -228,8 +256,11 @@ def score_worksheet(worksheet: dict) -> dict:
     return result
 
 
-def read_json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+def positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed < 1:
+        raise argparse.ArgumentTypeError(f"sample size must be positive, got {parsed}")
+    return parsed
 
 
 def format_score(result: dict) -> str:
@@ -257,8 +288,9 @@ def main(argv: list[str] | None = None) -> int:
 
     sheet = sub.add_parser("worksheet", help="extract claims/citations from a report")
     sheet.add_argument("file", help="report markdown file")
-    sheet.add_argument("--size", type=int, default=DEFAULT_SAMPLE_SIZE,
-                       help=f"claims to sample (default: {DEFAULT_SAMPLE_SIZE})")
+    sheet.add_argument("--size", type=positive_int, default=DEFAULT_SAMPLE_SIZE,
+                       help=f"claim/citation pairs to sample "
+                            f"(default: {DEFAULT_SAMPLE_SIZE})")
 
     scorer = sub.add_parser("score", help="score a filled-in worksheet")
     scorer.add_argument("file", help="worksheet JSON file")

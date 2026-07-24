@@ -1,6 +1,6 @@
 ## 2.2.0 - 2026-07-24
 
-- Add scripts/score_report.py: worksheet extracts claims/citations from a report and samples what to verify (weighted toward quantitative and source-attribution claims); score computes the citation hit rate from filled-in verdicts, excluding unreachable URLs from the denominator. Never fetches -- judging page support stays with the verifying agent.
+- Add scripts/score_report.py: worksheet extracts claims and citations from a report and samples claim/citation pairs to verify (weighted toward quantitative and source-attribution claims); score computes the citation hit rate from filled-in verdicts, excluding unreachable URLs from the denominator. One check per pair, so a claim's refuting citation is never masked by a supporting one. Never fetches -- judging page support stays with the verifying agent.
 
 ## 2.1.1 - 2026-07-24
 
