@@ -45,6 +45,68 @@ Status: noted
   high-risk amendment, (3) an external repository with valid `spec:`/`Modify:`
   paths, and (4) partial-ID input that must fail rather than silently downgrade.
 
+#### write-spec/write-plan: "existence / completion / sign" checks are not falsifiability — require a pinned magnitude or floor
+Status: noted
+- **What**: Across several *unrelated* adversarial critiques (a maker-strategy spec,
+  a data-engine refactor spec, and its plan), the most common contract defect was an
+  acceptance check that asserts existence/sign/completion while the substance stays
+  trivial: an adverse-selection charge asserted `> 0` (a `$1e-7` charge passes and
+  guts the criterion); a bps edge threshold with no absolute-dollar floor (200 trips ×
+  25bps ≈ $125 "graduates"); a pipeline that "completes and prints a verdict" while
+  silently dropping every row (`NO_GO n=0`); a non-degeneracy guard whose "floor" was
+  never an actual number.
+- **Why it matters**: This is the single most recurrent way a plausible-looking,
+  validator-passing contract ships with a *gameable* acceptance gate — the check is
+  satisfiable without the thing it exists to guarantee ever being true. It is
+  domain-independent.
+- **Sketch**: Add a rule to write-spec Verification Requirements and write-plan Task
+  Design: an acceptance check must assert a **pinned magnitude / floor / rate**, never
+  mere existence, sign, non-emptiness, or "completes/prints". Any "produces output"
+  acceptance needs a **non-degeneracy** clause (output within an expected order of
+  magnitude, not just nonzero). Consider a validator *advisory* flagging checks whose
+  only assertion is `> 0`, "not empty", or "completes".
+
+#### write-spec: the "behavior-preserving refactor" archetype needs the reference oracle *defined on edge inputs* before it can be an oracle
+Status: noted
+- **What**: A spec whose acceptance is "behaviorally equivalent to existing X" is only
+  falsifiable if X's behavior is *defined* on the inputs that decide the result — but
+  the reference's behavior on ties / duplicates / empties is usually **accidental**
+  (undefined), and the happy-path fixtures never exercise it. In one case the "total
+  order" the whole equivalence rested on was not a total order at all (a key assumed
+  unique had **394 real collisions**, findable in a single query); the equivalence
+  contract and its differential fixtures both passed while a real-data divergence hid
+  in the ties.
+- **Why it matters**: "Equivalent to X" is a hollow contract when X is under-defined —
+  the refactor can pass every stated check and still produce a different real result.
+  Refactor/port specs are common and share this exact failure mode.
+- **Sketch**: Add refactor-archetype guidance to write-spec: when acceptance =
+  equivalence to an existing implementation, (a) require the reference's behavior to be
+  **pinned/defined** on tie/duplicate/empty/edge inputs *first* — it becomes an oracle
+  only after that; (b) require differential fixtures to **include** those edge inputs,
+  not just the happy path; (c) require any structural assumption the equivalence rests
+  on (key uniqueness, ordering, schema) to be **probed against real data before being
+  pinned**, never deferred as an open question.
+
+#### write-plan: extend "Map Before You Cut" to "fix the class, not the instance"
+Status: noted
+- **What**: Repeatedly, a fix addressed the focal path while an *adjacent* path silently
+  reintroduced the same defect: an out-of-core rewrite left an upstream eager
+  `.collect()` materializing the whole window; a "no more sequential HTTP" fix batched
+  one metadata source but left a sibling fetch unbatched; the tractable run path was
+  fixed while a secondary CLI branch still materialized the full dataset. Also observed:
+  a `**Assumptions Verified**` file:line citation cited as "verified" pointed at the
+  wrong line.
+- **Why it matters**: Plans naturally focus on the named seam and miss that the
+  contract's *property* (out-of-core, cached, read-only, deterministic, loud-failing)
+  must hold across **all** paths of that class, not just the one in focus — and a
+  plausible plan reads as complete while a sibling path quietly violates the contract.
+- **Sketch**: Add a "map the whole class" step to Map Before You Cut: when a task
+  establishes a property or fixes a defect class, **enumerate every path that must also
+  satisfy it** (sibling data sources, secondary CLI branches, upstream/downstream
+  stages, the error/loud-fail path, the ported implementation) and give each a Done-When
+  or an explicit out-of-scope note. Tighten grounding: a cited file:line under
+  `**Assumptions Verified**` must be **checked to the line** before claiming verified.
+
 #### research-architect: remaining deferred tooling
 Status: noted
 - **What**: `scripts/diff_runs.py` and `references/rubric-library.md` remain
