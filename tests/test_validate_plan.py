@@ -266,6 +266,19 @@ def test_pinned_done_when_threshold_is_not_degenerate() -> None:
     assert module.collect_advisories(body) == []
 
 
+def test_done_when_advisory_does_not_scan_later_plan_sections() -> None:
+    module = load_module()
+    body = plan_body("- Create: `src/example.py`").replace(
+        "- The example behaves as agreed.",
+        "- At least 95 of 100 fixtures produce the expected result.",
+    ).replace(
+        "- Risk: an external dependency is unavailable.",
+        "- Risk: deployment completes before monitoring attaches.",
+    )
+
+    assert module.collect_advisories(body) == []
+
+
 def test_missing_plan_still_reports_a_validation_error_without_a_traceback(
     tmp_path: Path,
 ) -> None:

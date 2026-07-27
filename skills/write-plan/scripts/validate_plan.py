@@ -50,7 +50,7 @@ DEPENDENCIES_SECTION_RE = re.compile(
     re.MULTILINE | re.DOTALL,
 )
 DONE_WHEN_SECTION_RE = re.compile(
-    r"^\*\*Done When\*\*:?[ \t]*(.*?)(?=^\*\*[^*]+?\*\*|\Z)",
+    r"^\*\*Done When\*\*:?[ \t]*(.*?)(?=^\*\*[^*]+?\*\*|^#{1,6}[ \t]+|\Z)",
     re.MULTILINE | re.DOTALL,
 )
 TASK_NUMBER_RE = re.compile(r"^### Task (\d+): ", re.MULTILINE)
