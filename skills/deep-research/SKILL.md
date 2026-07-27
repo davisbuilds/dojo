@@ -3,7 +3,7 @@ name: deep-research
 description: Use when a task needs direct web-backed research with controlled depth, relevance filtering, and citation-ready synthesis — the user wants the answer, not a commissioned research program. Routes work to quick, standard, or deep tiers, filters low-signal context, and returns a compact packet with key findings, citations, discarded context, confidence gaps, and next queries. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead — this skill is its execution backend.
 skill-type: workflow
 compatibility: "Requires python3. Requires network access for web research."
-version: 2.2.0
+version: 2.3.0
 ---
 
 # Deep Research
@@ -107,6 +107,8 @@ The script:
 - scores findings (relevance, domain-derived credibility, novelty, recency)
 - deduplicates by canonical URL and semantic overlap
 - discards low-signal entries with explicit reasons
+- retains relevant, registry-verified priority sources when only the aggregate
+  score would discard them, with an explicit retention reason and confidence gap
 - emits compact, citation-ready findings, credibility reasons, and confidence
   gaps
 
@@ -116,14 +118,23 @@ ties for a known domain or lower an unknown-domain prior, but it cannot raise an
 unknown domain above neutral. Treat the score as a provenance prior, never as a
 substitute for checking whether the cited page supports the claim.
 
-The registry covers scholarly, government, and university hosts alongside
-on-chain explorers and code hosts — for market and tooling questions the
-ground-truth sources are chain data and repository source, and scoring them as
-unknown domains biased whole task classes against their own primary sources.
-Ceilings encode what each class can actually establish: raw chain state and raw
-source files are high-provenance and low-interpretation, a community-authored
-Dune query is only as good as its SQL, and a repository README is a claim about
-the code rather than evidence for it.
+The registry covers first-party model, harness, protocol, and agent-framework
+documentation alongside scholarly, government, university, on-chain, and code
+hosts. Rules may explicitly cover an owned root plus its subdomains; exact-host
+matching remains the default. This lets official documentation survive host
+moves without letting lookalike domains or arbitrary repositories inherit
+first-party authority.
+
+Ceilings encode what each class can actually establish: provider documentation
+is authoritative for its own product behavior but not independent performance
+evidence; raw chain state and raw source files are high-provenance and
+low-interpretation; a community-authored Dune query is only as good as its SQL;
+and a repository README is a claim about the code rather than evidence for it.
+Verified priority sources may bypass only the aggregate score threshold. They
+must still clear the off-topic floor, deduplication, and finding budget, and the
+packet records the bypass so synthesis checks page-level support. Because
+priority status comes from the verified hostname policy, missing or mismatched
+caller-provided `source_type` metadata does not disable this safeguard.
 
 Credibility is a **reliability** prior only. It says nothing about whether a
 finding is still current — that is a separate axis. A high-scoring source
@@ -175,8 +186,9 @@ Do not mix discarded items back into final claims.
 
 - `references/contracts.md`: input schemas, output schemas, and composable usage notes.
 - `references/credibility-registry.json`: versioned hostname authority,
-  document-class, score, ceiling, and rationale rules used by the evidence
-  filter. Add hosts conservatively; exact matches are intentional.
+  owned-subdomain policy, priority-source behavior, document class, score,
+  ceiling, and rationale rules used by the evidence filter. Add hosts
+  conservatively; exact matching remains the default.
 
 ## Sibling skills
 

@@ -98,9 +98,11 @@ python3 skills/deep-research/scripts/run_pipeline.py \
       "credibility_authority": "string",
       "credibility_document_class": "string",
       "source_type_consistency": "compatible|mismatch|unverified",
+      "priority_source": "boolean",
       "novelty": "float 0-1",
       "recency": "float 0-1",
-      "score": "float 0-1"
+      "score": "float 0-1",
+      "retention_reason": "score_threshold|verified_priority_source_below_threshold"
     }
   ],
   "citations": [
@@ -125,6 +127,7 @@ python3 skills/deep-research/scripts/run_pipeline.py \
     "input_findings": "int",
     "retained_findings": "int",
     "discarded_findings": "int",
+    "priority_sources_retained_below_threshold": "int",
     "distinct_domains": "int",
     "threshold": "float"
   }
@@ -145,9 +148,17 @@ python3 skills/deep-research/scripts/run_pipeline.py \
 - `evidence_filter.py` is deterministic and rule-based; it does not call an LLM.
 - Credibility is a provenance prior derived from the URL hostname and
   `credibility-registry.json`, not a claim-quality verdict. Exact registry hosts
-  and the controlled `.gov` namespace can raise the neutral prior;
-  self-declared `source_type` cannot raise an unknown host. University and
-  publisher entries carry document-class-specific ceilings.
+  plus rules explicitly declaring owned subdomains and the controlled `.gov`
+  namespace can raise the neutral prior; self-declared `source_type` cannot
+  raise an unknown host. University and publisher entries carry
+  document-class-specific ceilings.
+- A relevant registry-verified priority source can survive an aggregate score
+  below the configured threshold. The finding records
+  `verified_priority_source_below_threshold`, and the packet adds a confidence
+  gap so synthesis verifies page-level support. Off-topic, duplicate, and
+  over-budget rules still apply. Caller-provided `source_type` consistency is
+  diagnostic and affects only the credibility tiebreak; it does not gate this
+  verified-host retention.
 - If claim quality is critical, use this output as a pre-synthesis gate and run a final claim check afterward.
 - The skill-level packet (see SKILL.md Output Contract) adds a `self_report`
   field on top of the `evidence_filter.py` output. It is composed by the agent

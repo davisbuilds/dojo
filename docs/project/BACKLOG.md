@@ -17,6 +17,65 @@ This file stays future-only.
 
 ## Open
 
+#### Harness adapters promote the whole catalog to project scope, blowing the skill-listing budget
+Status: noted
+- **What**: `scripts/gen_harness_adapters.py` links `.claude/skills -> ../skills`,
+  which makes all 57 cataloged skills *project-scope* in whatever directory holds
+  the adapter. Measured 2026-07-26 on macbook: the same symlink placed at
+  `~/Dev/.claude/skills` produced a 58-skill listing costing ~6,738 est. tokens —
+  **3.4x** the ~1% context budget Claude Code allots the listing, past which
+  descriptions are silently truncated. Project scope also *shadows* user scope, so
+  31 of the 32 deliberately installed `~/.agents/skills` entries were overridden by
+  their dojo counterparts. Working inside `dojo` itself hits the same cost locally.
+- **Why it matters**: the adapter is documented as making skills "discoverable",
+  but at full-catalog width it degrades the routing it is meant to enable, and it
+  silently changes which copy of a drifted skill is authoritative. Contradicts the
+  repo's own "context is sacred" principle.
+- **Sketch**: teach the generator distribution *profiles* (see the existing
+  "Add explicit distribution profiles" direction) so an adapter links a named
+  subset rather than the whole tree; and/or emit per-skill symlinks so a profile
+  is expressible. Report estimated listing cost under `--check` so budget
+  regressions are visible. Relates to
+  `skills-health: many canonical dojo skills aren't installed globally`.
+
+#### Cross-machine profile drift is silent and can restore superseded skill behavior
+Status: noted
+- **What**: on 2026-07-27 the Mac mini's globals were **28 skills content-drifted**
+  against a clean `origin/main` dojo checkout, including a `verify-before-complete`
+  still on v1's broad "about to state work is fixed" wording — the exact text v2's
+  narrow circuit-breaker was written to replace. The mini had been silently running
+  superseded behavior. Remediated via `sync.py --only-existing --apply`; a canonical
+  checkout being current is **not** evidence that installed globals are.
+- **Why it matters**: dojo can prove its repository is internally consistent while the
+  machines actually running the skills differ. The artifact that needs versioning is
+  the *selected distribution profile plus its harness realization*, not the checkout.
+  Nothing currently fails, warns, or reports when they diverge.
+- **Sketch**: have the mini's weekly health job run a read-only standardizer audit
+  after the scheduled checkout refresh and report canonical commit, installed profile,
+  missing expected skills, content-drift count, and harness CLI versions. Detect and
+  notify; do not auto-rewrite globals as part of a git pull.
+- **Do not reimplement the ignore logic**: `skill_standardizer_lib.py` already handles
+  this correctly via `IGNORE_NAMES` (`.DS_Store`, `__pycache__`, `.git`,
+  `.pytest_cache`) and `IGNORE_FILE_SUFFIXES` (`.pyc`, `.pyo`), applied in the compare,
+  scan, and `_copy_ignore` copytree paths. Verified 2026-07-27: MacBook audit reports 0
+  issues where a naive `diff -rq` reports six `__pycache__`-only false positives, and
+  the mini received 0 `.pyc` files from the sync. Any *new* drift check (e.g. in the
+  mini health job) must reuse this logic rather than rolling its own `diff`.
+
+#### Contract v1 has no shape for an opinion-only skill
+Status: noted
+- **What**: `workflow` skills must carry scope, boundaries, verification, output,
+  execution, and resource-map anchors, CI-enforced under `--strict`. That imposes a
+  ~300-500 word scaffolding floor regardless of how much insight the skill holds, so
+  a skill that should be three sharp paragraphs of opinion cannot pass validation.
+- **Why it matters**: current provider guidance holds that the highest-value skills
+  encode particular opinions and taste rather than procedure. The contract makes that
+  the one shape the catalog cannot express, and rewards padding to reach the anchors.
+- **Sketch**: add an `opinion` (or `guidance`) `skill-type` requiring only valid
+  frontmatter plus `description_trigger_ready`, with `context_budget` still advisory.
+  Re-evaluate `first-principles` against it — it is 1,683 words largely because
+  `workflow` gave it anchors to fill.
+
 #### write-spec/write-plan: make high-risk validation incrementally adoptable across repositories
 Status: noted
 - **What**: adding `risk_profile: high` / `readiness` to a mature legacy spec or
@@ -44,6 +103,68 @@ Status: noted
   (1) a new ID-based high-risk spec/plan, (2) a legacy no-ID artifact receiving a
   high-risk amendment, (3) an external repository with valid `spec:`/`Modify:`
   paths, and (4) partial-ID input that must fail rather than silently downgrade.
+
+#### write-spec/write-plan: "existence / completion / sign" checks are not falsifiability — require a pinned magnitude or floor
+Status: noted
+- **What**: Across several *unrelated* adversarial critiques (a maker-strategy spec,
+  a data-engine refactor spec, and its plan), the most common contract defect was an
+  acceptance check that asserts existence/sign/completion while the substance stays
+  trivial: an adverse-selection charge asserted `> 0` (a `$1e-7` charge passes and
+  guts the criterion); a bps edge threshold with no absolute-dollar floor (200 trips ×
+  25bps ≈ $125 "graduates"); a pipeline that "completes and prints a verdict" while
+  silently dropping every row (`NO_GO n=0`); a non-degeneracy guard whose "floor" was
+  never an actual number.
+- **Why it matters**: This is the single most recurrent way a plausible-looking,
+  validator-passing contract ships with a *gameable* acceptance gate — the check is
+  satisfiable without the thing it exists to guarantee ever being true. It is
+  domain-independent.
+- **Sketch**: Add a rule to write-spec Verification Requirements and write-plan Task
+  Design: an acceptance check must assert a **pinned magnitude / floor / rate**, never
+  mere existence, sign, non-emptiness, or "completes/prints". Any "produces output"
+  acceptance needs a **non-degeneracy** clause (output within an expected order of
+  magnitude, not just nonzero). Consider a validator *advisory* flagging checks whose
+  only assertion is `> 0`, "not empty", or "completes".
+
+#### write-spec: the "behavior-preserving refactor" archetype needs the reference oracle *defined on edge inputs* before it can be an oracle
+Status: noted
+- **What**: A spec whose acceptance is "behaviorally equivalent to existing X" is only
+  falsifiable if X's behavior is *defined* on the inputs that decide the result — but
+  the reference's behavior on ties / duplicates / empties is usually **accidental**
+  (undefined), and the happy-path fixtures never exercise it. In one case the "total
+  order" the whole equivalence rested on was not a total order at all (a key assumed
+  unique had **394 real collisions**, findable in a single query); the equivalence
+  contract and its differential fixtures both passed while a real-data divergence hid
+  in the ties.
+- **Why it matters**: "Equivalent to X" is a hollow contract when X is under-defined —
+  the refactor can pass every stated check and still produce a different real result.
+  Refactor/port specs are common and share this exact failure mode.
+- **Sketch**: Add refactor-archetype guidance to write-spec: when acceptance =
+  equivalence to an existing implementation, (a) require the reference's behavior to be
+  **pinned/defined** on tie/duplicate/empty/edge inputs *first* — it becomes an oracle
+  only after that; (b) require differential fixtures to **include** those edge inputs,
+  not just the happy path; (c) require any structural assumption the equivalence rests
+  on (key uniqueness, ordering, schema) to be **probed against real data before being
+  pinned**, never deferred as an open question.
+
+#### write-plan: extend "Map Before You Cut" to "fix the class, not the instance"
+Status: noted
+- **What**: Repeatedly, a fix addressed the focal path while an *adjacent* path silently
+  reintroduced the same defect: an out-of-core rewrite left an upstream eager
+  `.collect()` materializing the whole window; a "no more sequential HTTP" fix batched
+  one metadata source but left a sibling fetch unbatched; the tractable run path was
+  fixed while a secondary CLI branch still materialized the full dataset. Also observed:
+  a `**Assumptions Verified**` file:line citation cited as "verified" pointed at the
+  wrong line.
+- **Why it matters**: Plans naturally focus on the named seam and miss that the
+  contract's *property* (out-of-core, cached, read-only, deterministic, loud-failing)
+  must hold across **all** paths of that class, not just the one in focus — and a
+  plausible plan reads as complete while a sibling path quietly violates the contract.
+- **Sketch**: Add a "map the whole class" step to Map Before You Cut: when a task
+  establishes a property or fixes a defect class, **enumerate every path that must also
+  satisfy it** (sibling data sources, secondary CLI branches, upstream/downstream
+  stages, the error/loud-fail path, the ported implementation) and give each a Done-When
+  or an explicit out-of-scope note. Tighten grounding: a cited file:line under
+  `**Assumptions Verified**` must be **checked to the line** before claiming verified.
 
 #### research-architect: remaining deferred tooling
 Status: noted

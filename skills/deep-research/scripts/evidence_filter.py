@@ -220,13 +220,39 @@ def load_credibility_registry() -> tuple[dict, ...]:
     return tuple(rules)
 
 
+def credibility_rule_for_domain(normalized_domain: str) -> dict | None:
+    """Return the most specific registry rule that owns ``normalized_domain``.
+
+    Exact-host policy remains the default. A rule may opt into owned-subdomain
+    matching, which is safe against lookalikes because the hostname must end in
+    a dot plus the registered root. Exact rules always take precedence; among
+    suffix rules, the longest root wins.
+    """
+    rules = load_credibility_registry()
+
+    for rule in rules:
+        if normalized_domain == normalize_domain(str(rule.get("host") or "")):
+            return rule
+
+    suffix_matches = []
+    for rule in rules:
+        if rule.get("include_subdomains") is not True:
+            continue
+        host = normalize_domain(str(rule.get("host") or ""))
+        if host and normalized_domain.endswith(f".{host}"):
+            suffix_matches.append((len(host), rule))
+
+    if not suffix_matches:
+        return None
+    return max(suffix_matches, key=lambda match: match[0])[1]
+
+
 def credibility_assessment(source_type: str, domain: str) -> dict:
     source_key = (source_type or "unknown").strip().lower()
     normalized_domain = normalize_domain(domain)
 
-    for rule in load_credibility_registry():
-        if normalized_domain != normalize_domain(str(rule.get("host") or "")):
-            continue
+    rule = credibility_rule_for_domain(normalized_domain)
+    if rule is not None:
         compatible_types = {str(item).lower() for item in rule.get("compatible_source_types", [])}
         compatible = source_key in compatible_types
         base_score = float(rule["base_score"])
@@ -239,6 +265,7 @@ def credibility_assessment(source_type: str, domain: str) -> dict:
             "authority": rule["authority"],
             "document_class": rule["document_class"],
             "source_type_consistency": "compatible" if compatible else "mismatch",
+            "priority_source": rule.get("priority_source") is True,
             "reason": rule["rationale"],
         }
 
@@ -254,6 +281,7 @@ def credibility_assessment(source_type: str, domain: str) -> dict:
             "authority": "controlled_government_namespace",
             "document_class": "government_page",
             "source_type_consistency": "compatible" if compatible else "mismatch",
+            "priority_source": False,
             "reason": "Domain is in the controlled .gov namespace; page-level support still requires verification.",
         }
 
@@ -265,6 +293,7 @@ def credibility_assessment(source_type: str, domain: str) -> dict:
         "authority": "unverified_domain",
         "document_class": "unknown",
         "source_type_consistency": "unverified",
+        "priority_source": False,
         "reason": "Domain is not in the credibility registry; self-declared source type cannot raise credibility.",
     }
 
@@ -467,6 +496,9 @@ def main() -> int:
             + config["weights"]["novelty"] * novelty
         )
         candidate["final_score"] = final_score
+        retained_as_priority_source = candidate["credibility_assessment"][
+            "priority_source"
+        ]
 
         if max_similarity >= 0.78:
             discarded.append(
@@ -479,7 +511,7 @@ def main() -> int:
             )
             continue
 
-        if final_score < threshold:
+        if final_score < threshold and not retained_as_priority_source:
             discarded.append(
                 {
                     "title": candidate["finding"].title,
@@ -490,6 +522,11 @@ def main() -> int:
             )
             continue
 
+        candidate["retention_reason"] = (
+            "verified_priority_source_below_threshold"
+            if final_score < threshold
+            else "score_threshold"
+        )
         kept_records.append(candidate)
 
     kept_records = sorted(kept_records, key=lambda r: r["final_score"], reverse=True)
@@ -526,9 +563,11 @@ def main() -> int:
                 "credibility_authority": record["credibility_assessment"]["authority"],
                 "credibility_document_class": record["credibility_assessment"]["document_class"],
                 "source_type_consistency": record["credibility_assessment"]["source_type_consistency"],
+                "priority_source": record["credibility_assessment"]["priority_source"],
                 "novelty": round(record.get("novelty", 0.0), 4),
                 "recency": round(record["recency"], 4),
                 "score": round(record["final_score"], 4),
+                "retention_reason": record["retention_reason"],
             }
         )
 
@@ -556,6 +595,19 @@ def main() -> int:
     if key_findings and high_cred_count < max(1, math.ceil(len(key_findings) * 0.4)):
         confidence_gaps.append("Insufficient high-credibility coverage; prioritize official and primary sources.")
 
+    priority_below_threshold = sum(
+        1
+        for finding in key_findings
+        if finding["retention_reason"]
+        == "verified_priority_source_below_threshold"
+    )
+    if priority_below_threshold:
+        noun = "source" if priority_below_threshold == 1 else "sources"
+        confidence_gaps.append(
+            f"{priority_below_threshold} verified priority {noun} retained below "
+            "the score threshold; verify page-level support before synthesis."
+        )
+
     if missing_terms:
         confidence_gaps.append(f"Potentially under-covered brief terms: {', '.join(missing_terms[:6])}.")
 
@@ -573,6 +625,7 @@ def main() -> int:
             "input_findings": len(raw_findings),
             "retained_findings": len(key_findings),
             "discarded_findings": len(sorted_discarded),
+            "priority_sources_retained_below_threshold": priority_below_threshold,
             "distinct_domains": len(unique_domains),
             "threshold": threshold,
         },

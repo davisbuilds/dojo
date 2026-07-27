@@ -1,6 +1,199 @@
 {
-  "version": 1,
+  "version": 2,
   "rules": [
+    {
+      "id": "anthropic-provider",
+      "host": "anthropic.com",
+      "include_subdomains": true,
+      "authority": "first_party_provider",
+      "document_class": "mixed_first_party_content",
+      "base_score": 0.84,
+      "ceiling": 0.9,
+      "compatible_source_types": [
+        "official",
+        "primary"
+      ],
+      "priority_source": true,
+      "rationale": "Anthropic-owned root and subdomains are first-party sources for Anthropic product and policy behavior, not independent evidence for performance or comparative claims."
+    },
+    {
+      "id": "claude-provider",
+      "host": "claude.com",
+      "include_subdomains": true,
+      "authority": "first_party_provider",
+      "document_class": "mixed_first_party_content",
+      "base_score": 0.84,
+      "ceiling": 0.9,
+      "compatible_source_types": [
+        "official",
+        "primary"
+      ],
+      "priority_source": true,
+      "rationale": "Claude-owned root and subdomains are first-party sources for Claude product and platform behavior, not independent evidence for performance or comparative claims."
+    },
+    {
+      "id": "openai-provider",
+      "host": "openai.com",
+      "include_subdomains": true,
+      "authority": "first_party_provider",
+      "document_class": "mixed_first_party_content",
+      "base_score": 0.84,
+      "ceiling": 0.9,
+      "compatible_source_types": [
+        "official",
+        "primary"
+      ],
+      "priority_source": true,
+      "rationale": "OpenAI-owned root and subdomains are first-party sources for OpenAI product and API behavior, not independent evidence for performance or comparative claims."
+    },
+    {
+      "id": "chatgpt-provider",
+      "host": "chatgpt.com",
+      "include_subdomains": true,
+      "authority": "first_party_provider",
+      "document_class": "mixed_first_party_content",
+      "base_score": 0.84,
+      "ceiling": 0.9,
+      "compatible_source_types": [
+        "official",
+        "primary"
+      ],
+      "priority_source": true,
+      "rationale": "ChatGPT-owned root and subdomains are first-party sources for ChatGPT product behavior, not independent evidence for performance or comparative claims."
+    },
+    {
+      "id": "cursor-harness",
+      "host": "cursor.com",
+      "include_subdomains": true,
+      "authority": "first_party_harness_docs",
+      "document_class": "product_documentation",
+      "base_score": 0.84,
+      "ceiling": 0.9,
+      "compatible_source_types": [
+        "official",
+        "primary"
+      ],
+      "priority_source": true,
+      "rationale": "Cursor-owned root and subdomains are first-party sources for Cursor agent, CLI, rules, and product behavior."
+    },
+    {
+      "id": "gemini-cli-harness",
+      "host": "geminicli.com",
+      "include_subdomains": true,
+      "authority": "first_party_harness_docs",
+      "document_class": "product_documentation",
+      "base_score": 0.84,
+      "ceiling": 0.9,
+      "compatible_source_types": [
+        "official",
+        "primary"
+      ],
+      "priority_source": true,
+      "rationale": "Gemini CLI's official documentation is authoritative for its agent, skills, hooks, configuration, and runtime behavior."
+    },
+    {
+      "id": "github-docs",
+      "host": "docs.github.com",
+      "authority": "first_party_harness_docs",
+      "document_class": "product_documentation",
+      "base_score": 0.84,
+      "ceiling": 0.9,
+      "compatible_source_types": [
+        "official",
+        "primary"
+      ],
+      "priority_source": true,
+      "rationale": "GitHub's official documentation is authoritative for GitHub Copilot agents and GitHub platform behavior; arbitrary repositories remain governed by the lower-ceiling code-host rule."
+    },
+    {
+      "id": "microsoft-learn",
+      "host": "learn.microsoft.com",
+      "authority": "first_party_harness_docs",
+      "document_class": "product_documentation",
+      "base_score": 0.84,
+      "ceiling": 0.9,
+      "compatible_source_types": [
+        "official",
+        "primary"
+      ],
+      "priority_source": true,
+      "rationale": "Microsoft Learn is the first-party documentation host for Microsoft developer, Copilot, and Foundry agent behavior."
+    },
+    {
+      "id": "devin-harness",
+      "host": "devin.ai",
+      "include_subdomains": true,
+      "authority": "first_party_harness_docs",
+      "document_class": "product_documentation",
+      "base_score": 0.84,
+      "ceiling": 0.9,
+      "compatible_source_types": [
+        "official",
+        "primary"
+      ],
+      "priority_source": true,
+      "rationale": "Devin-owned root and subdomains are first-party sources for Devin agents, CLI, desktop, and harness behavior."
+    },
+    {
+      "id": "windsurf-harness",
+      "host": "windsurf.com",
+      "include_subdomains": true,
+      "authority": "first_party_harness_docs",
+      "document_class": "product_documentation",
+      "base_score": 0.84,
+      "ceiling": 0.9,
+      "compatible_source_types": [
+        "official",
+        "primary"
+      ],
+      "priority_source": true,
+      "rationale": "Windsurf-owned root and subdomains are first-party sources for Windsurf product and agent behavior, including documentation URLs that redirect into Devin documentation."
+    },
+    {
+      "id": "model-context-protocol",
+      "host": "modelcontextprotocol.io",
+      "include_subdomains": true,
+      "authority": "protocol_documentation",
+      "document_class": "technical_standard",
+      "base_score": 0.86,
+      "ceiling": 0.92,
+      "compatible_source_types": [
+        "official",
+        "primary",
+        "academic"
+      ],
+      "priority_source": true,
+      "rationale": "The Model Context Protocol documentation is the primary specification source for MCP behavior and interfaces."
+    },
+    {
+      "id": "langchain-docs",
+      "host": "docs.langchain.com",
+      "authority": "first_party_framework_docs",
+      "document_class": "framework_documentation",
+      "base_score": 0.82,
+      "ceiling": 0.88,
+      "compatible_source_types": [
+        "official",
+        "primary"
+      ],
+      "priority_source": true,
+      "rationale": "LangChain's official documentation is authoritative for LangChain and LangGraph framework behavior, not independent evidence for application quality."
+    },
+    {
+      "id": "llamaindex-docs",
+      "host": "llamaindex.ai",
+      "include_subdomains": true,
+      "authority": "first_party_framework_docs",
+      "document_class": "framework_documentation",
+      "base_score": 0.82,
+      "ceiling": 0.88,
+      "compatible_source_types": [
+        "official",
+        "primary"
+      ],
+      "priority_source": true,
+      "rationale": "LlamaIndex-owned root and subdomains are first-party sources for LlamaIndex and LlamaAgents framework behavior, not independent evidence for application quality."
+    },
     {
       "id": "arxiv-preprints",
       "host": "arxiv.org",
