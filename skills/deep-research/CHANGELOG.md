@@ -1,3 +1,7 @@
+## 2.3.0 - 2026-07-27
+
+- Recognize verified first-party model, harness, protocol, and agent-framework documentation through owned root/subdomain rules; retain relevant priority sources below the aggregate score threshold with an explicit advisory.
+
 ## 2.2.0 - 2026-07-24
 
 - Credibility registry gains on-chain explorers (Etherscan/Polygonscan/Basescan/Arbiscan), Dune, and code hosts (GitHub, raw.githubusercontent, GitLab) with ceilings reflecting what each class can establish; previously these landed as unknown domains at the neutral floor, biasing market and tooling research against its own primary sources. Documents that registry credibility is a reliability prior only, not a currency signal.

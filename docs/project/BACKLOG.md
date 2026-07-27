@@ -17,29 +17,6 @@ This file stays future-only.
 
 ## Open
 
-#### deep-research: first-party provider domains are scored as unverified and discarded
-Status: noted
-- **What**: during the 2026-07-25 harness audit the evidence filter labelled every
-  Anthropic and OpenAI first-party domain an unverified domain, refused to let an
-  official-source declaration raise credibility, and discarded two directly relevant
-  official pages on score. Confirmed again 2026-07-27: the platform mechanics that
-  ultimately resolved the audit's largest open question came from
-  `code.claude.com/docs` and `learn.chatgpt.com/docs` — exactly the class of source
-  the filter rejects.
-- **Why it matters**: a deterministic check that discards publisher-owned primary
-  evidence gives a false sense of objectivity — worse than no filter, because the
-  green result reads as verification. Provider docs are the authoritative source for
-  harness behavior and there is no better substitute to fall back to.
-- **Sketch**: treat first-party product/documentation domains as high credibility —
-  `anthropic.com`, `claude.com`, `code.claude.com`, `platform.claude.com`,
-  `docs.claude.com`, `openai.com`, `developers.openai.com`, `learn.chatgpt.com`,
-  `platform.openai.com` — by verifying domain ownership rather than trusting a
-  `source_type` label. Make credibility scoring advisory: never let a lexical-overlap
-  score silently discard a directly relevant primary source; warn instead. Add
-  regression fixtures for Anthropic, OpenAI, standards bodies, GitHub repositories,
-  and peer-reviewed papers. Generalize beyond a hardcoded allowlist so other
-  providers (Google, Meta, Mistral) do not hit the same failure.
-
 #### Harness adapters promote the whole catalog to project scope, blowing the skill-listing budget
 Status: noted
 - **What**: `scripts/gen_harness_adapters.py` links `.claude/skills -> ../skills`,
