@@ -17,6 +17,88 @@ This file stays future-only.
 
 ## Open
 
+#### deep-research: first-party provider domains are scored as unverified and discarded
+Status: noted
+- **What**: during the 2026-07-25 harness audit the evidence filter labelled every
+  Anthropic and OpenAI first-party domain an unverified domain, refused to let an
+  official-source declaration raise credibility, and discarded two directly relevant
+  official pages on score. Confirmed again 2026-07-27: the platform mechanics that
+  ultimately resolved the audit's largest open question came from
+  `code.claude.com/docs` and `learn.chatgpt.com/docs` — exactly the class of source
+  the filter rejects.
+- **Why it matters**: a deterministic check that discards publisher-owned primary
+  evidence gives a false sense of objectivity — worse than no filter, because the
+  green result reads as verification. Provider docs are the authoritative source for
+  harness behavior and there is no better substitute to fall back to.
+- **Sketch**: treat first-party product/documentation domains as high credibility —
+  `anthropic.com`, `claude.com`, `code.claude.com`, `platform.claude.com`,
+  `docs.claude.com`, `openai.com`, `developers.openai.com`, `learn.chatgpt.com`,
+  `platform.openai.com` — by verifying domain ownership rather than trusting a
+  `source_type` label. Make credibility scoring advisory: never let a lexical-overlap
+  score silently discard a directly relevant primary source; warn instead. Add
+  regression fixtures for Anthropic, OpenAI, standards bodies, GitHub repositories,
+  and peer-reviewed papers. Generalize beyond a hardcoded allowlist so other
+  providers (Google, Meta, Mistral) do not hit the same failure.
+
+#### Harness adapters promote the whole catalog to project scope, blowing the skill-listing budget
+Status: noted
+- **What**: `scripts/gen_harness_adapters.py` links `.claude/skills -> ../skills`,
+  which makes all 57 cataloged skills *project-scope* in whatever directory holds
+  the adapter. Measured 2026-07-26 on macbook: the same symlink placed at
+  `~/Dev/.claude/skills` produced a 58-skill listing costing ~6,738 est. tokens —
+  **3.4x** the ~1% context budget Claude Code allots the listing, past which
+  descriptions are silently truncated. Project scope also *shadows* user scope, so
+  31 of the 32 deliberately installed `~/.agents/skills` entries were overridden by
+  their dojo counterparts. Working inside `dojo` itself hits the same cost locally.
+- **Why it matters**: the adapter is documented as making skills "discoverable",
+  but at full-catalog width it degrades the routing it is meant to enable, and it
+  silently changes which copy of a drifted skill is authoritative. Contradicts the
+  repo's own "context is sacred" principle.
+- **Sketch**: teach the generator distribution *profiles* (see the existing
+  "Add explicit distribution profiles" direction) so an adapter links a named
+  subset rather than the whole tree; and/or emit per-skill symlinks so a profile
+  is expressible. Report estimated listing cost under `--check` so budget
+  regressions are visible. Relates to
+  `skills-health: many canonical dojo skills aren't installed globally`.
+
+#### Cross-machine profile drift is silent and can restore superseded skill behavior
+Status: noted
+- **What**: on 2026-07-27 the Mac mini's globals were **28 skills content-drifted**
+  against a clean `origin/main` dojo checkout, including a `verify-before-complete`
+  still on v1's broad "about to state work is fixed" wording — the exact text v2's
+  narrow circuit-breaker was written to replace. The mini had been silently running
+  superseded behavior. Remediated via `sync.py --only-existing --apply`; a canonical
+  checkout being current is **not** evidence that installed globals are.
+- **Why it matters**: dojo can prove its repository is internally consistent while the
+  machines actually running the skills differ. The artifact that needs versioning is
+  the *selected distribution profile plus its harness realization*, not the checkout.
+  Nothing currently fails, warns, or reports when they diverge.
+- **Sketch**: have the mini's weekly health job run a read-only standardizer audit
+  after the scheduled checkout refresh and report canonical commit, installed profile,
+  missing expected skills, content-drift count, and harness CLI versions. Detect and
+  notify; do not auto-rewrite globals as part of a git pull.
+- **Do not reimplement the ignore logic**: `skill_standardizer_lib.py` already handles
+  this correctly via `IGNORE_NAMES` (`.DS_Store`, `__pycache__`, `.git`,
+  `.pytest_cache`) and `IGNORE_FILE_SUFFIXES` (`.pyc`, `.pyo`), applied in the compare,
+  scan, and `_copy_ignore` copytree paths. Verified 2026-07-27: MacBook audit reports 0
+  issues where a naive `diff -rq` reports six `__pycache__`-only false positives, and
+  the mini received 0 `.pyc` files from the sync. Any *new* drift check (e.g. in the
+  mini health job) must reuse this logic rather than rolling its own `diff`.
+
+#### Contract v1 has no shape for an opinion-only skill
+Status: noted
+- **What**: `workflow` skills must carry scope, boundaries, verification, output,
+  execution, and resource-map anchors, CI-enforced under `--strict`. That imposes a
+  ~300-500 word scaffolding floor regardless of how much insight the skill holds, so
+  a skill that should be three sharp paragraphs of opinion cannot pass validation.
+- **Why it matters**: current provider guidance holds that the highest-value skills
+  encode particular opinions and taste rather than procedure. The contract makes that
+  the one shape the catalog cannot express, and rewards padding to reach the anchors.
+- **Sketch**: add an `opinion` (or `guidance`) `skill-type` requiring only valid
+  frontmatter plus `description_trigger_ready`, with `context_budget` still advisory.
+  Re-evaluate `first-principles` against it — it is 1,683 words largely because
+  `workflow` gave it anchors to fill.
+
 #### write-spec/write-plan: make high-risk validation incrementally adoptable across repositories
 Status: noted
 - **What**: adding `risk_profile: high` / `readiness` to a mature legacy spec or
