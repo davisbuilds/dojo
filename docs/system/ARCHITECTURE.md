@@ -53,8 +53,8 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 | `pre-tool-use-git-push-protected-branch.sh` | PreToolUse (Bash) | Blocks pushes to protected branches unless an explicit override token is present |
 | `pre-tool-use-validate-skill.sh` | PreToolUse (Write/Edit) | Validates SKILL.md frontmatter; blocks on failure |
 | `post-tool-use-regen-manifest.sh` | PostToolUse (Write/Edit) | On SKILL.md or `skills/_fragments/*` edits, expands opt-in fragment composition, regenerates `skills.json`, then rebuilds the catalog |
-| `post-tool-use-validate-spec.sh` | PostToolUse (Write/Edit) | Validates `docs/specs/*-spec.md` against the `write-spec` contract schema; forbids plan-shaped content and conditionally enforces high-risk IDs/scenarios/readiness |
-| `post-tool-use-validate-plan.sh` | PostToolUse (Write/Edit) | Validates `docs/plans/*-plan.md` against the `write-plan` execution schema; conditionally enforces linked-spec coverage, task/file grounding, and high-risk readiness |
+| `post-tool-use-validate-spec.sh` | PostToolUse (Write/Edit) | Validates `docs/specs/*-spec.md` against the `write-spec` contract schema; forbids plan-shaped content, conditionally enforces high-risk IDs/scenarios/readiness, and advises on obvious weak acceptance gates |
+| `post-tool-use-validate-plan.sh` | PostToolUse (Write/Edit) | Validates `docs/plans/*-plan.md` against the `write-plan` execution schema; resolves target-repository paths, conditionally enforces linked-spec coverage/task/file grounding/readiness, and advises on obvious weak acceptance gates |
 | `stop-hook-git-check.sh` | (unregistered) | Blocks if there are uncommitted changes or untracked files. Script kept in `hooks/` but no longer wired into `.claude/settings.json`. |
 | `stop-hook-skill-structure.sh` | Stop | Validates modified skill directories have valid SKILL.md and release-version bumps |
 | `stop-hook-session-retro.sh` | Stop | Reminds agent to run `/retro` to capture session learnings |

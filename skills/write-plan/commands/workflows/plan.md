@@ -34,9 +34,10 @@ If the spec is high-risk, require `readiness: ready` before planning.
 ### 2. Map Before You Cut
 
 For tasks touching existing/coupled code, trace the data/call path, pick the
-thinnest seam that satisfies the contract, and record `Assumptions Verified` in
-each existing-code task against its exact target file/symbol. Resolve current
-lookups before steps; risks are only irreducible future uncertainty.
+thinnest seam that satisfies the contract, map every adjacent path that must
+preserve the same property, and record `Assumptions Verified` in each
+existing-code task against its exact target file/symbol. Resolve current lookups
+before steps; risks are only irreducible future uncertainty.
 
 ### 3. Draft Plan
 
@@ -63,10 +64,15 @@ Run:
 python3 skills/write-plan/scripts/validate_plan.py docs/plans/<filename>.md
 ```
 
+The validator discovers the target plan's Git root for repository-relative
+paths. Pass `--repo-root <path>` for relocated artifacts; outside Git, invoke it
+from the target repository root or pass the option explicitly.
+
 Fix any validation errors before presenting the plan.
-Treat grounding and test-discovery messages as advisories: they are a prompt to
-read the code, not a verdict on prose. High-risk structure, linked-spec coverage,
-task references, modified-file existence, and readiness closure are hard gates.
+Treat grounding, test-discovery, and weak-acceptance messages as advisories: they
+are prompts to improve the plan, not schema failures. High-risk structure,
+linked-spec coverage, task references, modified-file existence, and readiness
+closure are hard gates.
 
 ### 6. Handoff
 

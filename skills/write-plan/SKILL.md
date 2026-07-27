@@ -2,7 +2,7 @@
 name: write-plan
 description: 'Sequence the build: turn a settled target (a `write-spec` contract, a ticket, or a clear request) into an execution plan — task breakdown, files, ordered steps, seam selection, and verification commands. Use when WHAT is already decided and you need HOW: the file-level, dependency-ordered steps to implement it. If the target is not yet falsifiable, route back to `write-spec`.'
 skill-type: workflow
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Write Plan
@@ -131,13 +131,18 @@ the ground first — do not pick a mechanism blind:
 2. **Pick the thinnest seam** that satisfies the contract — the smallest cut that
    makes the end-state true. A cleaner realization than the contract author
    imagined is allowed, as long as `Done When` still equals the contract.
-3. **Record `**Assumptions Verified**` for each existing-code task.** When its
+3. **Map the whole defect or property class.** Enumerate sibling sources,
+   alternate CLI branches, upstream/downstream stages, error paths, and ported
+   implementations that must preserve the same property. Give each a `Done When`
+   or an explicit out-of-scope note; do not fix only the focal instance.
+4. **Record `**Assumptions Verified**` for each existing-code task.** When its
    `**Files**` block contains `Modify:`, cite the exact file and symbol being
-   cut, plus the observed behavior. A neighboring file may establish useful data
-   shape, but label it `Research Context`; it is not target verification.
+   cut, plus the observed behavior checked at that line. A neighboring file may
+   establish useful data shape, but label it `Research Context`; it is not target
+   verification.
    Create-only work does not need an invented target-file citation, though it may
    include labeled research context when helpful.
-4. **Resolve the current before prescribing.** Grep/read questions that can be
+5. **Resolve the current before prescribing.** Grep/read questions that can be
    answered now, then write facts. Do not leave conditional discovery in a step
    (for example, "if X is already wired"). Put only irreducible future
    uncertainty in Risks And Mitigations, with a signal and mitigation.
@@ -157,7 +162,9 @@ Each task must be independently verifiable and include:
 - `**Verification**` commands with expected signals
 - `**Test Discovery Verified**` when the task creates or changes tests; name the
   runner/discovery evidence and the command that runs the literal new test
-- `**Done When**` acceptance bullets that trace to the contract
+- `**Done When**` acceptance bullets that trace to the contract and pin a
+  meaningful magnitude, floor, rate, or non-degeneracy bound when trivial output
+  could otherwise pass
 
 Granularity target:
 - one meaningful unit of behavior per task
@@ -169,6 +176,9 @@ Granularity target:
 - Include at least one concrete, deterministic verification command per task.
 - Include integration or end-to-end verification when applicable.
 - Add negative-path verification for risky logic.
+- Do not accept bare existence/sign/completion checks such as `> 0`, "not empty",
+  or "completes." Pin the smallest meaningful magnitude and prove a non-degenerate
+  run when empty or trivial output could pass.
 - When tests change, prove their discovery before claiming readiness: confirm the
   repository runner includes the new test path, then name a command that runs the
   literal test file (or exact test selector).
@@ -188,14 +198,19 @@ After writing a plan, run:
 python3 skills/write-plan/scripts/validate_plan.py docs/plans/<filename>.md
 ```
 
+The validator resolves `spec:` and `Modify:` paths against the target plan's Git
+root. Use `--repo-root <path>` for relocated artifacts; outside Git, the default
+fallback is the caller's current directory.
+
 Fix all reported issues before handoff.
 
 The validator's routine grounding and test-discovery messages are advisories,
-not schema failures. For high-risk plans, conditional structure, linked-spec ID
-coverage, task references, modified-file existence, and readiness closure are
-hard failures. No validator can determine whether prose claims or commands are
-true; ground the task and use semantic critique rather than treating the checker
-as a substitute for reading the code.
+not schema failures. Obvious weak acceptance phrases also remain advisory. For
+high-risk plans, conditional structure, linked-spec ID coverage, task references,
+modified-file existence, and readiness closure are hard failures. No validator
+can determine whether prose claims or commands are true; ground the task and use
+semantic critique rather than treating the checker as a substitute for reading
+the code.
 
 ## Handoff
 

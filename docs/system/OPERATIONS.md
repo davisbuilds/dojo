@@ -61,9 +61,12 @@ python3 skills/write-plan/scripts/validate_plan.py docs/plans/<file>-plan.md
 ```
 
 Add `--strict-filename` to enforce the `-spec.md` / `-plan.md` suffix (the hooks do).
-The plan validator also prints non-blocking grounding and test-discovery advisories
-when explicit task metadata suggests an omission; these messages never change an
-otherwise valid plan's exit status.
+Both validators print non-blocking advisories for obvious weak acceptance
+language; the plan validator also advises on grounding and test discovery. These
+messages never change an otherwise valid artifact's exit status. Plan `spec:` and
+`Modify:` paths resolve from the target plan's Git root; pass
+`--repo-root <path>` for relocated artifacts, or invoke from the target root when
+working outside Git.
 
 New artifacts declare `risk_profile: routine|high` and
 `readiness: draft|ready`; legacy artifacts default to routine/draft. High-risk

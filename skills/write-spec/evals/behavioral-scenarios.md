@@ -29,3 +29,16 @@ agent; the literal `<agent>` placeholder is a failure.
 - **Pass:** Activates high risk; makes compatibility and supersession observable;
   includes recovery, concurrency, and legacy-state scenarios; preserves the
   mechanism-free WHAT/HOW boundary.
+
+## S4 — Acceptance cannot pass on trivial output
+
+- **Turn:** `Write a spec whose pipeline must produce a useful recommendation, not merely finish or emit one row.`
+- **Pass:** Pins a meaningful output floor or rate and a non-degenerate input
+  condition; does not accept bare `> 0`, non-emptiness, or completion.
+
+## S5 — Refactor equivalence starts with an edge-defined oracle
+
+- **Turn:** `Write a behavior-preserving refactor spec for an ordering pipeline whose current key may contain ties and duplicates.`
+- **Pass:** Defines reference behavior on ties, duplicates, and empty input;
+  requires probing the uniqueness/order assumption against representative real
+  data; includes those edges in differential evaluation.

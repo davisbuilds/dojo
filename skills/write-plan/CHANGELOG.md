@@ -1,3 +1,8 @@
+## 2.1.0 - 2026-07-27
+
+- Resolve consumer-repository paths correctly and plan pinned acceptance gates
+  across the full defect or property class.
+
 ## 2.0.0 - 2026-07-22
 
 - Require current-schema plans to identify the producing agent in frontmatter

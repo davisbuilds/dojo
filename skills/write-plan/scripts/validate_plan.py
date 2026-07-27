@@ -12,11 +12,10 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 import re
+import subprocess
 import sys
 from pathlib import Path
 
-
-REPO_ROOT = Path(__file__).resolve().parents[3]
 
 FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n?", re.DOTALL)
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -50,8 +49,20 @@ DEPENDENCIES_SECTION_RE = re.compile(
     r"^\*\*Dependencies\*\*:?[ \t]*(.*?)(?=^\*\*[^*]+?\*\*|\Z)",
     re.MULTILINE | re.DOTALL,
 )
+DONE_WHEN_SECTION_RE = re.compile(
+    r"^\*\*Done When\*\*:?[ \t]*(.*?)(?=^\*\*[^*]+?\*\*|\Z)",
+    re.MULTILINE | re.DOTALL,
+)
 TASK_NUMBER_RE = re.compile(r"^### Task (\d+): ", re.MULTILINE)
 CONTRACT_ID_RE = re.compile(r"\b(?:SC-\d{2}|EV-(?:NEG|REC|CON|LEG)-\d{2})\b")
+WEAK_ACCEPTANCE_PATTERNS = (
+    ("bare > 0", re.compile(r">\s*0(?![\d.])")),
+    ("not empty", re.compile(r"\bnot\s+empty\b", re.IGNORECASE)),
+    (
+        "completion-only wording",
+        re.compile(r"\b(?:completes?|prints?)\b", re.IGNORECASE),
+    ),
+)
 HIGH_RISK_SUBHEADINGS = [
     "### Traceability",
     "### Capability And Authority Map",
@@ -165,6 +176,21 @@ def collect_advisories(body: str) -> list[str]:
                 "**Test Discovery Verified** marker"
             )
 
+    done_when_text = "\n".join(
+        match.group(1) for match in DONE_WHEN_SECTION_RE.finditer(body)
+    )
+    weak_signals = [
+        label
+        for label, pattern in WEAK_ACCEPTANCE_PATTERNS
+        if pattern.search(done_when_text)
+    ]
+    if weak_signals:
+        advisories.append(
+            "Plan acceptance uses weak signals "
+            f"({', '.join(weak_signals)}); require a pinned magnitude, floor, "
+            "rate, or non-degeneracy bound"
+        )
+
     return advisories
 
 
@@ -269,14 +295,32 @@ def section_body(body: str, heading: str) -> str | None:
     return match.group(1) if match else None
 
 
-def resolve_repo_path(raw: str) -> Path | None:
+def discover_repo_root(path: Path) -> Path:
+    """Find the target artifact's Git root, falling back to the caller's cwd."""
+    start = path if path.is_dir() else path.parent
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(start), "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        proc = None
+    if proc is not None and proc.returncode == 0 and proc.stdout.strip():
+        return Path(proc.stdout.strip()).resolve()
+    return Path.cwd().resolve()
+
+
+def resolve_repo_path(raw: str, repo_root: Path) -> Path | None:
     """Resolve a repository-relative path without allowing an escape."""
     candidate = Path(raw)
     if candidate.is_absolute() or ".." in candidate.parts:
         return None
-    resolved = (REPO_ROOT / candidate).resolve()
+    root = repo_root.resolve()
+    resolved = (root / candidate).resolve()
     try:
-        resolved.relative_to(REPO_ROOT.resolve())
+        resolved.relative_to(root)
     except ValueError:
         return None
     return resolved
@@ -314,7 +358,7 @@ def traceability_task_errors(body: str, high_risk_section: str) -> list[str]:
     return errors
 
 
-def modified_file_errors(body: str) -> list[str]:
+def modified_file_errors(body: str, repo_root: Path) -> list[str]:
     errors: list[str] = []
     for task in iter_task_blocks(body):
         files = task_files_block(task)
@@ -322,7 +366,7 @@ def modified_file_errors(body: str) -> list[str]:
             if not re.match(r"^\s*[-*]\s*Modify(?:\s*\([^)]*\))?:", line, re.IGNORECASE):
                 continue
             for raw in INLINE_CODE_RE.findall(line):
-                target = resolve_repo_path(raw)
+                target = resolve_repo_path(raw, repo_root)
                 if target is None:
                     errors.append(f"High-risk plan has invalid repository path: {raw}")
                 elif not target.exists():
@@ -331,7 +375,10 @@ def modified_file_errors(body: str) -> list[str]:
 
 
 def validate_high_risk(
-    frontmatter: dict[str, str], body: str, _path: Path
+    frontmatter: dict[str, str],
+    body: str,
+    path: Path,
+    repo_root: Path | None = None,
 ) -> list[str]:
     """Validate the conditional high-risk planning extension."""
     errors: list[str] = []
@@ -344,6 +391,9 @@ def validate_high_risk(
         errors.append("Frontmatter 'readiness' must be 'draft' or 'ready'")
     if risk_profile != "high":
         return errors
+    resolved_repo_root = (
+        repo_root.resolve() if repo_root is not None else discover_repo_root(path)
+    )
 
     if "readiness" not in frontmatter:
         errors.append("High-risk plans must declare frontmatter 'readiness'")
@@ -363,7 +413,7 @@ def validate_high_risk(
     if not spec_value:
         errors.append("High-risk plans must link a repository-relative spec in frontmatter 'spec'")
     else:
-        spec_path = resolve_repo_path(spec_value)
+        spec_path = resolve_repo_path(spec_value, resolved_repo_root)
         if spec_path is None:
             errors.append("High-risk plan frontmatter 'spec' must be repository-relative")
         elif not spec_path.exists():
@@ -389,7 +439,7 @@ def validate_high_risk(
 
     errors.extend(task_dependency_errors(body))
     errors.extend(traceability_task_errors(body, high_risk_section or ""))
-    errors.extend(modified_file_errors(body))
+    errors.extend(modified_file_errors(body, resolved_repo_root))
 
     if readiness == "ready":
         review = section_body(high_risk_section or "", "### Readiness Review") or ""
@@ -416,7 +466,12 @@ def validate_high_risk(
     return errors
 
 
-def validate_file(path: Path, expected_stage: str, strict_filename: bool) -> list[str]:
+def validate_file(
+    path: Path,
+    expected_stage: str,
+    strict_filename: bool,
+    repo_root: Path | None = None,
+) -> list[str]:
     errors: list[str] = []
     if not path.exists():
         return [f"File not found: {path}"]
@@ -433,7 +488,7 @@ def validate_file(path: Path, expected_stage: str, strict_filename: bool) -> lis
         )
 
     errors.extend(validate_body(body))
-    errors.extend(validate_high_risk(frontmatter, body, path))
+    errors.extend(validate_high_risk(frontmatter, body, path, repo_root))
     return errors
 
 
@@ -462,6 +517,14 @@ def main() -> int:
         action="store_true",
         help="Require filenames to end with '-plan.md'",
     )
+    parser.add_argument(
+        "--repo-root",
+        type=Path,
+        help=(
+            "Repository root for spec and modified-file paths. Defaults to each "
+            "plan's Git root; outside Git, defaults to the current directory."
+        ),
+    )
     args = parser.parse_args()
 
     targets = iter_markdown_files([Path(p) for p in args.paths])
@@ -469,9 +532,19 @@ def main() -> int:
         print("No markdown files found.")
         return 1
 
+    repo_root = args.repo_root.resolve() if args.repo_root else None
+    if repo_root is not None and not repo_root.is_dir():
+        print(f"Repository root is not a directory: {repo_root}")
+        return 1
+
     has_errors = False
     for target in targets:
-        errors = validate_file(target, args.expected_stage, args.strict_filename)
+        errors = validate_file(
+            target,
+            args.expected_stage,
+            args.strict_filename,
+            repo_root,
+        )
         if errors:
             has_errors = True
             print(f"FAIL: {target}")

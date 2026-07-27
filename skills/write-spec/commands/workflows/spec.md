@@ -60,7 +60,8 @@ python3 skills/write-spec/scripts/validate_spec.py docs/specs/<filename>.md
 Fix any validation errors before presenting the contract. The validator fails if
 plan-shaped content (task breakdowns, files, steps) leaked in. For high-risk
 contracts it also fails missing scenario classes, duplicate IDs, or incomplete
-structural readiness evidence.
+structural readiness evidence. Treat weak-acceptance messages as advisories to
+pin a meaningful magnitude or non-degeneracy bound, not schema failures.
 
 ### 5. Handoff
 

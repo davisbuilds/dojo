@@ -37,6 +37,8 @@ For tasks touching existing or coupled code, trace the ground before prescribing
 
 - Data/call path the change rides on (who calls what, what state flows where).
 - The thinnest seam that satisfies the contract.
+- Every sibling, alternate, upstream/downstream, error, and ported path that must
+  preserve the same property; give each a `Done When` or explicit out-of-scope note.
 - Resolve current questions by reading/grepping before writing steps. A risk is
   an irreducible future uncertainty, not a lookup deferred to execution.
 - For each task that edits existing code, add `**Assumptions Verified**` in that
@@ -90,7 +92,8 @@ Include only when this task creates or changes tests:
 
 **Done When**
 
-- Acceptance criterion that traces to the contract's end-state.
+- Acceptance criterion that traces to the contract's end-state and pins a
+  meaningful magnitude, floor, rate, or non-degeneracy bound when needed.
 
 ## Risks And Mitigations
 

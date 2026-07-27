@@ -2,7 +2,7 @@
 name: write-spec
 description: 'Define the target before building: write a falsifiable contract — problem, end-state, success criteria, evaluation — that states WHAT must be true, with no files or implementation steps. Use when you need to specify or align on what "done" means before sequencing work, or are handed a feature/change and must pin its acceptance criteria. Hand off to `write-plan` for the HOW.'
 skill-type: workflow
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Write Spec
@@ -36,6 +36,9 @@ State **what must be true**, never **how to build it**.
   to `write-plan`. (The validator rejects them; this is structural, not advice.)
 - Every contract must be **falsifiable**: name the observable behavior and the
   deterministic command/check that proves it.
+- Pin a meaningful magnitude, floor, rate, or non-degeneracy bound when trivial
+  output could technically pass. Mere existence, positive sign, non-emptiness,
+  or completion is not an acceptance gate.
 - Keep mechanism out so the plan is free to pick the thinnest seam that satisfies
   the contract.
 
@@ -76,6 +79,18 @@ can be discovered:
 See `references/uncertainty-triage.md` for compact prompts and examples. The
 spec records decisions and bounded uncertainty, not a transcript of every
 question asked.
+
+## Behavior-Preserving Contracts
+
+When acceptance depends on equivalence to an existing implementation, make that
+implementation a real oracle before relying on it:
+
+1. Define its behavior on ties, duplicates, empty inputs, and other result-deciding
+   edges instead of treating accidental behavior as a contract.
+2. Probe structural assumptions such as uniqueness, ordering, and schema against
+   representative real data before pinning them.
+3. Require differential fixtures that include those edge inputs, not only the
+   happy path.
 
 <!-- INCLUDE: risk-profile-gate -->
 <!-- AUTO-GENERATED from skills/_fragments/risk-profile-gate.md — do not edit -->
@@ -162,6 +177,9 @@ a readiness review while remaining mechanism-free.
 - The `## Contract` must name at least one concrete verification command or check.
 - Prefer deterministic checks (a command with an observable pass/fail signal) over
   prose assertions.
+- Reject gameable checks such as bare `> 0`, "not empty", or "completes and
+  prints." Pin the smallest meaningful magnitude and require non-degenerate input
+  and output when an empty or trivial run could pass.
 - Confirm the stated check can prove the contract's outcome. Test-file placement
   and runner discovery are plan-level details; `write-plan` verifies those when
   tests change.
@@ -196,7 +214,9 @@ Fix all reported issues before handoff. The validator fails the contract if any
 plan-shaped content (task breakdowns, file lists, implementation steps) leaked
 in. For high-risk contracts it also enforces the conditional addendum, stable ID
 classes, and structural review closure. Decision readiness and semantic safety
-remain human/agent reasoning gates, not brittle prose heuristics.
+remain human/agent reasoning gates, not brittle prose heuristics. Obvious weak
+acceptance phrases (`> 0`, "not empty", completion-only wording) produce
+advisories without changing an otherwise valid contract's exit status.
 
 ## Handoff
 

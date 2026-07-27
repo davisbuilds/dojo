@@ -244,6 +244,28 @@ def test_advisories_do_not_change_a_valid_plan_exit_status(tmp_path: Path) -> No
     assert "**Assumptions Verified**" in proc.stdout
 
 
+def test_degenerate_done_when_language_is_advisory() -> None:
+    module = load_module()
+    body = plan_body("- Create: `src/example.py`").replace(
+        "- The example behaves as agreed.",
+        "- The output is not empty and the command completes.",
+    )
+
+    advisories = module.collect_advisories(body)
+
+    assert any("pinned magnitude" in advisory for advisory in advisories)
+
+
+def test_pinned_done_when_threshold_is_not_degenerate() -> None:
+    module = load_module()
+    body = plan_body("- Create: `src/example.py`").replace(
+        "- The example behaves as agreed.",
+        "- At least 95 of 100 fixtures produce the expected result.",
+    )
+
+    assert module.collect_advisories(body) == []
+
+
 def test_missing_plan_still_reports_a_validation_error_without_a_traceback(
     tmp_path: Path,
 ) -> None:
@@ -374,6 +396,32 @@ def write_high_risk_spec(root: Path, readiness: str = "ready") -> Path:
     return path
 
 
+def write_complete_high_risk_plan(root: Path) -> Path:
+    target = root / "src" / "example.py"
+    target.parent.mkdir(parents=True)
+    target.write_text("boundary = True\n", encoding="utf-8")
+    plan = root / "docs" / "plans" / "example-plan.md"
+    plan.parent.mkdir(parents=True)
+    plan.write_text(
+        "---\n"
+        "date: 2026-07-27\n"
+        "author: gpt-5.6-sol\n"
+        "topic: example\n"
+        "stage: plan\n"
+        "status: draft\n"
+        "source: test\n"
+        "risk_profile: high\n"
+        "readiness: ready\n"
+        "spec: docs/specs/example-spec.md\n"
+        "---\n\n"
+        + high_risk_plan_body(
+            "- Modify: `src/example.py`\n- Test: `tests/test_example.py`"
+        ),
+        encoding="utf-8",
+    )
+    return plan
+
+
 def test_routine_plan_does_not_require_high_risk_sections(tmp_path: Path) -> None:
     module = load_module()
 
@@ -401,7 +449,6 @@ def test_high_risk_plan_accepts_complete_addendum_and_spec_coverage(
     tmp_path: Path,
 ) -> None:
     module = load_module()
-    module.REPO_ROOT = tmp_path
     write_high_risk_spec(tmp_path)
     target = tmp_path / "src" / "example.py"
     target.parent.mkdir(parents=True)
@@ -415,16 +462,92 @@ def test_high_risk_plan_accepts_complete_addendum_and_spec_coverage(
         },
         high_risk_plan_body("- Modify: `src/example.py`\n- Test: `tests/test_example.py`"),
         tmp_path / "docs" / "plans" / "example-plan.md",
+        repo_root=tmp_path,
     )
 
     assert errors == []
+
+
+def test_cli_discovers_external_repository_root_from_plan_path(
+    tmp_path: Path,
+) -> None:
+    repo = tmp_path / "consumer"
+    repo.mkdir()
+    subprocess.run(
+        ["git", "init", "-q", str(repo)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    write_high_risk_spec(repo)
+    plan = write_complete_high_risk_plan(repo)
+
+    proc = subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), str(plan)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert f"PASS: {plan}" in proc.stdout
+
+
+def test_cli_uses_current_directory_when_plan_is_outside_git(
+    tmp_path: Path,
+) -> None:
+    repo = tmp_path / "consumer"
+    repo.mkdir()
+    write_high_risk_spec(repo)
+    plan = write_complete_high_risk_plan(repo)
+
+    proc = subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), str(plan)],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert f"PASS: {plan}" in proc.stdout
+
+
+def test_cli_explicit_repo_root_overrides_plan_location(tmp_path: Path) -> None:
+    repo = tmp_path / "consumer"
+    repo.mkdir()
+    write_high_risk_spec(repo)
+    plan = write_complete_high_risk_plan(repo)
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    relocated_plan = artifacts / plan.name
+    relocated_plan.write_text(plan.read_text(encoding="utf-8"), encoding="utf-8")
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT_PATH),
+            str(relocated_plan),
+            "--repo-root",
+            str(repo),
+        ],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert f"PASS: {relocated_plan}" in proc.stdout
+
+
+def test_repository_path_resolution_rejects_escape(tmp_path: Path) -> None:
+    module = load_module()
+
+    assert module.resolve_repo_path("../outside.py", tmp_path) is None
 
 
 def test_high_risk_plan_reports_missing_spec_coverage_and_unknown_dependency(
     tmp_path: Path,
 ) -> None:
     module = load_module()
-    module.REPO_ROOT = tmp_path
     write_high_risk_spec(tmp_path)
     target = tmp_path / "src" / "example.py"
     target.parent.mkdir(parents=True)
@@ -440,6 +563,7 @@ def test_high_risk_plan_reports_missing_spec_coverage_and_unknown_dependency(
             "- Modify: `src/example.py`", dependencies="Task 9", include_legacy_scenario=False
         ),
         tmp_path / "docs" / "plans" / "example-plan.md",
+        repo_root=tmp_path,
     )
 
     assert any("EV-LEG-01" in error for error in errors)
@@ -448,7 +572,6 @@ def test_high_risk_plan_reports_missing_spec_coverage_and_unknown_dependency(
 
 def test_high_risk_plan_requires_structured_readiness_tables(tmp_path: Path) -> None:
     module = load_module()
-    module.REPO_ROOT = tmp_path
     write_high_risk_spec(tmp_path)
     target = tmp_path / "src" / "example.py"
     target.parent.mkdir(parents=True)
@@ -466,6 +589,7 @@ def test_high_risk_plan_requires_structured_readiness_tables(tmp_path: Path) -> 
         },
         body,
         tmp_path / "docs" / "plans" / "example-plan.md",
+        repo_root=tmp_path,
     )
 
     assert any("Evidence Lifecycle table" in error for error in errors)
@@ -473,7 +597,6 @@ def test_high_risk_plan_requires_structured_readiness_tables(tmp_path: Path) -> 
 
 def test_high_risk_plan_rejects_missing_modified_file(tmp_path: Path) -> None:
     module = load_module()
-    module.REPO_ROOT = tmp_path
     write_high_risk_spec(tmp_path)
 
     errors = module.validate_high_risk(
@@ -484,6 +607,7 @@ def test_high_risk_plan_rejects_missing_modified_file(tmp_path: Path) -> None:
         },
         high_risk_plan_body("- Modify: `src/missing.py`"),
         tmp_path / "docs" / "plans" / "example-plan.md",
+        repo_root=tmp_path,
     )
 
     assert any("missing modified file: src/missing.py" in error for error in errors)
@@ -491,7 +615,6 @@ def test_high_risk_plan_rejects_missing_modified_file(tmp_path: Path) -> None:
 
 def test_high_risk_plan_requires_ready_linked_spec(tmp_path: Path) -> None:
     module = load_module()
-    module.REPO_ROOT = tmp_path
     write_high_risk_spec(tmp_path, readiness="draft")
     target = tmp_path / "src" / "example.py"
     target.parent.mkdir(parents=True)
@@ -505,6 +628,7 @@ def test_high_risk_plan_requires_ready_linked_spec(tmp_path: Path) -> None:
         },
         high_risk_plan_body("- Modify: `src/example.py`"),
         tmp_path / "docs" / "plans" / "example-plan.md",
+        repo_root=tmp_path,
     )
 
     assert any("linked spec with readiness: ready" in error for error in errors)
@@ -512,7 +636,6 @@ def test_high_risk_plan_requires_ready_linked_spec(tmp_path: Path) -> None:
 
 def test_high_risk_plan_rejects_unknown_traceability_task(tmp_path: Path) -> None:
     module = load_module()
-    module.REPO_ROOT = tmp_path
     write_high_risk_spec(tmp_path)
     target = tmp_path / "src" / "example.py"
     target.parent.mkdir(parents=True)
@@ -529,6 +652,7 @@ def test_high_risk_plan_rejects_unknown_traceability_task(tmp_path: Path) -> Non
         },
         body,
         tmp_path / "docs" / "plans" / "example-plan.md",
+        repo_root=tmp_path,
     )
 
     assert any("traceability references unknown Task 9" in error for error in errors)

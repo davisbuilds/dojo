@@ -14,19 +14,24 @@ For any task touching existing or coupled code:
 2. **Locate the seam.** The seam is the smallest place a change makes the
    contract's end-state true. Prefer the cut that touches the fewest call sites,
    preserves existing invariants, and is provable with a deterministic check.
-3. **Compare against the obvious-but-heavy option.** The first mechanism that comes
+3. **Map the whole class.** If the task fixes a defect class or establishes a
+   property, enumerate every path that can reproduce or violate it: sibling data
+   sources, alternate CLI branches, upstream/downstream stages, error paths, and
+   ported implementations. Give each path a `Done When` or an explicit
+   out-of-scope note.
+4. **Compare against the obvious-but-heavy option.** The first mechanism that comes
    to mind (a new subsystem, a broad refactor, a new dependency) is usually not the
    thinnest seam. Justify why the chosen seam is smaller and still sufficient.
-4. **Record `Assumptions Verified`.** Per existing-code task, write down what you
+5. **Record `Assumptions Verified`.** Per existing-code task, write down what you
    confirmed in the exact file and symbol being cut: `file:line`, the observed
-   behavior, the invariant you are relying on. These are facts you checked, not
-   hopes. A different file can provide `Research Context` about a shape or prior
-   art, but it does not prove the target seam exists.
-5. **Resolve what is knowable now.** If a grep/read can answer a question, answer
+   behavior, the invariant you are relying on. Check the cited line before
+   calling it verified. A different file can provide `Research Context` about a
+   shape or prior art, but it does not prove the target seam exists.
+6. **Resolve what is knowable now.** If a grep/read can answer a question, answer
    it before writing the step. Conditional discovery ("if the fetch already
    exists") is a plan that still needs mapping. Reserve Risks And Mitigations for
    irreducible future uncertainty, with an observable signal and mitigation.
-6. **Then prescribe steps.** Because the steps are grounded in (1)–(5), they are
+7. **Then prescribe steps.** Because the steps are grounded in (1)–(6), they are
    prescriptive — not hypotheses to be discovered during execution. The acceptance
    gate is the contract's end-state (`Done When`), so a cleaner realization than
    first imagined is allowed as long as it still satisfies the contract.

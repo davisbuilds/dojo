@@ -58,6 +58,14 @@ SCENARIO_CLASSES = {
     "concurrency": "EV-CON-",
     "legacy": "EV-LEG-",
 }
+WEAK_ACCEPTANCE_PATTERNS = (
+    ("bare > 0", re.compile(r">\s*0(?![\d.])")),
+    ("not empty", re.compile(r"\bnot\s+empty\b", re.IGNORECASE)),
+    (
+        "completion-only wording",
+        re.compile(r"\b(?:completes?|prints?)\b", re.IGNORECASE),
+    ),
+)
 
 
 def parse_frontmatter(text: str) -> tuple[dict[str, str], str, list[str]]:
@@ -125,6 +133,26 @@ def section_body(body: str, heading: str) -> str | None:
     )
     match = pattern.search(body)
     return match.group(1) if match else None
+
+
+def collect_advisories(body: str) -> list[str]:
+    """Return narrow warnings for obviously degenerate acceptance language."""
+    acceptance_text = "\n".join(
+        section_body(body, heading) or ""
+        for heading in ("## Contract", "## Success Criteria", "## Evaluation")
+    )
+    weak_signals = [
+        label
+        for label, pattern in WEAK_ACCEPTANCE_PATTERNS
+        if pattern.search(acceptance_text)
+    ]
+    if not weak_signals:
+        return []
+    return [
+        "Contract acceptance uses weak signals "
+        f"({', '.join(weak_signals)}); require a pinned magnitude, floor, "
+        "rate, or non-degeneracy bound"
+    ]
 
 
 def validate_body(body: str) -> list[str]:
@@ -303,6 +331,16 @@ def main() -> int:
                 print(f"  - {error}")
         else:
             print(f"PASS: {target}")
+
+        if errors or not target.is_file():
+            continue
+
+        text = target.read_text(encoding="utf-8")
+        _, body, frontmatter_errors = parse_frontmatter(text)
+        if not frontmatter_errors:
+            for advisory in collect_advisories(body):
+                print(f"ADVISORY: {target}")
+                print(f"  - {advisory}")
 
     return 1 if has_errors else 0
 
