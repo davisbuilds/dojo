@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 import sys
 from pathlib import Path
 
@@ -52,6 +53,62 @@ def test_legacy_contract_frontmatter_remains_valid_without_author(tmp_path: Path
     assert module.validate_frontmatter(
         frontmatter, "spec", False, tmp_path / "spec.md"
     ) == []
+
+
+def test_degenerate_acceptance_language_is_advisory() -> None:
+    module = load_module()
+    body = contract_body().replace(
+        "The boundary holds, verified by `pytest -q`.",
+        "The pipeline completes and reports `accepted_rows > 0`.",
+    )
+
+    advisories = module.collect_advisories(body)
+
+    assert any("pinned magnitude" in advisory for advisory in advisories)
+
+
+def test_pinned_acceptance_threshold_is_not_degenerate() -> None:
+    module = load_module()
+    body = contract_body().replace(
+        "The boundary holds, verified by `pytest -q`.",
+        "At least 95% of 1,000 fixtures pass, verified by `pytest -q`.",
+    )
+
+    assert module.collect_advisories(body) == []
+
+
+def test_advisory_does_not_change_a_valid_contract_exit_status(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "example-spec.md"
+    path.write_text(
+        "---\n"
+        "date: 2026-07-27\n"
+        "author: gpt-5.6-sol\n"
+        "topic: example\n"
+        "stage: spec\n"
+        "status: draft\n"
+        "source: test\n"
+        "risk_profile: routine\n"
+        "readiness: draft\n"
+        "---\n\n"
+        + contract_body().replace(
+            "The boundary holds, verified by `pytest -q`.",
+            "The pipeline completes and reports `accepted_rows > 0`.",
+        ),
+        encoding="utf-8",
+    )
+
+    proc = subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), str(path)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0
+    assert f"PASS: {path}" in proc.stdout
+    assert "ADVISORY" in proc.stdout
+    assert "pinned magnitude" in proc.stdout
 
 
 def contract_body(high_risk_sections: str = "") -> str:

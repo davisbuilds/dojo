@@ -40,6 +40,9 @@ boundary check is enough. For a high-impact change, consider:
   current behavior.
 - **Inputs and boundaries** — blank, malformed, old, cross-tenant, or untrusted
   inputs; data that must not be exposed or changed.
+- **Reference oracles** — for behavior-preserving work, whether ties, duplicates,
+  empty inputs, and structural assumptions are defined and probed rather than
+  inherited accidentally.
 - **Dependencies and failure** — unavailable, slow, partial, retried, or
   version-skewed collaborators.
 - **Operations and containment** — the signal that reveals a bad outcome and the

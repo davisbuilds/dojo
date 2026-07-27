@@ -22,7 +22,8 @@ When this ships, *[observable behavior]* holds, verified by `command-or-check`.
 
 State the falsifiable end-state and name at least one deterministic verification
 command. Describe *what must be true*, never *how to build it* — no file paths,
-task breakdowns, or implementation steps.
+task breakdowns, or implementation steps. Pin a meaningful magnitude, floor, or
+rate when mere existence, positive sign, non-emptiness, or completion could pass.
 
 ## Success Criteria
 
@@ -32,6 +33,10 @@ task breakdowns, or implementation steps.
 ## Evaluation
 
 How the contract is measured.
+
+For behavior-preserving work, define the reference behavior on ties, duplicates,
+empty inputs, and other result-deciding edges; probe structural assumptions
+against representative real data; include those edges in differential fixtures.
 
 If this is a measurable product/experiment bet, set thresholds:
 - Kill: signal that says stop.

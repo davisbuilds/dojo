@@ -1,3 +1,8 @@
+## 2.1.0 - 2026-07-27
+
+- Require non-degenerate acceptance bounds and edge-defined reference oracles
+  for behavior-preserving work.
+
 ## 2.0.0 - 2026-07-22
 
 - Require current-schema contracts to identify the producing agent in

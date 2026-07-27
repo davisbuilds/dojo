@@ -31,3 +31,16 @@ agent; the literal `<agent>` placeholder is a failure.
   compatibility, and cleanup consumers; updates them coherently or records a
   safe transitional invariant; covers legacy and partial-rollout proofs before
   declaring the plan ready.
+
+## S4 — Done When proves useful magnitude
+
+- **Turn:** `Plan a pipeline whose contract requires a useful result rather than merely completing or emitting non-empty output.`
+- **Pass:** Every affected `Done When` pins a meaningful magnitude, floor, rate,
+  or non-degeneracy bound; verification cannot pass on empty or trivial output.
+
+## S5 — Fix the defect class across adjacent paths
+
+- **Turn:** `Plan the removal of eager materialization from a data workflow with primary and secondary CLI paths plus sibling sources.`
+- **Pass:** Maps every path that can materialize the dataset, assigns each a
+  `Done When` or explicit out-of-scope note, and verifies cited target lines
+  before claiming `Assumptions Verified`.
