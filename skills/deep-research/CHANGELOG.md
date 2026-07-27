@@ -1,6 +1,6 @@
 ## 2.3.0 - 2026-07-27
 
-- Recognize verified first-party model, harness, protocol, and agent-framework documentation through owned root/subdomain rules; retain relevant priority sources below the aggregate score threshold with an explicit advisory.
+- Recognize verified first-party model, harness, protocol, and agent-framework documentation through owned root/subdomain rules; retain relevant priority sources below the aggregate score threshold with an explicit advisory, independent of missing or mismatched caller source-type labels.
 
 ## 2.2.0 - 2026-07-24
 

@@ -496,11 +496,9 @@ def main() -> int:
             + config["weights"]["novelty"] * novelty
         )
         candidate["final_score"] = final_score
-        retained_as_priority_source = (
-            candidate["credibility_assessment"]["priority_source"]
-            and candidate["credibility_assessment"]["source_type_consistency"]
-            == "compatible"
-        )
+        retained_as_priority_source = candidate["credibility_assessment"][
+            "priority_source"
+        ]
 
         if max_similarity >= 0.78:
             discarded.append(

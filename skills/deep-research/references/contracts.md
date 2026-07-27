@@ -156,7 +156,9 @@ python3 skills/deep-research/scripts/run_pipeline.py \
   below the configured threshold. The finding records
   `verified_priority_source_below_threshold`, and the packet adds a confidence
   gap so synthesis verifies page-level support. Off-topic, duplicate, and
-  over-budget rules still apply.
+  over-budget rules still apply. Caller-provided `source_type` consistency is
+  diagnostic and affects only the credibility tiebreak; it does not gate this
+  verified-host retention.
 - If claim quality is critical, use this output as a pre-synthesis gate and run a final claim check afterward.
 - The skill-level packet (see SKILL.md Output Contract) adds a `self_report`
   field on top of the `evidence_filter.py` output. It is composed by the agent

@@ -132,7 +132,9 @@ low-interpretation; a community-authored Dune query is only as good as its SQL;
 and a repository README is a claim about the code rather than evidence for it.
 Verified priority sources may bypass only the aggregate score threshold. They
 must still clear the off-topic floor, deduplication, and finding budget, and the
-packet records the bypass so synthesis checks page-level support.
+packet records the bypass so synthesis checks page-level support. Because
+priority status comes from the verified hostname policy, missing or mismatched
+caller-provided `source_type` metadata does not disable this safeguard.
 
 Credibility is a **reliability** prior only. It says nothing about whether a
 finding is still current — that is a separate axis. A high-scoring source

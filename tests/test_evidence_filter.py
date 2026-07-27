@@ -6,6 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = REPO_ROOT / "skills" / "deep-research" / "scripts" / "evidence_filter.py"
@@ -218,9 +220,19 @@ def test_cli_emits_explainable_credibility_fields(tmp_path):
     assert "not necessarily peer reviewed" in finding["credibility_reason"]
 
 
+@pytest.mark.parametrize("source_type", [None, "academic"])
 def test_cli_retains_relevant_verified_provider_source_below_default_threshold(
-    tmp_path,
+    tmp_path, source_type
 ):
+    finding = {
+        "title": "Claude documentation",
+        "url": "https://code.claude.com/docs/en/skills",
+        "summary": "Reference for configuration.",
+        "published_at": "2020-01-01",
+    }
+    if source_type is not None:
+        finding["source_type"] = source_type
+
     payload = {
         "research_brief": (
             "Claude Code skill listing context budget project scope user scope "
@@ -228,15 +240,7 @@ def test_cli_retains_relevant_verified_provider_source_below_default_threshold(
         ),
         "depth": "quick",
         "now": "2026-07-27",
-        "findings": [
-            {
-                "title": "Claude documentation",
-                "url": "https://code.claude.com/docs/en/skills",
-                "summary": "Reference for configuration.",
-                "source_type": "official",
-                "published_at": "2020-01-01",
-            }
-        ],
+        "findings": [finding],
     }
     input_path = tmp_path / "input.json"
     input_path.write_text(json.dumps(payload))
