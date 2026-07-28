@@ -88,7 +88,7 @@ Status: open
   adjacent to an existing trigger rather than a new intent.
 
 #### Harness adapters promote the whole catalog to project scope, blowing the skill-listing budget
-Status: noted
+Status: in-progress
 - **What**: `scripts/gen_harness_adapters.py` links `.claude/skills -> ../skills`,
   which makes all 57 cataloged skills *project-scope* in whatever directory holds
   the adapter. Measured 2026-07-26 on macbook: the same symlink placed at
@@ -118,9 +118,13 @@ Status: noted
   is expressible. Report estimated listing cost under `--check` so budget
   regressions are visible. Relates to
   `skills-health: many canonical dojo skills aren't installed globally`.
+- **Contract**: `docs/specs/2026-07-27-distribution-profiles-spec.md` is ready
+  for planning. It defines a mandatory core plus capability overlays, exact
+  managed realizations, authoritative harness-scoped budgets, and a prohibition
+  on legacy adapter refreshes silently restoring whole-catalog links.
 
 #### Cross-machine profile drift is silent and can restore superseded skill behavior
-Status: noted
+Status: in-progress
 - **What**: on 2026-07-27 the Mac mini's globals were **28 skills content-drifted**
   against a clean `origin/main` dojo checkout, including a `verify-before-complete`
   still on v1's broad "about to state work is fixed" wording — the exact text v2's
@@ -135,6 +139,11 @@ Status: noted
   after the scheduled checkout refresh and report canonical commit, installed profile,
   missing expected skills, content-drift count, and harness CLI versions. Detect and
   notify; do not auto-rewrite globals as part of a git pull.
+- **Contract**: folded into
+  `docs/specs/2026-07-27-distribution-profiles-spec.md`; the selected profile,
+  canonical revision, target and harness policy identities, content drift, and
+  budget outcome are explicit conformance evidence, while scheduled checks stay
+  audit-only.
 - **Do not reimplement the ignore logic**: `skill_standardizer_lib.py` already handles
   this correctly via `IGNORE_NAMES` (`.DS_Store`, `__pycache__`, `.git`,
   `.pytest_cache`) and `IGNORE_FILE_SUFFIXES` (`.pyc`, `.pyo`), applied in the compare,
@@ -229,10 +238,11 @@ Status: noted
   description works. A prior skill-standardizer run likely used `--only-existing`,
   which skips skills not already installed globally, so newly-added canonical
   skills never got pushed out.
-- **Sketch**: Run `skill-standardizer` sync without `--only-existing` to install
-  the missing canonical skills into the primary global root, then re-check the
-  health report. Decide whether `template` (a scaffold, not a real skill) should
-  be excluded from expected-coverage counts.
+- **Direction**: do **not** install the entire catalog merely to
+  manufacture runtime coverage. The distribution-profile contract makes
+  intentional exclusion explicit and evaluates routing against deployable
+  profiles; health coverage should distinguish excluded skills from missing or
+  drifted members of the selected profile.
 
 #### Standardizer has no allowlist for foreign non-skill dirs in mirror roots
 Status: resolved (2026-07-16)

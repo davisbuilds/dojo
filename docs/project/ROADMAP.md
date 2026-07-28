@@ -2,7 +2,13 @@
 
 Actionable improvement backlog for the skills catalog. This is a living snapshot, not a release contract.
 
-Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-07-22.
+Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-07-27.
+
+## In Progress
+
+| Item | Current State |
+|------|---------------|
+| Distribution profiles | The ready high-risk contract in `docs/specs/2026-07-27-distribution-profiles-spec.md` separates the 57-skill canonical inventory from deployable subsets. It pins a core plus non-trivial capability overlays, authoritative harness-scoped listing budgets, exact managed realizations, profile-aware adapter refreshes, read-only cross-machine conformance, safe migration/recovery, and profile-scoped routing evidence. Implementation planning is next. |
 
 ## Completed Highlights
 
