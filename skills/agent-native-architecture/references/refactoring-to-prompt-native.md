@@ -1,8 +1,5 @@
-<overview>
 How to refactor existing agent code to follow prompt-native principles. The goal: move behavior from code into prompts, and simplify tools into primitives.
-</overview>
 
-<diagnosis>
 ## Diagnosing Non-Prompt-Native Code
 
 Signs your agent isn't prompt-native:
@@ -46,9 +43,7 @@ When creating a summary:
 3. Format with em-dashes for sub-points
 4. Bold the first word of each bullet
 ```
-</diagnosis>
 
-<refactoring_workflow>
 ## Step-by-Step Refactoring
 
 **Step 1: Identify workflow tools**
@@ -137,9 +132,7 @@ expect(mockProcessFeedback).toHaveBeenCalledWith(...)
 // Send feedback → Check it was stored with reasonable importance
 // Send high-priority feedback → Check notification was sent
 ```
-</refactoring_workflow>
 
-<before_after>
 ## Before/After Examples
 
 **Example 1: Feedback Processing**
@@ -243,9 +236,7 @@ When asked to generate a report:
 
 Use your judgment about format and structure. Make it useful.
 ```
-</before_after>
 
-<common_challenges>
 ## Common Refactoring Challenges
 
 **"But the agent might make mistakes!"**
@@ -294,9 +285,7 @@ Test outcomes, not procedures:
 - "Given this input, does the agent achieve the right result?"
 - "Does stored feedback have reasonable importance ratings?"
 - "Are notifications sent for truly high-priority items?"
-</common_challenges>
 
-<checklist>
 ## Refactoring Checklist
 
 Diagnosis:
@@ -314,4 +303,3 @@ Validation:
 - [ ] Agent achieves same outcomes with primitives
 - [ ] Behavior can be changed by editing prompts
 - [ ] New features could be added without new tools
-</checklist>

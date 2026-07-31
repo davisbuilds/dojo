@@ -7,7 +7,7 @@ description:
   render props, context providers, or component architecture. Includes React 19
   API changes.
 skill-type: reference
-version: 1.0.0
+version: 1.0.1
 license: MIT
 metadata:
   author: vercel
@@ -93,7 +93,7 @@ For the complete guide with all rules expanded: `references/compiled-guide.md`
 ## Boundaries
 
 - Not for general React performance optimization — use `vercel-react-best-practices` instead
-- Not for React Native components — use `vercel-react-native-skills` instead
+- Not for React Native components
 - Not for state management library selection (Redux, Zustand, etc.)
 - Skip when the component is simple enough that a single props interface suffices
 
@@ -116,4 +116,3 @@ Vercel/React reference layer — composition-focused. Sibling references at diff
 
 - `vercel-react-best-practices` — perf axis (waterfalls, RSC, bundle).
 - `nextjs-app-router` — Next.js routing axis.
-- `vercel-react-native-skills` — same composition principles applied to React Native.

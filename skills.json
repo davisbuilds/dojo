@@ -5,7 +5,7 @@
       "name": "agent-native-architecture",
       "description": "Build applications where agents are first-class citizens. Use this skill when designing autonomous agents, creating MCP tools, implementing self-modifying systems, or building apps where features are outcomes achieved by agents operating in a loop.",
       "path": "skills/agent-native-architecture",
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
     {
       "name": "algorithmic-art",
@@ -27,16 +27,10 @@
       "version": "1.0.2"
     },
     {
-      "name": "autonomous-engineering",
-      "description": "Full autonomous engineering workflows that run a complete feature development cycle: plan, deepen, implement, review, resolve, test, and record. Use when asked to build a feature end-to-end, go autonomous, or when user says 'lfg' or 'slfg'. Includes a sequential variant (lfg) and a swarm-parallel variant (slfg) for faster execution of large features.",
-      "path": "skills/autonomous-engineering",
-      "version": "1.0.0"
-    },
-    {
       "name": "blind-spots",
       "description": "Find the gaps in a user's understanding of a code change \u2014 before it gets built, or after an agent has built it. Two modes \u2014 scope maps blast radius and unknown unknowns; quiz questions the user on a diff an agent just made. Use when the user asks for a blind spot pass, wants the scope of a proposed change, or asks to be quizzed on a change. Triggers on \"blind spot pass\", \"find my blind spots\", \"unknown unknowns\", \"help me understand this change\", \"quiz me on this change\".",
       "path": "skills/blind-spots",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "triggers": [
         "blind spot pass",
         "find my blind spots",
@@ -58,16 +52,10 @@
       "version": "1.0.0"
     },
     {
-      "name": "code-review-agents",
-      "description": "Specialized code review and quality assurance agents covering architecture, data integrity, security, performance, language-specific conventions, and deployment safety. Use when reviewing PRs, auditing code quality, checking migrations, or running an agent-native architecture audit. Triggers on 'review code', 'audit architecture', 'check data integrity', 'security review', 'heal skill'.",
-      "path": "skills/code-review-agents",
-      "version": "1.0.0"
-    },
-    {
       "name": "compound-docs",
       "description": "Capture solved problems as categorized documentation with YAML frontmatter for fast lookup. Use when a solution is confirmed and should be preserved for future retrieval.",
       "path": "skills/compound-docs",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "allowed-tools": [
         "Read",
         "Write",
@@ -103,7 +91,7 @@
       "name": "diagnose",
       "description": "Disciplined debugging loop for hard bugs and performance regressions \u2014 build a deterministic pass/fail signal first, then reproduce, hypothesise, instrument, fix, regression-test. Use when the user says \"diagnose this\", \"debug this\", \"this is broken/throwing/failing\", reports a bug whose cause is non-obvious, or describes a performance regression. For completion-time evidence checks use verify-before-complete; for new-test methodology use test-strategy; for post-hoc code review use local-review.",
       "path": "skills/diagnose",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "fetchmd",
@@ -140,26 +128,8 @@
       "name": "gh-commit-push-pr",
       "description": "Commit staged changes, push branch, and open a GitHub PR. Use when user asks to commit and push, create a PR, ship changes, send for review, or open a pull request. Triggers on phrases like 'commit and push', 'create a PR', 'open a pull request', 'send this for review', 'ship it', 'push and PR'.",
       "path": "skills/gh-commit-push-pr",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "allowed-tools": "Bash(git checkout:*), Bash(git add:*), Bash(git status:*), Bash(git push:*), Bash(git commit:*), Bash(git diff:*), Bash(git log:*), Bash(git branch:*), Bash(git stash:*), Bash(git remote:*), Bash(gh auth status:*), Bash(gh repo view:*), Bash(gh pr create:*), Bash(gh pr view:*)"
-    },
-    {
-      "name": "gh-fix-issue",
-      "description": "Fetch and fix GitHub issues using the gh CLI. Use when user asks to fix, resolve, or work on a GitHub issue by number or URL. Handles the full workflow from fetching issue details, cloning repo if needed, understanding context, implementing fixes, and creating PRs. Triggers on phrases like 'fix issue #N', 'resolve issue', 'work on github.com/.../issues/N', 'help with issue N in repo', 'close out issue'.",
-      "path": "skills/gh-fix-issue",
-      "version": "1.0.0"
-    },
-    {
-      "name": "gh-review-pr",
-      "description": "Review GitHub pull requests using the gh CLI. Analyzes code changes, checks CI status, and posts a review comment with findings and a merge recommendation. Use when user asks to review a PR, check a pull request, or evaluate code changes. Triggers on phrases like 'review PR #N', 'check this pull request', 'review github.com/.../pull/N', 'should we merge PR #N', 'evaluate this PR'.",
-      "path": "skills/gh-review-pr",
-      "version": "1.0.0"
-    },
-    {
-      "name": "gh-triage-issues",
-      "description": "Triage GitHub issues using the gh CLI. Analyzes new issues to apply labels, assess priority, detect duplicates, and optionally assign owners. Use when user asks to triage issues, label issues, check for duplicates, prioritize backlog, or process incoming issues. Triggers on phrases like 'triage issue #N', 'triage issues', 'label this issue', 'is this a duplicate', 'prioritize issue', 'process new issues in repo'.",
-      "path": "skills/gh-triage-issues",
-      "version": "1.0.0"
     },
     {
       "name": "gpt-imagen",
@@ -171,25 +141,19 @@
       "name": "handoff",
       "description": "Create comprehensive session summaries for context preservation and seamless handoff. Use when (1) conversation approaching context limits, (2) user requests session summary, (3) preparing handoff documentation to another agent or fresh instance, (4) archiving work for future reference.",
       "path": "skills/handoff",
-      "version": "1.0.0"
-    },
-    {
-      "name": "hookify",
-      "description": "Create and manage lightweight guard-rail hooks from markdown rule files. Harness-agnostic \u2014 works with Claude Code, Agents SDK, or any harness supporting stdin/stdout hooks. Use when the user says \"hookify\", \"create a hook\", \"prevent this behavior\", \"add a guard rail\", or wants to analyze conversation for unwanted patterns. Commands - /hookify, /hookify:list, /hookify:configure, /hookify:help.",
-      "path": "skills/hookify",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "local-review",
       "description": "Perform local code reviews on workspace changes without posting to GitHub. Use for requests like /review, review this diff, audit staged changes, or check branch changes. Collects git context and produces findings-first reports with severity, file line references, risks, and test gaps.",
       "path": "skills/local-review",
-      "version": "1.1.0"
+      "version": "1.1.1"
     },
     {
       "name": "loop-design",
       "description": "Design a reusable, verifiable autonomous loop on top of harness primitives like /loop and /goal. Runs a go/no-go gate (is there a pass/fail oracle?), defines a portable loop blueprint, then scaffolds the concrete files a harness runs. Use when setting up a recurring, unattended, or overnight agent loop, an automation or cron task, a /loop or /goal run, a Ralph-style while-true loop, or when deciding whether a task SHOULD be looped at all. Agent-agnostic across Claude Code, Codex, and CI. On-demand via /loop-design.",
       "path": "skills/loop-design",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "markdown-converter",
@@ -201,7 +165,7 @@
       "name": "nextjs-app-router",
       "description": "Next.js App Router expert guidance. Use when building, debugging, or architecting Next.js applications \u2014 routing, Server Components, Server Actions, layouts, data fetching, rendering strategies, metadata, image/font optimization, error handling, and hydration debugging. Triggers on tasks involving Next.js pages, app directory structure, RSC boundaries, or App Router migration.",
       "path": "skills/nextjs-app-router",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "license": "MIT"
     },
     {
@@ -232,7 +196,7 @@
       "name": "repo-hardening",
       "description": "Audit and harden a software repo against supply-chain and workflow risks. Use when a user asks to audit a repo, harden CI, pin GitHub Actions, freeze installs, reduce bot workflow risk, review lockfile/package-manager discipline, or create repo-local security investigation artifacts. Supports Node, Python, GitHub Actions, GitLab CI, and mixed-stack repos. On-demand via /repo-audit and /repo-harden.",
       "path": "skills/repo-hardening",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "research-architect",
@@ -258,19 +222,13 @@
       "name": "secure-code",
       "description": "Static analysis security scanning and architectural trifecta detection using semgrep. Use when reviewing code for security vulnerabilities, running SAST scans, checking for the lethal trifecta (private data + untrusted input + external comms co-occurrence), or when the user says 'scan', 'security scan', 'trifecta check', 'check for vulnerabilities', 'SAST', or 'secure this code'. On-demand via /scan and /trifecta-check commands.",
       "path": "skills/secure-code",
-      "version": "1.0.0"
-    },
-    {
-      "name": "self-improve",
-      "description": "Capture agent-operational lessons, recurring mistakes, and reusable workflow improvements in a dedicated learning store, compact them, and promote validated patterns into memory notes or skill candidates. Use when the user wants the agent to learn from repeated experience, keep a portable improvement log, extract reusable practices, or propose durable behavior changes without silently mutating code or canonical project docs.",
-      "path": "skills/self-improve",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "session-retro",
       "description": "Update existing project reference docs with non-obvious learnings from the current session, routing each learning to the single best existing target rather than creating new files. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on \"/retro\", \"update docs with learnings\", \"save what we learned\", or proactively at session end.",
       "path": "skills/session-retro",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "skill-creator",
@@ -283,7 +241,7 @@
       "name": "skill-evals",
       "description": "Evaluate skill quality and routing reliability with deterministic checks. Use when creating/updating skills, validating trigger behavior (explicit/implicit/contextual/negative), applying SKILL.md contract checklists, or generating cross-skill compliance reports.",
       "path": "skills/skill-evals",
-      "version": "1.4.0"
+      "version": "1.4.1"
     },
     {
       "name": "skill-installer",
@@ -320,14 +278,14 @@
       "name": "vercel-composition-patterns",
       "description": "React composition patterns that scale. Use when refactoring components with boolean prop proliferation, building flexible component libraries, or designing reusable APIs. Triggers on tasks involving compound components, render props, context providers, or component architecture. Includes React 19 API changes.",
       "path": "skills/vercel-composition-patterns",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "license": "MIT"
     },
     {
       "name": "vercel-deploy",
       "description": "Create and push new Vercel deployments. Use when the user wants to deploy, ship, go live, or create a preview \u2014 e.g. \"deploy my app\", \"push this live\", \"ship it\".",
       "path": "skills/vercel-deploy",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "vercel-preview-logs",
@@ -339,21 +297,14 @@
       "name": "vercel-react-best-practices",
       "description": "React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when writing, reviewing, or refactoring React/Next.js code to ensure optimal performance patterns. Triggers on tasks involving React components, Next.js pages, data fetching, bundle optimization, or performance improvements.",
       "path": "skills/vercel-react-best-practices",
-      "version": "1.0.0",
-      "license": "MIT"
-    },
-    {
-      "name": "vercel-react-native-skills",
-      "description": "React Native and Expo best practices for building performant mobile apps. Use when building React Native components, optimizing list performance, implementing animations, or working with native modules. Triggers on tasks involving React Native, Expo, mobile performance, or native platform APIs.",
-      "path": "skills/vercel-react-native-skills",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "license": "MIT"
     },
     {
       "name": "verify-before-complete",
       "description": "Guard against false completion claims when the cost of being wrong is high. Use when accepting delegated or subagent work, shipping high-risk changes (auth, migrations, infra, security, broad refactors), lacking fresh verification evidence (missing, stale, or conflicting), or being explicitly asked to confirm something is really done or audit a completion claim. Skip routine low-risk changes already covered by the repo's own checks \u2014 running those checks is enough.",
       "path": "skills/verify-before-complete",
-      "version": "2.0.0"
+      "version": "2.0.1"
     },
     {
       "name": "web-design-guidelines",

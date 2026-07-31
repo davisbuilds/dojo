@@ -5,8 +5,12 @@
       "type": "implicit",
       "prompt": "Run a semgrep SAST scan on this codebase and check for the lethal trifecta.",
       "expected": {
-        "trigger": ["secure-code"],
-        "avoid": ["audit-skill"]
+        "trigger": [
+          "secure-code"
+        ],
+        "avoid": [
+          "audit-skill"
+        ]
       }
     },
     {
@@ -14,8 +18,12 @@
       "type": "implicit",
       "prompt": "Audit this skill for prompt injection, exfiltration risks, and give it a trust score.",
       "expected": {
-        "trigger": ["audit-skill"],
-        "avoid": ["secure-code"]
+        "trigger": [
+          "audit-skill"
+        ],
+        "avoid": [
+          "secure-code"
+        ]
       }
     },
     {
@@ -24,7 +32,10 @@
       "prompt": "Explain what OWASP top 10 vulnerabilities are.",
       "expected": {
         "trigger": [],
-        "avoid": ["secure-code", "audit-skill"]
+        "avoid": [
+          "secure-code",
+          "audit-skill"
+        ]
       }
     },
     {
@@ -32,17 +43,10 @@
       "type": "implicit",
       "prompt": "Review my staged changes and give me findings with severity ratings.",
       "expected": {
-        "trigger": ["local-review"],
-        "avoid": ["gh-review-pr"]
-      }
-    },
-    {
-      "id": "review-github-pr",
-      "type": "implicit",
-      "prompt": "Review PR #42 on GitHub, check CI status, and post your review comment.",
-      "expected": {
-        "trigger": ["gh-review-pr"],
-        "avoid": ["local-review"]
+        "trigger": [
+          "local-review"
+        ],
+        "avoid": []
       }
     },
     {
@@ -51,7 +55,9 @@
       "prompt": "What are best practices for code review processes?",
       "expected": {
         "trigger": [],
-        "avoid": ["local-review", "gh-review-pr"]
+        "avoid": [
+          "local-review"
+        ]
       }
     },
     {
@@ -59,8 +65,13 @@
       "type": "implicit",
       "prompt": "Create an implementation plan with task sequencing, dependencies, and verification commands for this feature.",
       "expected": {
-        "trigger": ["write-plan"],
-        "avoid": ["write-spec", "brainstorming"]
+        "trigger": [
+          "write-plan"
+        ],
+        "avoid": [
+          "write-spec",
+          "brainstorming"
+        ]
       }
     },
     {
@@ -68,8 +79,13 @@
       "type": "implicit",
       "prompt": "Before we build anything, pin down what 'done' means for this change — the acceptance criteria and how we'd verify it.",
       "expected": {
-        "trigger": ["write-spec"],
-        "avoid": ["write-plan", "brainstorming"]
+        "trigger": [
+          "write-spec"
+        ],
+        "avoid": [
+          "write-plan",
+          "brainstorming"
+        ]
       }
     },
     {
@@ -77,8 +93,12 @@
       "type": "implicit",
       "prompt": "The target is already agreed. Break it into ordered tasks with the files to touch and the steps to implement it.",
       "expected": {
-        "trigger": ["write-plan"],
-        "avoid": ["write-spec"]
+        "trigger": [
+          "write-plan"
+        ],
+        "avoid": [
+          "write-spec"
+        ]
       }
     },
     {
@@ -86,8 +106,12 @@
       "type": "implicit",
       "prompt": "I have a vague idea for a new feature. Help me clarify what to build before we start planning.",
       "expected": {
-        "trigger": ["brainstorming"],
-        "avoid": ["write-spec"]
+        "trigger": [
+          "brainstorming"
+        ],
+        "avoid": [
+          "write-spec"
+        ]
       }
     },
     {
@@ -95,8 +119,12 @@
       "type": "implicit",
       "prompt": "Help me think through the architectural trade-offs between these two competing approaches from first principles.",
       "expected": {
-        "trigger": ["first-principles"],
-        "avoid": ["brainstorming"]
+        "trigger": [
+          "first-principles"
+        ],
+        "avoid": [
+          "brainstorming"
+        ]
       }
     },
     {
@@ -104,8 +132,12 @@
       "type": "implicit",
       "prompt": "Requirements are unclear and I need to explore multiple directions. Ask me questions to clarify what we should build.",
       "expected": {
-        "trigger": ["brainstorming"],
-        "avoid": ["first-principles"]
+        "trigger": [
+          "brainstorming"
+        ],
+        "avoid": [
+          "first-principles"
+        ]
       }
     },
     {
@@ -113,8 +145,12 @@
       "type": "implicit",
       "prompt": "I want to create a new skill with proper trigger design, workflow steps, and resource bundling. Guide me through it.",
       "expected": {
-        "trigger": ["skill-creator"],
-        "avoid": ["template", "self-improve"]
+        "trigger": [
+          "skill-creator"
+        ],
+        "avoid": [
+          "template"
+        ]
       }
     },
     {
@@ -122,8 +158,12 @@
       "type": "implicit",
       "prompt": "Give me a minimal skill scaffold with a SKILL.md template I can fill in.",
       "expected": {
-        "trigger": ["template"],
-        "avoid": ["skill-creator"]
+        "trigger": [
+          "template"
+        ],
+        "avoid": [
+          "skill-creator"
+        ]
       }
     },
     {
@@ -131,8 +171,12 @@
       "type": "implicit",
       "prompt": "Context is getting long. Create a session summary for handoff to a fresh instance.",
       "expected": {
-        "trigger": ["handoff"],
-        "avoid": ["session-retro", "self-improve"]
+        "trigger": [
+          "handoff"
+        ],
+        "avoid": [
+          "session-retro"
+        ]
       }
     },
     {
@@ -140,26 +184,12 @@
       "type": "implicit",
       "prompt": "Update AGENTS.md and CLAUDE.md with non-obvious learnings from this session.",
       "expected": {
-        "trigger": ["session-retro"],
-        "avoid": ["handoff", "self-improve"]
-      }
-    },
-    {
-      "id": "self-improve-log-learning",
-      "type": "implicit",
-      "prompt": "Keep a portable self-improvement log of the agent's recurring mistakes and workflow learnings.",
-      "expected": {
-        "trigger": ["self-improve"],
-        "avoid": ["session-retro", "handoff"]
-      }
-    },
-    {
-      "id": "self-improve-skill-candidate",
-      "type": "implicit",
-      "prompt": "We keep repeating the same workflow fix. Capture it as an agent learning and propose a reusable skill candidate.",
-      "expected": {
-        "trigger": ["self-improve"],
-        "avoid": ["skill-creator"]
+        "trigger": [
+          "session-retro"
+        ],
+        "avoid": [
+          "handoff"
+        ]
       }
     },
     {
@@ -167,17 +197,10 @@
       "type": "implicit",
       "prompt": "Commit these changes, push the branch, and open a PR for review.",
       "expected": {
-        "trigger": ["gh-commit-push-pr"],
-        "avoid": ["gh-fix-issue"]
-      }
-    },
-    {
-      "id": "gh-fix-issue",
-      "type": "implicit",
-      "prompt": "Fix GitHub issue #23 by implementing the requested change and creating a PR.",
-      "expected": {
-        "trigger": ["gh-fix-issue"],
-        "avoid": ["gh-commit-push-pr"]
+        "trigger": [
+          "gh-commit-push-pr"
+        ],
+        "avoid": []
       }
     },
     {
@@ -185,8 +208,12 @@
       "type": "implicit",
       "prompt": "Fetch this webpage and convert it to clean markdown for my LLM pipeline.",
       "expected": {
-        "trigger": ["fetchmd"],
-        "avoid": ["markdown-converter"]
+        "trigger": [
+          "fetchmd"
+        ],
+        "avoid": [
+          "markdown-converter"
+        ]
       }
     },
     {
@@ -194,8 +221,12 @@
       "type": "implicit",
       "prompt": "Convert this PDF document to markdown so I can analyze the text.",
       "expected": {
-        "trigger": ["markdown-converter"],
-        "avoid": ["fetchmd"]
+        "trigger": [
+          "markdown-converter"
+        ],
+        "avoid": [
+          "fetchmd"
+        ]
       }
     },
     {
@@ -203,8 +234,12 @@
       "type": "implicit",
       "prompt": "Convert this Word .docx file and this Excel spreadsheet to markdown.",
       "expected": {
-        "trigger": ["markdown-converter"],
-        "avoid": ["fetchmd"]
+        "trigger": [
+          "markdown-converter"
+        ],
+        "avoid": [
+          "fetchmd"
+        ]
       }
     },
     {
@@ -212,8 +247,12 @@
       "type": "implicit",
       "prompt": "Take a screenshot of my desktop right now.",
       "expected": {
-        "trigger": ["screenshot"],
-        "avoid": ["playwright"]
+        "trigger": [
+          "screenshot"
+        ],
+        "avoid": [
+          "playwright"
+        ]
       }
     },
     {
@@ -221,8 +260,12 @@
       "type": "implicit",
       "prompt": "Automate the browser to navigate to the login page, fill the form, and take a snapshot.",
       "expected": {
-        "trigger": ["playwright"],
-        "avoid": ["screenshot"]
+        "trigger": [
+          "playwright"
+        ],
+        "avoid": [
+          "screenshot"
+        ]
       }
     },
     {
@@ -231,7 +274,10 @@
       "prompt": "Show me the contents of the image file at output/hero.png.",
       "expected": {
         "trigger": [],
-        "avoid": ["screenshot", "playwright"]
+        "avoid": [
+          "screenshot",
+          "playwright"
+        ]
       }
     }
   ]

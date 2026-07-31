@@ -15,15 +15,11 @@ jq '.skills | length' skills.json
 | Skill | Purpose |
 |-------|---------|
 | `gh-commit-push-pr` | Commit, push, and open a Pull Request |
-| `gh-fix-issue` | Fix GitHub issues end-to-end from analysis through PR |
-| `gh-review-pr` | Review Pull Requests with merge recommendations |
-| `gh-triage-issues` | Label, prioritize, and de-duplicate GitHub issues |
 
 ### Code Review and Quality
 
 | Skill | Purpose |
 |-------|---------|
-| `code-review-agents` | Multi-agent reviews: architecture, security, data, performance, deployment |
 | `diagnose` | Disciplined six-phase debugging loop â€” build a deterministic pass/fail signal, reproduce, hypothesise, instrument, fix, regression-test |
 | `local-review` | Findings-first local reviews on workspace diffs |
 
@@ -47,7 +43,6 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 | Skill | Purpose |
 |-------|---------|
 | `api-design` | Design and review robust API, event, interface, and machine-output contracts |
-| `autonomous-engineering` | Full end-to-end feature workflows (`/lfg`, `/slfg`) |
 | `loop-design` | Design verifiable autonomous loops on top of `/loop` and `/goal`; gate on an oracle, then scaffold a portable loop bundle (`/loop-design`) |
 | `brainstorming` | Clarify WHAT to build and capture the chosen direction (`docs/design/`) |
 | `write-spec` | Pin the falsifiable contract â€” WHAT must be true, mechanism-free; conditionally add high-risk authority/invariant scenarios and review closure (`docs/specs/`) |
@@ -57,7 +52,6 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 | `agent-native-architecture` | Build agent-native apps with tool/action parity |
 | `deep-research` | Web-backed research with conditional depth, explainable URL-host evidence filtering, and verified first-party source safeguards |
 | `research-architect` | Engineer deep-research prompts, route execution, independently verify reports, synthesize multi-run results, and compound lessons via postmortems |
-| `self-improve` | Capture learnings, compact them, and promote validated patterns into reusable artifacts |
 
 ### Disciplines
 
@@ -86,7 +80,6 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 | `vercel-preview-logs` | Debug Vercel preview deployments |
 | `vercel-react-best-practices` | React/Next.js performance optimization |
 | `nextjs-app-router` | Next.js App Router patterns, data fetching, and debugging |
-| `vercel-react-native-skills` | React Native and Expo best practices |
 | `vercel-composition-patterns` | Scalable React composition patterns |
 
 ### UI Automation
@@ -118,7 +111,6 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 | `skill-installer` | Install skills from curated lists or GitHub repos |
 | `skill-standardizer` | Detect drift and unify skill copies, with optional single-skill targeting |
 | `find-skills` | Discover installable skills |
-| `hookify` | Create and manage markdown-defined guard-rail hooks |
 | `template` | Starter scaffold for new skills |
 
 ## Hook-Enforced Quality Gates
@@ -154,7 +146,6 @@ Slash-style entrypoints for harnesses that support command files. `scripts/gen_h
 - `/deep-research` â€” route depth and filter evidence in one command
 - `/repo-audit` â€” generate repo-local audit artifacts and summarize hardening gaps
 - `/repo-harden` â€” implement the highest-value hardening fixes and refresh the audit packet
-- `/self-improve` â€” capture, compact, propose, and extract self-improvement artifacts
 - `/retro` â€” capture session learnings into existing project reference docs, including matching root, `docs/system`, or `docs/project` files
 
 ## Skill Packaging

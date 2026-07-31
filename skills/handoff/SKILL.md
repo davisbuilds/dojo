@@ -2,7 +2,7 @@
 name: handoff
 description: Create comprehensive session summaries for context preservation and seamless handoff. Use when (1) conversation approaching context limits, (2) user requests session summary, (3) preparing handoff documentation to another agent or fresh instance, (4) archiving work for future reference.
 skill-type: workflow
-version: 1.0.0
+version: 1.0.1
 ---
 
 # Handoff
@@ -177,5 +177,4 @@ See `assets/summary-template.md` for a blank template to start from.
 Four knowledge-capture skills, distinguished by *scope* and *timing*:
 
 - `session-retro` — append non-obvious *learnings* into existing project reference docs at session end. Different output: this skill produces a fast-forward summary, that one routes facts into reference files.
-- `self-improve` — capture *recurring* patterns and promote them into reusable artifacts (proposals, candidate skills). Different cadence: that one is across sessions; this one is within one.
 - `compound-docs` — categorize a confirmed *solution* under `docs/solutions/`. Different shape: solution-document, not session-summary.

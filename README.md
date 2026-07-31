@@ -237,7 +237,7 @@ docs/archive/             historical analyses and completed plans
 - [superpowers](https://github.com/obra/superpowers)
 - [agent-scripts](https://github.com/steipete/agent-scripts)
 - [anthropics/skills](https://github.com/anthropics/skills)
-- [compound-engineering-plugin](https://github.com/everyinc/compound-engineering-plugin) — source of the code-review-agents, autonomous-engineering, agent-native-architecture, and compound-docs skills
+- [compound-engineering-plugin](https://github.com/everyinc/compound-engineering-plugin) — source of the agent-native-architecture and compound-docs skills
 - [Vercel skills](https://github.com/vercel/next.js) — React, Next.js, React Native best-practice rules and composition patterns, plus preview deployment debugging workflows
 - [Kepano's Obsidian skills](https://github.com/kepano) — Obsidian Markdown, Bases, and JSON Canvas skill references
 - [skills.sh](https://skills.sh) — community skill registry and discovery

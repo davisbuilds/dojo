@@ -2,7 +2,7 @@
 name: blind-spots
 description: Find the gaps in a user's understanding of a code change — before it gets built, or after an agent has built it. Two modes — scope maps blast radius and unknown unknowns; quiz questions the user on a diff an agent just made. Use when the user asks for a blind spot pass, wants the scope of a proposed change, or asks to be quizzed on a change. Triggers on "blind spot pass", "find my blind spots", "unknown unknowns", "help me understand this change", "quiz me on this change".
 skill-type: workflow
-version: 1.0.2
+version: 1.0.3
 triggers:
   - blind spot pass
   - find my blind spots
@@ -209,7 +209,7 @@ outputs of these skills and hands work back to them; it replaces none of them.
   the code to teach a human. Same territory, different reader.
 - `first-principles` — choosing between architectural approaches
 - `diagnose` — finding the cause of broken behavior
-- `local-review` / `gh-review-pr` — finding defects in a diff or a pull request
+- `local-review` — finding defects in a diff
 - `verify-before-complete` — proving a completion claim with evidence
 
 If the user wants any of those, say which skill owns it and why, in one sentence.

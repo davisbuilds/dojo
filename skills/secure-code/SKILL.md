@@ -8,7 +8,7 @@ description: >-
   'SAST', or 'secure this code'. On-demand via /scan and /trifecta-check commands.
 skill-type: workflow
 compatibility: "Requires semgrep CLI (brew install semgrep), python3, PyYAML. Semgrep rule downloads require network on first run."
-version: 1.0.0
+version: 1.0.1
 ---
 
 # secure-code
@@ -109,4 +109,3 @@ Two security skills, distinguished by *scope*.
 
 - `repo-hardening` — broader posture audit (supply-chain, CI/CD, GitHub Actions pinning, branch protection). Pair on high-stakes audits; this skill is the application-code half.
 - `audit-skill` — security audit specifically for *agent skills*. Different artifact; use it before installing third-party skills.
-- `code-review-agents` — security agent overlaps with this skill but reasons about architecture-level risk; this skill produces concrete pattern matches.

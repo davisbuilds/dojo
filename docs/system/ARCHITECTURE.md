@@ -88,6 +88,16 @@ SKILL.md frontmatter is the single source of truth; two deterministic, idempoten
 
 Uses a polyglot shebang — works with both `python` and `python3`.
 
+`scripts/check_links.py` fails on references that point at something which no longer
+exists: relative markdown links that do not resolve, `skills/<name>/` paths naming a
+skill that is gone, and `## Sibling skills` entries naming a retired skill. Added
+2026-07-31 after two cleanups each left stale pointers behind — a retirement left
+sibling sections across sixteen files, and a reference cut left three separate indexes
+listing deleted files. Fenced code blocks, `assets/` templates, URLs, and documented
+placeholders (`my-skill`) are excluded, so it fires only on unambiguous targets. Dated
+artifacts under `docs/plans/`, `docs/specs/`, `docs/design/`, `docs/research/` and
+`replay-results-*.md` are not scanned: they record what was true when written.
+
 ### Pre-execution artifact metadata
 
 New brainstorming design summaries, specs, and plans declare `author:` with the

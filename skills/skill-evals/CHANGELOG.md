@@ -1,3 +1,11 @@
+# Changelog
+
+## 1.4.1 - 2026-07-31
+
+- Prune retired skills from `assets/trigger-collision-cases-expanded.json`.
+  Four cases existed only to route to a now-retired skill and are removed;
+  six `avoid` entries naming retired competitors are pruned.
+
 ## 1.4.0 - 2026-07-31
 
 - `resource_map_present` recognizes `rules/` as a fifth resource directory.

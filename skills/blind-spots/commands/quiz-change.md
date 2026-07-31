@@ -43,5 +43,5 @@ identifiable, ask for one. Never quiz against a change you have not read.
 - The user may skip a topic, change depth, or stop at any point. Honor it
   immediately; none of it is failure.
 - Chat only. Write no file unless the user explicitly asks for one.
-- This is not a code review. Defects belong to `local-review` / `gh-review-pr`;
+- This is not a code review. Defects belong to `local-review`;
   completion evidence belongs to `verify-before-complete`.

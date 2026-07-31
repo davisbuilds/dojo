@@ -3,7 +3,7 @@ name: loop-design
 description: Design a reusable, verifiable autonomous loop on top of harness primitives like /loop and /goal. Runs a go/no-go gate (is there a pass/fail oracle?), defines a portable loop blueprint, then scaffolds the concrete files a harness runs. Use when setting up a recurring, unattended, or overnight agent loop, an automation or cron task, a /loop or /goal run, a Ralph-style while-true loop, or when deciding whether a task SHOULD be looped at all. Agent-agnostic across Claude Code, Codex, and CI. On-demand via /loop-design.
 skill-type: workflow
 compatibility: "Requires python3 (standard library only). Scaffolds a loop bundle into the target repo under .loops/ by default. Does not execute the loop — it emits the artifacts a harness runs."
-version: 1.0.1
+version: 1.0.2
 ---
 
 # Loop Design
@@ -31,7 +31,7 @@ Use this skill when:
 
 Skip this skill when:
 - the task is a single interactive turn (`write-plan` or just prompt directly)
-- you want to run one end-to-end feature cycle to a PR (use `autonomous-engineering` / lfg)
+- you want to run one end-to-end feature cycle to a PR rather than a recurring loop
 
 ## The Go/No-Go Gate (do this first)
 
@@ -64,7 +64,7 @@ Gate 1 is hard. The scaffolder refuses to emit a bundle without a `done_when` co
 ## Boundaries
 
 - Not a loop runtime. It does not re-invoke on a cadence or spawn a grader model — `/loop`, `/goal`, automations, and CI do that. This emits what they run.
-- Not a single-feature workflow. `autonomous-engineering` (lfg/slfg) runs one plan→implement→review→PR cycle; this designs the recurring/unattended loop around such work.
+- Not a single-feature workflow. This designs the recurring/unattended loop around such work, not one plan→implement→review→PR cycle.
 - Not a test designer. Use `test-strategy` to build the oracle; this skill only requires that one exists.
 - Do not name the generated command or any artifact `/loop` or `/goal` — those collide with harness primitives.
 - Do not scaffold a loop with no `done_when`. A loop without an oracle is an unsupervised process with your credentials.
@@ -101,6 +101,5 @@ Gate 1 is hard. The scaffolder refuses to emit a bundle without a `done_when` co
 
 - `test-strategy` — designs the oracle (tests) that the loop verifies against.
 - `verify-before-complete` — the evidence-based "done" semantics the oracle enforces.
-- `local-review` / `code-review-agents` — what the checker (verifier) step calls.
+- `local-review` — what the checker (verifier) step calls.
 - `handoff` — the state-on-disk pattern this skill applies to the loop's `progress.md`.
-- `autonomous-engineering` — runs one feature cycle; this designs the loop around recurring work.

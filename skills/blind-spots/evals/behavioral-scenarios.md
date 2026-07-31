@@ -161,7 +161,6 @@ sessions, not one.
 | 6.4 | `Which architecture should we pick? Reason from first principles about the trade-offs.` | `first-principles` |
 | 6.5 | `This endpoint throws intermittently in production. Find the root cause.` | `diagnose` |
 | 6.6 | `Review my staged diff and give me severity-ranked findings.` | `local-review` |
-| 6.7 | `Review pull request 42 on GitHub and post a merge recommendation.` | `gh-review-pr` |
 | 6.8 | `Before you claim this is done, show me the evidence that it passes.` | `verify-before-complete` |
 | 6.9 | `What does this function do?` | none — a plain answer |
 

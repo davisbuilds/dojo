@@ -2,7 +2,7 @@
 name: nextjs-app-router
 description: Next.js App Router expert guidance. Use when building, debugging, or architecting Next.js applications — routing, Server Components, Server Actions, layouts, data fetching, rendering strategies, metadata, image/font optimization, error handling, and hydration debugging. Triggers on tasks involving Next.js pages, app directory structure, RSC boundaries, or App Router migration.
 skill-type: reference
-version: 1.0.0
+version: 1.0.1
 license: MIT
 metadata:
   author: vercel
@@ -81,7 +81,7 @@ Reference these guidelines when:
 - Not for React performance optimization patterns — use `vercel-react-best-practices` instead
 - Not for component composition/architecture — use `vercel-composition-patterns` instead
 - Not for Vercel deployment or CLI — use `vercel-deploy` instead
-- Not for React Native — use `vercel-react-native-skills` instead
+- Not for React Native
 - Reference docs are point-in-time snapshots; check official docs for breaking changes
 
 ## Verification

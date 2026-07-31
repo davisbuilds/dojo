@@ -1,8 +1,6 @@
-<overview>
 How to design MCP tools following prompt-native principles. Tools should be primitives that enable capability, not workflows that encode decisions.
 
 **Core principle:** Whatever a user can do, the agent should be able to do. Don't artificially limit the agent—give it the same primitives a power user would have.
-</overview>
 
 <principle name="primitives-not-workflows">
 ## Tools Are Primitives, Not Workflows
@@ -42,7 +40,6 @@ tool("send_message", {
 ```
 
 The agent decides categorization, priority, and when to notify based on the system prompt.
-</principle>
 
 <principle name="descriptive-names">
 ## Tools Should Have Descriptive, Primitive Names
@@ -57,7 +54,6 @@ Names should describe the capability, not the use case:
 | `deploy_to_production` | `git_push` |
 
 The prompt tells the agent *when* to use primitives. The tool just provides *capability*.
-</principle>
 
 <principle name="simple-inputs">
 ## Inputs Should Be Simple
@@ -81,7 +77,6 @@ tool("write_file", {
 }, ...)
 // Agent decides to write index.html with HTML content, or data.json with JSON
 ```
-</principle>
 
 <principle name="rich-outputs">
 ## Outputs Should Be Rich
@@ -107,9 +102,7 @@ async ({ key }) => {
   return { text: `Deleted ${key}. ${await db.count()} items remaining.` };
 }
 ```
-</principle>
 
-<design_template>
 ## Tool Design Template
 
 ```typescript
@@ -210,7 +203,6 @@ export const serverName = createSdkMcpServer({
   ],
 });
 ```
-</design_template>
 
 <example name="feedback-server">
 ## Example: Feedback Storage Server
@@ -301,7 +293,6 @@ When someone shares feedback:
 
 Use your judgment about importance ratings.
 ```
-</example>
 
 <principle name="dynamic-capability-discovery">
 ## Dynamic Capability Discovery vs Static Tool Mapping
@@ -441,7 +432,6 @@ func buildSystemPrompt() -> String {
 - Smaller tool surface (2-3 tools vs N tools)
 - Agent naturally discovers capabilities by asking
 - Works with any API that has introspection (HealthKit, GraphQL, OpenAPI)
-</principle>
 
 <principle name="crud-completeness">
 ## CRUD Completeness
@@ -478,9 +468,7 @@ For each entity type in your app, verify:
 - [ ] Delete: Agent can remove instances
 
 If any operation is missing, users will eventually ask for it and the agent will fail.
-</principle>
 
-<checklist>
 ## MCP Tool Design Checklist
 
 **Fundamentals:**
@@ -503,4 +491,3 @@ If any operation is missing, users will eventually ask for it and the agent will
 - [ ] Every entity has create, read, update, delete operations
 - [ ] Every UI action has a corresponding agent tool
 - [ ] Test: "Can the agent undo what it just did?"
-</checklist>

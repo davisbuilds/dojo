@@ -2,7 +2,7 @@
 name: local-review
 description: Perform local code reviews on workspace changes without posting to GitHub. Use for requests like /review, review this diff, audit staged changes, or check branch changes. Collects git context and produces findings-first reports with severity, file line references, risks, and test gaps.
 skill-type: workflow
-version: 1.1.0
+version: 1.1.1
 ---
 
 # local-review
@@ -14,7 +14,7 @@ Run a disciplined local code review on git changes with no GitHub side effects. 
 ## Scope
 
 - In scope: local diff review (`working`, `staged`, or `branch` compare), risk analysis, and action-focused findings.
-- Out of scope: posting PR reviews to GitHub. Use `gh-review-pr` for that.
+- Out of scope: posting PR reviews to GitHub. Use the `gh` CLI or the harness's own PR-review command.
 
 ## Workflow
 
@@ -113,7 +113,7 @@ If the harness supports command files, use `commands/review.md` as the canonical
 
 ## Boundaries
 
-- Do not post reviews to GitHub or call the GitHub API (use `gh-review-pr` for that)
+- Do not post reviews to GitHub or call the GitHub API
 - Do not modify source code; this skill is read-only analysis
 - Do not review files outside the git diff scope
 
@@ -132,6 +132,4 @@ If the harness supports command files, use `commands/review.md` as the canonical
 
 One of three review skills (diff / PR / multi-agent).
 
-- `gh-review-pr` — same framing applied to a published GitHub PR. Use when the work has already been pushed; this skill is for unpushed workspace diffs.
-- `code-review-agents` — multi-agent specialist review (architecture, security, performance, data, deployment). Use alongside this skill for high-stakes diffs; this skill is the lighter generalist pass.
 - `verify-before-complete` — orthogonal gate. Run before claiming a diff is "done"; this skill produces the findings, that one enforces the completion claim.

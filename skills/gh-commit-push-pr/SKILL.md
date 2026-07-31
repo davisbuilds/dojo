@@ -3,7 +3,7 @@ name: gh-commit-push-pr
 allowed-tools: Bash(git checkout:*), Bash(git add:*), Bash(git status:*), Bash(git push:*), Bash(git commit:*), Bash(git diff:*), Bash(git log:*), Bash(git branch:*), Bash(git stash:*), Bash(git remote:*), Bash(gh auth status:*), Bash(gh repo view:*), Bash(gh pr create:*), Bash(gh pr view:*)
 description: "Commit staged changes, push branch, and open a GitHub PR. Use when user asks to commit and push, create a PR, ship changes, send for review, or open a pull request. Triggers on phrases like 'commit and push', 'create a PR', 'open a pull request', 'send this for review', 'ship it', 'push and PR'."
 skill-type: workflow
-version: 1.0.0
+version: 1.0.1
 ---
 
 ## When To Use
@@ -156,8 +156,9 @@ If the harness supports command files, use `commands/commit-push-pr.md` as the c
 
 ## Sibling skills
 
-Part of the `gh-*` issue-to-merge pipeline. Most often invoked at the end of `gh-fix-issue`.
+The remaining `gh-*` skill. It owns the commit-to-PR step end to end; the
+issue-triage and PR-review skills that used to sit either side of it were
+retired 2026-07-31 as unused.
 
-- `gh-fix-issue` — typical caller. Provides commit context (issue number, scope) before delegating here.
-- `gh-review-pr` — runs on the PR this skill creates.
-- `gh-triage-issues` — orthogonal; concerned with issue metadata, not code changes.
+- `local-review` — review the diff before this skill commits it.
+- `verify-before-complete` — confirm the work is actually done before opening a PR.
