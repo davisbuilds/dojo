@@ -132,13 +132,10 @@ catalog as conformant.
   `brainstorming`, `first-principles`, `write-spec`, `write-plan`, `diagnose`,
   `local-review`, `test-strategy`, and `verify-before-complete`. Membership is
   set from observed use rather than assertion (see Assumptions). `handoff` was
-  removed: it has zero observed invocations across both harnesses, and
-  `session-retro` — which does have use — covers the adjacent need.
-  `first-principles` was added: it is the most-consulted skill in the catalog.
-  `diagnose` is retained despite zero observed use because it is the only
-  debugging skill, `first-principles` routes to it by name, and absence of use
-  for a skill that fires only when something breaks is weaker evidence than it
-  looks. Acceptance proves at
+  removed: 2 observed Codex sessions against `session-retro`'s 14, which covers
+  the adjacent need. `first-principles` was added at 52 sessions, second only to
+  `verify-before-complete`. `diagnose` is retained on 12 sessions, last used
+  eight days before this revision. Acceptance proves at
   least one concrete supported harness/model realization where `core` plus one
   non-empty capability overlay and a three-entry foreign baseline remains
   within the effective-catalog budget. A harness where the pinned baseline does
@@ -351,27 +348,25 @@ The reference behavior is explicit:
   informed by evidence gathered elsewhere, which is why overlay composition is
   reviewable data rather than a contract term.
 - The `core` and anchor membership named above was set on 2026-07-31 from
-  observed session use, measured separately per harness — Codex consultations
-  over 17 skill-using sessions, Claude dispatches over 14 — and excluding a
-  catalog-wide read sweep that touches every skill and means nothing. Counts
-  are not summed across harnesses: the two are detected by different mechanisms
-  and only comparable as rates. That is an engagement signal, not an outcome
-  one: it shows what gets consulted, never whether consulting it helped. It is
-  the best available basis for a baseline and a deliberately weak one, and it
-  should be re-derived rather than trusted when outcome evidence exists.
-- **The measured populations are close to disjoint, and this is the largest
-  open risk to a single `core`.** Of the twelve most-used skills, only four
-  appear in both harnesses. `first-principles` reaches 76% of Codex skill-using
-  sessions and 0% of Claude's; `write-spec` and `write-plan` reach 50% of
-  Claude's and 0% of Codex's; `verify-before-complete`, `local-review`,
-  `session-retro`, `brainstorming`, `test-strategy` and `secure-code` are
-  Codex-only, while `blind-spots` and `design-critique` are Claude-only. A
-  single mandatory baseline therefore ships roughly half its members into a
-  harness that has never used them. The initial contract accepts that: profile
-  identity stays harness-independent, and the cost is visible in
-  effective-catalog evidence rather than hidden. Whether the baseline should
-  vary by harness is a contract-revision question, not an implementation
-  detail, and the sample here (17 and 14 sessions) is too small to settle it.
+  observed session use, measured separately per harness — Codex over 183
+  skill-using sessions, Claude over 14 — and excluding a catalog-wide read
+  sweep that touches every skill and means nothing. Codex consultation is
+  detected from tool calls against a skill's `SKILL.md` and from the
+  announcement several skills require; Claude from `Skill` dispatches. Counts
+  are not summed across harnesses: the mechanisms differ and only rates are
+  comparable. That is an engagement signal, not an outcome one — it shows what
+  gets consulted, never whether consulting it helped — so it should be
+  re-derived rather than trusted when outcome evidence exists.
+- The two harnesses overlap substantially, and the pattern is one of degree
+  rather than of disjoint sets. Ten of the eighteen most-used skills appear in
+  both; `write-spec` and `write-plan` are the clearest shared members (21 and 13
+  Codex sessions, 7 and 7 Claude). The strongest skew is
+  `verify-before-complete` at 55% of Codex skill-using sessions with none
+  observed in Claude, then `first-principles` and `test-strategy` at 28%.
+  Claude's sample is small and its detection catches only explicit dispatch, so
+  absence there is weak evidence. A single harness-independent baseline is
+  supportable on current data; whether it should stay that way is a
+  contract-revision question for when outcome evidence exists.
 - Overlays resolve to the same membership on every harness. Where a harness
   ships a built-in equivalent of a profile member — Codex carries its own
   `skill-creator`, `skill-installer`, and image-generation skills as `.system`
@@ -508,7 +503,31 @@ budget checks, not an unresolved behavioral decision.
 
 ## Revision History
 
-- **2026-07-31 (revision 5).** Membership moved from assertion to observation.
+- **2026-07-31 (revision 6).** Corrects revision 5's measurement, which was
+  wrong in a way that inverted one of its conclusions. Codex reads a skill
+  through a `custom_tool_call`, not a shell command; revision 5 counted only
+  shell reads and so scored `write-spec` and `write-plan` at **zero** Codex use
+  when the real figures are 21 and 13 sessions. The corrected denominator is
+  183 Codex skill-using sessions, not 17.
+
+  Two claims are withdrawn. `handoff` was said to have zero use — it has 2
+  sessions, still far below `session-retro`'s 14, so it stays out of `core` for
+  a weaker reason than stated. `diagnose` was said to have zero use and kept on
+  judgment — it has 12 sessions and a last use eight days ago, so it belongs in
+  `core` on evidence and the judgment was unnecessary.
+
+  The larger withdrawal is the claim that the harnesses use near-disjoint skill
+  sets. That was an artifact: with the corrected detector, ten of the eighteen
+  most-used skills appear in both, and `write-spec`/`write-plan` — the supposed
+  Claude-only pair — are among the most-used in Codex. A single
+  harness-independent baseline is supportable on current data, and the risk
+  recorded in revision 5 is downgraded accordingly.
+
+  The retirements in dojo PR #51 were re-checked against the corrected detector
+  and all eight hold: every retired skill shows 1–4 uses, none since May except
+  one, against 21–100 for the surviving `core` members.
+
+- **2026-07-31 (revision 5).** *Superseded in part by revision 6 — the figures below came from a detector that missed most Codex use.* Membership moved from assertion to observation.
   Session use was measured across both harnesses for all 49 skills, excluding a
   catalog-wide read sweep that touches everything and means nothing, and the
   named members were re-derived from it.
