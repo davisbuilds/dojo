@@ -1,13 +1,6 @@
 ---
 name: loop-design
-description: >-
-  Design a reusable, verifiable autonomous loop on top of harness primitives like /loop and /goal.
-  Run a go/no-go gate (is there a pass/fail oracle?), define a portable loop blueprint (goal,
-  done-when command, on-disk state, maker/checker split, sandbox/credential/budget guardrails),
-  then scaffold the concrete files a harness runs. Use when setting up a recurring, unattended, or
-  overnight agent loop, an automation or cron task, a /loop or /goal run, a Ralph-style while-true
-  loop, or when deciding whether a task SHOULD be looped at all. Agent-agnostic across Claude Code,
-  Codex, and CI/GitHub Actions. On-demand via /loop-design.
+description: Design a reusable, verifiable autonomous loop on top of harness primitives like /loop and /goal. Runs a go/no-go gate (is there a pass/fail oracle?), defines a portable loop blueprint, then scaffolds the concrete files a harness runs. Use when setting up a recurring, unattended, or overnight agent loop, an automation or cron task, a /loop or /goal run, a Ralph-style while-true loop, or when deciding whether a task SHOULD be looped at all. Agent-agnostic across Claude Code, Codex, and CI. On-demand via /loop-design.
 skill-type: workflow
 compatibility: "Requires python3 (standard library only). Scaffolds a loop bundle into the target repo under .loops/ by default. Does not execute the loop — it emits the artifacts a harness runs."
 version: 1.0.0

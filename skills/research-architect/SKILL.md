@@ -1,6 +1,6 @@
 ---
 name: research-architect
-description: Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or research brief; commission or plan a multi-source, high-stakes, or multi-model research run; run research through external deep-research products (Claude/OpenAI/Gemini DR); or verify and score a research report someone or something else produced. Triggers on "research prompt", "research brief", "commission research", "plan a research run", "verify this report", "research architect". For a direct low-stakes web lookup where the user just wants the answer, use the deep-research skill instead — this skill sits upstream (prompt engineering, routing) and downstream (verification, postmortem) of execution.
+description: Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or brief; commission or plan a multi-source or multi-model research run; or verify and score a research report that something else produced. Triggers on "research prompt", "research brief", "commission research", "verify this report". For a direct low-stakes lookup where the user just wants the answer, use deep-research instead.
 skill-type: workflow
 version: 2.2.0
 triggers:
