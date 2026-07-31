@@ -120,17 +120,25 @@ catalog as conformant.
   across overlays collapses deterministically, and every resolved member must
   exist in the canonical catalog. Each capability overlay adds at least two
   non-`core` members and includes these required anchors: `engineering`
-  includes `api-design` and `create-cli`; `research` includes `deep-research`
-  and `research-architect`; `design` includes `frontend-design` and
-  `design-critique`; `knowledge` includes `obsidian-markdown` and
-  `compound-docs`; `shipping` includes `gh-commit-push-pr` and `vercel-deploy`;
+  includes `create-cli` and `secure-code`; `research` includes `deep-research`
+  and `research-architect`; `design` includes `design-critique` and
+  `web-design-guidelines`; `knowledge` includes `obsidian-markdown` and
+  `session-retro`; `shipping` includes `gh-commit-push-pr` and `vercel-deploy`;
   and `skill-authoring` includes `skill-creator` and `skill-standardizer`.
   `full` resolves to every canonical skill at the selected revision. Complete
   overlay membership is explicit profile evidence, not inferred from category
   names or installed state.
 - **SC-03 — Usable baseline:** `core` contains the general delivery loop:
-  `brainstorming`, `write-spec`, `write-plan`, `diagnose`, `local-review`,
-  `test-strategy`, `verify-before-complete`, and `handoff`. Acceptance proves at
+  `brainstorming`, `first-principles`, `write-spec`, `write-plan`, `diagnose`,
+  `local-review`, `test-strategy`, and `verify-before-complete`. Membership is
+  set from observed use rather than assertion (see Assumptions). `handoff` was
+  removed: it has zero observed invocations across both harnesses, and
+  `session-retro` — which does have use — covers the adjacent need.
+  `first-principles` was added: it is the most-consulted skill in the catalog.
+  `diagnose` is retained despite zero observed use because it is the only
+  debugging skill, `first-principles` routes to it by name, and absence of use
+  for a skill that fires only when something breaks is weaker evidence than it
+  looks. Acceptance proves at
   least one concrete supported harness/model realization where `core` plus one
   non-empty capability overlay and a three-entry foreign baseline remains
   within the effective-catalog budget. A harness where the pinned baseline does
@@ -342,6 +350,20 @@ The reference behavior is explicit:
   that any member improves outcomes. Membership remains a maintainer judgment
   informed by evidence gathered elsewhere, which is why overlay composition is
   reviewable data rather than a contract term.
+- The `core` and anchor membership named above was set on 2026-07-31 from
+  observed session use across both harnesses, excluding a catalog-wide read
+  sweep that touches every skill and means nothing. That is an engagement
+  signal, not an outcome one: it shows what gets consulted, never whether
+  consulting it helped. It is the best available basis for a baseline and a
+  deliberately weak one, and it should be re-derived rather than trusted when
+  outcome evidence exists.
+- Overlays resolve to the same membership on every harness. Where a harness
+  ships a built-in equivalent of a profile member — Codex carries its own
+  `skill-creator`, `skill-installer`, and image-generation skills as `.system`
+  entries — the duplication is visible in effective-catalog evidence and
+  counted against the budget, but this contract does not resolve it. Per-harness
+  membership would change profile identity semantics and is deliberately
+  excluded from the initial contract.
 - Routing coverage is currently sparse: 57 skills pass the structural contract,
   but only two declare trigger fixtures. Profile work reports that limitation
   honestly and adds collision evidence where adjacent included skills need it;
@@ -470,6 +492,31 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-07-31 (revision 5).** Membership moved from assertion to observation.
+  Session use was measured across both harnesses for all 49 skills, excluding a
+  catalog-wide read sweep that touches everything and means nothing, and the
+  named members were re-derived from it.
+
+  `core` drops `handoff` — zero observed invocations, and `session-retro`,
+  which is used, covers the adjacent need — and gains `first-principles`, the
+  most-consulted skill in the catalog at 13 sessions. `diagnose` stays at zero
+  observed use: it is the only debugging skill, `first-principles` routes to it
+  by name, and absence of use for something that fires only when work breaks is
+  weaker evidence than the same number elsewhere.
+
+  Three anchors change on the same basis: `engineering` swaps `api-design`
+  (zero use) for `secure-code`, `knowledge` swaps `compound-docs` for
+  `session-retro`, and `design` swaps `frontend-design` for
+  `web-design-guidelines`, which is also the routing hub the rest of the design
+  cluster defers to.
+
+  Two limits are now stated rather than left implicit: this is an *engagement*
+  signal and not an outcome one, so it should be re-derived when outcome
+  evidence exists; and overlays resolve identically on every harness even
+  though Codex ships built-in equivalents of several `skill-authoring` members,
+  which the contract measures but deliberately does not resolve. No success
+  criterion, evaluation scenario, or authority boundary changed structurally.
 
 - **2026-07-31 (revision 4).** SC-02 named `gh-review-pr` as a required anchor
   of the `shipping` overlay. That skill was retired the same day, so the
