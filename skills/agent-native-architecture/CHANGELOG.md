@@ -16,8 +16,17 @@
   headings underneath already carry the structure. The restructure above had
   also left several unbalanced, so they were actively wrong as well as
   inconsistent.
-- 448 -> 227 lines, below the 250-line progressive-disclosure threshold added
-  to the contract in skill-evals 1.4.0.
+- **Cut 11 of 14 reference files** (~4,800 lines). Kept `core-principles.md`,
+  `anti-patterns.md`, `action-parity-discipline.md`, `mcp-tool-design.md`, and
+  `refactoring-to-prompt-native.md` — the material that states a checkable
+  practice. Dropped the iOS/mobile patterns, self-modification, shared-workspace
+  theory, product implications, testing, system-prompt design, architecture
+  patterns, context injection, files-as-interface, and domain-tool graduation:
+  third-party material tied to one stack, never read once.
+- Remove the skill's `README.md`, which duplicated the reference index a third
+  time. `SKILL.md` is the entrypoint.
+- 448 -> 203 lines and 256 KB -> 76 KB, below the 250-line
+  progressive-disclosure threshold added to the contract in skill-evals 1.4.0.
 
 MAJOR because content moved between files: anything that linked to a heading
 inside SKILL.md for the principles or anti-patterns now needs the reference path.

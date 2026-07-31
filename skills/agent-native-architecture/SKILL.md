@@ -48,25 +48,20 @@ before applying any of them to a real design.
 
 ## Routing
 
-Ask which aspect the user needs, then read the matching reference before
-applying anything. One topic per row; the numbered menu and the routing table
-that used to duplicate each other are merged here.
+Read the matching reference before applying anything to a real design.
 
 | Aspect | Read |
 |---|---|
-| Design a new agent-native system | [architecture-patterns.md](./references/architecture-patterns.md), then the checklist below |
-| Files, workspace, filesystem as interface | [files-universal-interface.md](./references/files-universal-interface.md), [shared-workspace-architecture.md](./references/shared-workspace-architecture.md) |
+| The five principles, in full, with worked examples | [core-principles.md](./references/core-principles.md) |
+| Action parity, capability mapping, keeping tools in step with UI | [action-parity-discipline.md](./references/action-parity-discipline.md) |
 | Tool design, MCP, primitives, CRUD completeness | [mcp-tool-design.md](./references/mcp-tool-design.md) |
-| When to add domain tools vs stay primitive | [from-primitives-to-domain-tools.md](./references/from-primitives-to-domain-tools.md) |
-| Execution, completion signals, context limits | [agent-execution-patterns.md](./references/agent-execution-patterns.md) |
-| System prompts, judgment criteria | [system-prompt-design.md](./references/system-prompt-design.md) |
-| Injecting runtime app state | [dynamic-context-injection.md](./references/dynamic-context-injection.md) |
-| Action parity, capability mapping | [action-parity-discipline.md](./references/action-parity-discipline.md) |
-| Letting agents evolve themselves safely | [self-modification.md](./references/self-modification.md) |
-| Product design, progressive disclosure, approvals | [product-implications.md](./references/product-implications.md) |
-| Mobile: iOS storage, background, checkpoint/resume | [mobile-patterns.md](./references/mobile-patterns.md) |
-| Testing for capability and parity | [agent-native-testing.md](./references/agent-native-testing.md) |
 | Refactoring existing code toward agent-native | [refactoring-to-prompt-native.md](./references/refactoring-to-prompt-native.md) |
+| Reviewing a design that looks agent-native but may not be | [anti-patterns.md](./references/anti-patterns.md) |
+
+The checklist below covers architecture, files/workspace, execution, context
+injection, and mobile at the level of a review pass. The deeper reference files
+on those topics were dropped on 2026-07-31: they were third-party material,
+heavily tied to one stack, and had never been read.
 
 ## Architecture Review Checklist
 
@@ -150,28 +145,9 @@ const result = await agent.run({
 
 - `references/core-principles.md` — the five principles in full, with examples.
 - `references/anti-patterns.md` — designs that look agent-native and are not.
-
-All references in `references/`:
-
-**Core Patterns:**
-- [architecture-patterns.md](./references/architecture-patterns.md) - Event-driven, unified orchestrator, agent-to-UI
-- [files-universal-interface.md](./references/files-universal-interface.md) - Why files, organization patterns, context.md
-- [mcp-tool-design.md](./references/mcp-tool-design.md) - Tool design, dynamic capability discovery, CRUD
-- [from-primitives-to-domain-tools.md](./references/from-primitives-to-domain-tools.md) - When to add domain tools, graduating to code
-- [agent-execution-patterns.md](./references/agent-execution-patterns.md) - Completion signals, partial completion, context limits
-- [system-prompt-design.md](./references/system-prompt-design.md) - Features as prompts, judgment criteria
-
-**Agent-Native Disciplines:**
-- [dynamic-context-injection.md](./references/dynamic-context-injection.md) - Runtime context, what to inject
-- [action-parity-discipline.md](./references/action-parity-discipline.md) - Capability mapping, parity workflow
-- [shared-workspace-architecture.md](./references/shared-workspace-architecture.md) - Shared data space, UI integration
-- [product-implications.md](./references/product-implications.md) - Progressive disclosure, latent demand, approval
-- [agent-native-testing.md](./references/agent-native-testing.md) - Testing outcomes, parity tests
-
-**Platform-Specific:**
-- [mobile-patterns.md](./references/mobile-patterns.md) - iOS storage, checkpoint/resume, cost awareness
-- [self-modification.md](./references/self-modification.md) - Git-based evolution, guardrails
-- [refactoring-to-prompt-native.md](./references/refactoring-to-prompt-native.md) - Migrating existing code
+- `references/action-parity-discipline.md` — keeping agent tools in step with UI actions.
+- `references/mcp-tool-design.md` — primitive tool design and CRUD completeness.
+- `references/refactoring-to-prompt-native.md` — moving existing code toward agent-native.
 
 ## Anti-Patterns
 
