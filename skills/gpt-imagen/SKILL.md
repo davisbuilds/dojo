@@ -1,6 +1,6 @@
 ---
 name: "gpt-imagen"
-description: "Generate or edit images via the OpenAI Image API (`gpt-image-2`). Use when the user asks to generate, edit, inpaint, mask, remove backgrounds, or create product shots, concept art, covers, or batch outputs using OpenAI or DALL-E. Runs the bundled CLI (`scripts/image_gen.py`) and requires `OPENAI_API_KEY`."
+description: "Generate or edit images via the OpenAI Image API (`gpt-image-2`). Use when the user asks to generate, edit, inpaint, mask, remove backgrounds, or create product shots, concept art, covers, or batch outputs using OpenAI. Runs the bundled CLI (`scripts/image_gen.py`) and requires `OPENAI_API_KEY`."
 skill-type: workflow
 compatibility: "Requires python3, openai package, OPENAI_API_KEY. Requires network access for OpenAI API calls."
 version: 1.0.0
@@ -189,4 +189,4 @@ Asset-type templates (website assets, game assets, wireframes, logo) are consoli
 
 ## Sibling skills
 
-- `gemini-imagen` — same shape, different provider. Choose Gemini for multi-image composition, native 4K/extreme aspect ratios, or text rendering inside images. Choose this skill (OpenAI) when the user asks for DALL-E / `gpt-image-2`, needs precise inpainting/masking, or has only an `OPENAI_API_KEY`.
+- `gemini-imagen` — same shape, different provider. Choose Gemini for multi-image composition, native 4K/extreme aspect ratios, or text rendering inside images. Choose this skill (OpenAI) when the user asks for `gpt-image-2`, needs precise inpainting/masking, or has only an `OPENAI_API_KEY`.
