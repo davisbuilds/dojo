@@ -25,7 +25,9 @@ import os
 import sys
 from pathlib import Path
 
-MODEL = "gemini-3.1-flash-image-preview"
+DRAFT_MODEL = "gemini-flash-latest"
+FINAL_MODEL = "gemini-pro-latest"
+MODEL_CHOICES = [DRAFT_MODEL, FINAL_MODEL]
 
 ASPECT_CHOICES = [
     "1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4",
@@ -134,7 +136,7 @@ def cmd_generate(args: argparse.Namespace) -> None:
 
     try:
         response = client.models.generate_content(
-            model=MODEL,
+            model=args.model,
             contents=args.prompt,
             config=config,
         )
@@ -180,7 +182,7 @@ def cmd_edit(args: argparse.Namespace) -> None:
 
     try:
         response = client.models.generate_content(
-            model=MODEL,
+            model=args.model,
             contents=[input_image, args.prompt],
             config=config,
         )
@@ -222,7 +224,7 @@ def cmd_compose(args: argparse.Namespace) -> None:
 
     try:
         response = client.models.generate_content(
-            model=MODEL,
+            model=args.model,
             contents=contents,
             config=config,
         )
@@ -254,6 +256,12 @@ def _add_common_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--api-key", "-k",
         help="Gemini API key (overrides GEMINI_API_KEY env var)",
+    )
+    parser.add_argument(
+        "--model", "-m",
+        choices=MODEL_CHOICES,
+        default=DRAFT_MODEL,
+        help=f"Model to use: {DRAFT_MODEL} (default, for drafts) or {FINAL_MODEL} (for finals)",
     )
 
 

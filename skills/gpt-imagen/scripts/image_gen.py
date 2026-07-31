@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate or edit images with the OpenAI Image API.
 
-Defaults to gpt-image-1.5 and a structured prompt augmentation workflow.
+Defaults to gpt-image-2 and a structured prompt augmentation workflow.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from io import BytesIO
 
-DEFAULT_MODEL = "gpt-image-1.5"
+DEFAULT_MODEL = "gpt-image-2"
 DEFAULT_SIZE = "1024x1024"
 DEFAULT_QUALITY = "auto"
 DEFAULT_OUTPUT_FORMAT = "png"

@@ -13,7 +13,7 @@ Generate and edit images using Google's Gemini API. The environment variable `GE
 
 | Setting      | Default                          | Options                                                              |
 | ------------ | -------------------------------- | -------------------------------------------------------------------- |
-| Model        | `gemini-3.1-flash-image-preview` | Also: `gemini-3.1-flash-image-preview` for production-quality finals     |
+| Model        | `gemini-flash-latest`            | `--model gemini-pro-latest` for production-quality finals            |
 | Resolution   | 1K                               | 1K, 2K, 4K                                                          |
 | Aspect Ratio | 1:1                              | 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9, 4:1, 1:4, 8:1, 1:8 |
 
@@ -31,9 +31,9 @@ Run from the user's working directory so images save where expected, not in the 
 
 Follow a two-tier draft-iterate-final pattern:
 
-1. **Draft (Flash, 1K):** Use the default model (`gemini-3.1-flash-image-preview`) at 1K for rapid ideation.
+1. **Draft (Flash, 1K):** Use the default model (`gemini-flash-latest`) at 1K for rapid ideation.
 2. **Iterate:** Adjust the prompt in small diffs. Use a new filename per run. For editing, keep the same `--input-image`.
-3. **Final (Pro, 4K):** When the prompt is locked, switch to `gemini-3.1-flash-image-preview` with `--resolution 4K` for production-quality output.
+3. **Final (Pro, 4K):** When the prompt is locked, re-run with `--model gemini-pro-latest --resolution 4K` for production-quality output.
 
 ## Resolution Options
 

@@ -1,4 +1,4 @@
-# Prompting best practices (gpt-image-1.5)
+# Prompting best practices (gpt-image-2)
 
 ## Contents
 - [Structure](#structure)

@@ -41,7 +41,7 @@ python "$IMAGE_GEN" generate --prompt "A cozy alpine cabin at dawn" --size 1024x
 - Do not modify `scripts/image_gen.py` unless the user asks for a capability change or bug fix.
 
 ## Defaults (unless overridden by flags)
-- Model: `gpt-image-1.5`
+- Model: `gpt-image-2`
 - Size: `1024x1024`
 - Quality: `auto`
 - Output format: `png`
