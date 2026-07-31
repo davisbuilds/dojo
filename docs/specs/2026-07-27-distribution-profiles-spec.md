@@ -29,20 +29,25 @@ descriptions first and emits a truncation warning, then removes descriptions
 entirely — degrading exactly the routing signal a skill catalog exists to
 provide, and doing so silently from the maintainer's point of view.
 
-The measured position, after a description-trimming pass on 2026-07-31 that cut
-ten skills without removing any:
+The measured position, as of the most recent hand-measurement:
 
-| Set | Skills | Est. tokens | % of budget |
-|---|---|---|---|
-| Curated global installation | 31 | ~2,594 | 50% |
-| Full canonical catalog | 49 | ~3,901 | **75%** |
+| Set | Skills | Est. tokens | % of budget | Measured |
+|---|---|---|---|---|
+| Curated global installation | 31 | ~2,874 | 56% | 2026-07-31 |
+| Full canonical catalog | 49 | ~4,388 | **85%** | 2026-07-31 |
 
-The catalog is inside the ceiling today, and the way it got there is the
-argument for this contract. On 2026-07-31 alone it measured 111%, then 90%,
-then 77%, then 75% — first from trimming ten descriptions, then from retiring
-eight skills. **Four different values in one day, none of them the result of a
-distribution decision.** Editing a description moves it; authoring a skill
-moves it; neither action involves anyone deciding what a target should
+Read those as dated observations, not as constants — and note that an earlier
+measurement the same week put the same two sets at 50% and 75%. The two passes
+used different estimators, neither is reproducible from anything in this
+repository, and there is no way to adjudicate them without the verifier this
+contract specifies. **A ten-point disagreement about how close the catalog sits
+to a hard ceiling, with no way to settle it, is the problem statement.**
+
+The instability compounds it. On 2026-07-31 alone the full catalog measured
+111%, then 90%, then 77%, then 75% — first from trimming ten descriptions, then
+from retiring eight skills. **Four different values in one day, none of them the
+result of a distribution decision.** Editing a description moves it; authoring a
+skill moves it; neither action involves anyone deciding what a target should
 receive.
 
 That is the instability profiles address, and headroom does not remove it.
@@ -333,9 +338,13 @@ The reference behavior is explicit:
   hashed.
 - The 31-skill global installation is evidence of intentional curation, not the
   default profile definition. Existing selection is preserved until a maintainer
-  explicitly applies a profile. Its measured cost (~2,594 estimated tokens, 50%
-  of the Codex budget) shows headroom exists today; the contract's job is to make
-  that headroom provable and durable, not to reduce it further.
+  explicitly applies a profile. Its measured cost (~2,874 estimated tokens, 56%
+  of the Codex budget on 2026-07-31) shows headroom exists today; the contract's
+  job is to make that headroom provable and durable, not to reduce it further.
+  Both machines currently carry the same 32 entries — the 31 canonical skills
+  plus one foreign skill, `microsoft-foundry` — so a live foreign-entry
+  observation and a live cross-machine agreement case both already exist and do
+  not need to be constructed.
 - Listing cost is a moving target, and every figure in this contract is a
   measurement with a date rather than a constant. Description edits move it
   without changing skill membership, and skill authoring moves it without any
@@ -374,8 +383,9 @@ The reference behavior is explicit:
   counted against the budget, but this contract does not resolve it. Per-harness
   membership would change profile identity semantics and is deliberately
   excluded from the initial contract.
-- Routing coverage is currently sparse: 57 skills pass the structural contract,
-  but only two declare trigger fixtures. Profile work reports that limitation
+- Routing coverage is currently sparse: 49 skills pass the structural contract,
+  but only three declare trigger fixtures (`blind-spots`, `test-strategy`,
+  `verify-before-complete`, measured 2026-07-31). Profile work reports that limitation
   honestly and adds collision evidence where adjacent included skills need it;
   it does not manufacture low-quality trigger phrases for every skill.
 - `dojo profiles verify --all` is the required observable invocation. Whether
@@ -479,8 +489,10 @@ The reference behavior is explicit:
   declared cases against selected Dojo members plus observed foreign
   competitors, records included-skill and fixture coverage, and fails when a
   foreign description defeats a required positive or collision assertion.
-- **EV-LEG-01 (SC-05, SC-09):** A whole-catalog project link is detected as 57
-  managed skills rather than accepted as an implicit `full` profile. Explicit
+- **EV-LEG-01 (SC-05, SC-09):** A whole-catalog project link is detected as the
+  full canonical membership at the selected revision rather than accepted as an
+  implicit `full` profile — the fixture pins a count so a partial scan cannot
+  pass, and that count tracks the catalog rather than a number quoted here. Explicit
   migration preserves its predecessor and activates only the selected profile.
   A subsequent documented adapter refresh preserves that membership.
 - **EV-LEG-02 (SC-05, SC-09, SC-11):** An intersection-only installation with a
@@ -502,6 +514,24 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-07-31 (revision 7).** Corrections and one sequencing constraint. Three
+  counts were stale: 57 skills pass the structural contract (now 49), two
+  declare trigger fixtures (now three), and EV-LEG-01's fixture pinned the
+  literal number 57 — replaced with a count that tracks the catalog, since a
+  fixture quoting a constant is the same defect this contract exists to prevent.
+
+  The budget table is restated. A fresh measurement puts the curated
+  installation at 56% and the full catalog at 85%, against 50% and 75% recorded
+  days earlier. The disagreement is not resolved here on purpose: the two passes
+  used different estimators, neither is reproducible from the repository, and
+  adjudicating them is exactly what the verifier is for. Recording the conflict
+  is stronger evidence for this contract than either figure alone.
+
+  Added a delivery-sequence constraint to Handoff. Nothing in the contract
+  changed — no success criterion, evaluation scenario, or authority boundary is
+  modified — but the verify and apply halves are separable and the plan is
+  directed to treat them as separate phases.
 
 - **2026-07-31 (revision 6).** Corrects revision 5's measurement, which was
   wrong in a way that inverted one of its conclusions. Codex reads a skill
@@ -609,3 +639,29 @@ budget checks, not an unresolved behavioral decision.
    traceability.
 3. Reopen contract decisions rather than hiding any implementation discovery
    that changes profile semantics, budget authority, or mutation safety.
+
+**Delivery sequence.** The plan must deliver the read-only half before the
+mutating half, as separately shippable phases:
+
+- **Phase 1 — verify only.** Profile definitions, resolution, effective-catalog
+  budget evaluation, and conformance evidence: SC-01 through SC-06, SC-10,
+  SC-11, plus the audit-only halves of SC-09 and SC-12. `dojo profiles verify
+  --all` works end to end and reports drift. Nothing mutates target state, so
+  the entire recovery, idempotence, and concurrency surface is out of phase 1 by
+  construction rather than by omission.
+- **Phase 2 — apply.** SC-07, SC-08, SC-13, migration under SC-09, and the
+  EV-REC and EV-CON scenarios.
+
+This is a sequencing constraint, not a scope reduction: every success criterion
+and evaluation scenario remains in the contract and phase 2 is required for
+acceptance. The reason to split is that phase 1 carries most of the value and
+almost none of the risk. It answers the question no tool in this repository
+answers today — what does the effective catalog cost right now, against an
+authoritative limit — and the figures in this contract had to be measured by
+hand, twice, with conflicting results, precisely because it does not exist.
+Phase 2 automates an action a maintainer performs rarely, and is where the whole
+partial-failure and concurrency apparatus lives.
+
+Phase 1 also supplies the missing referent for cross-machine drift monitoring
+(`ops` register D6): a drift monitor needs a declaration of intended membership
+to compare against, and no such declaration exists until profiles do.
