@@ -13,7 +13,7 @@ readiness: ready
 
 ## Problem
 
-Dojo currently treats its 57-skill canonical catalog as though every skill
+Dojo currently treats its canonical catalog as though every skill
 should be visible in every harness and project. Adapters expose the whole
 catalog, even though the deliberately curated global installation contains only
 31 canonical skills.
@@ -32,25 +32,27 @@ provide, and doing so silently from the maintainer's point of view.
 The measured position, after a description-trimming pass on 2026-07-31 that cut
 ten skills without removing any:
 
-| Set | Est. tokens | % of budget |
-|---|---|---|
-| Curated 31-skill installation | ~2,594 | 50% |
-| Full 57-skill canonical catalog | ~4,667 | **90%** |
+| Set | Skills | Est. tokens | % of budget |
+|---|---|---|---|
+| Curated global installation | 31 | ~2,594 | 50% |
+| Full canonical catalog | 49 | ~3,901 | **75%** |
 
-The full catalog therefore sits **exactly at the 90% deployability ceiling this
-contract defines** — conformant by rounding, with zero headroom. That is a
-worse position than being plainly over, because it is unstable in a way no
-current signal reports: the catalog grows by authoring, and a single new skill
-with a median-length description pushes it past the ceiling. Before the
-trimming pass the same catalog measured ~5,718 tokens (111%), so the margin
-that exists today was manufactured by hand and can be spent the same way.
+The catalog is inside the ceiling today, and the way it got there is the
+argument for this contract. On 2026-07-31 alone it measured 111%, then 90%,
+then 77%, then 75% — first from trimming ten descriptions, then from retiring
+eight skills. **Four different values in one day, none of them the result of a
+distribution decision.** Editing a description moves it; authoring a skill
+moves it; neither action involves anyone deciding what a target should
+receive.
 
-This is the argument for profiles, and trimming does not substitute for it.
-Trimming bought roughly 1,000 tokens once; it cannot be repeated indefinitely,
-and it does nothing about the *next* skill. Only an explicit, versioned
-selection keeps a deployable target deployable as the canonical catalog grows.
+That is the instability profiles address, and headroom does not remove it.
+Trimming and retirement are one-time recoveries against a quantity that grows
+by authoring, and nothing in the repository currently reports the number at
+all — it was measured by hand each time, and only because someone happened to
+be looking. An explicit, versioned selection is what keeps a deployable target
+deployable without depending on that.
 
-The 31-skill subset that currently fits is undocumented curation. It exists as
+The 31-skill global subset that currently fits is undocumented curation. It exists as
 installed state rather than as a reviewable declaration, so it cannot be
 reproduced on a second machine, reviewed as a unit, or distinguished from drift.
 Maintainers therefore cannot express which skills should be distributed
@@ -121,7 +123,7 @@ catalog as conformant.
   includes `api-design` and `create-cli`; `research` includes `deep-research`
   and `research-architect`; `design` includes `frontend-design` and
   `design-critique`; `knowledge` includes `obsidian-markdown` and
-  `compound-docs`; `shipping` includes `gh-commit-push-pr` and `gh-review-pr`;
+  `compound-docs`; `shipping` includes `gh-commit-push-pr` and `vercel-deploy`;
   and `skill-authoring` includes `skill-creator` and `skill-standardizer`.
   `full` resolves to every canonical skill at the selected revision. Complete
   overlay membership is explicit profile evidence, not inferred from category
@@ -202,16 +204,16 @@ catalog as conformant.
   maintenance entrypoints are profile-aware. Against a profile-managed target,
   they preserve the selected realization; without an explicit profile for an
   unprofiled target, they refuse to create a whole-catalog skill link. Running a
-  documented adapter refresh cannot convert a scoped target back to all 57
-  canonical skills.
+  documented adapter refresh cannot convert a scoped target back to the full
+  canonical catalog.
 
 ## Evaluation
 
 Acceptance is mechanical, not an experiment. The contract is accepted when the
 profile verifier and its behavior fixtures prove all success criteria across
 the nominal, boundary, and failure scenarios below. The fixed catalog fixture
-contains all 57 canonical skills, the current 31-skill curated global subset,
-all 26 currently absent canonical skills, at least three foreign entries, and
+contains the full canonical catalog at the selected revision, the current
+curated global subset, every canonical skill absent from it, at least three foreign entries, and
 both user- and project-scope observations. Budget fixtures straddle the boundary
 at exactly 8,900, 9,000, and 9,100 basis points of an authoritative harness
 limit. Comparison uses exact integer token counts (`cost * 10_000 <= limit *
@@ -468,6 +470,18 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-07-31 (revision 4).** SC-02 named `gh-review-pr` as a required anchor
+  of the `shipping` overlay. That skill was retired the same day, so the
+  contract required membership in a skill that does not exist — the first
+  instance of this spec being falsified by the repository rather than by a
+  measurement. Replaced with `vercel-deploy`, which is non-`core`, live, and
+  squarely about getting work out the door. Every other anchor was checked
+  against the catalog and is present. Counts throughout are now stated as
+  measurements with a date rather than as constants, since the catalog moved
+  from 57 skills to 49 and from 90% of budget to 75% between revisions 3 and 4.
+  No other success criterion, evaluation scenario, or authority boundary
+  changed.
 
 - **2026-07-31 (revision 3).** Problem re-measured after a description-trimming
   pass on ten skills. The full canonical catalog moved from ~5,718 estimated
