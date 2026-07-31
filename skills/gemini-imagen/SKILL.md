@@ -13,7 +13,7 @@ Generate and edit images using Google's Gemini API. The environment variable `GE
 
 | Setting      | Default                          | Options                                                              |
 | ------------ | -------------------------------- | -------------------------------------------------------------------- |
-| Model        | `gemini-flash-latest`            | `--model gemini-pro-latest` for production-quality finals            |
+| Model        | `gemini-3.1-flash-image`         | `--model gemini-3-pro-image` for production-quality finals            |
 | Resolution   | 1K                               | 1K, 2K, 4K                                                          |
 | Aspect Ratio | 1:1                              | 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9, 4:1, 1:4, 8:1, 1:8 |
 
@@ -31,9 +31,9 @@ Run from the user's working directory so images save where expected, not in the 
 
 Follow a two-tier draft-iterate-final pattern:
 
-1. **Draft (Flash, 1K):** Use the default model (`gemini-flash-latest`) at 1K for rapid ideation.
+1. **Draft (Flash, 1K):** Use the default model (`gemini-3.1-flash-image`) at 1K for rapid ideation.
 2. **Iterate:** Adjust the prompt in small diffs. Use a new filename per run. For editing, keep the same `--input-image`.
-3. **Final (Pro, 4K):** When the prompt is locked, re-run with `--model gemini-pro-latest --resolution 4K` for production-quality output.
+3. **Final (Pro, 4K):** When the prompt is locked, re-run with `--model gemini-3-pro-image --resolution 4K` for production-quality output.
 
 ## Resolution Options
 
@@ -149,7 +149,7 @@ The script runs single-turn calls. For iterative refinement within a single conv
 from google.genai import types
 
 chat = client.chats.create(
-    model="gemini-3.1-flash-image-preview",
+    model="gemini-3.1-flash-image",
     config=types.GenerateContentConfig(response_modalities=["TEXT", "IMAGE"]),
 )
 response = chat.send_message("Create a logo for 'Acme Corp'")
@@ -162,7 +162,7 @@ Use Google Search grounding to generate images informed by real-world data:
 
 ```python
 response = client.models.generate_content(
-    model="gemini-3.1-flash-image-preview",
+    model="gemini-3.1-flash-image",
     contents="Generate an image of the latest Tesla Model Y in a showroom",
     config=types.GenerateContentConfig(
         response_modalities=["TEXT", "IMAGE"],
@@ -184,7 +184,7 @@ images = [Image.open(p) for p in ["ref1.jpg", "ref2.jpg", "ref3.jpg"]]
 contents = ["Combine these into a single panoramic scene"] + images
 
 response = client.models.generate_content(
-    model="gemini-3.1-flash-image-preview",
+    model="gemini-3.1-flash-image",
     contents=contents,
     config=config,
 )

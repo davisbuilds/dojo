@@ -6,7 +6,6 @@
 
 ## Models
 - Default: `gpt-image-2`
-- Alternatives: `gpt-image-1-mini` (for faster, lower-cost generation)
 
 ## Core parameters (generate + edit)
 - `prompt`: text prompt

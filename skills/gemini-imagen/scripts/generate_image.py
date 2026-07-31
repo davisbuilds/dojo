@@ -25,9 +25,12 @@ import os
 import sys
 from pathlib import Path
 
-DRAFT_MODEL = "gemini-flash-latest"
-FINAL_MODEL = "gemini-pro-latest"
-MODEL_CHOICES = [DRAFT_MODEL, FINAL_MODEL]
+# Image output requires an image-capable model; general aliases such as
+# gemini-flash-latest do not return image parts. Not constrained with argparse
+# `choices` on purpose: these IDs have already churned once (the -preview
+# suffix was dropped at GA), so an override must not require a code edit.
+DRAFT_MODEL = "gemini-3.1-flash-image"
+FINAL_MODEL = "gemini-3-pro-image"
 
 ASPECT_CHOICES = [
     "1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4",
@@ -259,9 +262,8 @@ def _add_common_args(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         "--model", "-m",
-        choices=MODEL_CHOICES,
         default=DRAFT_MODEL,
-        help=f"Model to use: {DRAFT_MODEL} (default, for drafts) or {FINAL_MODEL} (for finals)",
+        help=f"Image-capable model: {DRAFT_MODEL} (default, drafts) or {FINAL_MODEL} (finals)",
     )
 
 
