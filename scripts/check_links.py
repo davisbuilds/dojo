@@ -48,6 +48,12 @@ FENCE = re.compile(r"^```.*?^```", re.M | re.S)
 # stop catching the real thing.
 PLACEHOLDERS = {"my-skill", "your-skill", "example-skill", "skill-name", "some-skill"}
 
+# docs/archive/ is gitignored: completed plans and superseded analyses are kept
+# locally, not published. Living docs legitimately cite them for the local
+# reader, so those links resolve on the author's machine and nowhere else.
+# Checking them would fail every CI run for a reason that is not a defect.
+LOCAL_ONLY_PREFIXES = ("docs/archive/",)
+
 
 def strip_fences(text: str) -> str:
     """Drop fenced code blocks.
@@ -103,6 +109,12 @@ def check(skills_root: Path = SKILLS_ROOT, living_docs: list[Path] | None = None
 
         for link in MD_LINK.findall(text):
             target = (path.parent / link.split("#", 1)[0]).resolve()
+            try:
+                as_rel = target.relative_to(REPO_ROOT).as_posix()
+            except ValueError:
+                as_rel = ""
+            if as_rel.startswith(LOCAL_ONLY_PREFIXES):
+                continue
             if not target.exists():
                 problems.append(f"{rel}: broken link -> {link}")
 

@@ -119,3 +119,41 @@ def test_inline_sibling_mention_is_not_flagged(tmp_path: Path) -> None:
     make_skill(root, "alpha", "## Sibling skills\n\n- `beta` — use when the user asks for `gpt-image-2`.\n")
     make_skill(root, "beta", "x\n")
     assert MODULE.check(root, []) == []
+
+
+def test_links_into_local_only_archive_are_skipped(tmp_path: Path, monkeypatch) -> None:
+    """docs/archive/ is gitignored, so its contents exist locally and never in CI.
+
+    Regression guard for the failure this gate shipped with: it passed on the
+    author's machine and failed on a clean checkout, because two living docs
+    cite an archived analysis that is deliberately unpublished.
+    """
+    repo = tmp_path
+    (repo / "docs" / "project").mkdir(parents=True)
+    (repo / "docs" / "project" / "ROADMAP.md").write_text(
+        "Based on the [analysis](../archive/skill-analysis/old.md).\n", encoding="utf-8"
+    )
+    root = repo / "skills"
+    make_skill(root, "alpha", "Nothing.\n")
+    monkeypatch.setattr(MODULE, "REPO_ROOT", repo)
+    assert MODULE.check(root, [repo / "docs" / "project"]) == []
+
+
+def test_clean_checkout_matches_working_tree() -> None:
+    """The gate must not depend on untracked files being present.
+
+    Anything the checker resolves through a gitignored path is a false pass that
+    turns into a CI failure, which is exactly how this shipped broken once.
+    """
+    import subprocess
+
+    tracked = subprocess.run(
+        ["git", "ls-files", "docs", "skills", "README.md"],
+        cwd=MODULE.REPO_ROOT, capture_output=True, text=True, check=True,
+    ).stdout.split()
+    for problem in MODULE.check():
+        assert False, f"working tree is not clean for the gate: {problem}"
+    # Every living doc the checker scans must itself be tracked.
+    for path in MODULE.markdown_files(MODULE.SKILLS_ROOT, MODULE.LIVING_DOCS):
+        rel = path.relative_to(MODULE.REPO_ROOT).as_posix()
+        assert rel in tracked, f"{rel} is scanned by the gate but not tracked in git"
