@@ -1,13 +1,6 @@
 ---
 name: audit-skill
-description: >-
-  Security audit for agent skills using a three-layer deterministic architecture:
-  structural validation, instruction scanning (prompt injection, encoding tricks,
-  exfiltration, overreach), and code analysis (secrets, dangerous patterns).
-  Produces a trust score (A-F) with per-layer breakdown.
-  Use when reviewing a skill for security, auditing a skill before installation,
-  checking for prompt injection, or when the user says 'audit skill', 'check skill security',
-  'trust score', 'is this skill safe', or 'audit-skill'. On-demand via /audit-skill command.
+description: Security audit for agent skills — structural validation, prompt-injection and exfiltration scanning, and code analysis, producing an A–F trust score. Use when reviewing a skill for security, auditing a skill before installation, checking for prompt injection, or when the user says 'audit skill', 'check skill security', 'trust score', 'is this skill safe'. On-demand via /audit-skill.
 skill-type: workflow
 compatibility: "Requires python3, PyYAML. Layer 3 code audit requires semgrep CLI (brew install semgrep). Semgrep rule downloads require network on first run."
 version: 1.0.0
