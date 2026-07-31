@@ -351,12 +351,27 @@ The reference behavior is explicit:
   informed by evidence gathered elsewhere, which is why overlay composition is
   reviewable data rather than a contract term.
 - The `core` and anchor membership named above was set on 2026-07-31 from
-  observed session use across both harnesses, excluding a catalog-wide read
-  sweep that touches every skill and means nothing. That is an engagement
-  signal, not an outcome one: it shows what gets consulted, never whether
-  consulting it helped. It is the best available basis for a baseline and a
-  deliberately weak one, and it should be re-derived rather than trusted when
-  outcome evidence exists.
+  observed session use, measured separately per harness — Codex consultations
+  over 17 skill-using sessions, Claude dispatches over 14 — and excluding a
+  catalog-wide read sweep that touches every skill and means nothing. Counts
+  are not summed across harnesses: the two are detected by different mechanisms
+  and only comparable as rates. That is an engagement signal, not an outcome
+  one: it shows what gets consulted, never whether consulting it helped. It is
+  the best available basis for a baseline and a deliberately weak one, and it
+  should be re-derived rather than trusted when outcome evidence exists.
+- **The measured populations are close to disjoint, and this is the largest
+  open risk to a single `core`.** Of the twelve most-used skills, only four
+  appear in both harnesses. `first-principles` reaches 76% of Codex skill-using
+  sessions and 0% of Claude's; `write-spec` and `write-plan` reach 50% of
+  Claude's and 0% of Codex's; `verify-before-complete`, `local-review`,
+  `session-retro`, `brainstorming`, `test-strategy` and `secure-code` are
+  Codex-only, while `blind-spots` and `design-critique` are Claude-only. A
+  single mandatory baseline therefore ships roughly half its members into a
+  harness that has never used them. The initial contract accepts that: profile
+  identity stays harness-independent, and the cost is visible in
+  effective-catalog evidence rather than hidden. Whether the baseline should
+  vary by harness is a contract-revision question, not an implementation
+  detail, and the sample here (17 and 14 sessions) is too small to settle it.
 - Overlays resolve to the same membership on every harness. Where a harness
   ships a built-in equivalent of a profile member — Codex carries its own
   `skill-creator`, `skill-installer`, and image-generation skills as `.system`
@@ -510,6 +525,14 @@ budget checks, not an unresolved behavioral decision.
   `session-retro`, and `design` swaps `frontend-design` for
   `web-design-guidelines`, which is also the routing hub the rest of the design
   cluster defers to.
+
+  **Corrected the same day:** the first pass summed session counts across
+  harnesses, which is wrong — Codex consultation and Claude dispatch are
+  detected by different mechanisms and only comparable as rates. Recomputed per
+  harness (17 and 14 skill-using sessions) the membership conclusions hold, but
+  the divergence they rest on is much starker than the summed view showed: only
+  four of the twelve most-used skills appear in both harnesses at all. That is
+  now recorded as the largest open risk to having a single `core`.
 
   Two limits are now stated rather than left implicit: this is an *engagement*
   signal and not an outcome one, so it should be re-derived when outcome
