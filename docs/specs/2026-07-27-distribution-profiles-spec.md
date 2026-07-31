@@ -19,17 +19,36 @@ catalog, even though the deliberately curated global installation contains only
 31 canonical skills.
 
 Measured against the one harness for which an authoritative listing limit can
-be established, whole-catalog distribution is not merely wasteful — it does not
-fit. Codex derives its skills budget as 2% of the model context window in
-tokens, falling back to 8,000 characters only when the window is unknown
+be established, whole-catalog distribution leaves no margin at all. Codex
+derives its skills budget as 2% of the model context window in tokens, falling
+back to 8,000 characters only when the window is unknown
 (`codex-rs/core-skills/src/render.rs`, `default_skill_metadata_budget`, at
 pinned revision `f57467275c`). At the observed window of 258,400 that budget is
-**5,168 tokens**. The curated 31-skill installation costs ~3,315 estimated
-tokens (**64%** of budget); the full 57-skill canonical catalog would cost
-~5,718 (**111%**). Exceeding the budget is not a soft condition: Codex shortens
+**5,168 tokens**. Exceeding it is not a soft condition: Codex shortens
 descriptions first and emits a truncation warning, then removes descriptions
 entirely — degrading exactly the routing signal a skill catalog exists to
 provide, and doing so silently from the maintainer's point of view.
+
+The measured position, after a description-trimming pass on 2026-07-31 that cut
+ten skills without removing any:
+
+| Set | Est. tokens | % of budget |
+|---|---|---|
+| Curated 31-skill installation | ~2,594 | 50% |
+| Full 57-skill canonical catalog | ~4,667 | **90%** |
+
+The full catalog therefore sits **exactly at the 90% deployability ceiling this
+contract defines** — conformant by rounding, with zero headroom. That is a
+worse position than being plainly over, because it is unstable in a way no
+current signal reports: the catalog grows by authoring, and a single new skill
+with a median-length description pushes it past the ceiling. Before the
+trimming pass the same catalog measured ~5,718 tokens (111%), so the margin
+that exists today was manufactured by hand and can be spent the same way.
+
+This is the argument for profiles, and trimming does not substitute for it.
+Trimming bought roughly 1,000 tokens once; it cannot be repeated indefinitely,
+and it does nothing about the *next* skill. Only an explicit, versioned
+selection keeps a deployable target deployable as the canonical catalog grows.
 
 The 31-skill subset that currently fits is undocumented curation. It exists as
 installed state rather than as a reviewable declaration, so it cannot be
@@ -307,9 +326,15 @@ The reference behavior is explicit:
   hashed.
 - The 31-skill global installation is evidence of intentional curation, not the
   default profile definition. Existing selection is preserved until a maintainer
-  explicitly applies a profile. Its measured cost (~3,315 estimated tokens, 64%
+  explicitly applies a profile. Its measured cost (~2,594 estimated tokens, 50%
   of the Codex budget) shows headroom exists today; the contract's job is to make
   that headroom provable and durable, not to reduce it further.
+- Listing cost is a moving target, and every figure in this contract is a
+  measurement with a date rather than a constant. Description edits move it
+  without changing skill membership, and skill authoring moves it without any
+  deliberate distribution decision at all. Acceptance therefore turns on the
+  verifier computing the figure at verify time, never on a number quoted here
+  remaining true.
 - Whether an individual skill earns its slot is outside this contract. Profiles
   make membership explicit, reviewable, and enforceable; they do not establish
   that any member improves outcomes. Membership remains a maintainer judgment
@@ -443,6 +468,18 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-07-31 (revision 3).** Problem re-measured after a description-trimming
+  pass on ten skills. The full canonical catalog moved from ~5,718 estimated
+  tokens (111% of the Codex budget) to ~4,667 (90%), and the curated
+  installation from 64% to 50%. Revision 2 argued that whole-catalog
+  distribution "does not fit"; that is no longer literally true, so the argument
+  is restated on zero-margin instability rather than on overflow. The finding
+  that matters more: listing cost changed by roughly a fifth in one day from
+  edits that touched no skill membership, which is itself evidence that a
+  quoted figure cannot be load-bearing and the verifier must compute at verify
+  time. No success criterion, evaluation scenario, or authority boundary
+  changed.
 
 - **2026-07-31 (revision 2).** Problem restated on Codex evidence. The original
   rested on a Claude Code listing budget that could not be verified and on an
