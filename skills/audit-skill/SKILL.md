@@ -3,7 +3,7 @@ name: audit-skill
 description: Security audit for agent skills — structural validation, prompt-injection and exfiltration scanning, and code analysis, producing an A–F trust score. Use when reviewing a skill for security, auditing a skill before installation, checking for prompt injection, or when the user says 'audit skill', 'check skill security', 'trust score', 'is this skill safe'. On-demand via /audit-skill.
 skill-type: workflow
 compatibility: "Requires python3, PyYAML. Layer 3 code audit requires semgrep CLI (brew install semgrep). Semgrep rule downloads require network on first run."
-version: 1.0.1
+version: 1.0.2
 ---
 
 # audit-skill
@@ -32,6 +32,13 @@ Use this skill when:
 - **Fully offline**: No cloud APIs or network calls required. Semgrep uses local rules.
 - **Composable**: Each layer runs independently. Reuses `secure-code` skill for Layer 3 SAST.
 - **Graceful degradation**: If semgrep is unavailable, Layer 3 still runs regex-based checks.
+
+## Bundled Resources
+
+- `scripts/audit_skill.py` — the audit runner invoked in every Workflow command below.
+- `rules/skill-scripts.yaml` — the semgrep ruleset Layer 3 loads (`eval`/`exec` on
+  non-literals, subprocess with shell, credential exfiltration). Edit this to change
+  what code analysis catches; it is the deterministic half of the trust score.
 
 ## Boundaries
 

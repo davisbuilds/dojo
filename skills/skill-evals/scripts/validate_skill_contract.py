@@ -105,9 +105,11 @@ def resource_map_present(text: str, skill_dir: Path) -> bool:
             r"template",
             r"reference files",
             r"full compiled document",
-            r"rules",
         ],
     )
+    # `rules/` is matched by path only, never as a heading: "## Rules" is a
+    # common behavioral section, so accepting it as a resource map would let a
+    # skill bundling scripts/ pass without documenting anything.
     has_path_mentions = re.search(r"\b(scripts/|references/|assets/|commands/|rules/)\b", text) is not None
     return has_resource_heading or has_path_mentions
 
