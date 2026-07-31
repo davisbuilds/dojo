@@ -77,7 +77,11 @@ SKILL.md frontmatter is the source of truth. Two generation steps derive artifac
    - Defines quality/verification/success criteria.
 
 6. `resource_map_present`
-   - If skill bundles resources (`scripts/`, `references/`, `assets/`, `commands/`), SKILL.md points to them clearly.
+   - If skill bundles resources (`scripts/`, `references/`, `assets/`, `commands/`, `rules/`), SKILL.md points to them clearly.
+   - `rules/` holds standing constraints that apply whenever the skill is
+     active, as distinct from `references/`, which holds material looked up on
+     demand. That distinction is why it is a directory of its own rather than
+     being folded into `references/`.
 
 ## Type-Specific Structural Checks
 
@@ -106,9 +110,16 @@ For `reference` skills:
 
 9. `context_budget`
    - SKILL.md line count guidance:
-     - <=500: pass
+     - <=250: pass
+     - 251-500 **and the skill bundles `references/`**: warn (progressive
+       disclosure — the skill already has somewhere to put this detail)
+     - 251-500 with no `references/`: pass
      - 501-700: warn
      - >700: warn (needs decomposition plan)
+   - The 251-500 warn is conditional on `references/` existing because
+     placement is the defect, not length. A long SKILL.md with nowhere to move
+     detail is a different problem from one that owns a populated
+     `references/` and keeps the detail inline anyway.
 
 10. `triggers_valid`
     - Only applies when the optional `triggers` field is present.

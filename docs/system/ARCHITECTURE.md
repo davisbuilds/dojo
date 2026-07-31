@@ -17,7 +17,8 @@ skill-name/
 ├── commands/          # Optional: command-wrapper docs for slash-style entrypoints
 ├── scripts/           # Optional: executable Python/Bash code
 ├── evals/             # Optional: trigger-cases.json + behavioral-scenarios.md (see Test Tiers)
-├── references/        # Optional: documentation loaded into context as needed
+├── references/        # Optional: documentation looked up on demand
+├── rules/             # Optional: standing constraints that apply whenever the skill is active
 └── assets/            # Optional: templates, images, fonts for output
 ```
 

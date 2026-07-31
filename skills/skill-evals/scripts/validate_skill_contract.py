@@ -90,7 +90,7 @@ def not_applicable(check_name: str, skill_type: str) -> bool:
 
 
 def resource_map_present(text: str, skill_dir: Path) -> bool:
-    bundled = [d for d in ("scripts", "references", "assets", "commands") if (skill_dir / d).exists()]
+    bundled = [d for d in ("scripts", "references", "assets", "commands", "rules") if (skill_dir / d).exists()]
     if not bundled:
         return True
 
@@ -105,9 +105,10 @@ def resource_map_present(text: str, skill_dir: Path) -> bool:
             r"template",
             r"reference files",
             r"full compiled document",
+            r"rules",
         ],
     )
-    has_path_mentions = re.search(r"\b(scripts/|references/|assets/|commands/)\b", text) is not None
+    has_path_mentions = re.search(r"\b(scripts/|references/|assets/|commands/|rules/)\b", text) is not None
     return has_resource_heading or has_path_mentions
 
 
@@ -264,7 +265,20 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         else "Skill bundles resources but SKILL.md does not clearly reference them",
     )
 
-    if lines <= 500:
+    has_references = (skill_dir / "references").exists()
+    if lines <= 250:
+        context_status = "pass"
+        context_msg = f"SKILL.md is within context budget ({lines} lines)"
+    elif lines <= 500 and has_references:
+        # Progressive disclosure: a skill that owns references/ and still keeps
+        # this much in SKILL.md is carrying detail it already has somewhere to
+        # put. Warn only -- placement is a judgment call, not a contract breach.
+        context_status = "warn"
+        context_msg = (
+            f"SKILL.md is {lines} lines and this skill bundles references/; "
+            "consider moving detail there"
+        )
+    elif lines <= 500:
         context_status = "pass"
         context_msg = f"SKILL.md is within context budget ({lines} lines)"
     elif lines <= 700:
