@@ -14,15 +14,37 @@ readiness: ready
 ## Problem
 
 Dojo currently treats its 57-skill canonical catalog as though every skill
-should be visible in every harness and project. Project adapters expose the
-whole catalog, even though the deliberately curated global installation
-contains only 31 canonical skills. On a measured Claude Code installation, the
-whole-catalog project listing consumed about 6,738 estimated tokens, 3.4 times
-the harness's listing budget, and silently shadowed 31 user-scoped skills.
-Meanwhile, the installed subset can drift from the canonical checkout without a
-profile-level conformance signal. Maintainers therefore cannot express which
-skills should be distributed together, prove that the effective catalog fits a
-harness, or distinguish intentional selection from missing or stale state.
+should be visible in every harness and project. Adapters expose the whole
+catalog, even though the deliberately curated global installation contains only
+31 canonical skills.
+
+Measured against the one harness for which an authoritative listing limit can
+be established, whole-catalog distribution is not merely wasteful — it does not
+fit. Codex derives its skills budget as 2% of the model context window in
+tokens, falling back to 8,000 characters only when the window is unknown
+(`codex-rs/core-skills/src/render.rs`, `default_skill_metadata_budget`, at
+pinned revision `f57467275c`). At the observed window of 258,400 that budget is
+**5,168 tokens**. The curated 31-skill installation costs ~3,315 estimated
+tokens (**64%** of budget); the full 57-skill canonical catalog would cost
+~5,718 (**111%**). Exceeding the budget is not a soft condition: Codex shortens
+descriptions first and emits a truncation warning, then removes descriptions
+entirely — degrading exactly the routing signal a skill catalog exists to
+provide, and doing so silently from the maintainer's point of view.
+
+The 31-skill subset that currently fits is undocumented curation. It exists as
+installed state rather than as a reviewable declaration, so it cannot be
+reproduced on a second machine, reviewed as a unit, or distinguished from drift.
+Maintainers therefore cannot express which skills should be distributed
+together, prove that an effective catalog fits a harness, or tell intentional
+exclusion apart from missing or stale state.
+
+Claude Code is deliberately **not** a motivating case here. No authoritative
+listing limit for it can be established from vendor documentation or a
+reproducible local probe, so under SC-04 it is audit-only until such a policy
+exists. Earlier framings of this problem rested on an unverified Claude listing
+budget and on an assumption that project-scope skills are inherited by
+subdirectory sessions; neither survived verification, and the contract no longer
+depends on either.
 
 ## Contract
 
@@ -40,10 +62,11 @@ profile-scoped target.
 succeeds only when every profile definition is valid and every currently
 observed deployable realization matches its selected profile and canonical
 source revision while remaining at or below 90% of an authoritative,
-harness-version-scoped listing limit. A limit is authoritative when it is either
-vendor-published for the observed harness/model or established by a reproducible
-versioned measurement with a conservative observed bound. A harness with
-neither source remains audit-only. The report identifies the profile and source
+harness-version-scoped listing limit. A limit is authoritative when it is
+vendor-published for the observed harness/model, derived from vendor
+implementation source at a pinned revision, or established by a reproducible
+versioned measurement with a conservative observed bound. A harness with none of
+these sources remains audit-only. The report identifies the profile and source
 revision, resolved membership, observed drift, scope collisions, foreign and
 plugin entries, routing coverage, harness and policy versions, estimated listing
 cost, limit, and remaining headroom. The same inputs produce byte-identical
@@ -100,7 +123,12 @@ catalog as conformant.
   policy records the exact harness and model versions, context window, listing
   representation, tokenizer or conservative estimator, measurement date, and
   repeatable probe; two unchanged runs must agree within 2%, and the lower
-  observed limit governs. An unknown or stale limit, uninspectable scope, or
+  observed limit governs. Where the harness's own estimator is knowable from
+  vendor source, the policy must use that same estimator rather than an
+  independent one, so budget arithmetic matches the harness's own rather than
+  merely approximating it. Codex computes both its budget and its per-entry cost
+  with a 4-bytes-per-token approximation, so a Codex policy uses characters
+  divided by four and the 5% undercount bound is satisfied by construction. An unknown or stale limit, uninspectable scope, or
   unknown precedence rule is reported as unsupported rather than assumed safe.
   The `full` profile receives no budget exemption and is never the default.
 - **SC-05 — Exact managed realization:** A conformant target exposes every
@@ -260,10 +288,14 @@ The reference behavior is explicit:
   whenever the profile definition, selected canonical skill content, target
   realization, harness version, or listing-limit declaration changes.
 - Harness listing limits and scope precedence are external policy. Vendor
-  documentation and reproducible versioned probes are the only authoritative
-  sources. A missing, stale, or contradictory policy makes the target audit-only
-  until policy is re-established; it never silently falls back to the `full`
-  profile or an assumed limit.
+  documentation, vendor implementation source at a pinned revision, and
+  reproducible versioned probes are the only authoritative sources. A missing,
+  stale, or contradictory policy makes the target audit-only until policy is
+  re-established; it never silently falls back to the `full` profile or an
+  assumed limit. On the evidence available at authoring time this means Codex is
+  the initial deployable harness and Claude Code is audit-only — so acceptance
+  must not assume more than one deployable harness exists, and the `core`-fits
+  proof in SC-03 is discharged against Codex.
 - The 90% deployability ceiling is an initial conservative guardrail that
   reserves 10% for estimator variance and harness-added metadata. Calibration
   still must satisfy the 5% maximum undercount bound. A future threshold change
@@ -275,7 +307,14 @@ The reference behavior is explicit:
   hashed.
 - The 31-skill global installation is evidence of intentional curation, not the
   default profile definition. Existing selection is preserved until a maintainer
-  explicitly applies a profile.
+  explicitly applies a profile. Its measured cost (~3,315 estimated tokens, 64%
+  of the Codex budget) shows headroom exists today; the contract's job is to make
+  that headroom provable and durable, not to reduce it further.
+- Whether an individual skill earns its slot is outside this contract. Profiles
+  make membership explicit, reviewable, and enforceable; they do not establish
+  that any member improves outcomes. Membership remains a maintainer judgment
+  informed by evidence gathered elsewhere, which is why overlay composition is
+  reviewable data rather than a contract term.
 - Routing coverage is currently sparse: 57 skills pass the structural contract,
   but only two declare trigger fixtures. Profile work reports that limitation
   honestly and adds collision evidence where adjacent included skills need it;
@@ -402,6 +441,18 @@ budget thresholds, mutation boundary, evidence model, and initial exclusions
 are settled for planning. Overlay membership remains ordinary reviewed profile
 data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
+
+## Revision History
+
+- **2026-07-31 (revision 2).** Problem restated on Codex evidence. The original
+  rested on a Claude Code listing budget that could not be verified and on an
+  assumption that project-scope skills are inherited by subdirectory sessions,
+  which is false. Neither claim survives, and neither is now load-bearing. The
+  authoritative-limit definition admits vendor implementation source at a pinned
+  revision; SC-04 requires the harness's own estimator where knowable; Claude
+  Code is recorded as audit-only rather than the motivating case. No success
+  criterion, evaluation scenario, or authority boundary changed — the mechanism
+  is unmodified.
 
 ## Readiness Review
 
