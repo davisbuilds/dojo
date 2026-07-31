@@ -42,7 +42,6 @@
         ],
         "avoid": [
           "write-spec",
-          "gh-review-pr",
           "verify-before-complete"
         ]
       }
@@ -57,7 +56,6 @@
         ],
         "avoid": [
           "local-review",
-          "gh-review-pr",
           "verify-before-complete"
         ]
       }
@@ -161,19 +159,6 @@
       "expected": {
         "trigger": [
           "local-review"
-        ],
-        "avoid": [
-          "blind-spots"
-        ]
-      }
-    },
-    {
-      "id": "negative-gh-review-pr",
-      "type": "implicit",
-      "prompt": "Review pull request 42 on GitHub, check CI, and post a merge recommendation.",
-      "expected": {
-        "trigger": [
-          "gh-review-pr"
         ],
         "avoid": [
           "blind-spots"

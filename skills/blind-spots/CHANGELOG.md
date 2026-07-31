@@ -1,3 +1,12 @@
+# Changelog
+
+## 1.0.3 - 2026-07-31
+
+- Remove `gh-review-pr` from sibling text, the quiz-change command, and the
+  trigger/behavioral fixtures, following its retirement on 2026-07-31. One
+  trigger case (`negative-gh-review-pr`) existed only to route to it and is
+  dropped; the remaining cases keep their assertions.
+
 ## 1.0.2 - 2026-07-31
 
 - Trim the description from 882 to 477 chars. It described how scope and quiz mode work internally; that detail belongs in the body, not the always-loaded skills listing. All five trigger phrases are unchanged, so routing is unaffected.

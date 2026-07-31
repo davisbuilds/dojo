@@ -85,7 +85,6 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 | ~~compound-docs~~ | "STRICT ENFORCEMENT", 7-step mandatory workflow | Done -- rewritten without XML ceremony |
 | verify-before-complete | "Iron Law", "NEVER claim completion" | Keep -- appropriate for its purpose |
 | brainstorming | "MUST use this before any creative work" | Open -- too broad for simple changes |
-| autonomous-engineering | Chains 7+ skills sequentially | Open -- fragile, one failure cascades |
 
 **Guidance:** Use "should" over "MUST" for advisory skills; reserve "MUST" for safety-critical behaviors.
 
@@ -102,9 +101,8 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 ### Duplicate/Overlapping Concerns
 
 1. **gpt-imagen + gemini-imagen**: Same workflow pattern with different APIs. Could share a common skill layer with provider-specific scripts.
-2. **code-review-agents**: dhh-rails-reviewer and kieran-rails-reviewer overlap in domain. Consider merging or clearly differentiating.
-3. **vercel-deploy + vercel-preview-logs**: Could be one skill with deploy + diagnose commands.
-4. **obsidian-markdown + obsidian-bases + obsidian-canvas**: Three separate reference skills. Already trimmed and disambiguated; merging is low priority since trigger routing works (f1 1.00 for all three).
+2. **vercel-deploy + vercel-preview-logs**: Could be one skill with deploy + diagnose commands.
+3. **obsidian-markdown + obsidian-bases + obsidian-canvas**: Three separate reference skills. Already trimmed and disambiguated; merging is low priority since trigger routing works (f1 1.00 for all three).
 
 ### Resource Distribution
 
@@ -127,18 +125,16 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 
 ### Medium Impact
 
-2. **Add auto-detection to code-review-agents** -- Select relevant reviewers based on tech stack
-3. **Bundle guidelines in web-design-guidelines** -- Don't depend on external URL fetch
+2. **Bundle guidelines in web-design-guidelines** -- Don't depend on external URL fetch
 
 ### Low Impact
 
-4. **Add caching to deep-research** -- Avoid re-researching previously answered questions
-5. **Add rule testing to hookify** -- Let users validate rules before activation
-6. **Add example specs to write-spec** -- Show what good specs look like
-7. **Consolidate agent-native-architecture references** -- Reduce overlap between architecture-patterns.md and agent-execution-patterns.md
-8. **LLM-based trigger scoring** -- Add semantic scoring tier for the 10 accepted lexical-limit pairs
+3. **Add caching to deep-research** -- Avoid re-researching previously answered questions
+4. **Add rule testing to hookify** -- Let users validate rules before activation
+5. **Add example specs to write-spec** -- Show what good specs look like
+6. **Consolidate agent-native-architecture references** -- Reduce overlap between architecture-patterns.md and agent-execution-patterns.md
+7. **LLM-based trigger scoring** -- Add semantic scoring tier for the 10 accepted lexical-limit pairs
 
 ## Planned / Open Areas
 
-- Guarded promotion from `self-improve` proposals into harness-level canaries or rollback-aware improvement loops.
 - Expanded test coverage for hook scripts and validation logic.

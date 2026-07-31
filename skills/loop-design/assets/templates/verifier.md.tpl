@@ -20,4 +20,4 @@ A separate agent from the maker, with a clean context. The writer does not grade
 - If `reject`: the single most important thing the maker must fix next.
 
 > Wire this as a Claude Code subagent (`.claude/agents/{{NAME}}-verifier.md`, ideally `isolation: worktree`)
-> or a Codex agent (`.codex/agents/{{NAME}}-verifier.toml`). The checker step may call `local-review` or `code-review-agents`.
+> or a Codex agent (`.codex/agents/{{NAME}}-verifier.toml`). The checker step may call `local-review`.

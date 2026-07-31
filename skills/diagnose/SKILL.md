@@ -2,7 +2,7 @@
 name: diagnose
 description: Disciplined debugging loop for hard bugs and performance regressions — build a deterministic pass/fail signal first, then reproduce, hypothesise, instrument, fix, regression-test. Use when the user says "diagnose this", "debug this", "this is broken/throwing/failing", reports a bug whose cause is non-obvious, or describes a performance regression. For completion-time evidence checks use verify-before-complete; for new-test methodology use test-strategy; for post-hoc code review use local-review.
 skill-type: workflow
-version: 1.0.1
+version: 1.0.2
 ---
 
 # Diagnose
@@ -23,7 +23,7 @@ Skip phases only when explicitly justified (e.g. "the trace already names the ca
 
 - **Gating a completion claim.** Use `verify-before-complete` — that skill is about *evidence before claiming done*, not active debugging.
 - **Designing new test coverage.** Use `test-strategy` for TDD methodology and test-shape decisions.
-- **Reviewing code that *might* have bugs.** Use `local-review` or `code-review-agents` for findings-first inspection.
+- **Reviewing code that *might* have bugs.** Use `local-review` for findings-first inspection.
 - **Bugs where you cannot construct any programmatic feedback signal.** Stop and explicitly say so; ask the user for an environment, a captured artifact, or permission to add temporary instrumentation. Do *not* hypothesise blind.
 
 ## Core Workflow
@@ -168,5 +168,5 @@ Standalone human-in-the-loop reproduction loop. Copy, edit the `step` and `captu
 
 - `verify-before-complete` — the *gate* before claiming done; Phase 6 verification feeds it.
 - `test-strategy` — methodology for the regression test you write in Phase 5 (real deps over mocks, behavior-based assertions).
-- `local-review` / `code-review-agents` — when the question is "is this code correct?" rather than "why is *this specific* failure happening?"
+- `local-review` — when the question is "is this code correct?" rather than "why is *this specific* failure happening?"
 - `first-principles` — when the bug is actually a design flaw and Phase 6 surfaces architectural prevention work.

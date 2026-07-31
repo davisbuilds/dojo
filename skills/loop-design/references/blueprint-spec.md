@@ -108,4 +108,4 @@ Git commits are the checkpoints; the state file is the human-readable summary; t
 ## Maker / checker pattern
 
 - **Maker**: one iteration of the loop. Writes code, runs `guard.sh` then the oracle, updates state.
-- **Checker (verifier)**: a separate agent with a clean context. Re-runs `guard.sh` and the oracle (does not trust a reported result), reads the diff for weakened tests / bloat / dead code, spot-reads the riskiest file, and returns `pass | reject` with evidence. Wire it as a Claude Code subagent (`.claude/agents/`, optionally `isolation: worktree`) or a Codex agent (`.codex/agents/*.toml`). The checker step can call `local-review` or `code-review-agents`.
+- **Checker (verifier)**: a separate agent with a clean context. Re-runs `guard.sh` and the oracle (does not trust a reported result), reads the diff for weakened tests / bloat / dead code, spot-reads the riskiest file, and returns `pass | reject` with evidence. Wire it as a Claude Code subagent (`.claude/agents/`, optionally `isolation: worktree`) or a Codex agent (`.codex/agents/*.toml`). The checker step can call `local-review`.

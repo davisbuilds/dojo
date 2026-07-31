@@ -2,7 +2,7 @@
 name: session-retro
 description: Update existing project reference docs with non-obvious learnings from the current session, routing each learning to the single best existing target rather than creating new files. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on "/retro", "update docs with learnings", "save what we learned", or proactively at session end.
 skill-type: workflow
-version: 1.0.1
+version: 1.0.2
 ---
 
 # Session Retro
@@ -113,5 +113,4 @@ If the best-fit doc is missing, fall back to the closest existing root doc only 
 Four knowledge-capture skills, distinguished by *scope* and *timing*:
 
 - `handoff` — produces a session summary for a fresh instance. Different output: this skill routes facts into existing reference files; that one writes a fresh summary doc.
-- `self-improve` — promote *recurring* learnings across sessions into reusable artifacts. Use when the lesson generalizes; this skill is for project-specific facts.
 - `compound-docs` — write a categorized solution document. Use when the learning is a confirmed end-to-end solution with reproducible code, not a one-line operational fact.

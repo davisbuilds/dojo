@@ -44,8 +44,7 @@ Status: open
   test analyzer, new types -> type analyzer). `code-review@claude-plugins-official`
   goes further with five parallel reviewers on distinct lenses, two of which —
   git blame/history and prior PR comments on the same files — no dojo review skill
-  attempts. Compare against `local-review` and `code-review-agents` before
-  reinventing.
+  attempts. Compare against `local-review` before reinventing.
 - See also the separate branch-hygiene entry below, which owns the one gap found
   in the `commit-commands` plugin.
 - **Sketch**: two new skills, or one `error-handling-review` skill plus a
@@ -57,10 +56,12 @@ Status: open
 Status: open
 - **What**: auditing the `commit-commands@claude-plugins-official` plugin on
   2026-07-29 (now disabled) surfaced one thing the catalog does not cover. The
-  `gh-*` family is `gh-commit-push-pr`, `gh-fix-issue`, `gh-review-pr`,
-  `gh-triage-issues` — all about *producing* work. **Nothing covers post-merge
-  branch and worktree hygiene.** A repo-wide search for `worktree`, `branch -d`,
-  `[gone]`, or `prune` across all 57 `SKILL.md` files returns no relevant hit.
+  `gh-*` family is now just `gh-commit-push-pr` — `gh-fix-issue`, `gh-review-pr`,
+  and `gh-triage-issues` were retired 2026-07-31 as unused. What survives is still
+  about *producing* work, and **nothing covers post-merge branch and worktree
+  hygiene.** A repo-wide search for `worktree`, `branch -d`, `[gone]`, or `prune`
+  across every `SKILL.md` returns no relevant hit. Retirement narrowed the family
+  but did not touch this gap.
 - **Specific gaps**:
   - **Worktree-before-branch ordering.** A branch marked `[gone]` that carries an
     attached worktree (`+` prefix in `git branch -v`) cannot be deleted until the
@@ -224,13 +225,13 @@ Status: noted
   of the global catalog dirs AgentMonitor scans (`~/.claude/skills`,
   `~/.codex/skills`, `~/.agents/skills`) and have never fired, so AgentMonitor
   emits no health row and they land in the report's collapsed "no data" bucket
-  (agent-native-architecture, algorithmic-art, autonomous-engineering, caveman,
-  code-review-agents, compound-docs, design-md, fetchmd, gh-commit-push-pr,
-  gh-fix-issue, gh-review-pr, gh-triage-issues, hookify, loop-design,
-  markdown-converter, nextjs-app-router, repo-hardening, self-improve,
-  skill-evals, skill-installer, template, theme-factory,
-  vercel-composition-patterns, vercel-deploy, vercel-preview-logs,
-  vercel-react-native-skills). The earlier "13 of 55" figure was a stale
+  (agent-native-architecture, algorithmic-art, caveman, compound-docs, design-md,
+  fetchmd, gh-commit-push-pr, hookify, loop-design, markdown-converter,
+  nextjs-app-router, repo-hardening, skill-evals, skill-installer, template,
+  theme-factory, vercel-composition-patterns, vercel-deploy,
+  vercel-preview-logs). **Updated 2026-07-31:** seven of the original 26 were
+  retired rather than installed, so the census is now 19 of 51. The earlier
+  "13 of 55" figure was a stale
   point-in-time AgentMonitor snapshot; the catalog has since grown and prior
   syncs used `--only-existing`.
 - **Why it matters**: A skill that isn't installed anywhere the agent can trigger

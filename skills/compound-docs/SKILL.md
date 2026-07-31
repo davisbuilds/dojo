@@ -7,7 +7,7 @@ allowed-tools:
   - Write # Create resolution docs
   - Bash # Create directories
   - Grep # Search existing docs
-version: 1.0.0
+version: 1.0.1
 ---
 
 ## When To Use
@@ -126,4 +126,3 @@ Four knowledge-capture skills, distinguished by *output shape*:
 
 - `session-retro` — append facts into existing reference docs. Use when the learning fits an existing file; this skill creates a new categorized solution doc.
 - `handoff` — narrative session summary for a fresh instance. Different output.
-- `self-improve` — promote *recurring* patterns into reusable artifacts. Use when a pattern repeats across sessions; this skill is for a single confirmed solution.
