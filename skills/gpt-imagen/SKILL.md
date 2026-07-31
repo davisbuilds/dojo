@@ -3,7 +3,7 @@ name: "gpt-imagen"
 description: "Generate or edit images via the OpenAI Image API (`gpt-image-2`). Use when the user asks to generate, edit, inpaint, mask, remove backgrounds, or create product shots, concept art, covers, or batch outputs using OpenAI. Runs the bundled CLI (`scripts/image_gen.py`) and requires `OPENAI_API_KEY`."
 skill-type: workflow
 compatibility: "Requires python3, openai package, OPENAI_API_KEY. Requires network access for OpenAI API calls."
-version: 1.0.0
+version: 1.1.0
 ---
 
 

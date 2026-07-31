@@ -6,7 +6,7 @@ metadata:
   upstream:
     taxonomy: "https://impeccable.style/slop"
     license: "Web-published; descriptions paraphrased with attribution"
-version: 1.0.0
+version: 1.0.1
 ---
 
 # design-critique

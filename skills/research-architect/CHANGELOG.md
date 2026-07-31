@@ -1,3 +1,7 @@
+## 2.2.1 - 2026-07-31
+
+- Trim mechanism from the description (777 -> 622 chars) while restoring the full trigger list and the external deep-research-product use case, both of which an earlier pass in this session dropped by accident. Routing is unchanged from 2.2.0.
+
 ## 2.2.0 - 2026-07-24
 
 - Add scripts/score_report.py: worksheet extracts claims and citations from a report and samples claim/citation pairs to verify (weighted toward quantitative and source-attribution claims); score computes the citation hit rate from filled-in verdicts, excluding unreachable URLs from the denominator. One check per pair, so a claim's refuting citation is never masked by a supporting one. Never fetches -- judging page support stays with the verifying agent.

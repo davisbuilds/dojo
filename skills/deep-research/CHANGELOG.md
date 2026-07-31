@@ -1,3 +1,7 @@
+## 2.3.1 - 2026-07-31
+
+- Trim the description from 558 to 370 chars by removing the tier-routing and packet-contents detail. The research-architect routing note is preserved verbatim.
+
 ## 2.3.0 - 2026-07-27
 
 - Recognize verified first-party model, harness, protocol, and agent-framework documentation through owned root/subdomain rules; retain relevant priority sources below the aggregate score threshold with an explicit advisory, independent of missing or mismatched caller source-type labels.
