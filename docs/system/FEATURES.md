@@ -111,7 +111,6 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 | `skill-installer` | Install skills from curated lists or GitHub repos |
 | `skill-standardizer` | Detect drift and unify skill copies, with optional single-skill targeting |
 | `find-skills` | Discover installable skills |
-| `hookify` | Create and manage markdown-defined guard-rail hooks |
 | `template` | Starter scaffold for new skills |
 
 ## Hook-Enforced Quality Gates

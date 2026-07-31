@@ -130,10 +130,9 @@ Many skills are instruction-only with no supporting resources. The highest-rated
 ### Low Impact
 
 3. **Add caching to deep-research** -- Avoid re-researching previously answered questions
-4. **Add rule testing to hookify** -- Let users validate rules before activation
-5. **Add example specs to write-spec** -- Show what good specs look like
-6. **Consolidate agent-native-architecture references** -- Reduce overlap between architecture-patterns.md and agent-execution-patterns.md
-7. **LLM-based trigger scoring** -- Add semantic scoring tier for the 10 accepted lexical-limit pairs
+4. **Add example specs to write-spec** -- Show what good specs look like
+5. **Consolidate agent-native-architecture references** -- Reduce overlap between architecture-patterns.md and agent-execution-patterns.md
+6. **LLM-based trigger scoring** -- Add semantic scoring tier for the 10 accepted lexical-limit pairs
 
 ## Planned / Open Areas
 
