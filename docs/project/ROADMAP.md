@@ -8,7 +8,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 
 | Item | Current State |
 |------|---------------|
-| Distribution profiles | The ready high-risk contract in `docs/specs/2026-07-27-distribution-profiles-spec.md` separates the 57-skill canonical inventory from deployable subsets. It pins a core plus non-trivial capability overlays, authoritative harness-scoped listing budgets, exact managed realizations, profile-aware adapter refreshes, read-only cross-machine conformance, safe migration/recovery, and profile-scoped routing evidence. Implementation planning is next. |
+| Distribution profiles | The ready high-risk contract in `docs/specs/2026-07-27-distribution-profiles-spec.md` separates the canonical inventory from deployable subsets. It pins a core plus non-trivial capability overlays, authoritative harness-scoped listing budgets, exact managed realizations, profile-aware adapter refreshes, read-only cross-machine conformance, safe migration/recovery, and profile-scoped routing evidence. Implementation planning is next. |
 
 ## Completed Highlights
 
@@ -16,7 +16,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 |------|-------------|
 | Pre-execution artifact attribution | `brainstorming` 2.0.0 and the current `write-spec` / `write-plan` 2.0.0 contracts now require generated design summaries, specs, and plans to record the producing agent in `author:` frontmatter (for example, `gpt-5.6-sol`). Templates and command wrappers require resolving the placeholder; spec/plan validators enforce it for current-schema artifacts without invalidating unattributed legacy documents. |
 | Risk-adaptive spec/plan readiness + authority testing | `write-spec` and `write-plan` 2.0.0 keep routine artifacts lean while high-risk work adds explicit risk/readiness metadata, stable contract/scenario IDs, authority and failure invariants, linked-spec proof traceability, evidence lifecycle, consumer closure, empirical Task 0 capability gates, and adversarial critique closure. Their validators harden only deterministic structure. `test-strategy` 1.1.0 adds conditional two-sided effective-runtime authority probes with host-observed evidence, leak-first red/green, indirect/ambient/state-class coverage, and proof invalidation. Ships focused validator regression tests, routing controls, and behavioral replay scenarios. |
-| 57 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, autonomous-loop design, pre-execution (brainstorm → spec → plan), blind spots, research orchestration, and meta/skill tooling |
+| 49 curated skills | Spanning GitHub workflows, code review, design, platform integrations, knowledge management, autonomous-loop design, pre-execution (brainstorm → spec → plan), blind spots, research orchestration, and meta/skill tooling |
 | Retune verify-before-complete trigger | `verify-before-complete` 1.1.0 narrows the description from the universal "about to say fixed/passing/done/complete" (coextensive with *finishing work*, so it over-fired after nearly every chunk, Codex especially) to four circuit-breaker cases — delegated/subagent work, high-risk changes, missing/stale/conflicting evidence, explicit audits — plus a `Skip When` fast-exit for routine changes the repo's own checks already cover. Adds a `trigger-cases.json` fixture (19/19; the high-risk completion claim now routes here, red→green) and a `behavioral-scenarios.md` documenting the semantic over-fire the lexical scorer cannot measure |
 | Hook quality pipeline | Session-start catalog injection, pre/post-tool-use validation and manifest sync, spec + plan validation, git checks, structure checks, session retro reminder |
 | Skill packaging and distribution | `.skill` zip format with validation |
@@ -53,7 +53,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 | gemini-imagen parity | Updated to Nano Banana 2, added 4 extreme aspect ratios, drift warning, two-tier workflow, text rendering callout, sample-prompts.md |
 | Add loop-design skill | Workflow skill on top of `/loop` and `/goal`: a go/no-go oracle gate, a portable loop blueprint, and a stdlib scaffolder that emits the loop bundle (`LOOP.md`, `verify.sh` oracle, `progress.md` state, `verifier.md` checker, `BINDINGS.md` for Claude Code/Codex/Actions/Ralph). The scaffolder refuses to emit a loop without a `done_when` oracle, turning "no oracle → not a loop" into a hard gate |
 | Add api-design skill | Workflow skill for API/interface contract design and review across HTTP endpoints, event/stream contracts, typed DTO/service boundaries, CLI machine outputs, compatibility planning, and implementation handoff |
-| Authoring + multi-harness pipeline (#19) | Optional `triggers:` frontmatter wired into trigger evals (`--from-triggers` self-route + collision check); opt-in shared-fragment composition (`gen_skill_docs.py`); per-skill harness adapters (`gen_harness_adapters.py`) — dir-level symlinks for `.claude/.agents/.agent` + colocated Codex `openai.yaml` (54/54 skills), CI-enforced sync. Derived from the ECC/gstack/dimillian comparison in `docs/research/` |
+| Authoring + multi-harness pipeline (#19) | Optional `triggers:` frontmatter wired into trigger evals (`--from-triggers` self-route + collision check); opt-in shared-fragment composition (`gen_skill_docs.py`); per-skill harness adapters (`gen_harness_adapters.py`) — dir-level symlinks for `.claude/.agents/.agent` + colocated Codex `openai.yaml` (all skills), CI-enforced sync. Derived from the ECC/gstack/dimillian comparison in `docs/research/` |
 | Published skill catalog | `gen_catalog.py` renders a self-contained searchable `docs/catalog/index.html` from `skills.json`; rebuilt by the post-tool-use hook, CI-checked (dimillian-derived) |
 | Skill health report | `skills_health.py` aggregates contract status + declared-trigger routing into a read-only per-skill report (ECC-derived) |
 | Minimal rules/ tier | `rules/` for standing always-follow conventions (skill-authoring, doc-hygiene), composable into SKILL.md via `rules/<name>` includes; referenced from AGENTS.md/CONTRIBUTING (ECC-derived) |
@@ -106,7 +106,7 @@ Last updated from the [skills analysis](../archive/skill-analysis/skills-analysi
 
 ### Resource Distribution
 
-_Counts are from the 2026-03-07 analysis (~44-skill baseline) and are approximate; the catalog is now 57 skills. Treat as directional until recomputed._
+_Counts are from the 2026-03-07 analysis (~44-skill baseline) and are approximate; the catalog is now 49 skills. Treat as directional until recomputed._
 
 | Resource Type | Count | Skills With | Skills Without |
 |---------------|-------|-------------|----------------|

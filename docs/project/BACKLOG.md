@@ -91,7 +91,7 @@ Status: open
 #### Harness adapters promote the whole catalog to project scope, blowing the skill-listing budget
 Status: in-progress
 - **What**: `scripts/gen_harness_adapters.py` links `.claude/skills -> ../skills`,
-  which makes all 57 cataloged skills *project-scope* in whatever directory holds
+  which makes every cataloged skill *project-scope* in whatever directory holds
   the adapter. Measured 2026-07-26 on macbook: the same symlink placed at
   `~/Dev/.claude/skills` produced a 58-skill listing costing ~6,738 est. tokens —
   **3.4x** the ~1% context budget Claude Code allots the listing, past which
