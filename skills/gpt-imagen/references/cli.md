@@ -35,13 +35,20 @@ No `uv` installed? Use your active Python env:
 python "$IMAGE_GEN" generate --prompt "A cozy alpine cabin at dawn" --size 1024x1024
 ```
 
+Write a single image to an exact path with `--out` (use `--out-dir` only for
+batches, where filenames are generated per job):
+
+```
+python "$IMAGE_GEN" generate --prompt "A cozy alpine cabin at dawn" --out ~/Downloads/cabin.png
+```
+
 ## Guardrails (important)
 - Use `python "$IMAGE_GEN" ...` (or equivalent full path) for generations/edits/batch work.
 - Do **not** create one-off runners (e.g. `gen_images.py`) unless the user explicitly asks for a custom wrapper.
 - Do not modify `scripts/image_gen.py` unless the user asks for a capability change or bug fix.
 
 ## Defaults (unless overridden by flags)
-- Model: `gpt-image-1.5`
+- Model: `gpt-image-2`
 - Size: `1024x1024`
 - Quality: `auto`
 - Output format: `png`

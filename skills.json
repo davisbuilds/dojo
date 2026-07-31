@@ -22,9 +22,9 @@
     },
     {
       "name": "audit-skill",
-      "description": "Security audit for agent skills using a three-layer deterministic architecture: structural validation, instruction scanning (prompt injection, encoding tricks, exfiltration, overreach), and code analysis (secrets, dangerous patterns). Produces a trust score (A-F) with per-layer breakdown. Use when reviewing a skill for security, auditing a skill before installation, checking for prompt injection, or when the user says 'audit skill', 'check skill security', 'trust score', 'is this skill safe', or 'audit-skill'. On-demand via /audit-skill command.",
+      "description": "Security audit for agent skills \u2014 structural validation, prompt-injection and exfiltration scanning, and code analysis, producing an A\u2013F trust score. Use when reviewing a skill for security, auditing a skill before installation, checking for prompt injection, or when the user says 'audit skill', 'check skill security', 'trust score', 'is this skill safe'. On-demand via /audit-skill.",
       "path": "skills/audit-skill",
-      "version": "1.0.0"
+      "version": "1.0.2"
     },
     {
       "name": "autonomous-engineering",
@@ -34,9 +34,9 @@
     },
     {
       "name": "blind-spots",
-      "description": "Find the gaps in a user's understanding of a code change \u2014 before it gets built, or after an agent has built it. Use when the user asks for a blind spot pass, asks to understand the scope and blast radius of a proposed change, or asks to be quizzed on a change an agent just made. Scope mode calibrates to the user's existing knowledge, then maps entry points, call paths, blast radius, and unknown unknowns into a mental model the user can steer with. Quiz mode reads the actual diff, briefs the user on the change, then asks a single question per turn about consequences the briefing left open, teaching with repository evidence after each answer so comprehension sticks. Triggers on \"blind spot pass\", \"find my blind spots\", \"unknown unknowns\", \"help me understand this change\", \"quiz me on this change\". Optional and conversational \u2014 never scores the user, never gates delivery.",
+      "description": "Find the gaps in a user's understanding of a code change \u2014 before it gets built, or after an agent has built it. Two modes \u2014 scope maps blast radius and unknown unknowns; quiz questions the user on a diff an agent just made. Use when the user asks for a blind spot pass, wants the scope of a proposed change, or asks to be quizzed on a change. Triggers on \"blind spot pass\", \"find my blind spots\", \"unknown unknowns\", \"help me understand this change\", \"quiz me on this change\".",
       "path": "skills/blind-spots",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "triggers": [
         "blind spot pass",
         "find my blind spots",
@@ -83,15 +83,15 @@
     },
     {
       "name": "deep-research",
-      "description": "Use when a task needs direct web-backed research with controlled depth, relevance filtering, and citation-ready synthesis \u2014 the user wants the answer, not a commissioned research program. Routes work to quick, standard, or deep tiers, filters low-signal context, and returns a compact packet with key findings, citations, discarded context, confidence gaps, and next queries. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead \u2014 this skill is its execution backend.",
+      "description": "Use when a task needs direct web-backed research with controlled depth, relevance filtering, and citation-ready synthesis \u2014 the user wants the answer, not a commissioned research program. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead \u2014 this skill is its execution backend.",
       "path": "skills/deep-research",
-      "version": "2.3.0"
+      "version": "2.3.1"
     },
     {
       "name": "design-critique",
-      "description": "Audit implemented UI against a 37-pattern slop catalog and return ranked, scoped findings with named alternatives. Use when the user asks to review their UI, audit a design, check for AI-generated tells, critique the visuals, or asks 'does this look AI-generated'. Accepts pasted markup, file paths to component or CSS files, file paths to local screenshots, or \u2014 only when the user explicitly opts in \u2014 a URL plus Playwright auto-capture. Excludes accessibility/WCAG audits beyond contrast and creative UI generation; for rule-compliance / a11y / UX audits use web-design-guidelines.",
+      "description": "Audit implemented UI against a 37-pattern slop catalog and return ranked, scoped findings with named alternatives. Use when the user asks to review their UI, audit a design, check for AI-generated tells, critique the visuals, or asks 'does this look AI-generated'. For rule-compliance, accessibility, or UX audits use web-design-guidelines instead.",
       "path": "skills/design-critique",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "design-md",
@@ -119,9 +119,9 @@
     },
     {
       "name": "first-principles",
-      "description": "Guide agent into first-principles, systems-thinking reasoning for high-stakes technical tasks. Use when making architectural or design decisions, evaluating trade-offs between competing approaches, performing deep code review, debugging complex or unclear failures, planning non-mechanical refactors, or starting greenfield implementations. Triggers on: 'what approach should I take', 'help me decide', 'evaluate trade-offs', 'design review', 'why is this failing', 'architect', 'first principles', 'think through this', 'compare approaches', 'root cause', 'how should I structure this'.",
+      "description": "Systems-level reasoning for high-stakes technical decisions \u2014 decompose the problem, state assumptions explicitly, weigh real alternatives. Use when choosing between architectures, evaluating trade-offs, or planning a non-mechanical refactor. For debugging a specific failure use diagnose; for clarifying an ambiguous WHAT use brainstorming.",
       "path": "skills/first-principles",
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
     {
       "name": "frontend-design",
@@ -134,7 +134,7 @@
       "name": "gemini-imagen",
       "description": "Generate, edit, and compose images via Google's Gemini API. Use when the user mentions Gemini or wants multi-image composition and aspect-ratio control. Requires `GEMINI_API_KEY`.",
       "path": "skills/gemini-imagen",
-      "version": "1.0.0"
+      "version": "1.1.0"
     },
     {
       "name": "gh-commit-push-pr",
@@ -163,9 +163,9 @@
     },
     {
       "name": "gpt-imagen",
-      "description": "Generate or edit images via the OpenAI Image API (gpt-image-1, DALL-E). Use when the user asks to generate, edit, inpaint, mask, remove backgrounds, or create product shots, concept art, covers, or batch outputs using OpenAI. Runs the bundled CLI (`scripts/image_gen.py`) and requires `OPENAI_API_KEY`.",
+      "description": "Generate or edit images via the OpenAI Image API (`gpt-image-2`). Use when the user asks to generate, edit, inpaint, mask, remove backgrounds, or create product shots, concept art, covers, or batch outputs using OpenAI. Runs the bundled CLI (`scripts/image_gen.py`) and requires `OPENAI_API_KEY`.",
       "path": "skills/gpt-imagen",
-      "version": "1.0.0"
+      "version": "1.1.0"
     },
     {
       "name": "handoff",
@@ -187,9 +187,9 @@
     },
     {
       "name": "loop-design",
-      "description": "Design a reusable, verifiable autonomous loop on top of harness primitives like /loop and /goal. Run a go/no-go gate (is there a pass/fail oracle?), define a portable loop blueprint (goal, done-when command, on-disk state, maker/checker split, sandbox/credential/budget guardrails), then scaffold the concrete files a harness runs. Use when setting up a recurring, unattended, or overnight agent loop, an automation or cron task, a /loop or /goal run, a Ralph-style while-true loop, or when deciding whether a task SHOULD be looped at all. Agent-agnostic across Claude Code, Codex, and CI/GitHub Actions. On-demand via /loop-design.",
+      "description": "Design a reusable, verifiable autonomous loop on top of harness primitives like /loop and /goal. Runs a go/no-go gate (is there a pass/fail oracle?), defines a portable loop blueprint, then scaffolds the concrete files a harness runs. Use when setting up a recurring, unattended, or overnight agent loop, an automation or cron task, a /loop or /goal run, a Ralph-style while-true loop, or when deciding whether a task SHOULD be looped at all. Agent-agnostic across Claude Code, Codex, and CI. On-demand via /loop-design.",
       "path": "skills/loop-design",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "markdown-converter",
@@ -236,9 +236,9 @@
     },
     {
       "name": "research-architect",
-      "description": "Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or research brief; commission or plan a multi-source, high-stakes, or multi-model research run; run research through external deep-research products (Claude/OpenAI/Gemini DR); or verify and score a research report someone or something else produced. Triggers on \"research prompt\", \"research brief\", \"commission research\", \"plan a research run\", \"verify this report\", \"research architect\". For a direct low-stakes web lookup where the user just wants the answer, use the deep-research skill instead \u2014 this skill sits upstream (prompt engineering, routing) and downstream (verification, postmortem) of execution.",
+      "description": "Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or brief; commission or plan a multi-source or multi-model research run; run research through external deep-research products (Claude/OpenAI/Gemini DR); or verify and score a research report that something else produced. Triggers on \"research prompt\", \"research brief\", \"commission research\", \"plan a research run\", \"verify this report\", \"research architect\". For a direct low-stakes lookup where the user just wants the answer, use deep-research instead.",
       "path": "skills/research-architect",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "triggers": [
         "research prompt",
         "research brief",
@@ -268,9 +268,9 @@
     },
     {
       "name": "session-retro",
-      "description": "Update existing project reference docs with non-obvious learnings from the current session. Route each learning to the single best existing target: AGENTS.md, CLAUDE.md, README.md, or canonical docs/system and docs/project references such as OPERATIONS.md, ARCHITECTURE.md, FEATURES.md, or ROADMAP.md. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on \"/retro\", \"update docs with learnings\", \"save what we learned\", or proactively at session end.",
+      "description": "Update existing project reference docs with non-obvious learnings from the current session, routing each learning to the single best existing target rather than creating new files. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on \"/retro\", \"update docs with learnings\", \"save what we learned\", or proactively at session end.",
       "path": "skills/session-retro",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "skill-creator",
@@ -283,7 +283,7 @@
       "name": "skill-evals",
       "description": "Evaluate skill quality and routing reliability with deterministic checks. Use when creating/updating skills, validating trigger behavior (explicit/implicit/contextual/negative), applying SKILL.md contract checklists, or generating cross-skill compliance reports.",
       "path": "skills/skill-evals",
-      "version": "1.3.0"
+      "version": "1.4.0"
     },
     {
       "name": "skill-installer",

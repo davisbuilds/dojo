@@ -1,3 +1,13 @@
+## 1.4.0 - 2026-07-31
+
+- `resource_map_present` recognizes `rules/` as a fifth resource directory.
+  Five skills already shipped one, so their contents had been sitting outside
+  validation entirely.
+- `context_budget` gains a 250-line warn tier, conditional on the skill
+  bundling `references/`. Length alone is not the defect; keeping detail inline
+  when the skill already owns somewhere to put it is. Warn only -- no skill
+  fails on it today.
+
 ## 1.3.0 - 2026-07-24
 
 - Exempt append-only run memory (references/postmortems.md, references/executor-profiles.md) from the release-relevance check: a skill accumulates these as it is used, not as it is changed, so appending a lesson no longer forces a SemVer bump on an unchanged workflow.

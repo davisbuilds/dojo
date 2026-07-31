@@ -5,8 +5,7 @@
 - Edit: `POST /v1/images/edits` (`client.images.edit(...)`)
 
 ## Models
-- Default: `gpt-image-1.5`
-- Alternatives: `gpt-image-1-mini` (for faster, lower-cost generation)
+- Default: `gpt-image-2`
 
 ## Core parameters (generate + edit)
 - `prompt`: text prompt

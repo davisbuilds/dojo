@@ -17,8 +17,78 @@ This file stays future-only.
 
 ## Open
 
+#### Port two pr-review-toolkit specialists into dojo before disabling the plugin
+Status: open
+- **What**: auditing Claude plugins on 2026-07-29 found two agents in
+  `pr-review-toolkit@claude-plugins-official` that cover ground **no dojo skill
+  does**, and they are the only reason the plugin is still enabled:
+  - `silent-failure-hunter` (130 lines) — enumerates every catch block, fallback,
+    default-on-failure value, "logged but execution continues" path, and optional
+    chain that can hide an error, then interrogates each for logging quality, user
+    feedback, and catch-block specificity.
+  - `type-design-analyzer` (118 lines) — rates encapsulation and *invariant
+    expression*: whether a type makes illegal states unrepresentable.
+- **Why it matters**: `secure-code` is a scanner and `local-review` is a workflow;
+  neither hunts swallowed errors, and nothing in the catalog reviews type design.
+  The remaining four agents (`code-reviewer`, `code-simplifier`,
+  `comment-analyzer`, `pr-test-analyzer`) are baseline knowledge and duplicate
+  existing skills, so the plugin cannot be dropped without losing these two.
+- **Known defect to fix on port**: `silent-failure-hunter` hardcodes another
+  project's conventions — three `Sentry` references, two `logError`, and two
+  `constants/errorIds.ts` — and will flag missing error IDs against a file that
+  does not exist in this portfolio. Rewrite those checks against the actual stacks
+  (Next.js/Supabase, Python) rather than copying them.
+- **Also worth lifting** (pattern, not prose): both the plugin's `review-pr`
+  command and its `code-reviewer` agent score each finding 0-100 and **report only
+  at >= 80**, and `review-pr` maps diff content to specialists (test files ->
+  test analyzer, new types -> type analyzer). `code-review@claude-plugins-official`
+  goes further with five parallel reviewers on distinct lenses, two of which —
+  git blame/history and prior PR comments on the same files — no dojo review skill
+  attempts. Compare against `local-review` and `code-review-agents` before
+  reinventing.
+- See also the separate branch-hygiene entry below, which owns the one gap found
+  in the `commit-commands` plugin.
+- **Sketch**: two new skills, or one `error-handling-review` skill plus a
+  `type-design` section in an existing review skill. Add trigger fixtures so the
+  routing collision with `local-review` and `secure-code` is tested, given the
+  catalog already has 17 entry points for "review this".
+
+#### The gh-* family covers creating work but not cleaning up after it
+Status: open
+- **What**: auditing the `commit-commands@claude-plugins-official` plugin on
+  2026-07-29 (now disabled) surfaced one thing the catalog does not cover. The
+  `gh-*` family is `gh-commit-push-pr`, `gh-fix-issue`, `gh-review-pr`,
+  `gh-triage-issues` — all about *producing* work. **Nothing covers post-merge
+  branch and worktree hygiene.** A repo-wide search for `worktree`, `branch -d`,
+  `[gone]`, or `prune` across all 57 `SKILL.md` files returns no relevant hit.
+- **Specific gaps**:
+  - **Worktree-before-branch ordering.** A branch marked `[gone]` that carries an
+    attached worktree (`+` prefix in `git branch -v`) cannot be deleted until the
+    worktree is removed. Deleting in the wrong order fails confusingly. This was
+    the plugin's `clean_gone` command's only real contribution, in ~10 lines.
+  - **Stacked-PR retarget hazard.** Squash-merging a base PR and deleting its
+    branch **auto-closes the stacked child PR**. The child must be retargeted to
+    `main` first. Already learned the hard way; it lives in an agent memory note,
+    which means Codex cannot see it — the two memory stores are mutually invisible
+    and measurably disjoint. That argues for the catalog, not a memory.
+  - **Stale local branches after remote deletion**, and the `pulldevmain` blocked
+    -checkout case (a repo left on a feature branch silently stops receiving
+    updates — observed 2026-07-27 for `pmalpha`).
+- **Why it matters**: these are exactly the "safe to do, easy to get wrong, rarely
+  done" operations that earn a skill. The failure mode is not a bad commit, it is
+  a silently closed PR or a repo that quietly stops syncing.
+- **Not a gap**: `gh-commit-push-pr` already pre-loads git context with
+  `` !`git ...` `` interpolation in its command wrapper and its Edge Cases table
+  covers no-changes, existing-PR, merge-conflict, binary-file, and
+  sensitive-file cases. The commit/push/PR path itself is well covered and is a
+  strict superset of what the plugin offered — do not reimplement it.
+- **Sketch**: either a `gh-branch-hygiene` skill or an Edge Cases/cleanup section
+  appended to `gh-commit-push-pr`. Prefer the latter if it stays under a few dozen
+  lines, since the catalog already has routing-collision pressure and this is
+  adjacent to an existing trigger rather than a new intent.
+
 #### Harness adapters promote the whole catalog to project scope, blowing the skill-listing budget
-Status: noted
+Status: in-progress
 - **What**: `scripts/gen_harness_adapters.py` links `.claude/skills -> ../skills`,
   which makes all 57 cataloged skills *project-scope* in whatever directory holds
   the adapter. Measured 2026-07-26 on macbook: the same symlink placed at
@@ -27,6 +97,17 @@ Status: noted
   descriptions are silently truncated. Project scope also *shadows* user scope, so
   31 of the 32 deliberately installed `~/.agents/skills` entries were overridden by
   their dojo counterparts. Working inside `dojo` itself hits the same cost locally.
+- **Scope corrected 2026-07-29** (re-measured by live enumeration, not filesystem
+  inspection): **project-scope skills are not inherited by subdirectories.** A
+  `.claude/skills` adapter affects only sessions rooted at the directory holding
+  it — 88 skills at `~/Dev` vs 60 at `~/Dev/agentmonitor`, first 30 identical. So
+  no shadowing occurs in a subproject session, the cost of the extras is
+  **~1,948 est. tokens** and only at the adapter's own directory, and **Codex is
+  unaffected entirely** (`.claude/` is not a path it reads). Two further caveats
+  for the profile work: the "~1% budget" figure remains **unverified** against
+  vendor docs, and plugin plus bundled skills are roughly half of any Claude
+  listing — outside dojo's reach at any profile width. Measured Codex cost of the
+  shared 32 is ~3,185 est. tokens, which is the catalog a profile would govern.
 - **Why it matters**: the adapter is documented as making skills "discoverable",
   but at full-catalog width it degrades the routing it is meant to enable, and it
   silently changes which copy of a drifted skill is authoritative. Contradicts the
@@ -37,9 +118,13 @@ Status: noted
   is expressible. Report estimated listing cost under `--check` so budget
   regressions are visible. Relates to
   `skills-health: many canonical dojo skills aren't installed globally`.
+- **Contract**: `docs/specs/2026-07-27-distribution-profiles-spec.md` is ready
+  for planning. It defines a mandatory core plus capability overlays, exact
+  managed realizations, authoritative harness-scoped budgets, and a prohibition
+  on legacy adapter refreshes silently restoring whole-catalog links.
 
 #### Cross-machine profile drift is silent and can restore superseded skill behavior
-Status: noted
+Status: in-progress
 - **What**: on 2026-07-27 the Mac mini's globals were **28 skills content-drifted**
   against a clean `origin/main` dojo checkout, including a `verify-before-complete`
   still on v1's broad "about to state work is fixed" wording — the exact text v2's
@@ -54,6 +139,11 @@ Status: noted
   after the scheduled checkout refresh and report canonical commit, installed profile,
   missing expected skills, content-drift count, and harness CLI versions. Detect and
   notify; do not auto-rewrite globals as part of a git pull.
+- **Contract**: folded into
+  `docs/specs/2026-07-27-distribution-profiles-spec.md`; the selected profile,
+  canonical revision, target and harness policy identities, content drift, and
+  budget outcome are explicit conformance evidence, while scheduled checks stay
+  audit-only.
 - **Do not reimplement the ignore logic**: `skill_standardizer_lib.py` already handles
   this correctly via `IGNORE_NAMES` (`.DS_Store`, `__pycache__`, `.git`,
   `.pytest_cache`) and `IGNORE_FILE_SUFFIXES` (`.pyc`, `.pyo`), applied in the compare,
@@ -148,10 +238,11 @@ Status: noted
   description works. A prior skill-standardizer run likely used `--only-existing`,
   which skips skills not already installed globally, so newly-added canonical
   skills never got pushed out.
-- **Sketch**: Run `skill-standardizer` sync without `--only-existing` to install
-  the missing canonical skills into the primary global root, then re-check the
-  health report. Decide whether `template` (a scaffold, not a real skill) should
-  be excluded from expected-coverage counts.
+- **Direction**: do **not** install the entire catalog merely to
+  manufacture runtime coverage. The distribution-profile contract makes
+  intentional exclusion explicit and evaluates routing against deployable
+  profiles; health coverage should distinguish excluded skills from missing or
+  drifted members of the selected profile.
 
 #### Standardizer has no allowlist for foreign non-skill dirs in mirror roots
 Status: resolved (2026-07-16)

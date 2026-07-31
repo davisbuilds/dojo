@@ -1,12 +1,12 @@
 ---
 name: design-critique
-description: "Audit implemented UI against a 37-pattern slop catalog and return ranked, scoped findings with named alternatives. Use when the user asks to review their UI, audit a design, check for AI-generated tells, critique the visuals, or asks 'does this look AI-generated'. Accepts pasted markup, file paths to component or CSS files, file paths to local screenshots, or — only when the user explicitly opts in — a URL plus Playwright auto-capture. Excludes accessibility/WCAG audits beyond contrast and creative UI generation; for rule-compliance / a11y / UX audits use web-design-guidelines."
+description: "Audit implemented UI against a 37-pattern slop catalog and return ranked, scoped findings with named alternatives. Use when the user asks to review their UI, audit a design, check for AI-generated tells, critique the visuals, or asks 'does this look AI-generated'. For rule-compliance, accessibility, or UX audits use web-design-guidelines instead."
 skill-type: workflow
 metadata:
   upstream:
     taxonomy: "https://impeccable.style/slop"
     license: "Web-published; descriptions paraphrased with attribution"
-version: 1.0.0
+version: 1.0.1
 ---
 
 # design-critique

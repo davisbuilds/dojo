@@ -25,7 +25,12 @@ import os
 import sys
 from pathlib import Path
 
-MODEL = "gemini-3.1-flash-image-preview"
+# Image output requires an image-capable model; general aliases such as
+# gemini-flash-latest do not return image parts. Not constrained with argparse
+# `choices` on purpose: these IDs have already churned once (the -preview
+# suffix was dropped at GA), so an override must not require a code edit.
+DRAFT_MODEL = "gemini-3.1-flash-image"
+FINAL_MODEL = "gemini-3-pro-image"
 
 ASPECT_CHOICES = [
     "1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4",
@@ -134,7 +139,7 @@ def cmd_generate(args: argparse.Namespace) -> None:
 
     try:
         response = client.models.generate_content(
-            model=MODEL,
+            model=args.model,
             contents=args.prompt,
             config=config,
         )
@@ -180,7 +185,7 @@ def cmd_edit(args: argparse.Namespace) -> None:
 
     try:
         response = client.models.generate_content(
-            model=MODEL,
+            model=args.model,
             contents=[input_image, args.prompt],
             config=config,
         )
@@ -222,7 +227,7 @@ def cmd_compose(args: argparse.Namespace) -> None:
 
     try:
         response = client.models.generate_content(
-            model=MODEL,
+            model=args.model,
             contents=contents,
             config=config,
         )
@@ -254,6 +259,11 @@ def _add_common_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--api-key", "-k",
         help="Gemini API key (overrides GEMINI_API_KEY env var)",
+    )
+    parser.add_argument(
+        "--model", "-m",
+        default=DRAFT_MODEL,
+        help=f"Image-capable model: {DRAFT_MODEL} (default, drafts) or {FINAL_MODEL} (finals)",
     )
 
 

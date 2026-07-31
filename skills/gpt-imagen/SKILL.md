@@ -1,15 +1,15 @@
 ---
 name: "gpt-imagen"
-description: "Generate or edit images via the OpenAI Image API (gpt-image-1, DALL-E). Use when the user asks to generate, edit, inpaint, mask, remove backgrounds, or create product shots, concept art, covers, or batch outputs using OpenAI. Runs the bundled CLI (`scripts/image_gen.py`) and requires `OPENAI_API_KEY`."
+description: "Generate or edit images via the OpenAI Image API (`gpt-image-2`). Use when the user asks to generate, edit, inpaint, mask, remove backgrounds, or create product shots, concept art, covers, or batch outputs using OpenAI. Runs the bundled CLI (`scripts/image_gen.py`) and requires `OPENAI_API_KEY`."
 skill-type: workflow
 compatibility: "Requires python3, openai package, OPENAI_API_KEY. Requires network access for OpenAI API calls."
-version: 1.0.0
+version: 1.1.0
 ---
 
 
 # GPT Imagen
 
-Generates or edits images for the current project (e.g., website assets, game assets, UI mockups, product mockups, wireframes, logo design, photorealistic images, infographics). Defaults to `gpt-image-1.5` and the OpenAI Image API, and prefers the bundled CLI for deterministic, reproducible runs.
+Generates or edits images for the current project (e.g., website assets, game assets, UI mockups, product mockups, wireframes, logo design, photorealistic images, infographics). Defaults to `gpt-image-2` and the OpenAI Image API, and prefers the bundled CLI for deterministic, reproducible runs.
 
 ## When to use
 - Generate a new image (concept art, product shot, cover, website hero)
@@ -60,7 +60,7 @@ If the key is missing, give the user these steps:
 If installation isn't possible in this environment, tell the user which dependency is missing and how to install it locally.
 
 ## Defaults & rules
-- Use `gpt-image-1.5` unless the user explicitly asks for `gpt-image-1-mini` or explicitly prefers a cheaper/faster model.
+- Use `gpt-image-2`. There is no mini variant in this generation; if the user asks for a cheaper/faster model, say so rather than silently downgrading.
 - Assume the user wants a new image unless they explicitly ask for an edit.
 - Require `OPENAI_API_KEY` before any live API call.
 - Use the OpenAI Python SDK (`openai` package) for all API calls; do not use raw HTTP.
@@ -189,4 +189,4 @@ Asset-type templates (website assets, game assets, wireframes, logo) are consoli
 
 ## Sibling skills
 
-- `gemini-imagen` — same shape, different provider. Choose Gemini for multi-image composition, native 4K/extreme aspect ratios, or text rendering inside images. Choose this skill (OpenAI) when the user asks for DALL-E / `gpt-image-1`, needs precise inpainting/masking, or has only an `OPENAI_API_KEY`.
+- `gemini-imagen` — same shape, different provider. Choose Gemini for multi-image composition, native 4K/extreme aspect ratios, or text rendering inside images. Choose this skill (OpenAI) when the user asks for `gpt-image-2`, needs precise inpainting/masking, or has only an `OPENAI_API_KEY`.
