@@ -1,8 +1,5 @@
-<overview>
 Agent-native architecture has consequences for how products feel, not just how they're built. This document covers progressive disclosure of complexity, discovering latent demand through agent usage, and designing approval flows that match stakes and reversibility.
-</overview>
 
-<progressive_disclosure>
 ## Progressive Disclosure of Complexity
 
 The best agent-native applications are simple to start but endlessly powerful.
@@ -57,9 +54,7 @@ The agent meets users where they are.
 - **Don't hide capabilities** - Make them discoverable through use
 - **Don't cap complexity** - If the agent can do it, let users ask for it
 - **Do provide hints** - Help users discover what's possible
-</progressive_disclosure>
 
-<latent_demand_discovery>
 ## Latent Demand Discovery
 
 Traditional product development: imagine what users want, build it, see if you're right.
@@ -173,9 +168,7 @@ Week 4: If still common and performance matters
 ```
 
 You didn't have to guess that weekly review would be popular. You discovered it.
-</latent_demand_discovery>
 
-<approval_and_agency>
 ## Approval and User Agency
 
 When agents take unsolicited actions—doing things on their own rather than responding to explicit requests—you need to decide how much autonomy to grant.
@@ -300,9 +293,7 @@ func agentSelfModify(change: PromptChange) async {
     await applyChange(change)
 }
 ```
-</approval_and_agency>
 
-<capability_visibility>
 ## Capability Visibility
 
 Users need to discover what the agent can do. Hidden capabilities lead to underutilization.
@@ -353,9 +344,7 @@ Agent: "By the way, you can also ask me to set up
 - **Do reveal** capabilities naturally through use
 - **Don't assume** users will discover things on their own
 - **Do make** capabilities visible when relevant
-</capability_visibility>
 
-<designing_for_trust>
 ## Designing for Trust
 
 Agent-native apps require trust. Users are giving an AI significant capability. Build trust through:
@@ -407,9 +396,7 @@ struct AgentTransparency {
     }
 }
 ```
-</designing_for_trust>
 
-<checklist>
 ## Product Design Checklist
 
 ### Progressive Disclosure
@@ -440,4 +427,3 @@ struct AgentTransparency {
 - [ ] Behavior is predictable
 - [ ] Actions are reversible
 - [ ] User has control
-</checklist>

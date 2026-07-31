@@ -1,8 +1,5 @@
-<overview>
 Mobile is a first-class platform for agent-native apps. It has unique constraints and opportunities. This guide covers why mobile matters, iOS storage architecture, checkpoint/resume patterns, and cost-aware design.
-</overview>
 
-<why_mobile>
 ## Why Mobile Matters
 
 Mobile devices offer unique advantages for agent-native apps:
@@ -30,9 +27,7 @@ This means mobile agent apps need:
 - **Resuming** — Picking up where you left off after interruption
 - **Background execution** — Using the limited time iOS gives you wisely
 - **On-device vs. cloud decisions** — What runs locally vs. what needs a server
-</why_mobile>
 
-<ios_storage>
 ## iOS Storage Architecture
 
 > **Needs validation:** This is an approach that works well, but better solutions may exist.
@@ -157,17 +152,11 @@ Add to your app's entitlements:
 
 ```xml
 <key>com.apple.developer.icloud-container-identifiers</key>
-<array>
     <string>iCloud.com.yourcompany.yourapp</string>
-</array>
 <key>com.apple.developer.icloud-services</key>
-<array>
     <string>CloudDocuments</string>
-</array>
 <key>com.apple.developer.ubiquity-container-identifiers</key>
-<array>
     <string>iCloud.com.yourcompany.yourapp</string>
-</array>
 ```
 
 ### When NOT to Use iCloud Documents
@@ -176,9 +165,7 @@ Add to your app's entitlements:
 - **High-frequency writes** - iCloud sync has latency; use local + periodic sync
 - **Large media files** - Consider CloudKit Assets or on-demand resources
 - **Shared between users** - iCloud Documents is single-user; use CloudKit for sharing
-</ios_storage>
 
-<background_execution>
 ## Background Execution & Resumption
 
 > **Needs validation:** These patterns work but better solutions may exist.
@@ -337,9 +324,7 @@ struct AgentStatusView: View {
     }
 }
 ```
-</background_execution>
 
-<permissions>
 ## Permission Handling
 
 Mobile agents may need access to system resources. Handle permission requests gracefully.
@@ -449,9 +434,7 @@ tool("analyze_book_cover", async ({ image }) => {
     }
 })
 ```
-</permissions>
 
-<cost_awareness>
 ## Cost-Aware Design
 
 Mobile users may be on cellular data or concerned about API costs. Design agents to be efficient.
@@ -650,9 +633,7 @@ struct AgentCostView: View {
     }
 }
 ```
-</cost_awareness>
 
-<offline_handling>
 ## Offline Graceful Degradation
 
 Handle offline scenarios gracefully:
@@ -740,9 +721,7 @@ class OfflineQueue: ObservableObject {
     }
 }
 ```
-</offline_handling>
 
-<battery_awareness>
 ## Battery-Aware Execution
 
 Respect device battery state:
@@ -799,9 +778,7 @@ class AgentOrchestrator {
     }
 }
 ```
-</battery_awareness>
 
-<on_device_vs_cloud>
 ## On-Device vs. Cloud
 
 Understanding what runs where in a mobile agent-native app:
@@ -828,9 +805,7 @@ Understanding what runs where in a mobile agent-native app:
 
 **Long-running agents:**
 For truly long-running agents (hours), consider a server-side orchestrator that can run indefinitely, with the mobile app as a viewer and input mechanism.
-</on_device_vs_cloud>
 
-<checklist>
 ## Mobile Agent-Native Checklist
 
 **iOS Storage:**
@@ -868,4 +843,3 @@ For truly long-running agents (hours), consider a server-side orchestrator that 
 - [ ] Battery monitoring for heavy operations
 - [ ] Low power mode detection
 - [ ] Defer or downgrade based on battery state
-</checklist>

@@ -1,6 +1,4 @@
-<overview>
 How to write system prompts for prompt-native agents. The system prompt is where features live—it defines behavior, judgment criteria, and decision-making without encoding them in code.
-</overview>
 
 <principle name="features-in-prompts">
 ## Features Are Prompt Sections
@@ -34,9 +32,7 @@ When someone shares feedback:
 
 Use your judgment. Context matters.
 ```
-</principle>
 
-<structure>
 ## System Prompt Structure
 
 A well-structured prompt-native system prompt:
@@ -72,7 +68,6 @@ You are [Name], [brief identity statement].
 
 [Explicit boundaries]
 ```
-</structure>
 
 <principle name="guide-not-micromanage">
 ## Guide, Don't Micromanage
@@ -100,7 +95,6 @@ The goal is clarity, not consistency.
 ```
 
 Trust the agent's intelligence. It knows how to communicate.
-</principle>
 
 <principle name="judgment-criteria">
 ## Define Judgment Criteria, Not Rules
@@ -128,7 +122,6 @@ Examples:
 - "The button color seems off" → 2 (cosmetic, non-blocking)
 - "Video walkthrough with 15 timestamped issues" → 5 (high-quality evidence)
 ```
-</principle>
 
 <principle name="context-windows">
 ## Work With Context Windows
@@ -154,7 +147,6 @@ You don't persist memory between restarts. Use the memory server:
 - After important decisions, use memory.store to remember
 - Store conversation threads, not individual messages
 ```
-</principle>
 
 <example name="feedback-bot">
 ## Example: Complete System Prompt
@@ -219,9 +211,7 @@ Before processing any message:
 - Don't ignore feedback even if it seems minor
 - Don't repeat yourself—vary acknowledgments
 ```
-</example>
 
-<iteration>
 ## Iterating on System Prompts
 
 Prompt-native development means rapid iteration:
@@ -233,9 +223,7 @@ Prompt-native development means rapid iteration:
 5. **Repeat**
 
 No code changes. No recompilation. Just prose.
-</iteration>
 
-<checklist>
 ## System Prompt Checklist
 
 - [ ] Clear identity statement
@@ -247,4 +235,3 @@ No code changes. No recompilation. Just prose.
 - [ ] Tone guidance
 - [ ] Tool usage guidance (when to use each)
 - [ ] Memory/context handling
-</checklist>

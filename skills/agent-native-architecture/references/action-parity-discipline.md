@@ -1,10 +1,7 @@
-<overview>
 A structured discipline for ensuring agents can do everything users can do. Every UI action should have an equivalent agent tool. This isn't a one-time check—it's an ongoing practice integrated into your development workflow.
 
 **Core principle:** When adding a UI feature, add the corresponding tool in the same PR.
-</overview>
 
-<why_parity>
 ## Why Action Parity Matters
 
 **The failure case:**
@@ -22,9 +19,7 @@ Without this parity:
 - Agents ask clarifying questions about features they should understand
 - The agent feels limited compared to direct app usage
 - Users lose trust in the agent's capabilities
-</why_parity>
 
-<capability_mapping>
 ## The Capability Map
 
 Maintain a structured map of UI actions to agent tools:
@@ -57,9 +52,7 @@ Status meanings:
 - ✅ Done: Tool exists and is documented in system prompt
 - ⚠️ Missing: UI action exists but no agent equivalent
 - 🚫 N/A: User-only action (e.g., biometric auth, camera capture)
-</capability_mapping>
 
-<parity_workflow>
 ## The Action Parity Workflow
 
 ### When Adding a New Feature
@@ -100,9 +93,7 @@ Add to your PR template:
 - [ ] Capability map updated
 - [ ] Tested with natural language request
 ```
-</parity_workflow>
 
-<parity_audit>
 ## The Parity Audit
 
 Periodically audit your app for action parity gaps:
@@ -183,9 +174,7 @@ Not all gaps are equal:
 - Theme changes
 - Account deletion
 - Settings that are UI-preference
-</parity_audit>
 
-<tool_design_for_parity>
 ## Designing Tools for Parity
 
 ### Match Tool Granularity to UI Granularity
@@ -229,9 +218,7 @@ tool("add_book", async ({ title, author }) => {
   };
 });
 ```
-</tool_design_for_parity>
 
-<context_parity>
 ## Context Parity
 
 Whatever the user sees, the agent should be able to access.
@@ -273,9 +260,7 @@ For each screen in your app:
 - [ ] What data does this screen display?
 - [ ] Is that data available to the agent?
 - [ ] Can the agent access the same level of detail?
-</context_parity>
 
-<continuous_parity>
 ## Maintaining Parity Over Time
 
 ### Git Hooks / CI Checks
@@ -332,9 +317,7 @@ Schedule periodic reviews:
 4. Update capability map
 5. Test with natural language requests
 ```
-</continuous_parity>
 
-<examples>
 ## Real Example: The Feed Gap
 
 **Before:** Every Reader had a feed where insights appeared, but no agent tool to publish there.
@@ -388,9 +371,7 @@ User: "Write something about Catherine the Great in my reading feed"
 Agent: [Uses publish_to_feed to create insight]
        "Done! I've published 'The Enlightened Empress' to your reading feed."
 ```
-</examples>
 
-<checklist>
 ## Action Parity Checklist
 
 For every PR with UI changes:
@@ -406,4 +387,3 @@ For periodic audits:
 - [ ] Checked tool coverage for each
 - [ ] Prioritized gaps by likelihood of user request
 - [ ] Created issues for high-priority gaps
-</checklist>

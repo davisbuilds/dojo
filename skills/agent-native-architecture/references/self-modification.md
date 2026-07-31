@@ -1,10 +1,7 @@
-<overview>
 Self-modification is the advanced tier of agent native engineering: agents that can evolve their own code, prompts, and behavior. Not required for every app, but a big part of the future.
 
 This is the logical extension of "whatever the developer can do, the agent can do."
-</overview>
 
-<why_self_modification>
 ## Why Self-Modification?
 
 Traditional software is static—it does what you wrote, nothing more. Self-modifying agents can:
@@ -15,9 +12,7 @@ Traditional software is static—it does what you wrote, nothing more. Self-modi
 - **Deploy themselves** - Push code, trigger builds, restart
 
 The agent becomes a living system that improves over time, not frozen code.
-</why_self_modification>
 
-<capabilities>
 ## What Self-Modification Enables
 
 **Code modification:**
@@ -41,9 +36,7 @@ The agent becomes a living system that improves over time, not frozen code.
 - Generate and maintain websites
 - Create documentation
 - Build dashboards from data
-</capabilities>
 
-<guardrails>
 ## Required Guardrails
 
 Self-modification is powerful. It needs safety mechanisms.
@@ -110,9 +103,7 @@ tool("health_check", async () => {
   };
 });
 ```
-</guardrails>
 
-<git_architecture>
 ## Git-Based Self-Modification
 
 Use git as the foundation for self-modification. It provides:
@@ -145,9 +136,7 @@ Each instance can:
 - Push improvements back to main (via PR)
 - Sync features from other instances
 - Maintain instance-specific config
-</git_architecture>
 
-<prompt_evolution>
 ## Self-Modifying Prompts
 
 The system prompt is a file the agent can read and write.
@@ -178,9 +167,7 @@ The agent can:
 - Refine judgment criteria
 - Add new feature sections
 - Document edge cases it learned
-</prompt_evolution>
 
-<when_to_use>
 ## When to Implement Self-Modification
 
 **Good candidates:**
@@ -196,9 +183,7 @@ The agent can:
 - One-off or short-lived agents
 
 Start with a non-self-modifying prompt-native agent. Add self-modification when you need it.
-</when_to_use>
 
-<example_tools>
 ## Complete Self-Modification Toolset
 
 ```typescript
@@ -246,9 +231,7 @@ const gitMcpServer = createSdkMcpServer({
   ],
 });
 ```
-</example_tools>
 
-<checklist>
 ## Self-Modification Checklist
 
 Before enabling self-modification:
@@ -266,4 +249,3 @@ When implementing:
 - [ ] Agent can pull updates
 - [ ] Agent can restart itself
 - [ ] Agent can roll back if needed
-</checklist>

@@ -1,8 +1,5 @@
-<overview>
 Start with pure primitives: bash, file operations, basic storage. This proves the architecture works and reveals what the agent actually needs. As patterns emerge, add domain-specific tools deliberately. This document covers when and how to evolve from primitives to domain tools, and when to graduate to optimized code.
-</overview>
 
-<start_with_primitives>
 ## Start with Pure Primitives
 
 Begin every agent-native system with the most atomic tools possible:
@@ -39,9 +36,7 @@ When processing feedback:
 4. If importance >= 4, create a notification file in data/alerts/
 `;
 ```
-</start_with_primitives>
 
-<when_to_add_domain_tools>
 ## When to Add Domain Tools
 
 As patterns emerge, you'll want to add domain-specific tools. This is good—but do it deliberately.
@@ -104,9 +99,7 @@ tool("get_book_with_content", { bookId: z.string() }, async ({ bookId }) => {
   return { text: JSON.stringify({ book, fullText, intro }) };
 });
 ```
-</when_to_add_domain_tools>
 
-<the_rule>
 ## The Rule for Domain Tools
 
 **Domain tools should represent one conceptual action from the user's perspective.**
@@ -143,9 +136,7 @@ Ask: "Who is making the decision here?"
 
 - If the answer is "the tool code" → you've encoded judgment, refactor
 - If the answer is "the agent based on the prompt" → good
-</the_rule>
 
-<keep_primitives_available>
 ## Keep Primitives Available
 
 **Domain tools are shortcuts, not gates.**
@@ -174,9 +165,7 @@ Gating (making domain tool the only way) is appropriate for:
 - **Audit requirements:** Actions that must be logged in specific ways
 
 **The default is open.** When you do gate something, make it a conscious decision with a clear reason.
-</keep_primitives_available>
 
-<graduating_to_code>
 ## Graduating to Code
 
 Some operations will need to move from agent-orchestrated to optimized code for performance or reliability.
@@ -241,9 +230,7 @@ tool("generate_weekly_summary", {}, async () => {
 2. Fall back to primitives for edge cases the optimized path doesn't handle
 
 Graduation is about efficiency. **Parity still holds.** The agent doesn't lose capability when you optimize.
-</graduating_to_code>
 
-<decision_framework>
 ## Decision Framework
 
 ### Should I Add a Domain Tool?
@@ -273,9 +260,7 @@ Graduation is about efficiency. **Parity still holds.** The agent doesn't lose c
 | Must this operation maintain data integrity? | Gate appropriately |
 | Is there an audit/compliance requirement? | Gate appropriately |
 | Is it just "safer" with no specific risk? | Keep primitives available |
-</decision_framework>
 
-<examples>
 ## Examples
 
 ### Feedback Processing Evolution
@@ -331,9 +316,7 @@ tool("generate_standard_report", ...)  // What if report format evolves?
 prompt: "Generate a report covering X, Y, Z. Format for readability."
 // Can adjust format by editing prompt
 ```
-</examples>
 
-<checklist>
 ## Checklist: Primitives to Domain Tools
 
 ### Starting Out
@@ -356,4 +339,3 @@ prompt: "Generate a report covering X, Y, Z. Format for readability."
 - [ ] Specific reason for each gate (security, integrity, audit)
 - [ ] Default is open access
 - [ ] Gates are conscious decisions, not defaults
-</checklist>

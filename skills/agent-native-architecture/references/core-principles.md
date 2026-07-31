@@ -3,7 +3,6 @@
 The five principles in full, with worked examples. `SKILL.md` carries the
 one-line statement of each; this file is the reasoning behind them.
 
-
 ### 1. Parity
 
 **Whatever the user can do through the UI, the agent should be able to achieve through tools.**
@@ -134,6 +133,4 @@ Unlike traditional software, agent-native applications can improve without shipp
 The improvement mechanisms are still being discovered. Context and prompt refinement are proven. Self-modification is emerging. What's clear: the architecture supports getting better in ways traditional software doesn't.
 
 **The test:** Does the application work better after a month of use than on day one, even without code changes?
-</core_principles>
 
-<intake>

@@ -1,8 +1,5 @@
-<overview>
 Files are the universal interface for agent-native applications. Agents are naturally fluent with file operations—they already know how to read, write, and organize files. This document covers why files work so well, how to organize them, and the context.md pattern for accumulated knowledge.
-</overview>
 
-<why_files>
 ## Why Files
 
 Agents are naturally good at files. AI coding agents work because bash + filesystem is the most battle-tested agent interface. When building agent-native apps, lean into this.
@@ -26,9 +23,7 @@ On mobile, if you use the file system with iCloud, all devices share the same fi
 ### Directory Structure Is Information Architecture
 
 The filesystem gives you hierarchy for free. `/projects/acme/notes/` is self-documenting in a way that `SELECT * FROM notes WHERE project_id = 123` isn't.
-</why_files>
 
-<file_organization>
 ## File Organization Patterns
 
 > **Needs validation:** These conventions are one approach that's worked so far, not a prescription. Better solutions should be considered.
@@ -85,9 +80,7 @@ Documents/
 
 - **Markdown:** For content users might read or edit
 - **JSON:** For structured data the app queries
-</file_organization>
 
-<context_md_pattern>
 ## The context.md Pattern
 
 A file the agent reads at the start of each session and updates as it learns:
@@ -145,9 +138,7 @@ Reading assistant for the Every app.
 | Recent Activity | Context for continuity |
 | My Guidelines | Learned rules and constraints |
 | Current State | Session status, pending items |
-</context_md_pattern>
 
-<files_vs_database>
 ## Files vs. Database
 
 > **Needs validation:** This framing is informed by mobile development. For web apps, the tradeoffs are different.
@@ -179,9 +170,7 @@ Files (agent workspace):
 Database (UI queries):
   research_index: { bookId, path, title, createdAt }
 ```
-</files_vs_database>
 
-<conflict_model>
 ## Conflict Model
 
 If agents and users write to the same files, you need a conflict model.
@@ -239,9 +228,7 @@ you should preserve.
 
 If a file has been modified since you last wrote it, ask before overwriting.
 ```
-</conflict_model>
 
-<examples>
 ## Example: Reading App File Structure
 
 ```
@@ -272,9 +259,7 @@ Documents/
 4. Agent generates intro → saves to `introduction.md`
 5. User edits intro → agent sees changes on next read
 6. Agent updates `context.md` with learnings
-</examples>
 
-<checklist>
 ## Files as Universal Interface Checklist
 
 ### Organization
@@ -298,4 +283,3 @@ Documents/
 - [ ] UI observes file changes (or shared service)
 - [ ] Agent can read user edits
 - [ ] User can inspect agent output
-</checklist>

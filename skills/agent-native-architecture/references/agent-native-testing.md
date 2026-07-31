@@ -1,8 +1,5 @@
-<overview>
 Testing agent-native apps requires different approaches than traditional unit testing. You're testing whether the agent achieves outcomes, not whether it calls specific functions. This guide provides concrete testing patterns for verifying your app is truly agent-native.
-</overview>
 
-<testing_philosophy>
 ## Testing Philosophy
 
 ### Test Outcomes, Not Procedures
@@ -35,9 +32,7 @@ Agents may solve problems differently each time. Your tests should:
 - Verify the end state, not the path
 - Accept reasonable ranges, not exact values
 - Check for presence of required elements, not exact format
-</testing_philosophy>
 
-<can_agent_do_it_test>
 ## The "Can Agent Do It?" Test
 
 For each UI feature, write a test prompt and verify the agent can accomplish it.
@@ -116,9 +111,7 @@ describe('Location Awareness Tests', () => {
   }
 });
 ```
-</can_agent_do_it_test>
 
-<surprise_test>
 ## The "Surprise Test"
 
 A well-designed agent-native app lets the agent figure out creative approaches. Test this by giving open-ended requests.
@@ -181,9 +174,7 @@ expect(result.response).not.toContain("Could you clarify");
 // If the agent asks for clarification on something it should understand,
 // you have a context injection or capability gap
 ```
-</surprise_test>
 
-<parity_testing>
 ## Automated Parity Testing
 
 Ensure every UI action has an agent equivalent.
@@ -258,9 +249,7 @@ describe('Context Parity', () => {
   });
 });
 ```
-</parity_testing>
 
-<integration_testing>
 ## Integration Testing
 
 Test the full flow from user request to outcome.
@@ -350,9 +339,7 @@ describe('Failure Recovery', () => {
   });
 });
 ```
-</integration_testing>
 
-<snapshot_testing>
 ## Snapshot Testing for System Prompts
 
 Track changes to system prompts and context injection over time.
@@ -386,9 +373,7 @@ describe('System Prompt Stability', () => {
   });
 });
 ```
-</snapshot_testing>
 
-<manual_testing>
 ## Manual Testing Checklist
 
 Some things are best tested manually during development:
@@ -437,9 +422,7 @@ Ask about things that should exist but might not be properly connected:
 "Continue where I left off"
 → Should reference recent activity if available
 ```
-</manual_testing>
 
-<ci_integration>
 ## CI/CD Integration
 
 Add agent-native tests to your CI pipeline:
@@ -499,9 +482,7 @@ if (process.env.GITHUB_REF === 'refs/heads/main') {
   describe('Full Integration Tests', () => { ... });
 }
 ```
-</ci_integration>
 
-<test_utilities>
 ## Test Utilities
 
 ### Agent Test Harness
@@ -555,9 +536,7 @@ test('full flow', async () => {
   });
 });
 ```
-</test_utilities>
 
-<checklist>
 ## Testing Checklist
 
 Automated Tests:
@@ -579,4 +558,3 @@ CI Integration:
 - [ ] Capability tests run with API key
 - [ ] System prompt completeness check
 - [ ] Capability map drift detection
-</checklist>

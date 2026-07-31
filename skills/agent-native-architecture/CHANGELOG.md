@@ -10,7 +10,13 @@
   principle and a pointer.
 - Merge the intake menu and the routing table, which enumerated the same 13
   topics twice, into a single Routing table.
-- 448 -> 240 lines, below the 250-line progressive-disclosure threshold added
+- Strip 258 XML section tags (`<why_now>`, `<core_principles>`, ...) from
+  SKILL.md and all 14 reference files. No other skill in the catalog uses them --
+  they came in with the compound-engineering-plugin import -- and the markdown
+  headings underneath already carry the structure. The restructure above had
+  also left several unbalanced, so they were actively wrong as well as
+  inconsistent.
+- 448 -> 227 lines, below the 250-line progressive-disclosure threshold added
   to the contract in skill-evals 1.4.0.
 
 MAJOR because content moved between files: anything that linked to a heading

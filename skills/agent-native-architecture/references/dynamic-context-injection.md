@@ -1,10 +1,7 @@
-<overview>
 How to inject dynamic runtime context into agent system prompts. The agent needs to know what exists in the app to know what it can work with. Static prompts aren't enough—the agent needs to see the same context the user sees.
 
 **Core principle:** The user's context IS the agent's context.
-</overview>
 
-<why_context_matters>
 ## Why Dynamic Context Injection?
 
 A static system prompt tells the agent what it CAN do. Dynamic context tells it what it can do RIGHT NOW with the user's actual data.
@@ -21,7 +18,6 @@ The agent failed because it didn't know:
 - What tools it has to publish there
 
 **The fix:** Inject runtime context about app state into the system prompt.
-</why_context_matters>
 
 <pattern name="context-injection">
 ## The Context Injection Pattern
@@ -60,9 +56,7 @@ func buildSystemPrompt() -> String {
     """
 }
 ```
-</pattern>
 
-<what_to_inject>
 ## What Context to Inject
 
 ### 1. Available Resources
@@ -116,9 +110,7 @@ Explain app-specific terms the user might use.
 - **Reading profile**: A markdown file describing user's reading preferences
 - **Highlight**: A passage the user marked in a book
 ```
-</what_to_inject>
 
-<implementation_patterns>
 ## Implementation Patterns
 
 ### Pattern 1: Service-Based Injection (Swift/iOS)
@@ -224,9 +216,7 @@ const prompt = Handlebars.compile(template)({
   recentActivity: await activityService.getRecent(10),
 });
 ```
-</implementation_patterns>
 
-<context_freshness>
 ## Context Freshness
 
 Context should be injected at agent initialization, and optionally refreshed during long sessions.
@@ -262,9 +252,7 @@ tool("refresh_context", "Get current app state") { _ in
 let cachedContext = appLaunchContext  // Stale!
 // Books may have been added, activity may have changed
 ```
-</context_freshness>
 
-<examples>
 ## Real-World Example: Every Reader
 
 The Every Reader app injects context for its chat agent:
@@ -319,9 +307,7 @@ func getChatAgentSystemPrompt() -> String {
 1. Sees "reading feed" → knows to use `publish_to_feed`
 2. Sees available books → finds the relevant book ID
 3. Creates appropriate content for the Feed tab
-</examples>
 
-<checklist>
 ## Context Injection Checklist
 
 Before launching an agent:
@@ -335,4 +321,3 @@ When adding new features:
 - [ ] New resources are included in context injection
 - [ ] New capabilities are documented in system prompt
 - [ ] User vocabulary for the feature is mapped
-</checklist>

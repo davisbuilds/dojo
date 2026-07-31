@@ -3,7 +3,6 @@
 Approaches that look agent-native but are not, and the specific failures they
 produce. Consult when reviewing an existing design.
 
-
 ### Common Approaches That Aren't Fully Agent-Native
 
 These aren't necessarily wrong—they may be appropriate for your use case. But they're worth recognizing as different from the architecture this document describes.
@@ -85,6 +84,4 @@ Fix: Use shared workspace where both operate on same files.
 **Gates without reason** — Domain tool is the only way to do something, and you didn't intend to restrict access. The default is open. Keep primitives available unless there's a specific reason to gate.
 
 **Artificial capability limits** — Restricting what the agent can do out of vague safety concerns rather than specific risks. Be thoughtful about restricting capabilities. The agent should generally be able to do what users can do.
-</anti_patterns>
 
-<success_criteria>

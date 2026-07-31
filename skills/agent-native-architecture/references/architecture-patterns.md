@@ -1,4 +1,3 @@
-<overview>
 Architectural patterns for building agent-native systems. These patterns emerge from the five core principles: Parity, Granularity, Composability, Emergent Capability, and Improvement Over Time.
 
 Features are outcomes achieved by agents operating in a loop, not functions you write. Tools are atomic primitives. The agent applies judgment; the prompt defines the outcome.
@@ -7,7 +6,6 @@ See also:
 - [files-universal-interface.md](./files-universal-interface.md) for file organization and context.md patterns
 - [agent-execution-patterns.md](./agent-execution-patterns.md) for completion signals and partial completion
 - [product-implications.md](./product-implications.md) for progressive disclosure and approval patterns
-</overview>
 
 <pattern name="event-driven-agent">
 ## Event-Driven Agent Architecture
@@ -60,7 +58,6 @@ When someone shares feedback:
 Use your judgment about importance and categorization.
 `;
 ```
-</pattern>
 
 <pattern name="two-layer-git">
 ## Two-Layer Git Architecture
@@ -98,7 +95,6 @@ For self-modifying agents, separate code (shared) from data (instance-specific).
 - Raw data stays local (instance-specific)
 - Site is generated from data, so reproducible
 - Automatic rollback via git history
-</pattern>
 
 <pattern name="multi-instance">
 ## Multi-Instance Branching
@@ -126,7 +122,6 @@ tool("self_deploy", "Pull latest from main, rebuild, restart", ...)
 tool("sync_from_instance", "Merge from another instance", ...)
 tool("propose_to_main", "Create PR to share improvements", ...)
 ```
-</pattern>
 
 <pattern name="site-as-output">
 ## Site as Agent Output
@@ -164,7 +159,6 @@ The site should be:
 
 You decide the structure. Make it good.
 ```
-</pattern>
 
 <pattern name="approval-gates">
 ## Approval Gates Pattern
@@ -208,7 +202,6 @@ tool("apply_pending", async () => {
 - data/* (instance data)
 - site/* (generated content)
 - docs/* (documentation)
-</pattern>
 
 <pattern name="unified-agent-architecture">
 ## Unified Agent Architecture
@@ -289,7 +282,6 @@ struct ChatAgent {
 - Shared tool protocol
 - Easy to add new agent types
 - Centralized error handling and logging
-</pattern>
 
 <pattern name="agent-to-ui-communication">
 ## Agent-to-UI Communication
@@ -403,7 +395,6 @@ struct FeedView: View {
     let items = database.query("feed")  // Stale!
 }
 ```
-</pattern>
 
 <pattern name="model-tier-selection">
 ## Model Tier Selection
@@ -461,9 +452,7 @@ let lookupConfig = AgentConfig(
 - Use fast tier for tool-heavy loops where each turn is simple
 - Reserve powerful tier for synthesis tasks (comparing multiple sources)
 - Consider token limits per turn to control costs
-</pattern>
 
-<design_questions>
 ## Questions to Ask When Designing
 
 1. **What events trigger agent turns?** (messages, webhooks, timers, user requests)
@@ -475,4 +464,3 @@ let lookupConfig = AgentConfig(
 7. **How does the UI know when agent changes state?** (shared store, file watching, events)
 8. **What model tier does each agent type need?** (fast, balanced, powerful)
 9. **How do agents share infrastructure?** (unified orchestrator, shared tools)
-</design_questions>

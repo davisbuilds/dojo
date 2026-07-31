@@ -19,7 +19,6 @@ version: 2.0.0
 - System prompt draft or refinement
 - Identified gaps and recommended next steps
 
-<why_now>
 ## Why Now
 
 Software agents work reliably now. AI coding agents have demonstrated that an LLM with access to bash and file tools, operating in a loop until an objective is achieved, can accomplish complex multi-step tasks autonomously.
@@ -29,9 +28,7 @@ The surprising discovery: **a really good coding agent is actually a really good
 Agent SDKs make this accessible. You can build applications where features aren't code you write—they're outcomes you describe, achieved by an agent with tools, operating in a loop until the outcome is reached.
 
 This opens up a new field: software that works the way coding agents work, applied to categories far beyond coding.
-</why_now>
 
-<core_principles>
 ## Core Principles
 
 Five principles, in dependency order. Each is stated here; the reasoning and
@@ -48,7 +45,6 @@ before applying any of them to a real design.
    a path for.
 5. **Improvement Over Time** — the system should get better as the model does,
    without a rewrite.
-
 
 ## Routing
 
@@ -72,7 +68,6 @@ that used to duplicate each other are merged here.
 | Testing for capability and parity | [agent-native-testing.md](./references/agent-native-testing.md) |
 | Refactoring existing code toward agent-native | [refactoring-to-prompt-native.md](./references/refactoring-to-prompt-native.md) |
 
-<architecture_checklist>
 ## Architecture Review Checklist
 
 When designing an agent-native system, verify these **before implementation**:
@@ -115,9 +110,7 @@ When designing an agent-native system, verify these **before implementation**:
 - [ ] **Cost Awareness:** Model tier selection (Haiku/Sonnet/Opus)
 
 **When designing architecture, explicitly address each checkbox in your plan.**
-</architecture_checklist>
 
-<quick_start>
 ## Quick Start: Build an Agent-Native Feature
 
 **Step 1: Define atomic tools**
@@ -152,9 +145,7 @@ const result = await agent.run({
   // Agent loops until it calls complete_task
 });
 ```
-</quick_start>
 
-<reference_index>
 ## Reference Files
 
 - `references/core-principles.md` — the five principles in full, with examples.
@@ -181,9 +172,7 @@ All references in `references/`:
 - [mobile-patterns.md](./references/mobile-patterns.md) - iOS storage, checkpoint/resume, cost awareness
 - [self-modification.md](./references/self-modification.md) - Git-based evolution, guardrails
 - [refactoring-to-prompt-native.md](./references/refactoring-to-prompt-native.md) - Migrating existing code
-</reference_index>
 
-<anti_patterns>
 ## Anti-Patterns
 
 Designs that look agent-native but are not — chat bolted onto a CRUD app,
@@ -191,7 +180,6 @@ one tool per screen, agent-only side doors that drift from the UI. The full
 catalogue, with the failure each one produces, is in
 `references/anti-patterns.md`. Read it when reviewing an existing design
 rather than when building a new one.
-
 
 ## Success Criteria
 
@@ -237,4 +225,3 @@ Can it figure out how to accomplish it, operating in a loop until it succeeds?
 If yes, you've built something agent-native.
 
 If it says "I don't have a feature for that"—your architecture is still too constrained.
-</success_criteria>

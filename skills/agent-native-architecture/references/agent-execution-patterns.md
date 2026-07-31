@@ -1,8 +1,5 @@
-<overview>
 Agent execution patterns for building robust agent loops. This covers how agents signal completion, track partial progress for resume, select appropriate model tiers, and handle context limits.
-</overview>
 
-<completion_signals>
 ## Completion Signals
 
 Agents need an explicit way to say "I'm done."
@@ -105,9 +102,7 @@ If you're blocked and can't proceed:
 - Call `complete_task` with status "blocked" and explain why
 - Don't loop forever trying the same thing
 ```
-</completion_signals>
 
-<partial_completion>
 ## Partial Completion
 
 For multi-step tasks, track progress at the task level for resume capability.
@@ -205,9 +200,7 @@ struct AgentCheckpoint: Codable {
 4. On dismiss:
    - Delete checkpoint
    - Start fresh if user tries again
-</partial_completion>
 
-<model_tier_selection>
 ## Model Tier Selection
 
 Different agents need different intelligence levels. Use the cheapest model that achieves the outcome.
@@ -274,9 +267,7 @@ let quickLookupConfig = AgentConfig(
 3. **Reserve powerful tier for synthesis tasks** (comparing multiple sources)
 4. **Consider token limits per turn** to control costs
 5. **Cache expensive operations** to avoid repeated calls
-</model_tier_selection>
 
-<context_limits>
 ## Context Limits
 
 Agent sessions can extend indefinitely, but context windows don't. Design for bounded context from the start.
@@ -367,9 +358,7 @@ For long tasks, periodically consolidate what you've learned:
 
 Don't try to hold everything in memory. Write it down.
 ```
-</context_limits>
 
-<orchestrator_pattern>
 ## Unified Agent Orchestrator
 
 One execution engine, many agent types. All agents use the same orchestrator with different configurations.
@@ -436,9 +425,7 @@ class AgentOrchestrator {
 - Shared tool protocol
 - Easy to add new agent types
 - Centralized error handling and logging
-</orchestrator_pattern>
 
-<checklist>
 ## Agent Execution Checklist
 
 ### Completion Signals
@@ -464,4 +451,3 @@ class AgentOrchestrator {
 - [ ] Consolidation mechanism available
 - [ ] Important context persisted to files
 - [ ] Truncation strategy defined
-</checklist>
