@@ -50,6 +50,7 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 | Hook | Event | Purpose |
 |------|-------|---------|
 | `session-start-skill-catalog.sh` | SessionStart | Injects skill catalog, recent git log, and AGENTS.md pointer |
+| `pre-tool-use-shell-safety.sh` | PreToolUse (Bash) | Warns, never blocks, on four shell shapes that fail silently rather than loudly: `for x in $VAR` (zsh does not word-split, so the loop runs once and reports a clean zero), `rg -r`/`-rn` (that is `--replace`, not recursive), a multi-word quoted loop item used unquoted as argv, and assignment to zsh's reserved `path`/`cdpath`/`fpath`/`manpath`. Fails open at every step. Wired at **user scope** rather than project scope, since the traps are not repo-specific |
 | `session-start-skill-drift.sh` | SessionStart | Notes once when installed global skill copies diverged from canonical (`CONTENT_DRIFT`). Informational, never blocks; debounced via `hooks/skill_drift_state.py` so it speaks only when the drifted set changes |
 | `pre-tool-use-git-push-protected-branch.sh` | PreToolUse (Bash) | Blocks pushes to protected branches unless an explicit override token is present |
 | `pre-tool-use-validate-skill.sh` | PreToolUse (Write/Edit) | Validates SKILL.md frontmatter; blocks on failure |
