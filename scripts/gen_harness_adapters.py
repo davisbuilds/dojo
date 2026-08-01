@@ -33,7 +33,19 @@ from pathlib import Path
 
 import yaml
 
-HARNESS_DIRS = (".claude", ".agents", ".agent")
+# `.agents` is deliberately absent. Codex reads `<repo>/.agents/skills` as
+# project scope and does NOT shadow by name across roots, so linking the whole
+# canonical catalog there listed every skill twice -- once from the global
+# install and once from this repo. Measured 2026-08-01 with
+# `codex debug prompt-input`: 90 entries against 41, and 80 of them truncated
+# mid-word because the listing blew past Codex's 5,440-token budget. Codex does
+# not mark truncation, so the routing signal degraded invisibly in the one repo
+# where skills are authored.
+#
+# `.claude` stays: Claude Code has no established listing limit (audit-only),
+# and project scope is genuinely useful while working here. `.agent` stays
+# because no harness we have measured reads it, so it costs nothing.
+HARNESS_DIRS = (".claude", ".agent")
 SYMLINK_TARGET = "../skills"
 MARKER = "# AUTO-GENERATED from SKILL.md frontmatter — do not edit"
 

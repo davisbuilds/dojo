@@ -58,7 +58,7 @@ def test_generates_symlinks_and_sidecars(tmp_path: Path):
 
     assert _invoke(module, tmp_path, []) == 0
 
-    for harness in (".claude", ".agents", ".agent"):
+    for harness in (".claude", ".agent"):
         link = tmp_path / harness / "skills"
         assert link.is_symlink()
         assert os.readlink(link) == "../skills"
@@ -249,3 +249,38 @@ def test_skip_symlinks_skips_commands(tmp_path: Path):
     assert _invoke(module, tmp_path, ["--skip-symlinks"]) == 0
     assert not (tmp_path / ".claude" / "commands" / "review.md").exists()
     assert _invoke(module, tmp_path, ["--check", "--skip-symlinks"]) == 0
+
+
+def test_does_not_link_the_catalog_into_codex_project_scope(tmp_path: Path):
+    """Codex reads `.agents/skills` and does not shadow by name across roots.
+
+    Linking the whole canonical catalog there listed every installed skill
+    twice and pushed the listing past Codex's budget, which it resolves by
+    clipping descriptions mid-word with no marker. Measured 2026-08-01: 90
+    entries against 41, 80 of them truncated. Regenerating adapters must not
+    create or restore that link.
+    """
+    module = load_module()
+    make_repo(tmp_path)  # pre-seeds .agents/skills as a plain dir
+
+    assert ".agents" not in module.HARNESS_DIRS
+    assert _invoke(module, tmp_path, []) == 0
+
+    agents_link = tmp_path / ".agents" / "skills"
+    assert not agents_link.is_symlink(), "generator must not link the catalog into Codex project scope"
+    # the sibling it still owns proves the run actually did its work
+    assert (tmp_path / ".claude" / "skills").is_symlink()
+
+
+def test_pre_existing_agents_link_is_not_reported_as_drift(tmp_path: Path):
+    """A developer machine may still carry the old link. The generator no
+    longer owns that path, so it must neither restore nor complain about it."""
+    module = load_module()
+    make_repo(tmp_path)
+    stale = tmp_path / ".agents" / "skills"
+    stale.rmdir()
+    os.symlink("../skills", stale)
+
+    assert _invoke(module, tmp_path, []) == 0
+    assert _invoke(module, tmp_path, ["--check"]) == 0
+    assert stale.is_symlink()  # left exactly as found
