@@ -225,12 +225,12 @@ Status: noted
   of the global catalog dirs AgentMonitor scans (`~/.claude/skills`,
   `~/.codex/skills`, `~/.agents/skills`) and have never fired, so AgentMonitor
   emits no health row and they land in the report's collapsed "no data" bucket
-  (agent-native-architecture, algorithmic-art, caveman, compound-docs, design-md,
+  (agent-native-architecture, caveman, compound-docs, design-md,
   fetchmd, gh-commit-push-pr, loop-design, markdown-converter,
   nextjs-app-router, repo-hardening, skill-evals, skill-installer, template,
   theme-factory, vercel-composition-patterns, vercel-deploy,
-  vercel-preview-logs). **Updated 2026-07-31:** seven of the original 26 were
-  retired rather than installed, so the census is now 18 of 49. The earlier
+  vercel-preview-logs). **Updated 2026-08-01:** eight of the original 26 were
+  retired rather than installed, so the census is now 17 of 48. The earlier
   "13 of 55" figure was a stale
   point-in-time AgentMonitor snapshot; the catalog has since grown and prior
   syncs used `--only-existing`.

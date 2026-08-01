@@ -8,13 +8,6 @@
       "version": "2.0.0"
     },
     {
-      "name": "algorithmic-art",
-      "description": "Creating algorithmic art using p5.js with seeded randomness and interactive parameter exploration. Use this when users request creating art using code, generative art, algorithmic art, flow fields, or particle systems. Create original algorithmic art rather than copying existing artists' work to avoid copyright violations.",
-      "path": "skills/algorithmic-art",
-      "version": "1.0.0",
-      "license": "Complete terms in LICENSE.txt"
-    },
-    {
       "name": "api-design",
       "description": "Design and review robust API and interface contracts. Use when creating or changing HTTP endpoints, GraphQL/RPC-style APIs, webhooks, SSE/event streams, exported DTOs/types, service-layer boundaries, CLI JSON/stdout/exit-code contracts, versioning/deprecation plans, or any compatibility-sensitive boundary between consumers and providers.",
       "path": "skills/api-design",
