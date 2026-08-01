@@ -108,12 +108,14 @@ both directions.
 Only one item below is a contract question. The rest are recorded plan-level
 decisions, stated so a reader can see they were decided rather than drifted into.
 
-**Contract question — SC-10's per-overlay anchor clause.** None of the twelve
-SC-02 anchors declares a trigger fixture today. Task 6 resolves this by
-**authoring the twelve anchor fixtures** rather than deferring, because emitting
-`coverage-gap` while claiming SC-10 proven would be a false completion claim. If
-the maintainer would rather not add fixtures, SC-10's per-overlay clause needs a
-contract revision instead. Task 6 assumes the authoring answer.
+**SC-10's per-overlay anchor clause — settled 2026-08-01, no contract revision.**
+None of the twelve SC-02 anchors declared a trigger fixture. Task 6 **authors all
+twelve**, rather than emitting `coverage-gap` while claiming SC-10 proven, which
+would be a false completion claim. The maintainer confirmed the version cost is
+acceptable: adding `evals/trigger-cases.json` to a skill is a new optional
+capability, so each of the twelve takes a MINOR bump and a CHANGELOG entry, and
+`check_skill_versions.py` enforces both in CI. The alternative — narrowing SC-10
+in the contract — was considered and declined.
 
 **Plan decisions, recorded not deferred:**
 
