@@ -11,8 +11,10 @@ Two artifact kinds, all derived from the canonical `skills/<name>/SKILL.md`:
 
 1. Dir-level relative symlinks so SKILL.md-native harnesses discover every skill:
        .claude/skills  -> ../skills
-       .agents/skills  -> ../skills
        .agent/skills   -> ../skills
+
+   `.agents/skills` is deliberately not created -- Codex reads it as project
+   scope and would list the whole catalog a second time. See HARNESS_DIRS.
 
 2. A colocated Codex interface sidecar per skill:
        skills/<name>/agents/openai.yaml
