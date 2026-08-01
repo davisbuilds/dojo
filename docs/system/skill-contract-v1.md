@@ -57,7 +57,7 @@ Rationale: `description` carries trigger-ready *prose* (see `description_trigger
 SKILL.md frontmatter is the source of truth. Two generation steps derive artifacts from it; both are deterministic, idempotent, and expose a `--check` mode that fails on drift:
 
 - **Shared-fragment composition** (`scripts/gen_skill_docs.py`): expands declared shared includes into SKILL.md between `<!-- AUTO-GENERATED -->` markers. **Opt-in only** — a skill that declares no template/includes is never modified.
-- **Harness sidecars** (`scripts/gen_harness_adapters.py`): emits per-skill adapter files for each target harness (`.claude/`, `.agents/`, `.agent/`, Codex) from frontmatter. Sidecars are generated artifacts and must not be hand-edited; the compliance `--check` treats hand-edits as drift.
+- **Harness sidecars** (`scripts/gen_harness_adapters.py`): emits per-skill adapter files for each target harness (`.claude/`, `.agent/`, Codex) from frontmatter. Sidecars are generated artifacts and must not be hand-edited; the compliance `--check` treats hand-edits as drift.
 
 ## Universal Required Checks (must pass)
 

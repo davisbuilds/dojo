@@ -272,15 +272,46 @@ def test_does_not_link_the_catalog_into_codex_project_scope(tmp_path: Path):
     assert (tmp_path / ".claude" / "skills").is_symlink()
 
 
-def test_pre_existing_agents_link_is_not_reported_as_drift(tmp_path: Path):
-    """A developer machine may still carry the old link. The generator no
-    longer owns that path, so it must neither restore nor complain about it."""
+def test_retires_a_pre_existing_agents_link(tmp_path: Path):
+    """The link is gitignored, so pulling the change that dropped `.agents`
+    leaves it in place on any checkout that ran the old generator. Codex would
+    keep double-listing forever. Generation must actively retire it."""
     module = load_module()
     make_repo(tmp_path)
     stale = tmp_path / ".agents" / "skills"
     stale.rmdir()
     os.symlink("../skills", stale)
 
+    assert _invoke(module, tmp_path, ["--check"]) == 1  # reported as drift first
+    assert stale.is_symlink()  # --check writes nothing
+
     assert _invoke(module, tmp_path, []) == 0
-    assert _invoke(module, tmp_path, ["--check"]) == 0
-    assert stale.is_symlink()  # left exactly as found
+    assert not stale.exists() and not stale.is_symlink()
+    assert (tmp_path / ".agents").is_dir()  # the dir may hold real config
+    assert _invoke(module, tmp_path, ["--check"]) == 0  # idempotent
+
+
+def test_refuses_to_delete_a_real_agents_directory(tmp_path: Path):
+    """A populated real directory may be a developer's own skills."""
+    module = load_module()
+    make_repo(tmp_path)
+    mine = tmp_path / ".agents" / "skills" / "my-local-skill"
+    mine.mkdir(parents=True)
+    (mine / "SKILL.md").write_text("local", encoding="utf-8")
+
+    assert _invoke(module, tmp_path, []) == 1  # error -> non-zero
+    assert (mine / "SKILL.md").read_text() == "local"
+
+
+def test_leaves_a_foreign_agents_symlink_alone(tmp_path: Path):
+    """A link pointing somewhere else was someone's deliberate choice."""
+    module = load_module()
+    make_repo(tmp_path)
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    stale = tmp_path / ".agents" / "skills"
+    stale.rmdir()
+    os.symlink("../elsewhere", stale)
+
+    assert _invoke(module, tmp_path, []) == 1  # error -> non-zero
+    assert stale.is_symlink() and os.readlink(stale) == "../elsewhere"
