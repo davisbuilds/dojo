@@ -85,13 +85,40 @@ Maintainers therefore cannot express which skills should be distributed
 together, prove that an effective catalog fits a harness, or tell intentional
 exclusion apart from missing or stale state.
 
-Claude Code is deliberately **not** a motivating case here. No authoritative
-listing limit for it can be established from vendor documentation or a
-reproducible local probe, so under SC-04 it is audit-only until such a policy
-exists. Earlier framings of this problem rested on an unverified Claude listing
-budget and on an assumption that project-scope skills are inherited by
-subdirectory sessions; neither survived verification, and the contract no longer
-depends on either.
+**Claude Code is a second motivating case, and it is over budget too.** Earlier
+revisions recorded it as permanently audit-only because no authoritative limit
+could be established. That was wrong for the same reason the Codex figures were
+wrong — the probe was never looked for in the right place. Two exist:
+`--debug-file` states the budget verdict in one line, and
+`OTEL_LOG_RAW_API_BODIES="file:<dir>"` writes the complete model-visible request
+body per call, needing no telemetry configuration despite the prefix.
+
+The limit is a vendor constant, which is precisely what SC-04 accepts as
+authoritative: `skillListingBudgetFraction` defaults to **0.01** and the budget
+is `context_tokens × 4 bytes × that fraction` **characters** (bundle v2.1.220,
+alongside `skillListingMaxDescChars` = 1536). That is **8,000 characters at a
+200k window and 40,000 at 1M**.
+
+| Session | Skills | Chars | vs 8,000 |
+|---|---|---|---|
+| Ordinary global session | 45 | 17,072 | **2.13×** |
+| `dojo`-rooted | 75 | 23,824 | **2.98×** |
+
+Measured 2026-08-01. Two properties distinguish it from Codex and both matter
+to this contract. **Claude Code shadows by name across scopes** where Codex does
+not, so a project-scope link adds only skills absent from user scope rather than
+duplicating the catalog. And **its degradation drops descriptions outright**
+rather than clipping them: over budget, lower-priority skills render as a bare
+`- skill-name`, so the model sees a name and nothing about when to use it.
+Bundled and explicitly-invoked skills are exempt.
+
+The exposure is **model-dependent**, which bounds urgency without removing the
+problem: at a 1M window the same 75-skill listing fits with no warning, so
+degradation is confined to 200k-context models.
+
+One earlier correction still stands: the assumption that project-scope skills
+are inherited by subdirectory sessions was false, and this contract does not
+depend on it.
 
 ## Contract
 
@@ -161,12 +188,15 @@ catalog as conformant.
   removed: 2 observed Codex sessions against `session-retro`'s 14, which covers
   the adjacent need. `first-principles` was added at 52 sessions, second only to
   `verify-before-complete`. `diagnose` is retained on 12 sessions, last used
-  eight days before this revision. Acceptance proves at
-  least one concrete supported harness/model realization where `core` plus one
-  non-empty capability overlay and a three-entry foreign baseline remains
-  within the effective-catalog budget. A harness where the pinned baseline does
-  not fit is audit-only rather than repaired by weakening the budget or
-  rewriting skills.
+  eight days before this revision. Acceptance proves, for **every** deployable
+  harness/model pair rather than one representative, a concrete realization
+  where `core` plus one non-empty capability overlay and a three-entry foreign
+  baseline remains within the effective-catalog budget. Both currently
+  deployable pairs must be covered, including a 200k-context Claude Code pair,
+  since its budget scales with the model's context window and a 1M-window pass
+  proves nothing about a 200k one. A harness/model pair where the pinned
+  baseline does not fit is audit-only rather than repaired by weakening the
+  budget or rewriting skills.
 - **SC-04 — Budgeted effective catalog:** A realization is deployable only when
   the complete catalog visible to the harness—including user and project scope,
   shadowed names counted according to actual harness behavior, foreign skills,
@@ -180,7 +210,18 @@ catalog as conformant.
   independent one, so budget arithmetic matches the harness's own rather than
   merely approximating it. Codex computes both its budget and its per-entry cost
   with a 4-bytes-per-token approximation, so a Codex policy uses characters
-  divided by four and the 5% undercount bound is satisfied by construction. An unknown or stale limit, uninspectable scope, or
+  divided by four and the 5% undercount bound is satisfied by construction.
+  **Claude Code budgets in characters directly** — `context_tokens × 4 ×
+  skillListingBudgetFraction` — so a Claude Code policy compares characters to
+  characters and performs no token conversion at all; converting would introduce
+  an error the harness itself never makes. A policy must also record the
+  **model** it was measured against, not only the harness version, because that
+  budget moves with the context window. **Cost is computed from the untruncated
+  source description**, never from an observed listing: a harness that elides to
+  fit produces output that always fits, so calibrating against it would certify
+  the failure this criterion exists to catch. Observing that a rendered entry
+  differs from its source is itself a nonconformance signal, whether the harness
+  marks the elision or not. An unknown or stale limit, uninspectable scope, or
   unknown precedence rule is reported as unsupported rather than assumed safe.
   The `full` profile receives no budget exemption and is never the default.
 - **SC-05 — Exact managed realization:** A conformant target exposes every
@@ -344,10 +385,18 @@ The reference behavior is explicit:
   reproducible versioned probes are the only authoritative sources. A missing,
   stale, or contradictory policy makes the target audit-only until policy is
   re-established; it never silently falls back to the `full` profile or an
-  assumed limit. On the evidence available at authoring time this means Codex is
-  the initial deployable harness and Claude Code is audit-only — so acceptance
-  must not assume more than one deployable harness exists, and the `core`-fits
-  proof in SC-03 is discharged against Codex.
+  assumed limit. **Both Codex and Claude Code now meet the authoritative-source
+  bar** — each limit is read from vendor implementation source at a pinned
+  version — so the initial deployable set is two harnesses, not one. Acceptance
+  must not assume they behave alike: their budgets differ (5,440 tokens against
+  8,000–40,000 characters), their scope precedence differs (Codex does not
+  shadow by name across roots; Claude Code does), their degradation differs
+  (mid-word clipping against whole-description removal), and Claude Code's
+  budget is a function of the **model's** context window, so one machine can be
+  conformant and non-conformant in the same repository depending on which model
+  a session runs. A harness/model pair whose limit cannot be established remains
+  audit-only. The `core`-fits proof in SC-03 must be discharged against **each**
+  deployable harness/model pair rather than a single representative one.
 - The 90% deployability ceiling is an initial conservative guardrail that
   reserves 10% for estimator variance and harness-added metadata. Calibration
   still must satisfy the 5% maximum undercount bound. A future threshold change
@@ -537,6 +586,39 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-08-01 (revision 8).** Claude Code becomes a **second deployable
+  harness**, and this is the first revision to change a success criterion rather
+  than only its evidence.
+
+  Revisions 2 through 7 recorded Claude Code as permanently audit-only because
+  no authoritative listing limit could be established. That rested on a July
+  finding that declared three routes exhausted and concluded *"nothing needs
+  it."* The routes were individually defensible; the conclusion was not. It
+  converted an open question into a closed one, and this contract built on the
+  closure. Two probes exist — `--debug-file` states the budget verdict in one
+  line, and `OTEL_LOG_RAW_API_BODIES="file:<dir>"` writes the full model-visible
+  request body — and the limit is a vendor constant. **This is the second time
+  in one week that an assumed-absent probe turned out to exist**; the first
+  produced revision 7.
+
+  The unverified "~1% budget" claim is confirmed exactly
+  (`skillListingBudgetFraction` = 0.01). The "3.4× over" claim does not
+  reproduce: an ordinary session measures 2.13× and a `dojo`-rooted one 2.98×.
+
+  Three consequences are structural. **SC-03 now requires the fits-proof against
+  every deployable harness/model pair**, not one representative — Claude Code's
+  budget scales with the model's context window, so a 1M-window pass proves
+  nothing about a 200k one. **SC-04 gains a Claude Code estimator rule** (budget
+  in characters, no token conversion) and an explicit requirement that cost come
+  from untruncated source rather than observed listing, because a harness that
+  elides to fit always appears to fit. **The Assumptions entry on external
+  policy** now states the two harnesses' differences as load-bearing: budgets,
+  scope precedence, and degradation mode all differ, and Claude Code alone can
+  be conformant and non-conformant in the same repository depending on the
+  session's model.
+
+  No evaluation scenario or authority boundary changed.
 
 - **2026-07-31 (revision 7).** Corrections and one sequencing constraint. Three
   counts were stale: 57 skills pass the structural contract (now 49), two
