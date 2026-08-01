@@ -1,6 +1,6 @@
 ---
 name: design-md
-description: "Read, write, lint, diff, and export DESIGN.md files using the Google @google/design.md format. Use when the user mentions DESIGN.md, design tokens, extracting a design system, linting design tokens, exporting tokens to Tailwind, DTCG, or CSS variables, or when authoring a fresh design-system reference for a project. Wraps the pinned 0.1.1 CLI through scripts/run_cli.sh."
+description: "Read, write, lint, diff, and export DESIGN.md files using the Google @google/design.md format. Use when the user mentions DESIGN.md, design tokens, extracting a design system, linting design tokens, exporting tokens to Tailwind, DTCG, or CSS variables, or when authoring a fresh design-system reference for a project."
 skill-type: workflow
 metadata:
   upstream:
@@ -8,7 +8,7 @@ metadata:
     cli: "@google/design.md@0.1.1 (npm)"
     license: "Apache-2.0"
     exemplar-source: "https://styles.refero.design"
-version: 1.0.0
+version: 1.0.1
 ---
 
 # design-md

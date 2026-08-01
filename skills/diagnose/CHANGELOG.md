@@ -1,3 +1,7 @@
+## 1.0.3 - 2026-08-01
+
+- Trim the internal debugging-loop step list from the description; routing signal (triggers, sibling hand-offs) unchanged.
+
 # Changelog
 
 ## 1.0.2 - 2026-07-31

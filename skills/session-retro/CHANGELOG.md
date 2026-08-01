@@ -1,3 +1,7 @@
+## 1.0.3 - 2026-08-01
+
+- Trim the internal learning-routing mechanic from the description; the do-not-create-new-files boundary and triggers are unchanged.
+
 # Changelog
 
 ## 1.0.2 - 2026-07-31

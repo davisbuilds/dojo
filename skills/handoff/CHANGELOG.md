@@ -1,3 +1,7 @@
+## 1.0.2 - 2026-08-01
+
+- Tighten the description's opening clause; triggers unchanged.
+
 # Changelog
 
 ## 1.0.1 - 2026-07-31

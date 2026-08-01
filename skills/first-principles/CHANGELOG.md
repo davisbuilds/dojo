@@ -1,3 +1,7 @@
+## 2.0.1 - 2026-08-01
+
+- Trim the internal reasoning-step list from the description; triggers and sibling hand-offs unchanged.
+
 # Changelog
 
 ## 2.0.0 - 2026-07-31

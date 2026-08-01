@@ -1,8 +1,8 @@
 ---
 name: first-principles
-description: "Systems-level reasoning for high-stakes technical decisions — decompose the problem, state assumptions explicitly, weigh real alternatives. Use when choosing between architectures, evaluating trade-offs, or planning a non-mechanical refactor. For debugging a specific failure use diagnose; for clarifying an ambiguous WHAT use brainstorming."
+description: "Systems-level reasoning for high-stakes technical decisions. Use when choosing between architectures, evaluating trade-offs, or planning a non-mechanical refactor. For debugging a specific failure use diagnose; for clarifying an ambiguous WHAT use brainstorming."
 skill-type: reference
-version: 2.0.0
+version: 2.0.1
 ---
 
 # First Principles

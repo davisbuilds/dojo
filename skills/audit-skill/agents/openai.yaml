@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Audit Skill"
-  short_description: "Security audit for agent skills — structural validation"
+  short_description: "Security audit for agent skills — prompt-injection and"
   default_prompt: "Use $audit-skill for this task."
