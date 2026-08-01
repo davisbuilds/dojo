@@ -23,25 +23,46 @@ be established, whole-catalog distribution leaves no margin at all. Codex
 derives its skills budget as 2% of the model context window in tokens, falling
 back to 8,000 characters only when the window is unknown
 (`codex-rs/core-skills/src/render.rs`, `default_skill_metadata_budget`, at
-pinned revision `f57467275c`). At the observed window of 258,400 that budget is
-**5,168 tokens**. Exceeding it is not a soft condition: Codex shortens
-descriptions first and emits a truncation warning, then removes descriptions
-entirely — degrading exactly the routing signal a skill catalog exists to
-provide, and doing so silently from the maintainer's point of view.
+pinned revision `f57467275c`). The window passed is the **full** one, not the
+95%-effective figure — `codex-rs/core/src/session/mod.rs` calls
+`default_skill_metadata_budget(turn_context.model_info.context_window)` — so at
+the observed 272,000 window the budget is **5,440 tokens**.
 
-The measured position, as of the most recent hand-measurement:
+Exceeding it is not a soft condition, and the degradation is worse than the
+vendor source alone suggests. Codex shortens descriptions first, then removes
+them entirely — but in practice the shortening lands **mid-word, with no
+ellipsis and no marker of any kind**. A truncated listing is indistinguishable
+from a catalog whose descriptions were simply written short. Exactly the routing
+signal a skill catalog exists to provide is destroyed, invisibly, and nothing in
+the repository reports it.
 
-| Set | Skills | Est. tokens | % of budget | Measured |
+The measured position, from `codex debug prompt-input` — which dumps the
+model-visible listing deterministically, so these are observations of the
+effective catalog rather than estimates from the filesystem:
+
+| Session root | Listed entries | Demand (est. tokens) | % of budget | Truncated |
 |---|---|---|---|---|
-| Curated global installation | 31 | ~2,874 | 56% | 2026-07-31 |
-| Full canonical catalog | 49 | ~4,388 | **85%** | 2026-07-31 |
+| Ordinary global session | 46 | ~5,211 | **96%** | 0 |
+| `blueprint-finance` | 47 | ~5,341 | 98% | 0 |
+| `viral` | 52 | ~6,037 | **111%** | 19 |
+| `dojo` itself | 95 | ~9,616 | **177%** | 94 |
 
-Read those as dated observations, not as constants — and note that an earlier
-measurement the same week put the same two sets at 50% and 75%. The two passes
-used different estimators, neither is reproducible from anything in this
-repository, and there is no way to adjudicate them without the verifier this
-contract specifies. **A ten-point disagreement about how close the catalog sits
-to a hard ceiling, with no way to settle it, is the problem statement.**
+Measured 2026-08-01. Read them as dated observations, not as constants.
+
+Three things follow. **The contract is already being violated**: two
+repositories are silently degraded right now, and an ordinary session sits at
+96% against the 90% ceiling this contract sets — roughly one average skill from
+truncation. **The canonical catalog is not the population that matters**: those
+46 baseline entries include harness-bundled skills, plugin entries, and foreign
+skills, and one foreign directory contributes four listed entries because Codex
+lists nested subskills. **Codex does not shadow by name across roots**, unlike
+Claude Code, so a `dojo`-rooted session pays twice for 32 skills — 33 of its 95
+entries are redundant.
+
+Every earlier figure in this contract was a filesystem count, understating the
+real listing by **1.78×**. Review did not catch that; running a probe that had
+been assumed not to exist did. **A measurement nobody can reproduce is the
+problem statement.**
 
 The instability compounds it. On 2026-07-31 alone the full catalog measured
 111%, then 90%, then 77%, then 75% — first from trimming ten descriptions, then
@@ -338,9 +359,11 @@ The reference behavior is explicit:
   hashed.
 - The 31-skill global installation is evidence of intentional curation, not the
   default profile definition. Existing selection is preserved until a maintainer
-  explicitly applies a profile. Its measured cost (~2,874 estimated tokens, 56%
-  of the Codex budget on 2026-07-31) shows headroom exists today; the contract's
-  job is to make that headroom provable and durable, not to reduce it further.
+  explicitly applies a profile. It does **not** show that headroom exists: the
+  effective listing it participates in measures ~5,211 estimated tokens, 96% of
+  the Codex budget, on 2026-08-01. The contract's job is to make that figure
+  provable and durable rather than to reduce it, but no target is currently
+  conformant and the first honest verification run will say so.
   Both machines currently carry the same 32 entries — the 31 canonical skills
   plus one foreign skill, `microsoft-foundry` — so a live foreign-entry
   observation and a live cross-machine agreement case both already exist and do
@@ -532,6 +555,24 @@ budget checks, not an unresolved behavioral decision.
   changed — no success criterion, evaluation scenario, or authority boundary is
   modified — but the verify and apply halves are separable and the plan is
   directed to treat them as separate phases.
+
+  **Amended 2026-08-01, same revision.** The Problem section is rewritten around
+  measurements rather than estimates. `codex debug prompt-input` dumps the
+  model-visible listing deterministically; it had been assumed no such probe
+  existed, and the assumption was never tested. Under it, every figure this
+  contract previously carried — including revision 7's own 56% and 85% — was a
+  filesystem count understating the effective listing by 1.78×.
+
+  Three findings change the argument rather than merely its numbers. The
+  budget is **5,440**, not 5,168: `codex-rs/core/src/session/mod.rs` passes the
+  full context window, confirmed both from source and behaviorally by bracketing
+  a truncating listing against a non-truncating one. Codex **does not shadow by
+  name across roots**, so SC-04's "shadowed names counted according to actual
+  harness behavior" resolves to counting both copies. And truncation is **live
+  today** in two repositories, applied mid-word with no marker — so this contract
+  is not preventing a future failure, it is describing a present one.
+
+  No success criterion, evaluation scenario, or authority boundary changed.
 
 - **2026-07-31 (revision 6).** Corrects revision 5's measurement, which was
   wrong in a way that inverted one of its conclusions. Codex reads a skill
