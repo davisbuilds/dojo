@@ -1,5 +1,5 @@
 ---
-date: 2026-07-31
+date: 2026-08-01
 author: claude-opus-5
 topic: distribution-profiles
 stage: plan
@@ -59,9 +59,9 @@ both directions.
   catalog to make a profile fit (spec Out of Scope; SC-03).
 - Remote orchestration that mutates the other machine. SC-11 is discharged by
   consuming two independently produced evidence files (Task 7).
-- Establishing a Claude Code listing limit. Claude Code stays audit-only under
-  SC-04 until a policy exists; the profiles CLI observes and reports its targets
-  but never issues a deployable verdict for them.
+- Establishing a listing limit for any harness beyond the two now deployable.
+  A harness/model pair whose limit cannot be established stays audit-only under
+  SC-04: observed and reported, never given a deployable verdict.
 - Manufacturing trigger fixtures for skills that lack them. Task 6 reports the
   sparse-coverage limitation honestly (spec Assumptions).
 - Nested/subtractive overlays and per-project profile forks (spec Assumptions).
@@ -92,9 +92,17 @@ both directions.
   `~/.agents/skills` (31 canonical dojo skills plus the foreign
   `microsoft-foundry`), verified 2026-07-31. SC-05's foreign-entry observation
   and SC-11's cross-machine agreement case are real, not constructed.
-- **Codex is the only deployable harness** on current evidence, so acceptance
-  must not assume a second one exists, and SC-03's "core fits" proof is
-  discharged against Codex (spec Assumptions).
+- **Two harnesses are deployable** as of spec revision 8 — Codex and Claude
+  Code — each with a limit read from vendor implementation source at a pinned
+  version. They must not be assumed to behave alike: budgets differ in **unit**
+  (5,440 tokens against 8,000–40,000 characters), scope precedence differs
+  (Codex does not shadow by name across roots; Claude Code does), degradation
+  differs (mid-word clipping against whole-description removal), and Claude
+  Code's budget is a function of the **model's** context window — so one machine
+  can be conformant and non-conformant in the same repository depending on which
+  model a session runs. SC-03's fits-proof must therefore be discharged against
+  **every** deployable harness/model pair, including a 200k-context Claude Code
+  pair, not one representative (spec SC-03, SC-04, Assumptions).
 - **Python 3.12 in CI, 3.14 locally.** The only runtime dependency is
   `PyYAML==6.0.3` (`requirements.txt`). This plan adds no dependency. Local runs
   use `.venv/bin/python`; `python3` alone has no pytest on this machine.
@@ -138,18 +146,27 @@ in the contract — was considered and declined.
    nonconformant full-canonical membership, never migrated into a deployable
    `full` realization.
 
-**What phase 1's first honest run will say.** Measured 2026-08-01 against a
-budget of 5,440: ordinary sessions (`~`, `~/Dev`, `~/Dev/ops`, `~/Dev/habits-ai`)
-carry 46 entries demanding ~5,211 — **96% against a 90% ceiling**, already
-non-deployable. `blueprint-finance` is at 47 entries / ~5,341 / 98%. And two
-repos are **actively truncating**: `viral` at 52 entries / ~6,037 / 111% with 19
-truncated descriptions, and `dojo` itself at 95 entries / ~9,616 / **177%** with
-94 truncated. The cause in both is a `.agents/skills → ../skills` symlink putting
-the whole canonical catalog at project scope. So the first honest output of this
-work is not "here is your headroom" — it is that routing signal is being silently
-destroyed in two repositories today and ordinary sessions have already crossed
-the ceiling. Every figure here is a dated measurement; the verifier recomputes
-all of them at verify time.
+**What phase 1's first honest run will say.** Two harnesses, both already in
+breach, measured 2026-08-01.
+
+*Codex*, budget 5,440 tokens: ordinary sessions (`~`, `~/Dev`, `~/Dev/ops`,
+`~/Dev/habits-ai`) carry 46 entries demanding ~5,211 — **96% against a 90%
+ceiling**, already non-deployable. `blueprint-finance` 47 / ~5,341 / 98%.
+`viral` 52 / ~6,037 / **111%**, 19 descriptions truncated. `dojo` itself 95 /
+~9,616 / **177%**, 94 truncated.
+
+*Claude Code*, budget 8,000 characters at a 200k window: an ordinary session
+demands 17,072 chars (**2.13×**); a `dojo`-rooted session demands 24,558
+(**3.07×**), of which **54 of 76 entries have their descriptions removed
+entirely**. The same repository fits on a 1M-window model with no warning at all
+— which is why the model is part of policy identity.
+
+So the first honest output of this work is not "here is your headroom". It is
+that routing signal is being destroyed right now, on both harnesses, in this
+repository — and that the rendered Claude Code listing measures 8,058 chars
+against an 8,000 budget while true demand is 24,558. A verifier that read the
+rendered listing would call that 101% and pass. Every figure here is a dated
+measurement; the verifier recomputes all of them at verify time.
 
 ## Map Before You Cut
 
@@ -251,81 +268,122 @@ adapter-writing script, then reading each hit:
 
 ## Task Breakdown
 
-### Task 0: Deterministic listing probe and budget inputs
+### Task 0: Deterministic listing probes for both deployable harnesses
 
 **Objective**
 
-Build the read-only probe every later task depends on. Codex ships two
-deterministic debug commands that dump exactly what this contract needs, so the
-probe is a scriptable parse — no LLM in the loop, no stored-artifact staleness,
-re-runnable on demand at verify time.
+Build the read-only probes every later task depends on. Both harnesses ship
+deterministic, scriptable ways to dump what they actually send to the model, so
+every probe is a parse — no LLM judgement in the loop, re-runnable on demand at
+verify time rather than cached and trusted.
 
 **Files**
 
 - Create: `scripts/profiles/probe_codex.py`
-- Create: `tests/fixtures/profiles/prompt-input-dojo-2026-08-01.json`
-- Create: `tests/fixtures/profiles/prompt-input-blueprint-2026-08-01.json`
-- Create: `tests/fixtures/profiles/prompt-input-viral-2026-08-01.json`
+- Create: `scripts/profiles/probe_claude.py`
+- Create: `tests/fixtures/profiles/codex-prompt-input-dojo-2026-08-01.json`
+- Create: `tests/fixtures/profiles/codex-prompt-input-blueprint-2026-08-01.json`
+- Create: `tests/fixtures/profiles/codex-prompt-input-viral-2026-08-01.json`
+- Create: `tests/fixtures/profiles/claude-debug-dojo-2026-08-01.txt`
+- Create: `tests/fixtures/profiles/claude-request-dojo-2026-08-01.json`
 - Test: `tests/test_profiles_probe.py`
 
 **Dependencies**
 
 None
 
-**Research Context**
+**Research Context — Codex**
 
-- `codex debug prompt-input` renders the model-visible prompt input list as JSON,
-  including the whole `<skills_instructions>` block. `codex debug models` returns
-  the model catalog as JSON. Both verified present via `codex debug --help`.
+- `codex debug prompt-input` renders the model-visible prompt as JSON including
+  the whole `<skills_instructions>` block; `codex debug models` returns the model
+  catalog. Both verified present via `codex debug --help`.
 - `codex debug models` reports `context_window: 272000`,
-  `max_context_window: 272000`, and a *separate*
-  `effective_context_window_percent: 95` for `gpt-5.6-sol`.
+  `max_context_window: 272000`, and a **separate**
+  `effective_context_window_percent: 95`.
   `codex-rs/core/src/session/mod.rs:3303` passes
-  `turn_context.model_info.context_window` into `default_skill_metadata_budget`,
-  i.e. the **full** window, not the 95%-effective one. That gives
-  `272000 * 2 / 100 = 5,440`, which is what the behavioral bracket in step 6
-  independently confirms.
-- Reproduced directly in `~/Dev/dojo` on 2026-08-01: the block contains **95**
-  entries, of which **2** are namespaced plugin entries (`browser:…`,
-  `computer-use:…`). Paths render in alias form (`r2/imagegen/SKILL.md`), so the
-  alias branch of `render.rs` is the live mode here.
-- The first sampled entry ends mid-word (`…transparent-bac (file: …)`),
-  confirming description truncation is occurring live, not hypothetically.
+  `turn_context.model_info.context_window` into `default_skill_metadata_budget`
+  — the **full** window, giving `272000 * 2 / 100 = 5,440`.
+- Reproduced in `~/Dev/dojo` on 2026-08-01: 95 entries, 2 namespaced plugin
+  entries (`browser:…`, `computer-use:…`), alias render mode
+  (`r2/imagegen/SKILL.md`), and a first entry ending mid-word
+  (`…transparent-bac`) — truncation live, with no marker.
+
+**Research Context — Claude Code (all reproduced 2026-08-01 in `~/Dev/dojo`)**
+
+- **Probe A** — `claude -p --no-session-persistence --model haiku --debug-file
+  <path> "say ok"` — emits the resolution pipeline and a one-line verdict:
+
+  ```
+  [DEBUG] Loading skills from: managed=…, user=/Users/…/.claude/skills, project=[/Users/…/Dev/dojo/.claude/skills]
+  [DEBUG] Loaded 95 unique skills (…, managed: 0, user: 30, project: 49, …, legacy commands: 16)
+  [DEBUG] getSkills returning: 95 skill dir commands, 2 plugin skills, 35 bundled skills, 0 builtin plugin skills
+  [DEBUG] Total plugin skills loaded: 2 (0 duplicate/user-owned entries skipped)
+  [DEBUG] Sending 76 skills via attachment (initial)
+  [WARN] Skill listing over budget: 76 skills, 24558 chars > 8000 budget — descriptions will be truncated.
+  ```
+
+  Note `95 loaded` versus `76 sent` — the load count is not the listing. Using
+  95 would be the filesystem error in a new costume.
+- **Probe B** — `OTEL_LOG_RAW_API_BODIES="file:<dir>" claude -p
+  --no-session-persistence "say ok"` — writes `<request_id>.request.json` with
+  `model`, `system`, `messages`, `tools`, `betas`. Confirmed it needs **no**
+  `CLAUDE_CODE_ENABLE_TELEMETRY`, no exporter, no other OTEL variable; the prefix
+  is misleading. Headers are excluded and `thinking` is redacted, so no
+  credentials appear.
+- **The listing lives in `messages`, not `system`**, inside a
+  `<system-reminder>` block opening `The following skills are available for use
+  with the Skill tool:`, with entries `- <name>` or `- <name>: <description>`.
+  A parser that searched `system` would find dojo's own SessionStart hook output
+  (`## Available Skills`) instead and measure the wrong thing entirely — that is
+  dojo injecting a catalog, not the harness listing it.
+- **Live degradation mode 2, measured:** of 76 entries, **54 render as bare
+  names with the description removed entirely** (`- api-design`,
+  `- audit-skill`, `- blind-spots`, …), 22 keep descriptions, 0 carry the
+  `…` marker. The rendered block is **8,058 chars** against an 8,000 budget —
+  it "fits" — while probe A reports true demand at **24,558 chars, 3.07×**.
+- Claude Code's project-scope root is **`.claude/skills`** (from the `project=[…]`
+  line), whereas Codex's is `.agents/skills`. `.agent/skills` is read by neither.
 
 **Implementation Steps**
 
-1. Implement `probe(cwd)` running `codex debug prompt-input` in that working
-   directory and extracting the `<skills_instructions>` block from the JSON.
-2. **Parse each entry anchored on the trailing ` (file: <path>)`, not on the
-   first colon.** Plugin entries render as `namespace:name`, so a
-   split-on-first-colon parser drops them silently and reports a confident zero —
-   the failure mode this program has already hit repeatedly. Allow colons inside
-   the name; take the description as everything between the first `: ` after the
-   name and the trailing file locator.
-3. Implement `models()` running `codex debug models`, returning `slug`,
+1. `probe_codex.probe(cwd)` — run `codex debug prompt-input`, extract the
+   `<skills_instructions>` block, parse entries **anchored on the trailing
+   ` (file: <path>)`**, not on the first colon: plugin entries render as
+   `namespace:name`, so a split-on-first-colon parser drops them and returns a
+   confident zero.
+2. `probe_codex.models()` — run `codex debug models`, returning `slug`,
    `context_window`, `max_context_window`, and
-   `effective_context_window_percent` so the policy can record which one it used
-   and why.
-4. Classify each entry's `origin` from its resolved path: `dojo-managed`,
-   `foreign`, `harness-bundled` (`.system`, `codex-primary-runtime`),
-   `plugin` (namespaced, from a Codex plugin cache), and record its scope
-   (user vs project).
-5. Store one probe fixture per shape for hermetic tests — a dojo-rooted capture
-   (heavy, truncating), a `blueprint-finance` capture (near-boundary, clean), and
-   a `viral` capture (over-boundary, truncating). Tests read fixtures; only the
-   live verification steps invoke `codex`.
-6. Record the **behavioral budget bracket** as a derived assertion:
-   `blueprint-finance` demands ~5,341 and does not truncate; `viral` demands
-   ~6,037 and does. So the true budget lies in (5,341, 6,037), which excludes
-   5,168 (2% of the 95%-effective window) and contains 5,440 (2% of the full
-   window). The probe records this reasoning; the verifier still reads the window
-   from `codex debug models` at verify time rather than trusting either number.
+   `effective_context_window_percent` so the policy records which field it used.
+3. `probe_claude.debug(cwd, model)` — run probe A, parse the resolution lines and
+   the budget verdict into `{sources, loaded, sent, demand_chars, budget_chars,
+   over_budget}`. **`sent`, never `loaded`, is the listing count.**
+4. `probe_claude.request(cwd, model)` — run probe B, locate the
+   `<system-reminder>` block **in `messages`** by its literal opening sentence,
+   and parse entries into `{name, description | None}`. Classify each as
+   `full`, `ellipsis_truncated` (trailing `…`), or `description_removed`
+   (no description at all).
+5. Classify `origin` for both harnesses — `dojo-managed`, `foreign`,
+   `harness-bundled`, `plugin` — and record scope (user vs project) using each
+   harness's own project root: `.claude/skills` for Claude Code,
+   `.agents/skills` for Codex.
+6. Store one fixture per shape for hermetic tests. Tests read fixtures; only the
+   live verification steps invoke `claude` or `codex`.
+7. Record the **behavioral budget bracket** for Codex: `blueprint-finance`
+   demands ~5,341 without truncating and `viral` ~6,037 while truncating, so the
+   budget lies in (5,341, 6,037) — excluding 5,168 (2% of the 95%-effective
+   window) and containing 5,440 (2% of the full window). The verifier still reads
+   the window from `codex debug models` at verify time.
+8. Fingerprint each harness: binary version, model, window/fraction settings. A
+   changed fingerprint invalidates dependent evidence. Because both probes re-run
+   on demand, staleness is **checked**, never assumed.
 
 **Verification**
 
 - Run: `.venv/bin/python scripts/profiles/probe_codex.py --cwd . --json | .venv/bin/python -c "import json,sys; d=json.load(sys.stdin); print(len(d['entries']), sum(1 for e in d['entries'] if e['origin']=='plugin'))"`
-- Expect: a nonzero entry count and a nonzero plugin count, both derived from the
-  live probe rather than compared to a stored constant.
+- Expect: both counts nonzero, derived live rather than compared to a constant.
+- Run: `.venv/bin/python scripts/profiles/probe_claude.py --cwd . --model haiku --json | .venv/bin/python -c "import json,sys; d=json.load(sys.stdin); print(d['sent'], d['demand_chars'], d['budget_chars'], d['description_removed'])"`
+- Expect: `sent` and `demand_chars` nonzero, `demand_chars` far exceeding
+  `budget_chars`, and `description_removed` nonzero on this repository today.
 - Run: `.venv/bin/python -m pytest tests/test_profiles_probe.py -q`
 - Expect: all pass.
 
@@ -339,29 +397,31 @@ None
 
 **Done When**
 
-- The parser recovers **both** namespaced plugin entries from the dojo fixture. A
-  split-on-first-colon parser returns 0 here; the test asserts the count is
-  nonzero *and* that both names contain a colon, so the anchor-on-`(file:` rule
-  is actually exercised (the zero rule).
-- Origin classification is proven against cases known to exist before any absence
-  is reported: **at least one** `foreign`, **at least one** `harness-bundled`,
-  **at least one** `plugin`, and
-  `skill-creator` present at least twice with different origins in the dojo
-  fixture (SC-04, SC-05).
-- Counts are **never** compared against a hardcoded total. Every assertion is
-  either a non-degeneracy floor (at least one) or a relation between two probe
-  outputs;
-  a test asserting `entries == 95` is itself a defect (spec Assumptions).
-- **143 `SKILL.md` files exist across the plugin caches while only 2 are listed.**
-  A test asserts the probe's plugin count is far below the on-disk count, pinning
-  that the probe measures the listing and never the filesystem.
-- `models()` returns `context_window` and `effective_context_window_percent` as
-  distinct fields, and the recorded policy states which was used and cites
-  `session/mod.rs:3303` as the reason (SC-04).
-- The behavioral bracket holds: the non-truncating near-boundary capture demands
-  less than the truncating over-boundary capture, and the resolved budget lies
-  strictly between them (SC-04).
-
+- **Codex parser recovers both namespaced plugin entries** from the dojo fixture.
+  A split-on-first-colon parser returns zero here; the test asserts the count is
+  nonzero *and* that the names contain a colon, so the anchor rule is exercised
+  (the zero rule).
+- **Claude parser reads `messages`, not `system`.** A test asserts the parsed
+  block's opening sentence is the harness's, and that dojo's SessionStart
+  `## Available Skills` output is **not** what was parsed — the two are
+  distinguishable and the wrong one is nearby (SC-04).
+- **`sent` and `loaded` are separate fields and differ** on the dojo fixture
+  (76 versus 95); a test asserts the listing count is `sent`. Using `loaded`
+  would restate the filesystem error this plan names as its second assumption.
+- **Degradation mode 2 is detected on live state**: the dojo Claude fixture
+  reports a nonzero `description_removed` count, proving the severe shape is
+  caught before any clean result is trusted (SC-04, the zero rule).
+- **The elision hazard is quantified in the fixture**: rendered block chars are
+  under budget while probe A's reported demand is a multiple of it. A test
+  asserts `demand_chars > budget_chars` while `rendered_chars <= budget_chars`
+  on the same capture — the whole justification for Task 3's estimator rule.
+- Origin classification proven against known-present cases for both harnesses:
+  **at least one** each of `foreign`, `harness-bundled`, `plugin`, and one name
+  present with two distinct origins (SC-04, SC-05).
+- Counts are **never** compared against a hardcoded total; every assertion is a
+  non-degeneracy floor or a relation between probe outputs (spec Assumptions).
+- Each harness fingerprint is recorded, and a perturbed fingerprint field marks
+  dependent evidence stale (EV-LEG-03).
 ### Task 1: Profile definitions
 
 **Objective**
@@ -525,104 +585,127 @@ Task 1
 
 ---
 
-### Task 3: Codex listing model and versioned budget policy
+### Task 3: Per-harness budget policies and the truncation detector
 
 **Objective**
 
-Compute listing cost with **Codex's own arithmetic** over **untruncated source
-descriptions**, and detect truncation as a first-class nonconformance signal.
+Compute listing cost with **each harness's own arithmetic** over **untruncated
+source descriptions**, and detect every degradation shape as a first-class
+nonconformance signal. Two deployable harnesses means two policies with genuinely
+different units — not one policy with a scaling factor.
 
 **Files**
 
 - Create: `scripts/profiles/budget.py`
 - Create: `profiles/policies/codex.yaml`
+- Create: `profiles/policies/claude-code.yaml`
 - Test: `tests/test_profiles_budget.py`
 
 **Dependencies**
 
 Task 0
 
-**Research Context**
+**Research Context — Codex**
 
-Read from `/Users/dg-mac-mini/Dev/_clones/codex` at `f57467275c`,
+From `/Users/dg-mac-mini/Dev/_clones/codex` at `f57467275c`,
 `codex-rs/core-skills/src/render.rs`:
 
 - `default_skill_metadata_budget` (line 138): `Tokens(max(1, window * 2 / 100))`
-  when the context window is known and positive; otherwise `Characters(8_000)`.
-  **Either/or, never combined.** Called from
-  `codex-rs/core/src/session/mod.rs:3303` with
-  `turn_context.model_info.context_window` — the **full** window.
+  when the window is known and positive; otherwise `Characters(8_000)`.
+  **Either/or, never combined.** Called from `session/mod.rs:3303` with the
+  **full** window.
 - `APPROX_BYTES_PER_TOKEN = 4` (line 23); `approx_token_count_from_bytes`
   (line 110) is `(bytes + 3) / 4`.
-- An entry renders as `format!("- {}: {} (file: {})", name, description, path)`
-  (line 524), or `format!("- {}: (file: {})", name, path)` when the description
-  is empty (line 522). `line_cost` (line 589) costs the line **plus a trailing
-  newline**.
-- Descriptions are pre-truncated to
-  `MAX_DEFAULT_CONTEXT_SKILL_DESCRIPTION_CHARS = 1_024` (line 20) with a `"..."`
-  suffix (line 21) — a *separate* mechanism from budget-driven shortening.
-- Codex renders in one of two modes — absolute paths, or an alias table
-  (`- \`r{index}\` = \`{root}\``, line 818) whose `table_cost` is subtracted from
-  the limit (line 664) — choosing via `aliased_render_is_better` (line 184).
-  The live dojo probe renders in **alias** mode (`r2/imagegen/SKILL.md`).
+- An entry renders `- {name}: {description} (file: {path})` (line 524), or
+  `- {name}: (file: {path})` with an empty description (line 522); `line_cost`
+  (line 589) adds a trailing newline. Descriptions are pre-capped at 1,024 chars
+  (line 20) with a `"..."` suffix (line 21).
+- Two render modes — absolute paths, or an alias table (line 818) whose
+  `table_cost` is subtracted from the limit (line 664) — chosen by
+  `aliased_render_is_better` (line 184). The live dojo probe uses **alias** mode.
 
-**The instrument hazard this task exists to avoid.** Codex shortens descriptions
-until they fit and then reports a listing that, by construction, fits. Calibrating
-a cost model against captured listing output would therefore certify *exactly the
-failure this contract exists to catch*: a truncated catalog would score at or
-under budget every time. Cost is computed from **untruncated `description`
-frontmatter in the source `SKILL.md`**, run through the arithmetic above. The
-live listing is evidence about discovery, precedence, render mode, and truncation
-— never about cost.
+**Research Context — Claude Code**
+
+Bundle v2.1.220 constants, with live values confirmed by probe A:
+
+- `skillListingBudgetFraction` default **0.01**; `skillListingMaxDescChars`
+  default **1536**; 4 bytes per token; 200,000-token default window.
+- Budget = `context_tokens × 4 × fraction`, **in characters** — 8,000 at a 200k
+  window, 40,000 at 1M. Overridable via those two settings keys or
+  `SLASH_COMMAND_TOOL_CHAR_BUDGET`.
+- Probe A confirms the arithmetic exactly: `24558 chars > 8000 budget` on a
+  200k-window model in this repository.
+- **Degradation has two shapes**: a description over `skillListingMaxDescChars`
+  is truncated *with* a trailing `…`; over budget, lower-priority skills lose
+  their description **entirely** and render as a bare `- name`. Bundled and
+  explicitly-invoked skills are exempt. Measured live: 54 of 76 entries bare,
+  0 ellipsis-marked.
+
+**The instrument hazard, now measured on both harnesses.** A harness that elides
+to fit produces output that always fits. On this repository today Claude Code
+renders **8,058 chars against an 8,000 budget** while true demand is **24,558**;
+calibrating on rendered output would report 101% instead of 307% and certify
+exactly the failure this contract exists to catch. Codex does the same thing
+mid-word with no marker. So for **both** harnesses, cost is computed from
+untruncated `description` frontmatter in source `SKILL.md`. Probed listings are
+evidence about discovery, precedence, render mode, and degradation — never about
+cost.
 
 **Implementation Steps**
 
-1. Port the primitives verbatim: `approx_token_count_from_bytes(n) == (n + 3) // 4`
-   over UTF-8 **bytes**, `line_cost(entry)` including the trailing newline,
-   `budget_for_window(window)`, and the 1,024-char description cap.
-2. Implement `demand(entries)` — the cost of the listing Codex *would* render if
-   nothing were shortened — summing `line_cost` over entries whose descriptions
-   come from source frontmatter, plus the alias-table cost when alias mode wins.
-   Compute both render modes and take the lower, mirroring
-   `aliased_render_is_better`; record which mode won.
-3. Implement the **truncation detector**: for every listed entry, compare the
-   probed `listed_description` against the entry's `source_description`. Any
-   inequality (beyond the deterministic 1,024-char cap) sets `truncated: true`
-   for that entry and makes the target **nonconformant regardless of computed
-   cost**. This is a conformance signal in its own right, not a warning.
-4. Implement the SC-04 comparison as exact integer arithmetic:
-   `deployable = demand * 10_000 <= limit * 9_000`. No float, no rounding before
-   comparison.
-5. Write `profiles/policies/codex.yaml`: harness, harness version, model, the
-   window value **and which field it came from** (`context_window`, with
-   `effective_context_window_percent` recorded alongside and explicitly *not*
-   used, citing `session/mod.rs:3303`), listing representation, estimator
-   (`vendor-source`), vendor path and pinned revision `f57467275c`, measurement
-   date, the probe command, and a `policy_identity` hash. The window is re-read
-   from `codex debug models` at verify time; the file records provenance, not a
-   frozen number.
-6. Add a `claude-code` policy stub declaring `authoritative: false` and
-   `status: audit-only`, so Claude targets are explicitly unsupported rather than
-   silently missing (SC-04, spec Problem).
-7. Build boundary fixtures at exactly 8,900 / 9,000 / 9,100 basis points. Because
-   entry costs are integers, choose each fixture's `limit` so it lands exactly on
-   its basis point; assert the constructed demand/limit pair reproduces the
-   intended basis point *before* asserting the verdict.
-8. Add the **SC-03 / EV-NEG-02 fit proof** as its own named test:
-   `test_core_plus_one_overlay_plus_three_foreign_fits` — resolve `core` plus one
-   non-empty capability overlay, add three foreign entries, score against the
-   live Codex policy, and assert deployable. This is the single case standing
-   between this contract and zero deployable harnesses, so it is named and
-   asserted rather than implied by a general boundary test.
+1. Port Codex's primitives verbatim: `(n + 3) // 4` over UTF-8 **bytes**,
+   `line_cost` including the trailing newline, `budget_for_window`, the
+   1,024-char cap, both render modes with the lower taken.
+2. Implement Claude Code's arithmetic in **characters end to end**:
+   `budget_chars = context_tokens * 4 * fraction`, entry cost as the rendered
+   `- {name}: {description}` character count, comparison characters-to-characters
+   with **no token conversion at any point**. Converting would introduce an error
+   the harness itself never makes (SC-04).
+3. Implement `demand(entries, policy)` — the cost of the listing the harness
+   *would* render if nothing were elided, from source frontmatter.
+4. Implement the **truncation detector** covering all three shapes: (a) Codex
+   mid-word clipping with no marker; (b) Claude Code `…`-marked truncation past
+   `skillListingMaxDescChars`; (c) Claude Code **description removed entirely**,
+   rendering as a bare `- name`. Shape (c) is the most severe and would **not**
+   match a naive "listed is a prefix of source" test, because there is no listed
+   description to compare — it must be detected by absence. Any shape sets
+   `truncated: true` and makes the target nonconformant **regardless of computed
+   cost**. Exempt entries (bundled, explicitly invoked) are excluded from (c).
+5. Comparison is exact integer arithmetic in each policy's own unit:
+   `deployable = demand * 10_000 <= limit * 9_000`.
+6. Write `profiles/policies/codex.yaml` and `profiles/policies/claude-code.yaml`.
+   Each records harness, harness version, **model**, the window value and which
+   field it came from, the unit (`tokens` for Codex, `characters` for Claude
+   Code), the listing representation, estimator provenance (vendor source at a
+   pinned revision / bundle version and settings keys), measurement date, the
+   probe command, and a `policy_identity` hash. **The model is part of policy
+   identity**, because Claude Code's budget moves with the context window and the
+   same repository is conformant on a 1M-window model and non-conformant on a
+   200k one.
+7. Record that the spec's "two unchanged runs must agree within 2%" rule governs
+   the *measured-policy* route only. Both current policies are derived from
+   vendor source or vendor constants, so that rule does not apply to either; the
+   plan states this rather than silently skipping it.
+8. Build boundary fixtures at exactly 8,900 / 9,000 / 9,100 basis points **per
+   policy**, choosing each fixture's limit so it lands exactly on its basis point
+   and asserting the basis point before asserting the verdict.
+9. Add the **SC-03 fit proof as one named test per deployable harness/model
+   pair**, since SC-03 now requires every pair rather than one representative:
+   `test_fit_proof_codex_gpt56`, `test_fit_proof_claude_200k`, and
+   `test_fit_proof_claude_1m`. Each resolves `core` plus one non-empty capability
+   overlay, adds three foreign entries, and asserts deployable against that
+   pair's real policy. **The 200k Claude Code pair is the binding one** — a
+   1M-window pass proves nothing about it.
 
 **Verification**
 
 - Run: `.venv/bin/python -m pytest tests/test_profiles_budget.py -q`
-- Expect: all pass, including boundary, truncation, and fit-proof tests.
+- Expect: all pass, including boundary, truncation-shape, and fit-proof tests.
 - Run: `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k vendor_parity`
-- Expect: pass — the ported arithmetic reproduces `render.rs`'s worked constants.
-- Run: `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k core_plus_one_overlay`
-- Expect: pass — `core` + one overlay + three foreign entries is deployable.
+- Expect: pass — Codex arithmetic reproduces `render.rs` constants, and Claude
+  Code arithmetic reproduces probe A's reported `24558 chars > 8000 budget`.
+- Run: `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k fit_proof`
+- Expect: three passes, one per deployable harness/model pair.
 
 **Test Discovery Verified**
 
@@ -631,29 +714,34 @@ live listing is evidence about discovery, precedence, render mode, and truncatio
 
 **Done When**
 
-- **Cost never derives from probed listing text.** A test feeds a fixture whose
-  probed descriptions are shortened relative to source and asserts the computed
-  demand matches the **source-derived** figure, not the shortened one. A model
-  calibrated on captured output fails this test — which is the point (SC-04).
-- **Truncation alone makes a target nonconformant**, even when computed demand is
-  under budget: asserted with a fixture that is truncated *and* cheap (SC-04,
-  SC-05).
-- The truncation detector fires on **live state today** — the dojo-rooted probe
-  reports `truncated: true` — so the detector is proven against a case known to
-  exist before any clean result is trusted (the zero rule).
-- 8,900 bps and 9,000 bps are deployable; 9,100 bps is not; each fixture first
-  asserts its own basis point (EV-NEG-02).
-- **`core` + one non-empty overlay + three foreign entries is deployable against
-  the live Codex policy**, proven by a named test (SC-03, EV-NEG-02).
+- **Cost never derives from rendered listing text, on either harness.** A test
+  feeds the live-shaped Claude fixture — 54 descriptions removed, rendered block
+  under budget — and asserts computed demand matches the **source-derived**
+  figure (a multiple of budget), not the rendered one. A model calibrated on
+  captured output fails this test, which is the point (SC-04).
+- **Claude Code arithmetic is characters end to end.** A test asserts no token
+  conversion occurs anywhere on that path, and that computed
+  `budget_chars == context_tokens * 4 * fraction` exactly (SC-04).
+- **All three degradation shapes are detected**, each with its own fixture, and
+  shape (c) — bare name, no description — is caught by absence rather than by
+  prefix comparison. A detector that only does prefix comparison fails the
+  shape-(c) fixture (SC-04, SC-05).
+- **The detectors fire on live state today**: the dojo Codex probe reports
+  mid-word truncation and the dojo Claude probe reports 54 removed descriptions,
+  so both are proven against known-present cases before any clean result is
+  trusted (the zero rule).
+- 8,900 and 9,000 bps deployable, 9,100 not — **per policy**, each fixture first
+  asserting its own basis point (EV-NEG-02).
+- **The SC-03 fit proof passes for every deployable harness/model pair**,
+  including the 200k-window Claude Code pair, by three separately named tests
+  (SC-03, EV-NEG-02).
+- Policy identity includes the **model**; changing only the model changes
+  `policy_identity` and therefore `realization_identity` (SC-04, SC-11).
 - An unknown limit, a stale policy, an uninspectable scope, and a failed
   source/listing reconciliation each yield `unsupported`, distinct from
   `nonconformant` (SC-04, EV-LEG-03).
-- An empty catalog is `unsupported: no entries observed`, never deployable (spec
-  Evaluation).
-- `full` is scored through the identical code path with no exemption (SC-04).
-- The policy records `context_window` versus `effective_context_window_percent`
-  and cites the caller that decides between them; the recorded budget is
-  consistent with the behavioral bracket from Task 0 (SC-04).
+- An empty catalog is `unsupported: no entries observed` (spec Evaluation), and
+  `full` is scored through the identical code path with no exemption (SC-04).
 ### Task 4: Effective-catalog observation
 
 **Objective**
@@ -689,27 +777,36 @@ Task 0, Task 3
   today — which is why the recorded decision to count bundled entries must add them back
   deliberately.
 
-**Two verified mechanics that change the model.**
+**Shadowing and scope roots are harness properties, not constants.** SC-04 says
+shadowed names are counted "according to actual harness behavior", and the two
+deployable harnesses behave oppositely — so this must be a field on the harness
+policy that the observation code reads, never a rule the observation code hard-codes.
 
-1. **Codex does not shadow by name across roots.** Unlike Claude Code, it lists
-   both copies and charges for both. A dojo-rooted session carries 32 duplicated
-   names / 33 redundant entries out of 95, and `skill-creator` is duplicated in
-   every session (dojo's plus Codex's `.system`). SC-04 says shadowed names are
-   counted "according to actual harness behavior" — for Codex the actual
-   behavior is **no shadowing**, so duplicates are two entries and two costs.
-2. **The Codex project-scope root is `.agents/skills` only** — not
-   `.claude/skills`, not `.agent/skills`. Verified across six working
-   directories. dojo's and viral's `.agents/skills → ../skills` symlinks are the
-   sole cause of their truncation, which makes Task 13's cut narrower and more
-   precisely targeted than "the three harness dirs".
+| Property | Codex | Claude Code |
+|---|---|---|
+| Shadowing by name across scopes | **No** — lists and charges for both copies | **Yes** — dedups; `95 loaded → 76 sent` |
+| Project-scope root | `.agents/skills` | `.claude/skills` |
+| Budget unit | tokens | characters |
+| Degradation | mid-word clip, no marker | `…` past 1,536 chars, or description removed entirely |
+
+- Codex duplication is measured: a dojo-rooted session carries 32 duplicated
+  names / 33 redundant entries of 95, and `skill-creator` is duplicated in every
+  session (dojo's plus Codex's `.system`).
+- Claude Code's dedup is visible in probe A's own accounting
+  (`Total plugin skills loaded: 2 (0 duplicate/user-owned entries skipped)`),
+  which is why a dojo session shows 76 sent rather than the sum of its sources.
+- **`.agent/skills` is read by neither harness.** `gen_harness_adapters.py`
+  creates all three roots, so one of the three has no live consumer at all — a
+  finding Task 13 must act on rather than preserve by default.
 
 **Implementation Steps**
 
 1. Take the **probe** (Task 0) as the authority on what is listed and at what
-   scope. Use `scan_root` only to attach content identity (`dir_hash`),
-   topology (`is_symlink`, `link_target`), and source descriptions to entries the
-   probe already reported. The filesystem never adds an entry the probe did not
-   list.
+   scope — per harness. Use `scan_root` only to attach content identity
+   (`dir_hash`), topology (`is_symlink`, `link_target`), and source descriptions
+   to entries the probe already reported. The filesystem never adds an entry the
+   probe did not list, and for Claude Code the listing count is `sent`, never
+   `loaded`.
 2. Import the standardizer library by inserting
    `skills/skill-standardizer/scripts` on `sys.path` (it uses a bare
    `from skill_standardizer_lib import ...`; see `sync.py:9`). Confine the
@@ -718,11 +815,13 @@ Task 0, Task 3
    for Claude, `~/.codex/plugins/cache` for Codex. Do **not** reuse
    `is_plugin_cache_path` for Codex; it would misclassify Codex's listed plugin
    entries as non-plugin and hide them.
-4. Model duplication per harness: for Codex, a name appearing in two roots is
-   **two effective entries with two costs**, with the duplication relationship
-   recorded. Reserve the single-entry shadowing model for a harness that
-   documents that precedence; where precedence is undocumented, mark the scope
-   pair `unsupported` rather than guessing.
+4. Read `shadows_by_name` and `project_scope_root` **from the harness policy**
+   (Task 3) rather than branching on a harness name in the observation code. When
+   `shadows_by_name` is false (Codex), a name in two roots is **two effective
+   entries with two costs**, with the duplication relationship recorded. When it
+   is true (Claude Code), it is one effective entry with the shadowed observation
+   still recorded. Where a harness declares neither, mark the scope pair
+   `unsupported` rather than guessing.
 5. Attach `source_description` from canonical `SKILL.md` frontmatter to every
    `dojo-managed` entry so Task 3 can compute demand and detect truncation.
 
@@ -749,16 +848,21 @@ Task 0, Task 3
 - Non-degeneracy floors only, never totals: **at least one** foreign, **at least
   one** harness-bundled, **at least one** plugin, and **at least one**
   project-scope entry observed in the dojo fixture (SC-05).
-- **Duplication is counted, not collapsed:** `skill-creator` appears twice in the
-  dojo fixture with distinct origins and **both** contribute cost; a test asserts
-  the total demand strictly exceeds the de-duplicated demand, so a collapsing
-  model fails (SC-04).
+- **Shadowing follows the policy, both ways.** On the Codex fixture
+  `skill-creator` appears twice with distinct origins and **both** contribute
+  cost — total demand strictly exceeds de-duplicated demand, so a collapsing
+  model fails. On the Claude Code fixture the same duplicate collapses to one
+  effective entry with the shadowed observation still recorded, so a
+  never-collapse model fails too. Flipping only the policy's `shadows_by_name`
+  flag flips both outcomes, proving the behavior is policy-driven and not
+  hardcoded (SC-04).
 - Codex plugin entries are classified as `plugin` via the **Codex** cache path; a
   test asserts that classifying with the Claude needle yields zero and is
   therefore wrong, pinning the per-harness split (SC-05).
-- Project scope is attributed to `.agents/skills` for Codex; a fixture with
-  `.claude/skills` and `.agent/skills` present but no `.agents/skills` yields
-  **zero** project-scope Codex entries (SC-04).
+- Project scope is read per harness: `.agents/skills` for Codex,
+  `.claude/skills` for Claude Code. A fixture holding only `.agent/skills`
+  yields **zero** project-scope entries for **both** harnesses, pinning that the
+  third root has no live consumer (SC-04).
 - No observation path writes: a recursive hash of the fixture tree is
   byte-identical before and after (SC-12, spec Authority "Verifier").
 ### Task 5: Conformance evidence and drift detection
@@ -1159,9 +1263,10 @@ Task 8
 
 1. Add a ninth CI step, "Verify distribution profiles", running
    `PATH="$PWD/bin:$PATH" dojo profiles verify --all` with `--json` written to an
-   artifact. CI has no Codex binary and no global roots, so the probe is
-   unavailable: definition validation must still run and exit 0, with every
-   target reported `unsupported: no probe available` rather than the run failing.
+   artifact. CI has neither the `codex` nor the `claude` binary and no global
+   roots, so **both** probes are unavailable: definition validation must still
+   run and exit 0, with every target reported `unsupported: no probe available`
+   rather than the run failing.
    Assert that distinction explicitly — a green CI step that silently evaluated
    nothing is the degenerate pass this plan exists to avoid.
 2. Add the fixture-backed evaluation as a second command in the same step so the
@@ -1529,6 +1634,12 @@ Task 12
   `repo_root / harness / "skills"`, where `SYMLINK_TARGET` is `"../skills"`
   (line 37) — one directory link exposing all 49 canonical skills at project
   scope.
+- **All three roots need the guard, but for different reasons, and one needs
+  none.** `.agents/skills` is Codex's live project root and `.claude/skills` is
+  Claude Code's (probe A: `project=[…/Dev/dojo/.claude/skills]`), so both are
+  active causes of the measured over-budget state — dojo at 177% on Codex and
+  3.07× on Claude Code. `.agent/skills` is read by **neither** harness, so it
+  costs nothing and guards nothing; it is dead output.
 - `ensure_symlink` at line 111 replaces a wrong or broken symlink (line 124) and
   refuses a real directory with a message (line 130), so the refusal idiom and
   its message style already exist and should be matched.
@@ -1544,7 +1655,11 @@ Task 12
    (`<target>/.dojo-profiles/realization.json`) when present.
 2. Against a **profile-managed** target: preserve the selected realization.
    Replace the whole-catalog directory link with per-skill symlinks for the
-   resolved members only, and link only the resolved members' `commands/*.md`.
+   resolved members only, in **each harness's own project root**
+   (`.agents/skills` for Codex, `.claude/skills` for Claude Code), and link only
+   the resolved members' `commands/*.md`. Report `.agent/skills` as having no
+   live consumer rather than silently continuing to generate it; whether to keep
+   emitting it is a maintainer call recorded in Task 16, not a silent drop.
    Prune managed links for names outside the profile; never touch a foreign or
    hand-authored file (the existing guards at lines 175–186 and 201–216 already
    distinguish managed from foreign links and are reused unchanged).
@@ -1576,6 +1691,10 @@ Task 12
 - Run without `--profile` against an **unprofiled** target: exits non-zero,
   creates **no** `{.claude,.agents,.agent}/skills` link, and leaves the tree
   byte-identical (SC-13, EV-NEG-05).
+- Run **with** the profile: both live project roots (`.agents/skills`,
+  `.claude/skills`) hold exactly the resolved membership, asserted by set
+  equality per root — so fixing one harness while leaving the other at whole
+  catalog fails (SC-13).
 - Run without `--profile` against a **profile-managed** target: exits non-zero
   and leaves the selected realization byte-identical — it does not "helpfully"
   refresh it (SC-13, EV-NEG-05).
@@ -1931,27 +2050,37 @@ Task 15
   own suite and the profiles suite both run in CI, so a break surfaces in the
   same pipeline rather than at use time.
 
-- **Risk:** `codex debug prompt-input` is a debug surface, not a stability
-  contract; its JSON shape or the `<skills_instructions>` block format can change
-  between Codex releases.
-  **Signal:** the parser recovers zero entries, or recovers entries but zero
-  namespaced plugin entries, against a working directory known to have both.
-  **Mitigation:** Task 0's parser asserts both floors on every run, so a format
-  change fails loudly instead of returning a confident zero. Stored fixtures pin
-  the shape for hermetic tests; the live probe re-runs on demand, so there is no
-  stale-artifact risk to manage. If the block cannot be parsed, the target is
-  `unsupported` — never silently backfilled from the filesystem.
+- **Risk:** all three probes are debug surfaces, not stability contracts.
+  `codex debug prompt-input`'s JSON, Claude Code's `--debug-file` log lines, and
+  the `<system-reminder>` block wording in `OTEL_LOG_RAW_API_BODIES` output can
+  each change between releases. Probe B is the most exposed: it is gated behind
+  an `OTEL_`-prefixed variable that does not otherwise behave like telemetry,
+  which is the kind of accident that gets tidied up.
+  **Signal:** a parser recovers zero entries; or recovers Codex entries but zero
+  namespaced plugin entries; or Claude Code's `sent` count and parsed entry count
+  disagree — each against a working directory known to have those cases.
+  **Mitigation:** Task 0 asserts those floors on every run, so a format change
+  fails loudly instead of returning a confident zero. The two Claude Code probes
+  cross-check each other: probe A's `sent` count and reported demand must agree
+  with probe B's parsed entries, so a silent format change in one is caught by
+  the other. Fixtures pin shape for hermetic tests only; live probes re-run on
+  demand, so staleness is checked rather than assumed. An unparseable block makes
+  the target `unsupported`, never backfilled from the filesystem.
 
 ## Verification Matrix
 
 | Requirement | Proof command | Expected signal |
 | --- | --- | --- |
-| Probe parses the real listing, plugin entries included | `.venv/bin/python -m pytest tests/test_profiles_probe.py -q` | Namespaced plugin entries recovered; counts derived, never hardcoded |
+| Codex probe parses the real listing, plugin entries included | `.venv/bin/python -m pytest tests/test_profiles_probe.py -q -k codex` | Namespaced plugin entries recovered; counts derived, never hardcoded |
+| Claude Code probe reads `messages`, uses `sent` not `loaded` | `.venv/bin/python -m pytest tests/test_profiles_probe.py -q -k claude` | Harness block parsed, not dojo's hook output; `sent` != `loaded` |
+| Elision hazard is quantified, not assumed | `.venv/bin/python -m pytest tests/test_profiles_probe.py -q -k elision` | Rendered chars ≤ budget while demand is a multiple of it |
 | Profile definitions valid; `full` tracks the catalog | `.venv/bin/python -m pytest tests/test_profiles_definitions.py -q` | 8 profiles; `full` count == `len(skills.json.skills)` |
 | Composition order has no semantic effect | `.venv/bin/python -m pytest tests/test_profiles_resolve.py -q` | 720 permutations → 1 identity |
 | Budget arithmetic matches vendor source | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k vendor_parity` | Pass |
-| Cost comes from source, not truncated listing | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k truncation` | Demand matches source-derived figure; truncation ⇒ nonconformant |
-| SC-03 fit proof | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k core_plus_one_overlay` | `core` + 1 overlay + 3 foreign is deployable |
+| Cost comes from source on both harnesses | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k truncation` | Demand matches source-derived figure; all three degradation shapes ⇒ nonconformant |
+| Claude Code arithmetic stays in characters | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k characters` | `budget_chars == context_tokens*4*fraction`; no token conversion |
+| Shadowing follows harness policy, both ways | `.venv/bin/python -m pytest tests/test_profiles_observe.py -q -k shadow` | Flipping `shadows_by_name` flips duplicate accounting |
+| SC-03 fit proof, every deployable pair | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k fit_proof` | Three passes: Codex, Claude Code 200k, Claude Code 1M |
 | 90% boundary is exact | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k boundary` | 8900 ok, 9000 ok, 9100 rejected |
 | Detectors see known cases; duplicates counted | `.venv/bin/python -m pytest tests/test_profiles_observe.py -q` | At least one each of foreign/bundled/plugin/project-scope; duplicate demand exceeds de-duplicated |
 | Evidence is byte-identical and whole | `.venv/bin/python -m pytest tests/test_profiles_evidence.py -q` | Equal SHA-256 on repeat; 16 fields |
@@ -1980,8 +2109,8 @@ Every SC-01…SC-13 and every EV scenario in the spec, in both directions.
 | --- | --- | --- |
 | SC-01 | Task 1, Task 2, Task 5 | `.venv/bin/python -m pytest tests/test_profiles_definitions.py tests/test_profiles_resolve.py -q` |
 | SC-02 | Task 1, Task 2 | `.venv/bin/python -m pytest tests/test_profiles_resolve.py -q` (720 permutations → 1 identity) |
-| SC-03 | Task 1, Task 3 | `.venv/bin/python -m pytest tests/test_profiles_definitions.py tests/test_profiles_budget.py -q` |
-| SC-04 | Task 0, Task 3, Task 4 | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k "boundary or vendor_parity or calibration"` |
+| SC-03 | Task 1, Task 3 | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k fit_proof` (one test per deployable harness/model pair) |
+| SC-04 | Task 0, Task 3, Task 4 | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k "boundary or vendor_parity or truncation or characters"` |
 | SC-05 | Task 4, Task 5 | `.venv/bin/python -m pytest tests/test_profiles_observe.py tests/test_profiles_evidence.py -q` |
 | SC-06 | Task 5, Task 8 | `.venv/bin/python -m pytest tests/test_profiles_evidence.py -q` (SHA-256 equality) |
 | SC-07 | Task 12 | `.venv/bin/python -m pytest tests/test_profiles_apply.py -q` |
@@ -1992,7 +2121,7 @@ Every SC-01…SC-13 and every EV scenario in the spec, in both directions.
 | SC-12 | Task 9 | `.venv/bin/python -m pytest tests/test_profiles_automation_authority.py -q` |
 | SC-13 | Task 13, Task 14 | `.venv/bin/python -m pytest tests/test_gen_harness_adapters.py tests/test_profiles_entrypoint_guards.py -q` |
 | EV-NEG-01 | Task 2, Task 12 | `.venv/bin/python -m pytest tests/test_profiles_resolve.py -q -k reject` |
-| EV-NEG-02 | Task 3 | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k boundary` |
+| EV-NEG-02 | Task 3 | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k "boundary or fit_proof"` (boundaries per policy) |
 | EV-NEG-03 | Task 4, Task 9, Task 12 | `.venv/bin/python -m pytest tests/test_profiles_automation_authority.py tests/test_profiles_apply.py -q` |
 | EV-NEG-04 | Task 5 | `.venv/bin/python -m pytest tests/test_profiles_evidence.py -q -k dirty` |
 | EV-NEG-05 | Task 13, Task 14 | `.venv/bin/python -m pytest tests/test_gen_harness_adapters.py -q -k profile` |
@@ -2038,7 +2167,8 @@ Every SC-01…SC-13 and every EV scenario in the spec, in both directions.
 | Window/model (`codex debug models`) | `probe_codex.py models()` | Task 0, re-run at every verify | "The context window is N and the effective percent is M" | Task 3 budget derivation | Re-read at verify time |
 | `prompt-input-*.json` fixtures | `probe_codex.py` | Task 0 | "This is the listing shape at capture date" | Hermetic tests only — **never** a cost or conformance input | Shape-pinning only; a verdict never rests on them |
 | Source `SKILL.md` descriptions | Canonical repo at selected revision | Task 3 | "This is the untruncated description a listing would carry" | **The sole cost input**; truncation detector's left-hand side | Invalid on any canonical content change |
-| `profiles/policies/codex.yaml` | Maintainer, from vendor source at `f57467275c` | Task 3 | "The authoritative limit is `window*2/100` tokens, estimator `ceil(bytes/4)`" | Budget evaluation, evidence, applicator refusal | Stale on fingerprint change or vendor revision change |
+| `profiles/policies/codex.yaml` | Maintainer, from vendor source at `f57467275c` | Task 3 | "The limit is `window*2/100` **tokens**, estimator `ceil(bytes/4)`" | Budget evaluation, evidence, applicator refusal | Stale on fingerprint or vendor revision change |
+| `profiles/policies/claude-code.yaml` | Maintainer, from bundle v2.1.220 constants | Task 3 | "The limit is `context_tokens*4*fraction` **characters**, no token conversion, for this model" | Budget evaluation, evidence, applicator refusal | Stale on bundle version, settings-key, **or model** change |
 | `profiles/*.yaml` | Canonical maintainer | Task 1 | "This is the reviewed intended membership" | Resolver, verifier, applicator, all three guarded entrypoints | Any edit changes profile identity and invalidates prior evidence |
 | `evidence` JSON | `dojo profiles verify` | Tasks 5, 8 | "This target conforms / drifts, at this cost against this limit" | Task 7 comparison, ops register D6 drift monitor | Invalid on change to definitions, canonical content, target state, harness version, or policy |
 | `<target>/.dojo-profiles/realization.json` | Applicator | Task 12 | "This target holds this realization identity" | `gen_harness_adapters.py`, `sync.py`, installer guards; idempotence check | Invalid when observed state diverges from the recorded identity |
@@ -2165,6 +2295,48 @@ configuration:
 - Blocking findings: none
 
 **Adversarial critique findings, all revised and closed.**
+
+*Round 3 — spec revision 8 made Claude Code a second deployable harness. Probes
+verified against the live harness before editing; structure, traceability, the
+staged-applicator decision, and the SC-10 authoring decision all unchanged.*
+
+1. **Both Claude Code probes exist and were verified end to end** — the same
+   assumed-absent failure mode as the Codex probe in round 2, now recurring for
+   the third time in one week. `--debug-file` yields a one-line verdict
+   (`Skill listing over budget: 76 skills, 24558 chars > 8000 budget`);
+   `OTEL_LOG_RAW_API_BODIES` writes the full request body with no other telemetry
+   variable set (Task 0).
+2. **The Claude Code listing lives in `messages`, not `system`** — and dojo's own
+   SessionStart hook injects a `## Available Skills` markdown block into the same
+   request. A parser aimed at `system` would measure dojo's hook output instead of
+   the harness listing. Task 0 pins the distinction with a test.
+3. **`sent` is the listing count, not `loaded`** (76 versus 95 on this repo).
+   Using `loaded` would have restated the filesystem error in a new costume.
+4. **Degradation mode 2 confirmed on live state:** 54 of 76 entries render as
+   bare names with descriptions removed entirely, 0 with the `…` marker. A
+   prefix-comparison detector cannot see this shape — there is no listed
+   description to compare — so the detector now catches it by absence (Task 3).
+5. **The elision hazard is now quantified on a second harness:** the rendered
+   block is **8,058 chars against an 8,000 budget** while true demand is
+   **24,558**. A verifier reading rendered output would report 101% instead of
+   307%. This is the strongest available justification for the source-frontmatter
+   estimator rule and is now a named test (Tasks 0, 3).
+6. **Budget units genuinely differ** — Codex tokens, Claude Code characters with
+   no token conversion at any point, per SC-04 (Task 3).
+7. **Shadowing is now a harness-policy field, not a constant.** The observation
+   code reads `shadows_by_name` rather than branching on a harness name, and a
+   test flips the flag to prove both behaviors are policy-driven (Task 4).
+8. **The model is part of policy and realization identity**, since Claude Code's
+   budget scales with the context window and the same repository is conformant on
+   Opus 5 and non-conformant on Haiku (Task 3).
+9. **SC-03's fits-proof is now three named tests**, one per deployable
+   harness/model pair, with the 200k Claude Code pair binding (Task 3).
+10. **Found beyond the brief: `.claude/skills` is live project scope again.**
+   Round 2 narrowed Task 13's cut to `.agents/skills` on the strength of
+   "Codex's project root is `.agents/skills` only". With Claude Code deployable,
+   `.claude/skills` is its project root (confirmed in probe A's `project=[…]`
+   line), so both roots need the guard. `.agent/skills` is read by **neither**
+   and is dead output (Tasks 4, 13, 16).
 
 *Round 2 — independent critique plus coordinator verification against the live
 harness. The measurement foundation was wrong; structure, traceability, and the
