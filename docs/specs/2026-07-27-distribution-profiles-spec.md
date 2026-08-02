@@ -180,7 +180,12 @@ catalog as conformant.
   and `skill-authoring` includes `skill-creator` and `skill-standardizer`.
   `full` resolves to every canonical skill at the selected revision. Complete
   overlay membership is explicit profile evidence, not inferred from category
-  names or installed state.
+  names or installed state. **Anchors constrain the profile definition, not the
+  realization:** an anchor may be suppressed on a harness that ships its own
+  equivalent — `skill-authoring`'s `skill-creator` is suppressed on Codex — and
+  the overlay still satisfies this criterion, because the capability is present
+  at the target either way. An anchor absent from the definition remains a
+  violation.
 - **SC-03 — Usable baseline:** `core` contains the general delivery loop:
   `brainstorming`, `first-principles`, `write-spec`, `write-plan`, `diagnose`,
   `local-review`, `test-strategy`, and `verify-before-complete`. Membership is
@@ -264,10 +269,14 @@ catalog as conformant.
   separately and cannot be inflated by installing skills solely to create
   runtime data.
 - **SC-11 — Cross-machine comparability:** Two machines selecting the same
-  profile identity and canonical revision receive the same expected Dojo skill
-  names, versions, and content identities. Harness-specific foreign entries,
-  versions, and budget outcomes remain explicit differences rather than hidden
-  profile drift.
+  profile identity and canonical revision, **for the same harness**, receive the
+  same expected Dojo skill names, versions, and content identities. Across
+  different harnesses the same profile identity may resolve to different
+  membership, and every such difference must be attributable to a declared
+  harness-equivalence suppression naming the entry that displaced the member.
+  A membership difference with no such attribution is drift, not resolution.
+  Harness-specific foreign entries, versions, and budget outcomes likewise
+  remain explicit differences rather than hidden profile drift.
 - **SC-12 — Audit-only automation:** Session hooks, scheduled health checks, and
   checkout refreshes may detect and report profile drift, but they cannot apply,
   remove, relink, or widen installed skill state without a separately authorized
@@ -320,11 +329,19 @@ The reference behavior is explicit:
   the effective listing budget, including entries discovered read-only from
   plugin caches.
 - Profile identity is derived deterministically from normalized composition
-  names, the reviewed profile definitions, and resolved membership. A
-  realization identity additionally binds that profile identity to the
-  canonical revision, target identity, harness/model version, and budget-policy
-  identity. A canonical revision change is a new realization request, never an
-  idempotent replay.
+  names and the reviewed profile definitions — **intent, and harness-independent**.
+  Resolved membership belongs to realization identity, which additionally binds
+  the canonical revision, target identity, harness/model version, budget-policy
+  identity, and the identity of the harness-equivalence declaration applied. Two
+  harnesses can therefore share one profile identity and hold different
+  realizations without either being drift. A canonical revision change, or a
+  change to the equivalence declaration, is a new realization request rather than
+  an idempotent replay.
+- Suppression is resolution, not subtraction from the contract. A suppressed
+  member is reported as suppressed, with the harness entry that displaced it, so
+  evidence distinguishes *"the profile did not include it"* from *"the profile
+  included it and the harness already had it"*. A member suppressed on every
+  supported harness is a profile-definition error, not a valid resolution.
 - Vendor documentation or a repeatable, version-scoped probe can establish
   precedence. A probe must reproduce the same winner and visible-set behavior
   twice against controlled duplicate names. A harness/model version change or a
@@ -448,13 +465,29 @@ The reference behavior is explicit:
   absence there is weak evidence. A single harness-independent baseline is
   supportable on current data; whether it should stay that way is a
   contract-revision question for when outcome evidence exists.
-- Overlays resolve to the same membership on every harness. Where a harness
-  ships a built-in equivalent of a profile member — Codex carries its own
-  `skill-creator`, `skill-installer`, and image-generation skills as `.system`
-  entries — the duplication is visible in effective-catalog evidence and
-  counted against the budget, but this contract does not resolve it. Per-harness
-  membership would change profile identity semantics and is deliberately
-  excluded from the initial contract.
+- Overlays are authored once and harness-independent, but they **resolve against
+  a harness**. A profile states the capabilities a target should have; what
+  physically lands is that set minus anything the harness already provides. The
+  suppression is not free-form per-harness membership — it is a single declared,
+  reviewable rule with one trigger: the harness ships its own equivalent of a
+  member. Codex carries `skill-creator`, `skill-installer`, image generation,
+  `review-agent`, `plugin-creator`, and `openai-docs` as `.system` entries;
+  Claude Code carries a different three, none overlapping. Installing dojo's copy
+  alongside is duplication, and `skill-creator` is duplicated in **every** Codex
+  session today.
+- Equivalence is declared per canonical skill, never inferred from a name match,
+  and carries the evidence for the claim. An undeclared name collision between a
+  profile member and a harness-bundled entry is reported as a collision rather
+  than silently suppressed — the failure mode of guessing here is losing a skill
+  the maintainer wanted.
+- This is the correction to an earlier exclusion. Revisions 1–8 held that
+  overlays must resolve identically everywhere because per-harness membership
+  "would change profile identity semantics". The concern was right and the
+  conclusion was not: it is resolved by separating the two identities rather than
+  by forbidding the divergence. Profile identity captures **intent** and stays
+  harness-independent; realization identity captures **what landed** and already
+  binds the harness. Suppression moves resolved membership from the first to the
+  second, which is where it belonged.
 - Routing coverage is currently sparse: 49 skills pass the structural contract,
   but only three declare trigger fixtures (`blind-spots`, `test-strategy`,
   `verify-before-complete`, measured 2026-07-31). Profile work reports that limitation
@@ -532,6 +565,16 @@ The reference behavior is explicit:
   run without a profile against either an unprofiled or profile-managed target,
   refuses to create a whole-catalog link and leaves active state byte-identical.
   Run with the selected profile, it preserves exact membership.
+- **EV-NEG-06 (SC-02, SC-06, SC-11):** One profile identity resolved against two
+  harnesses, where the first ships a bundled equivalent of a member and the
+  second does not. The member is suppressed on the first and present on the
+  second; both realizations are conformant; evidence names the suppressed member
+  and the bundled entry that displaced it; and the effective-catalog count for
+  the first shows the member once, not twice. An undeclared name collision
+  between a member and a bundled entry is reported as a collision and does **not**
+  suppress. A member suppressed on every supported harness fails as a
+  profile-definition error. Two machines running the same harness and profile
+  identity still resolve identically.
 - **EV-REC-01 (SC-07, SC-08):** Interruption after new managed state is prepared
   but before activation leaves the prior realization active. Interruption during
   activation yields either the full new realization or an explicit
@@ -586,6 +629,35 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-08-01 (revision 9).** Overlays now resolve **against a harness**.
+  Revisions 1–8 required identical membership everywhere, on the reasoning that
+  per-harness membership "would change profile identity semantics". The concern
+  was correct; the conclusion was not. It is resolved by separating two
+  identities that had been conflated — profile identity is **intent** and stays
+  harness-independent, realization identity is **what landed** and already bound
+  the harness. Resolved membership moves from the first to the second.
+
+  The mechanism is deliberately narrow: not free-form per-harness membership,
+  but one declared rule with one trigger — the harness ships its own equivalent
+  of a member. It is declared per canonical skill with evidence, never inferred
+  from a name match, and an undeclared collision is reported rather than
+  silently suppressed, because the failure mode of guessing is losing a skill
+  the maintainer wanted.
+
+  The evidence is live rather than anticipated: Codex bundles `skill-creator`,
+  `skill-installer`, image generation, `review-agent`, `plugin-creator`, and
+  `openai-docs` as `.system` entries while Claude Code bundles a different three
+  with no overlap, and dojo's `skill-creator` is duplicated in **every** Codex
+  session today. The two harnesses also differ in budget by 3–5×, in scope
+  precedence, and in degradation mode, so identical membership had stopped being
+  a simplification and become a misstatement.
+
+  SC-02 gains the distinction that anchors constrain the definition rather than
+  the realization; SC-11 scopes cross-machine comparability to a shared harness
+  and requires every cross-harness difference to name the entry that displaced
+  the member; **EV-NEG-06** is added, taking the scenario count to 16. No
+  authority boundary changed.
 
 - **2026-08-01 (revision 8).** Claude Code becomes a **second deployable
   harness**, and this is the first revision to change a success criterion rather
