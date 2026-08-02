@@ -440,10 +440,24 @@ last-wins YAML key.
 - Create: `profiles/shipping.yaml`
 - Create: `profiles/skill-authoring.yaml`
 - Create: `profiles/full.yaml`
+- Create: `profiles/harness-equivalences.yaml`
 - Create: `profiles/README.md`
 - Create: `scripts/profiles/__init__.py`
 - Create: `scripts/profiles/definitions.py`
 - Test: `tests/test_profiles_definitions.py`
+
+**`harness-equivalences.yaml`** — the declaration spec revision 9 requires. One
+entry per `(canonical skill, harness)` pair stating that the harness ships its
+own equivalent, each carrying the bundled entry's identifier and an evidence
+string naming where it was observed. Seeded from live observation:
+`skill-creator` is bundled by Codex as a `.system` entry and is currently
+installed from dojo as well, so it is duplicated in every Codex session.
+`skill-installer`, image generation, `review-agent`, `plugin-creator`, and
+`openai-docs` are likewise Codex-bundled; Claude Code bundles `doctor`,
+`artifact-design`, and `artifact-capabilities`, none of which overlap the dojo
+catalog. Declare only pairs where the dojo catalog actually holds a member —
+declaring an equivalence for a skill dojo does not ship is a definition error,
+not a harmless no-op, because it hides a future collision.
 
 **Dependencies**
 
@@ -485,8 +499,15 @@ None
    files declaring the same `name`, a member absent from `skills.json`, an
    overlay with fewer than two non-`core` members, an overlay missing an anchor,
    and `full` declaring anything other than the sentinel.
-6. Write `profiles/README.md` stating that these files are reviewed data,
-   changing membership changes profile identity, and pointing at the spec.
+6. Load and validate `harness-equivalences.yaml` alongside the profiles, raising
+   on: an unknown harness, an unknown canonical skill, a missing bundled-entry
+   identifier, a missing evidence string, a duplicate `(skill, harness)` pair,
+   and a skill declared equivalent on every supported harness. Compute
+   `equivalence_identity` as a SHA-256 over the canonical serialization, so a
+   change to this file is detectable in realization identity.
+7. Write `profiles/README.md` stating that these files are reviewed data, that
+   changing overlay membership changes profile identity while changing an
+   equivalence changes only realization identity, and pointing at the spec.
 
 **Verification**
 
@@ -546,16 +567,29 @@ Task 1
    token named more than once in one request; `full` combined with any other
    token. Accept member overlap across two *different* valid overlays as ordinary
    set union (the spec's explicit non-error case).
-3. Implement `profile_identity(selection, definitions, resolved)` — a SHA-256
-   over a canonical JSON serialization of `{normalized_selection,
-   definition_bodies, resolved_members}`, all lexically ordered. Composition
-   order must not reach the hash.
-4. Implement `realization_identity(profile_identity, canonical_revision,
-   target_identity, harness_model_version, budget_policy_identity)` as a second
-   SHA-256 over those five fields. A canonical-revision change therefore yields a
+3. Implement `profile_identity(selection, definitions)` — a SHA-256 over a
+   canonical JSON serialization of `{normalized_selection, definition_bodies}`,
+   lexically ordered. Composition order must not reach the hash. **Resolved
+   membership is deliberately NOT an input** (spec revision 9): profile identity
+   is *intent* and must stay harness-independent, or a member suppressed on one
+   harness would make the two harnesses look like different profiles.
+4. Implement `resolve_for_harness(resolved, equivalences, harness)` returning
+   `(realized, suppressed)`. A member is suppressed only when `equivalences`
+   declares that `harness` ships an equivalent; the declaration names the
+   bundled entry and carries the evidence string. **Never infer suppression from
+   a name match** — an undeclared collision between a member and a bundled entry
+   is returned as a collision for the caller to report, because guessing wrong
+   silently removes a skill the maintainer selected. A member suppressed on
+   every supported harness is a profile-definition error, not a resolution.
+5. Implement `realization_identity(profile_identity, canonical_revision,
+   target_identity, harness_model_version, budget_policy_identity,
+   equivalence_identity)` as a second SHA-256 over those six fields. Resolved
+   membership lives here rather than in profile identity. A canonical-revision
+   change — or a change to the equivalence declaration — therefore yields a
    different realization identity by construction (spec Evaluation: "a canonical
-   revision change is a new realization request, never an idempotent replay").
-5. Add a permutation test that enumerates **all 720 permutations** of the six
+   revision change, or a change to the equivalence declaration, is a new
+   realization request rather than an idempotent replay").
+6. Add a permutation test that enumerates **all 720 permutations** of the six
    overlay tokens and asserts a single distinct resolved-member tuple and a
    single distinct `profile_identity` across all of them.
 
@@ -582,6 +616,20 @@ Task 1
   accept path is exercised and not merely the reject paths (EV-NEG-01).
 - Changing only `canonical_revision` changes `realization_identity` while leaving
   `profile_identity` unchanged (SC-01, spec Authority "Retry and concurrency").
+- **One profile identity, two harnesses, different realizations.** With an
+  equivalence declaring that harness A bundles a member and harness B does not:
+  `profile_identity` is byte-identical across both, `realization_identity`
+  differs, the member appears in B's `realized` and in A's `suppressed`, and A's
+  `suppressed` entry names the displacing bundled entry (SC-02, SC-11, EV-NEG-06).
+- An **undeclared** name collision between a member and a bundled entry is
+  returned as a collision and the member stays in `realized` — asserted
+  explicitly, since silent suppression is the failure this design exists to
+  avoid (EV-NEG-06).
+- A member declared equivalent on **every** supported harness fails as a
+  profile-definition error rather than resolving to an empty realization
+  (EV-NEG-06).
+- Changing only the equivalence declaration changes `realization_identity` and
+  leaves `profile_identity` unchanged (SC-01, SC-11).
 
 ---
 
@@ -893,7 +941,14 @@ Task 2, Task 3, Task 4
    and topology drift, foreign entries, shadowed names, plugin-provided entries,
    target scopes, harness and budget-policy versions, budget utilization,
    included-skill count, skills with routing fixtures, assertions executed,
-   assertion outcomes, and observed collision candidates.
+   assertion outcomes, and observed collision candidates. Add, per spec revision
+   9: `realization_identity`, `equivalence_identity`, and a `suppressed` list
+   where each entry names the member, the harness-bundled entry that displaced
+   it, and the declaration's evidence string. **A suppressed member must be
+   distinguishable from a member the profile never selected** — that distinction
+   is the whole point of declaring suppression rather than editing membership,
+   and a report that only lists what landed cannot support SC-11's requirement
+   that every cross-harness difference be attributable.
 2. Split the payload per recorded decision 2: a byte-identical `evidence` object
    whose every date comes from the *policy record*, and a non-normative
    `envelope` with wall-clock and hostname. `--json` emits `evidence` only.
@@ -1109,14 +1164,24 @@ Task 5
 1. Implement `compare(evidence_a, evidence_b)` consuming two `evidence` JSON
    documents produced independently (spec Out of Scope forbids remote
    orchestration).
-2. Assert agreement on: profile identity, canonical revision, resolved dojo skill
-   names, versions, and content identities.
-3. Report as **explicit differences, not drift**: foreign entries, harness and
-   model versions, budget policy identity, and budget outcome.
-4. Refuse to claim agreement when either side is incomplete, audit-only, or
+2. Assert agreement on: profile identity, canonical revision, and — **when both
+   sides name the same harness** — resolved dojo skill names, versions, and
+   content identities. SC-11 as revised scopes membership agreement to a shared
+   harness, so a same-harness comparison keeps the strict rule.
+3. When the two sides name **different** harnesses, membership may legitimately
+   differ. Every difference must be attributable to a `suppressed` entry naming
+   the displacing bundled entry; a name present on one side, absent on the
+   other, and absent from that side's `suppressed` list is **drift**, and must be
+   reported as such rather than excused by the harness difference. This is the
+   load-bearing check of revision 9: without it, "different harness" becomes a
+   blanket excuse that hides exactly the divergence profiles exist to catch.
+4. Report as **explicit differences, not drift**: foreign entries, harness and
+   model versions, budget policy identity, budget outcome, and equivalence
+   identity.
+5. Refuse to claim agreement when either side is incomplete, audit-only, or
    unsupported — return `agreement: indeterminate` with the reason
    (EV-REC-02).
-5. Exit 0 on agreement, 2 on disagreement or indeterminate, 1 on unreadable
+6. Exit 0 on agreement, 2 on disagreement or indeterminate, 1 on unreadable
    input.
 
 **Verification**
@@ -2125,6 +2190,7 @@ Every SC-01…SC-13 and every EV scenario in the spec, in both directions.
 | EV-NEG-03 | Task 4, Task 9, Task 12 | `.venv/bin/python -m pytest tests/test_profiles_automation_authority.py tests/test_profiles_apply.py -q` |
 | EV-NEG-04 | Task 5 | `.venv/bin/python -m pytest tests/test_profiles_evidence.py -q -k dirty` |
 | EV-NEG-05 | Task 13, Task 14 | `.venv/bin/python -m pytest tests/test_gen_harness_adapters.py -q -k profile` |
+| EV-NEG-06 | Task 1, Task 2, Task 5, Task 7 | `.venv/bin/python -m pytest tests/test_profiles_resolve.py tests/test_profiles_compare.py -q -k suppress` |
 | EV-REC-01 | Task 12 | `.venv/bin/python -m pytest tests/test_profiles_apply.py -q -k interrupt` |
 | EV-REC-02 | Task 7, Task 12 | `.venv/bin/python -m pytest tests/test_profiles_compare.py -q -k indeterminate` |
 | EV-REC-03 | Task 12 | `.venv/bin/python -m pytest tests/test_profiles_apply.py -q -k two_target` |
