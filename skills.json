@@ -8,13 +8,6 @@
       "version": "2.0.0"
     },
     {
-      "name": "algorithmic-art",
-      "description": "Creating algorithmic art using p5.js with seeded randomness and interactive parameter exploration. Use this when users request creating art using code, generative art, algorithmic art, flow fields, or particle systems. Create original algorithmic art rather than copying existing artists' work to avoid copyright violations.",
-      "path": "skills/algorithmic-art",
-      "version": "1.0.0",
-      "license": "Complete terms in LICENSE.txt"
-    },
-    {
       "name": "api-design",
       "description": "Design and review robust API and interface contracts. Use when creating or changing HTTP endpoints, GraphQL/RPC-style APIs, webhooks, SSE/event streams, exported DTOs/types, service-layer boundaries, CLI JSON/stdout/exit-code contracts, versioning/deprecation plans, or any compatibility-sensitive boundary between consumers and providers.",
       "path": "skills/api-design",
@@ -22,9 +15,9 @@
     },
     {
       "name": "audit-skill",
-      "description": "Security audit for agent skills \u2014 structural validation, prompt-injection and exfiltration scanning, and code analysis, producing an A\u2013F trust score. Use when reviewing a skill for security, auditing a skill before installation, checking for prompt injection, or when the user says 'audit skill', 'check skill security', 'trust score', 'is this skill safe'. On-demand via /audit-skill.",
+      "description": "Security audit for agent skills \u2014 prompt-injection and exfiltration scanning with an A\u2013F trust score. Use when reviewing a skill for security, auditing a skill before installation, checking for prompt injection, or when the user says 'audit skill', 'check skill security', 'trust score', 'is this skill safe'. On-demand via /audit-skill.",
       "path": "skills/audit-skill",
-      "version": "1.0.2"
+      "version": "1.0.3"
     },
     {
       "name": "blind-spots",
@@ -47,9 +40,9 @@
     },
     {
       "name": "caveman",
-      "description": "Ultra-compressed communication mode. Drops articles, filler, and pleasantries while keeping technical accuracy and exact code/error strings. Persistent across turns once active. Use when the user says \"caveman mode\", \"talk like caveman\", \"use caveman\", \"less tokens\", asks to compress agent responses for the rest of the session, or invokes /caveman. Stop with \"stop caveman\" or \"normal mode\".",
+      "description": "Ultra-compressed communication mode, persistent across turns once active. Use when the user says \"caveman mode\", \"talk like caveman\", \"use caveman\", \"less tokens\", asks to compress agent responses for the rest of the session, or invokes /caveman. Stop with \"stop caveman\" or \"normal mode\".",
       "path": "skills/caveman",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "compound-docs",
@@ -71,9 +64,9 @@
     },
     {
       "name": "deep-research",
-      "description": "Use when a task needs direct web-backed research with controlled depth, relevance filtering, and citation-ready synthesis \u2014 the user wants the answer, not a commissioned research program. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead \u2014 this skill is its execution backend.",
+      "description": "Use when a task needs direct web-backed research with citation-ready synthesis \u2014 the user wants the answer, not a commissioned research program. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead \u2014 this skill is its execution backend.",
       "path": "skills/deep-research",
-      "version": "2.3.1"
+      "version": "2.3.2"
     },
     {
       "name": "design-critique",
@@ -83,15 +76,15 @@
     },
     {
       "name": "design-md",
-      "description": "Read, write, lint, diff, and export DESIGN.md files using the Google @google/design.md format. Use when the user mentions DESIGN.md, design tokens, extracting a design system, linting design tokens, exporting tokens to Tailwind, DTCG, or CSS variables, or when authoring a fresh design-system reference for a project. Wraps the pinned 0.1.1 CLI through scripts/run_cli.sh.",
+      "description": "Read, write, lint, diff, and export DESIGN.md files using the Google @google/design.md format. Use when the user mentions DESIGN.md, design tokens, extracting a design system, linting design tokens, exporting tokens to Tailwind, DTCG, or CSS variables, or when authoring a fresh design-system reference for a project.",
       "path": "skills/design-md",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "diagnose",
-      "description": "Disciplined debugging loop for hard bugs and performance regressions \u2014 build a deterministic pass/fail signal first, then reproduce, hypothesise, instrument, fix, regression-test. Use when the user says \"diagnose this\", \"debug this\", \"this is broken/throwing/failing\", reports a bug whose cause is non-obvious, or describes a performance regression. For completion-time evidence checks use verify-before-complete; for new-test methodology use test-strategy; for post-hoc code review use local-review.",
+      "description": "Disciplined debugging loop for hard bugs and performance regressions. Use when the user says \"diagnose this\", \"debug this\", \"this is broken/throwing/failing\", reports a bug whose cause is non-obvious, or describes a performance regression. For completion-time evidence checks use verify-before-complete; for new-test methodology use test-strategy; for post-hoc code review use local-review.",
       "path": "skills/diagnose",
-      "version": "1.0.2"
+      "version": "1.0.3"
     },
     {
       "name": "fetchmd",
@@ -101,15 +94,15 @@
     },
     {
       "name": "find-skills",
-      "description": "Helps users discover and install agent skills when they ask questions like \"how do I do X\", \"find a skill for X\", \"is there a skill that can...\", or express interest in extending capabilities. This skill should be used when the user is looking for functionality that might exist as an installable skill.",
+      "description": "Discover and install agent skills. Use when the user asks \"how do I do X\", \"find a skill for X\", \"is there a skill that can...\", or is looking for functionality that might exist as an installable skill.",
       "path": "skills/find-skills",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "first-principles",
-      "description": "Systems-level reasoning for high-stakes technical decisions \u2014 decompose the problem, state assumptions explicitly, weigh real alternatives. Use when choosing between architectures, evaluating trade-offs, or planning a non-mechanical refactor. For debugging a specific failure use diagnose; for clarifying an ambiguous WHAT use brainstorming.",
+      "description": "Systems-level reasoning for high-stakes technical decisions. Use when choosing between architectures, evaluating trade-offs, or planning a non-mechanical refactor. For debugging a specific failure use diagnose; for clarifying an ambiguous WHAT use brainstorming.",
       "path": "skills/first-principles",
-      "version": "2.0.0"
+      "version": "2.0.1"
     },
     {
       "name": "frontend-design",
@@ -133,27 +126,27 @@
     },
     {
       "name": "gpt-imagen",
-      "description": "Generate or edit images via the OpenAI Image API (`gpt-image-2`). Use when the user asks to generate, edit, inpaint, mask, remove backgrounds, or create product shots, concept art, covers, or batch outputs using OpenAI. Runs the bundled CLI (`scripts/image_gen.py`) and requires `OPENAI_API_KEY`.",
+      "description": "Generate or edit images via the OpenAI Image API (`gpt-image-2`). Use when the user asks to generate, edit, inpaint, mask, remove backgrounds, or create product shots, concept art, covers, or batch outputs using OpenAI. Requires `OPENAI_API_KEY`.",
       "path": "skills/gpt-imagen",
-      "version": "1.1.0"
-    },
-    {
-      "name": "handoff",
-      "description": "Create comprehensive session summaries for context preservation and seamless handoff. Use when (1) conversation approaching context limits, (2) user requests session summary, (3) preparing handoff documentation to another agent or fresh instance, (4) archiving work for future reference.",
-      "path": "skills/handoff",
-      "version": "1.0.1"
-    },
-    {
-      "name": "local-review",
-      "description": "Perform local code reviews on workspace changes without posting to GitHub. Use for requests like /review, review this diff, audit staged changes, or check branch changes. Collects git context and produces findings-first reports with severity, file line references, risks, and test gaps.",
-      "path": "skills/local-review",
       "version": "1.1.1"
     },
     {
-      "name": "loop-design",
-      "description": "Design a reusable, verifiable autonomous loop on top of harness primitives like /loop and /goal. Runs a go/no-go gate (is there a pass/fail oracle?), defines a portable loop blueprint, then scaffolds the concrete files a harness runs. Use when setting up a recurring, unattended, or overnight agent loop, an automation or cron task, a /loop or /goal run, a Ralph-style while-true loop, or when deciding whether a task SHOULD be looped at all. Agent-agnostic across Claude Code, Codex, and CI. On-demand via /loop-design.",
-      "path": "skills/loop-design",
+      "name": "handoff",
+      "description": "Create session summaries for context preservation and handoff. Use when (1) conversation approaching context limits, (2) user requests session summary, (3) preparing handoff documentation to another agent or fresh instance, (4) archiving work for future reference.",
+      "path": "skills/handoff",
       "version": "1.0.2"
+    },
+    {
+      "name": "local-review",
+      "description": "Perform local code reviews on workspace changes without posting to GitHub. Use for requests like /review, review this diff, audit staged changes, or check branch changes. Produces findings-first reports with severity, file line references, risks, and test gaps.",
+      "path": "skills/local-review",
+      "version": "1.1.2"
+    },
+    {
+      "name": "loop-design",
+      "description": "Design a reusable, verifiable autonomous loop on top of harness primitives like /loop and /goal. Use when setting up a recurring, unattended, or overnight agent loop, an automation or cron task, a /loop or /goal run, a Ralph-style while-true loop, or when deciding whether a task SHOULD be looped at all. Agent-agnostic across Claude Code, Codex, and CI. On-demand via /loop-design.",
+      "path": "skills/loop-design",
+      "version": "1.0.3"
     },
     {
       "name": "markdown-converter",
@@ -226,9 +219,9 @@
     },
     {
       "name": "session-retro",
-      "description": "Update existing project reference docs with non-obvious learnings from the current session, routing each learning to the single best existing target rather than creating new files. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on \"/retro\", \"update docs with learnings\", \"save what we learned\", or proactively at session end.",
+      "description": "Update existing project reference docs with non-obvious learnings from the current session rather than creating new files. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on \"/retro\", \"update docs with learnings\", \"save what we learned\", or proactively at session end.",
       "path": "skills/session-retro",
-      "version": "1.0.2"
+      "version": "1.0.3"
     },
     {
       "name": "skill-creator",
@@ -257,9 +250,9 @@
     },
     {
       "name": "template",
-      "description": "Skill starter template with commented guidance for every contract section. Use when creating a new skill and you need a scaffold that passes strict contract validation. Covers frontmatter, scope, workflow, boundaries, output, verification, and resource mapping.",
+      "description": "Skill starter template with commented guidance for every contract section. Use when creating a new skill and you need a scaffold that passes strict contract validation.",
       "path": "skills/template",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "test-strategy",

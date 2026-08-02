@@ -1,3 +1,7 @@
+## 1.0.3 - 2026-08-01
+
+- Condense the internal audit-phase list in the description to its scope and output; triggers unchanged.
+
 # Changelog
 
 ## 1.0.2 - 2026-07-31

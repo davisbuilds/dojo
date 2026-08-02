@@ -1,8 +1,8 @@
 ---
 name: session-retro
-description: Update existing project reference docs with non-obvious learnings from the current session, routing each learning to the single best existing target rather than creating new files. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on "/retro", "update docs with learnings", "save what we learned", or proactively at session end.
+description: Update existing project reference docs with non-obvious learnings from the current session rather than creating new files. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on "/retro", "update docs with learnings", "save what we learned", or proactively at session end.
 skill-type: workflow
-version: 1.0.2
+version: 1.0.3
 ---
 
 # Session Retro

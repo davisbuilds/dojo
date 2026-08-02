@@ -1,3 +1,7 @@
+## 1.0.3 - 2026-08-01
+
+- Trim the internal go/no-go-gate and blueprint-then-scaffold procedure from the description; triggers unchanged.
+
 # Changelog
 
 ## 1.0.2 - 2026-07-31

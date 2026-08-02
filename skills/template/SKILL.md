@@ -1,8 +1,8 @@
 ---
 name: template
-description: Skill starter template with commented guidance for every contract section. Use when creating a new skill and you need a scaffold that passes strict contract validation. Covers frontmatter, scope, workflow, boundaries, output, verification, and resource mapping.
+description: Skill starter template with commented guidance for every contract section. Use when creating a new skill and you need a scaffold that passes strict contract validation.
 skill-type: workflow
-version: 1.0.0
+version: 1.0.1
 ---
 
 # Skill Template

@@ -11,8 +11,10 @@ Two artifact kinds, all derived from the canonical `skills/<name>/SKILL.md`:
 
 1. Dir-level relative symlinks so SKILL.md-native harnesses discover every skill:
        .claude/skills  -> ../skills
-       .agents/skills  -> ../skills
        .agent/skills   -> ../skills
+
+   `.agents/skills` is deliberately not created -- Codex reads it as project
+   scope and would list the whole catalog a second time. See HARNESS_DIRS.
 
 2. A colocated Codex interface sidecar per skill:
        skills/<name>/agents/openai.yaml
@@ -33,7 +35,37 @@ from pathlib import Path
 
 import yaml
 
-HARNESS_DIRS = (".claude", ".agents", ".agent")
+# `.agents` is deliberately absent. Codex reads `<repo>/.agents/skills` as
+# project scope and does NOT shadow by name across roots, so linking the whole
+# canonical catalog there listed every skill twice -- once from the global
+# install and once from this repo. Measured 2026-08-01 with
+# `codex debug prompt-input`: 90 entries against 41, and 80 of them truncated
+# mid-word because the listing blew past Codex's 5,440-token budget. Codex does
+# not mark truncation, so the routing signal degraded invisibly in the one repo
+# where skills are authored.
+#
+# `.claude` stays, and the reason is a real asymmetry rather than an absence of
+# evidence: **Claude Code shadows by name across scopes and Codex does not.** So
+# the same link buys different things. For Codex it added 33 duplicate entries --
+# pure waste. For Claude Code it adds the ~30 canonical skills not installed
+# globally, which is genuine capability while authoring here. That capability is
+# not free: measured 2026-08-01, a dojo-rooted Claude session lists 75 skills /
+# 23,824 chars against an 8,000-char budget at a 200k context window (the budget
+# is ctx_tokens x 4 x skillListingBudgetFraction, default 0.01, from the v2.1.220
+# bundle). Over budget, Claude Code drops lower-priority descriptions *entirely*,
+# rendering a bare `- skill-name`. At a 1M window the same listing fits with no
+# warning, so the exposure is confined to 200k-context models. This is exactly
+# what a distribution profile should govern; until then the trade is deliberate.
+#
+# `.agent` stays because no harness we have measured reads it, so it costs nothing.
+HARNESS_DIRS = (".claude", ".agent")
+
+# Paths this generator used to create and now actively retires. These are
+# gitignored, so pulling the commit that dropped `.agents` does NOT remove an
+# existing link -- a developer checkout would keep double-listing forever.
+# Only our exact managed symlink is removed; a real directory or a foreign
+# link is left alone and reported.
+LEGACY_HARNESS_DIRS = (".agents",)
 SYMLINK_TARGET = "../skills"
 MARKER = "# AUTO-GENERATED from SKILL.md frontmatter — do not edit"
 
@@ -136,6 +168,44 @@ def ensure_symlink(link: Path, write: bool) -> tuple[bool, str | None]:
     link.parent.mkdir(parents=True, exist_ok=True)
     os.symlink(SYMLINK_TARGET, link)
     return True, None
+
+
+def retire_legacy_symlink(link: Path, write: bool) -> tuple[bool, str | None]:
+    """Remove a link this generator used to create and no longer owns.
+
+    Returns (drift, error). Deliberately narrow: only a symlink whose target is
+    exactly ``SYMLINK_TARGET`` is ours to retire. A real directory may hold a
+    developer's own skills, and a foreign symlink may point somewhere
+    deliberate -- both are reported rather than touched, because the cost of
+    deleting either is far higher than the cost of one more listing.
+    """
+    if not link.exists() and not link.is_symlink():
+        return False, None
+
+    if not link.is_symlink():
+        if not link.is_dir():
+            return False, f"{link} is a real file; leaving it alone."
+        if any(link.iterdir()):
+            return False, (
+                f"{link} is a non-empty real directory; refusing to delete it. "
+                f"It may hold your own skills. Remove it by hand if you want Codex "
+                f"to stop listing the catalog twice."
+            )
+        # An empty real dir contributes no skills, so it is harmless -- but it is
+        # also what an interrupted migration leaves behind. Clear it when writing.
+        if write:
+            link.rmdir()
+        return False, None
+    if os.readlink(link) != SYMLINK_TARGET:
+        return False, (
+            f"{link} is a foreign symlink -> {os.readlink(link)}; leaving it alone. "
+            f"Remove it by hand if it was meant to be the retired catalog link."
+        )
+
+    if not write:
+        return True, None  # drift, reported by --check
+    link.unlink()
+    return False, None
 
 
 def plan_command_links(skills_root: Path, commands_root: Path) -> tuple[dict[Path, Path], list[str]]:
@@ -267,6 +337,14 @@ def main() -> int:
                 errors.append(error)
             elif not ok:
                 drift.append(f"{harness}/skills should be a symlink -> {SYMLINK_TARGET}")
+
+        for harness in LEGACY_HARNESS_DIRS:
+            link = repo_root / harness / "skills"
+            stale, error = retire_legacy_symlink(link, write)
+            if error:
+                errors.append(error)
+            elif stale:
+                drift.append(f"{harness}/skills is a retired catalog link and should be removed")
 
     # 2. Codex sidecars
     for skill_md in sorted(skills_root.glob("*/SKILL.md")):

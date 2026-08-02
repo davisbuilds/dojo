@@ -139,7 +139,7 @@ python scripts/gen_skill_docs.py --check  # verify no drift (CI)
 
 ### Regenerate harness adapters
 
-Creates the local `.claude/.agents/.agent` `skills/` symlinks and the colocated Codex `openai.yaml` sidecars from frontmatter. Run after cloning (symlinks are gitignored) and after editing skill descriptions:
+Creates the local `.claude/.agent` `skills/` symlinks and the colocated Codex `openai.yaml` sidecars from frontmatter. Also retires a legacy `.agents/skills` catalog link if one survives from an older checkout (a real directory or a foreign symlink is reported, never deleted). Run after cloning (symlinks are gitignored) and after editing skill descriptions:
 
 ```bash
 python scripts/gen_harness_adapters.py                      # write symlinks, .claude/commands links, and sidecars

@@ -1,3 +1,7 @@
+## 1.1.1 - 2026-08-01
+
+- Drop the bundled-CLI implementation note from the description; the API-key prerequisite and triggers are unchanged.
+
 # Changelog
 
 ## 1.1.0 - 2026-07-31

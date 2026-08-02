@@ -1,9 +1,9 @@
 ---
 name: deep-research
-description: Use when a task needs direct web-backed research with controlled depth, relevance filtering, and citation-ready synthesis — the user wants the answer, not a commissioned research program. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead — this skill is its execution backend.
+description: Use when a task needs direct web-backed research with citation-ready synthesis — the user wants the answer, not a commissioned research program. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead — this skill is its execution backend.
 skill-type: workflow
 compatibility: "Requires python3. Requires network access for web research."
-version: 2.3.1
+version: 2.3.2
 ---
 
 # Deep Research

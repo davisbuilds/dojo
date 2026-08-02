@@ -27,7 +27,6 @@ jq '.skills | length' skills.json
 
 | Skill | Purpose |
 |-------|---------|
-| `algorithmic-art` | Generative art with p5.js and controlled randomness |
 | `design-md` | Read, write, lint, diff, and export DESIGN.md files via the pinned `@google/design.md` CLI |
 | `design-critique` | Audit UI against a 37-pattern slop catalog and return ranked, scoped findings |
 | `frontend-design` | Distinctive, production-grade frontend interfaces |

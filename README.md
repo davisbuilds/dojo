@@ -30,8 +30,8 @@ Do this, in order:
 
 4. Apply harness adapters so this repo's skills are discoverable by SKILL.md-native
    harnesses: `python3 scripts/gen_harness_adapters.py`. This creates local,
-   gitignored symlinks (`.claude/skills`, `.agents/skills`, `.agent/skills` ->
-   `../skills`) and leaves the committed Codex sidecars untouched — it produces no
+   gitignored symlinks (`.claude/skills`, `.agent/skills` -> `../skills`) and
+   leaves the committed Codex sidecars untouched — it produces no
    git changes. (Codex sidecars at `skills/<name>/agents/openai.yaml` are already
    committed, so Codex works without this step.)
 
@@ -143,7 +143,7 @@ Skills may also declare an optional `triggers:` list of literal trigger phrases.
 
 The agent-agnostic claim is backed by generated adapters, not duplicated content. `scripts/gen_harness_adapters.py` derives, from each skill's frontmatter:
 
-- **Dir-level relative symlinks** so SKILL.md-native harnesses see every skill: `.claude/skills`, `.agents/skills`, and `.agent/skills` each point to `../skills`. These live under gitignored harness dirs, so they are **local-only and regenerated per clone** — run the generator after cloning.
+- **Dir-level relative symlinks** so SKILL.md-native harnesses see every skill: `.claude/skills` and `.agent/skills` each point to `../skills`. These live under gitignored harness dirs, so they are **local-only and regenerated per clone** — run the generator after cloning. `.agents/skills` is **deliberately not created, and actively retired if found**: Codex reads it as project scope and does not shadow by name, so it listed the whole catalog a second time (measured 90 entries against 41, 80 of them truncated). Because the link is gitignored, pulling this change cannot remove it — the generator does.
 - **A colocated Codex sidecar** at `skills/<name>/agents/openai.yaml`. These are committed, portable artifacts. Generated sidecars carry an `AUTO-GENERATED` marker; hand-curated ones (with icons, polished copy) are preserved and never overwritten.
 - **Slash-command links** from each skill's `commands/*.md` into `.claude/commands/` so Claude Code resolves them as real slash commands (`/review`, `/quiz-change`, `/workflows:brainstorm`). Local-only and gitignored, like the skill symlinks.
 
