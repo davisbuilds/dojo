@@ -48,12 +48,21 @@ equivalences:
       tests/fixtures/profiles/codex-prompt-input-dojo-2026-08-02.json. Same name,
       same capability (install skills from a curated list or a GitHub repo path,
       private repos included); the bundled copy writes to $CODEX_HOME/skills.
-  - skill: gpt-imagen
-    harness: codex
-    bundled_entry: imagegen
-    evidence: >-
-      Observed at ~/.codex/skills/.system/imagegen/SKILL.md and listed as
-      `imagegen` in tests/fixtures/profiles/codex-prompt-input-dojo-2026-08-02.json.
-      Codex's bundled raster generate/edit path against OpenAI's own image models
-      is what dojo's gpt-imagen wraps via the OpenAI Image API. Declared on
-      capability rather than on the name, which is why the name differs.
+# Candidate, deliberately NOT declared: gpt-imagen <-> codex `imagegen`.
+#
+# The two overlap heavily and `imagegen` is genuinely listed in every Codex
+# session, so this looked declarable. It is held back because equivalence means
+# *the harness already provides this capability*, and that is unverified here:
+# dojo's gpt-imagen pins `gpt-image-2` and exposes inpainting, masking, and
+# batch output, none of which the bundled description claims. Every other entry
+# in this file is a same-name, same-capability pair; this one would be the only
+# declaration resting on a capability judgement across differing names.
+#
+# The cost of being wrong is asymmetric and the spec says so: a wrong
+# declaration silently removes a skill the maintainer selected, whereas an
+# undeclared collision is *reported*, which is the outcome this design wants.
+# Declaring it also buys nothing today — gpt-imagen belongs to no overlay, so
+# the suppression would never fire.
+#
+# To close this: compare the two skills' actual capabilities, not their
+# descriptions. If the bundled path covers masking and batch, declare it.

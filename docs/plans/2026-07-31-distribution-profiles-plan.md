@@ -515,22 +515,36 @@ last-wins YAML key.
 - Create: `profiles/full.yaml`
 - Create: `profiles/harness-equivalences.yaml`
 - Create: `profiles/README.md`
-- Create: `scripts/profiles/__init__.py`
-- Create: `scripts/profiles/definitions.py`
+- Create: `scripts/profiles/definitions.py` (`__init__.py` already shipped in Task 0)
 - Test: `tests/test_profiles_definitions.py`
 
 **`harness-equivalences.yaml`** — the declaration spec revision 9 requires. One
 entry per `(canonical skill, harness)` pair stating that the harness ships its
 own equivalent, each carrying the bundled entry's identifier and an evidence
-string naming where it was observed. Seeded from live observation:
-`skill-creator` is bundled by Codex as a `.system` entry and is currently
-installed from dojo as well, so it is duplicated in every Codex session.
-`skill-installer`, image generation, `review-agent`, `plugin-creator`, and
-`openai-docs` are likewise Codex-bundled; Claude Code bundles `doctor`,
-`artifact-design`, and `artifact-capabilities`, none of which overlap the dojo
-catalog. Declare only pairs where the dojo catalog actually holds a member —
-declaring an equivalence for a skill dojo does not ship is a definition error,
-not a harmless no-op, because it hides a future collision.
+string naming where it was observed.
+
+> **Corrected 2026-08-03 during implementation.** This paragraph used to seed six
+> Codex names — `skill-creator`, `skill-installer`, image generation,
+> `review-agent`, `plugin-creator`, `openai-docs` — while the very next sentence
+> forbids declaring a pair whose dojo member does not exist. Three of the six
+> have no dojo counterpart at all, so the seed list contradicted its own rule.
+> Worse, `review-agent` is not listed by Codex in the first place: it sits at
+> `~/.codex/skills/.system/review-agent/` and appears in no capture or live
+> probe. Only **two** name-matched pairs are declarable, and the rule wins over
+> the list.
+
+Two conditions, both required. The dojo catalog must actually hold the member —
+declaring an equivalence for a skill dojo does not ship hides a future
+collision. And the bundled entry must be **observed in a listing**, not merely
+present on disk; an unlisted entry displaces nothing and cannot be an
+equivalence. Claude Code bundles `doctor`, `artifact-design`, and
+`artifact-capabilities`, none of which overlap the dojo catalog, so it declares
+nothing.
+
+A capability match across *differing* names (dojo `gpt-imagen` against Codex
+`imagegen`) is a candidate, not a declaration: record it with the comparison it
+still needs and leave it undeclared, since an undeclared collision is reported
+while a wrong declaration silently removes a selected skill.
 
 **Dependencies**
 
@@ -586,7 +600,7 @@ None
 **Verification**
 
 - Run: `.venv/bin/python -m pytest tests/test_profiles_definitions.py -q`
-- Expect: all pass, including one rejection test per failure mode in step 5.
+- Expect: all pass, including one rejection test per failure mode in steps 5 **and 6**.
 - Run (negative): copy `profiles/core.yaml` to `profiles/core-copy.yaml`, then
   `.venv/bin/python -c "import sys; sys.path.insert(0,'scripts'); from profiles.definitions import load_definitions; load_definitions('profiles')"`
 - Expect: raises with a message naming both files and the duplicated profile
@@ -608,9 +622,19 @@ None
   `len(json.load(open("skills.json"))["skills"])` rather than a literal, so
   authoring a skill cannot silently falsify it (SC-02, EV-LEG-01).
 - Every resolved member of every profile exists in `skills.json` (SC-02).
-- Each of the 8 rejection cases in step 5 raises, and each rejection test asserts
-  the *message* names the offending profile and member — a bare raise does not
-  pass (SC-01).
+- Every rejection case raises, and each rejection test asserts the *message*
+  names the offending profile and member — a bare raise does not pass (SC-01).
+  **The count is not eight.** Step 5 lists eight profile rules, step 6 adds six
+  equivalence rules, and failing closed needs several more that neither step
+  names: an empty profiles directory, an empty catalog, an unrecognised key, and
+  a `members` value that is not a non-empty list. That last one is the sharp
+  case — `members: core` is plausible YAML that is neither the sentinel nor a
+  list, and would otherwise be iterated character by character into four
+  one-letter "members". Implemented as 27 rules, each mutation-probed.
+- **Order the overlay checks so the non-`core` count can actually fail.** Every
+  anchor is itself a non-`core` skill, so an overlay holding its anchors always
+  satisfies the count. Check the count *before* the anchors, or the rule is
+  indistinguishable from one that was never written.
 
 ---
 
