@@ -358,10 +358,36 @@ def is_stale(recorded: dict, current: dict) -> list[str]:
     return sorted(k for k in keys if recorded.get(k) != current.get(k))
 
 
+CODEX_HOME_RE = re.compile(r"^(?P<home>.*/\.codex)/")
+
+
+def infer_codex_home(listing: Listing) -> str | None:
+    """Find the Codex home the *capture* was taken under, from its own locators.
+
+    Classification must never depend on the machine reading the evidence. Using
+    ``Path.home()`` here works on the capture machine and silently misclassifies
+    everywhere else: plugin detection returns zero and bundled ``.system`` skills
+    get filed as dojo-managed, because the needles simply never match. That is
+    the filesystem-versus-evidence error one more time, so the home is read from
+    the listing instead.
+
+    Every Codex listing carries its bundled ``.system`` skills, so at least one
+    ``…/.codex/`` locator is always present.
+    """
+    for entry in listing.entries:
+        locator = _absolute(entry.locator, listing.root_lines)
+        if match := CODEX_HOME_RE.match(locator):
+            return match.group("home")
+    for line in listing.root_lines:
+        if match := CODEX_HOME_RE.match(re.sub(r"^- `\w+` = `|`$", "", line) + "/"):
+            return match.group("home")
+    return None
+
+
 def classify(
     listing: Listing,
     dojo_skills_root: Path,
-    codex_home: Path,
+    codex_home: Path | str | None = None,
     cwd: Path | None = None,
 ) -> Listing:
     """Label each entry's origin and scope from its locator.
@@ -373,8 +399,14 @@ def classify(
     yields zero and hides every plugin entry.
     """
     canonical = {p.name for p in dojo_skills_root.iterdir() if p.is_dir() and not p.name.startswith("_")}
-    plugin_cache = f"{codex_home}/plugins/"
-    system_root = f"{codex_home}/skills/.system/"
+    home = str(codex_home) if codex_home else infer_codex_home(listing)
+    if home is None:
+        raise ValueError(
+            "cannot determine the Codex home for this listing; refusing to classify, "
+            "because every origin would silently fall through to dojo-managed or foreign"
+        )
+    plugin_cache = f"{home}/plugins/"
+    system_root = f"{home}/skills/.system/"
     # Codex's project scope is `.agents/skills` under the session cwd — not
     # `.claude/skills` (Claude Code's) and not `.agent/skills` (nobody's).
     #

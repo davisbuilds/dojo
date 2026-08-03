@@ -30,7 +30,12 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from profiles import probe_claude, probe_codex  # noqa: E402
 
-CODEX_HOME = Path.home() / ".codex"
+# Deliberately NOT `Path.home() / ".codex"`. The fixtures are captures from
+# another machine, and classification must follow the evidence rather than the
+# runner: keying on this machine's home passed locally and failed every CI run,
+# reporting zero plugin entries and misfiling bundled skills as dojo-managed.
+# `None` makes `classify` infer the capture's own Codex home from its locators.
+CAPTURE_HOME = None
 DOJO_SKILLS = REPO_ROOT / "skills"
 
 # The truncating fixture was captured from a scratch directory holding only
@@ -136,7 +141,7 @@ def test_render_mode_is_read_from_the_intro(dojo, truncating):
 def test_alias_locators_expand_to_absolute_paths(truncating, tmp_path):
     """Classification must not depend on render mode."""
     cwd = rebuild_capture_cwd(truncating, tmp_path)
-    listing = probe_codex.classify(truncating, DOJO_SKILLS, CODEX_HOME, cwd)
+    listing = probe_codex.classify(truncating, DOJO_SKILLS, CAPTURE_HOME, cwd)
     assert any(not e.locator.startswith("/") for e in listing.entries), "fixture is not alias-rendered"
     origins = {e.origin for e in listing.entries}
     assert "plugin" in origins, "alias locators failed to expand; plugin cache went undetected"
@@ -217,7 +222,7 @@ def test_unknown_window_falls_back_to_characters_not_a_guessed_token_count():
 
 def test_every_origin_is_proven_against_a_known_present_case(dojo):
     """Non-degeneracy floors, never totals (SC-04, SC-05)."""
-    listing = probe_codex.classify(dojo, DOJO_SKILLS, CODEX_HOME, REPO_ROOT)
+    listing = probe_codex.classify(dojo, DOJO_SKILLS, CAPTURE_HOME, REPO_ROOT)
     origins = collections.Counter(e.origin for e in listing.entries)
     for origin in ("dojo-managed", "harness-bundled", "plugin", "foreign"):
         assert origins[origin] >= 1, f"no {origin} entry observed; detector unproven"
@@ -231,7 +236,7 @@ def test_one_name_carries_two_distinct_origins(dojo):
     entry, and both are listed. This is the live case motivating the spec's
     harness-equivalence declaration.
     """
-    listing = probe_codex.classify(dojo, DOJO_SKILLS, CODEX_HOME, REPO_ROOT)
+    listing = probe_codex.classify(dojo, DOJO_SKILLS, CAPTURE_HOME, REPO_ROOT)
     by_name = collections.defaultdict(set)
     for entry in listing.entries:
         by_name[entry.name].add(entry.origin)
@@ -248,7 +253,7 @@ def test_project_scope_is_detected_through_a_symlinked_root(truncating, tmp_path
     that topology.
     """
     cwd = rebuild_capture_cwd(truncating, tmp_path)
-    listing = probe_codex.classify(truncating, DOJO_SKILLS, CODEX_HOME, cwd)
+    listing = probe_codex.classify(truncating, DOJO_SKILLS, CAPTURE_HOME, cwd)
     scopes = collections.Counter(e.scope for e in listing.entries)
     assert scopes["project"] >= 1, "project scope undetected through a symlinked root"
     assert scopes["user"] >= 1
@@ -256,7 +261,7 @@ def test_project_scope_is_detected_through_a_symlinked_root(truncating, tmp_path
 
 def test_a_session_without_a_project_root_has_no_project_entries(dojo):
     """The negative case, with the positive one above as its control."""
-    listing = probe_codex.classify(dojo, DOJO_SKILLS, CODEX_HOME, REPO_ROOT)
+    listing = probe_codex.classify(dojo, DOJO_SKILLS, CAPTURE_HOME, REPO_ROOT)
     assert all(e.scope == "user" for e in listing.entries)
 
 
@@ -424,3 +429,36 @@ def test_fingerprints_degrade_rather_than_crash_without_the_harness(monkeypatch)
     assert result["model"] == "haiku"
     assert result["version"] is None
     assert probe_codex.is_stale({"version": "codex-cli 0.145.0"}, {"version": None}) == ["version"]
+
+
+def test_classification_follows_the_capture_not_the_running_machine(dojo):
+    """The defect CI caught, pinned.
+
+    ``classify`` originally keyed its plugin and bundled-skill needles on
+    ``Path.home()``. That matched the capture machine and nothing else, so on any
+    other host plugin detection returned zero and Codex's own ``.system`` skills
+    were filed as dojo-managed — a confident, wrong answer with no error. The
+    home is now inferred from the listing's own locators.
+    """
+    inferred = probe_codex.infer_codex_home(dojo)
+    assert inferred and inferred.endswith("/.codex")
+
+    # A wrong home must not quietly degrade to a plausible classification.
+    wrong = probe_codex.classify(load_codex("codex-prompt-input-dojo-2026-08-02.json"),
+                                 DOJO_SKILLS, "/nonexistent/.codex", REPO_ROOT)
+    assert not any(e.origin == "plugin" for e in wrong.entries)
+
+    right = probe_codex.classify(
+        load_codex("codex-prompt-input-dojo-2026-08-02.json"), DOJO_SKILLS, None, REPO_ROOT)
+    assert any(e.origin == "plugin" for e in right.entries)
+    assert any(e.origin == "harness-bundled" for e in right.entries)
+
+
+def test_refuses_to_classify_a_listing_with_no_discoverable_home():
+    """Failing closed beats guessing: every origin would fall through silently."""
+    empty = probe_codex.Listing(
+        render_mode="absolute", entries=[], root_lines=[],
+        entry_cost_tokens=0, root_table_cost_tokens=0, block_chars=0,
+    )
+    with pytest.raises(ValueError, match="Codex home"):
+        probe_codex.classify(empty, DOJO_SKILLS, None, REPO_ROOT)
