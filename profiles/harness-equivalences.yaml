@@ -1,0 +1,59 @@
+# Reviewed data. Changing this file changes *realization* identity, never profile
+# identity — see profiles/README.md and spec revision 9.
+#
+# One entry per (canonical skill, harness) pair, declaring that the harness ships
+# its own equivalent of that member, so a realization on that harness leaves the
+# dojo copy out. Three rules, each of which exists because the alternative loses a
+# skill the maintainer selected:
+#
+#   * Equivalence is DECLARED, never inferred from a name match. An undeclared
+#     collision between a member and a bundled entry is reported as a collision
+#     (Task 2), not silently suppressed.
+#   * `evidence` names where the bundled entry was observed, so the claim can be
+#     re-checked rather than believed.
+#   * A pair may only be declared for a skill dojo actually ships. Declaring one
+#     for a skill absent from skills.json is a definition error, not a harmless
+#     no-op: it hides a collision that would otherwise be reported the day dojo
+#     authors that name.
+#
+# Not declared, deliberately:
+#   * `openai-docs` and `plugin-creator` — Codex-bundled, no dojo counterpart.
+#   * `gemini-imagen` — Codex's `imagegen` is one image capability, and
+#     gemini-imagen's is the Gemini-specific multi-image composition path.
+#     Suppressing it would remove a capability rather than deduplicate one.
+#   * `local-review` against Codex's `.system/review-agent`. The capabilities are
+#     close and the names are not, so this is exactly the judgment call the
+#     declare-don't-infer rule is about; `local-review` is also a `core` member,
+#     so a wrong call here empties part of the baseline on one harness. Left
+#     undeclared pending a maintainer decision.
+#   * Claude Code bundles `doctor`, `artifact-design`, and `artifact-capabilities`;
+#     none of the three exists in skills.json, so Claude Code correctly has no
+#     entries here.
+version: 1
+equivalences:
+  - skill: skill-creator
+    harness: codex
+    bundled_entry: skill-creator
+    evidence: >-
+      Observed at ~/.codex/skills/.system/skill-creator/SKILL.md and listed in
+      tests/fixtures/profiles/codex-prompt-input-dojo-2026-08-02.json alongside
+      dojo's own copy from ~/.agents/skills — i.e. this name is charged to the
+      Codex budget twice in every session today. Descriptions differ only in
+      naming Codex rather than the agent generically.
+  - skill: skill-installer
+    harness: codex
+    bundled_entry: skill-installer
+    evidence: >-
+      Observed at ~/.codex/skills/.system/skill-installer/SKILL.md and listed in
+      tests/fixtures/profiles/codex-prompt-input-dojo-2026-08-02.json. Same name,
+      same capability (install skills from a curated list or a GitHub repo path,
+      private repos included); the bundled copy writes to $CODEX_HOME/skills.
+  - skill: gpt-imagen
+    harness: codex
+    bundled_entry: imagegen
+    evidence: >-
+      Observed at ~/.codex/skills/.system/imagegen/SKILL.md and listed as
+      `imagegen` in tests/fixtures/profiles/codex-prompt-input-dojo-2026-08-02.json.
+      Codex's bundled raster generate/edit path against OpenAI's own image models
+      is what dojo's gpt-imagen wraps via the OpenAI Image API. Declared on
+      capability rather than on the name, which is why the name differs.

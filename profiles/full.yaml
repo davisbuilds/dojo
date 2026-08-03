@@ -1,0 +1,13 @@
+# Reviewed data. Changing `members` changes profile identity — see profiles/README.md.
+name: full
+kind: inspection
+description: >-
+  Every canonical skill at the selected revision, for inspection only. `members`
+  is the sentinel `"*"`, resolved against skills.json at resolve time rather
+  than pinned as a list: a pinned list goes stale the moment anyone authors a
+  skill, and a fixture quoting a constant is the defect the spec removed from
+  EV-LEG-01 in revision 7. `full` receives no budget exemption (SC-04), is never
+  a default, and is not combined with any other token — at the current catalog
+  size it is not deployable anywhere, which is the correct answer rather than a
+  problem to be exempted away.
+members: "*"
