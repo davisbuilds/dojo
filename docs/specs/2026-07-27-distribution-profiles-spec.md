@@ -539,11 +539,17 @@ The reference behavior is explicit:
   physically lands is that set minus anything the harness already provides. The
   suppression is not free-form per-harness membership — it is a single declared,
   reviewable rule with one trigger: the harness ships its own equivalent of a
-  member. Codex carries `skill-creator`, `skill-installer`, image generation,
-  `review-agent`, `plugin-creator`, and `openai-docs` as `.system` entries;
-  Claude Code carries a different three, none overlapping. Installing dojo's copy
-  alongside is duplication, and `skill-creator` is duplicated in **every** Codex
-  session today.
+  member. Codex **lists** `skill-creator`, `skill-installer`, `imagegen`,
+  `plugin-creator`, and `openai-docs` as `.system` entries; Claude Code carries a
+  different set, none overlapping. Installing dojo's copy alongside is
+  duplication, and `skill-creator` is duplicated in **every** Codex session
+  today. **Corrected 2026-08-03:** earlier revisions also named `review-agent`
+  here. It exists at `~/.codex/skills/.system/review-agent/` and appears in **no
+  listing** — not in the Task 0 capture and not in a live probe re-run. Only
+  listed entries can displace a member, so it is not an equivalence candidate.
+  This is the "filesystem is not the listing" rule catching this contract's own
+  prose, which is why the declaration requires observed evidence rather than a
+  directory.
 - Equivalence is declared per canonical skill, never inferred from a name match,
   and carries the evidence for the claim. An undeclared name collision between a
   profile member and a harness-bundled entry is reported as a collision rather

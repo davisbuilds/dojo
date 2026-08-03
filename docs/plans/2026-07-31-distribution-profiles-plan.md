@@ -354,11 +354,20 @@ verify time rather than cached and trusted.
 
 - Create: `scripts/profiles/probe_codex.py`
 - Create: `scripts/profiles/probe_claude.py`
-- Create: `tests/fixtures/profiles/codex-prompt-input-dojo-2026-08-01.json`
-- Create: `tests/fixtures/profiles/codex-prompt-input-blueprint-2026-08-01.json`
-- Create: `tests/fixtures/profiles/codex-prompt-input-viral-2026-08-01.json`
-- Create: `tests/fixtures/profiles/claude-debug-dojo-2026-08-01.txt`
-- Create: `tests/fixtures/profiles/claude-request-dojo-2026-08-01.json`
+- Create: `tests/fixtures/profiles/codex-prompt-input-dojo-2026-08-02.json`
+- Create: `tests/fixtures/profiles/codex-prompt-input-truncating-2026-08-02.json`
+  (a synthetic cwd holding only `.agents/skills -> <catalog>`; no live Codex
+  session truncates any more, so the degraded case must be constructed)
+- Create: `tests/fixtures/profiles/claude-debug-dojo-2026-08-02.txt`
+- Create: `tests/fixtures/profiles/claude-debug-dojo-1m-under-budget-2026-08-02.txt`
+- Create: `tests/fixtures/profiles/claude-request-dojo-2026-08-02.json`
+
+**No fixture may be a capture of another repository.** A `viral`-rooted capture
+was taken and then deleted: it was used by no test and published a private
+project's skill names and descriptions into a public repo. Fixtures come from
+this repository or from a synthetic directory, and machine identity is
+pseudonymised **byte-length-preserving**, because the vendor-parity assertion
+compares exact costs.
 - Test: `tests/test_profiles_probe.py`
 
 **Dependencies**
@@ -465,7 +474,7 @@ None
 - Runner/discovery evidence: the repo has no `pytest.ini`/`pyproject.toml`; CI
   and `docs/system/OPERATIONS.md:31` both invoke `python -m pytest tests/ -q`,
   which collects any `tests/test_*.py`. `.venv/bin/python -m pytest tests/ -q
-  --collect-only` currently reports `309 tests collected`.
+  --collect-only` currently reports `391 tests collected` (2026-08-03; assert a floor, never this literal).
 - Literal proof: `.venv/bin/python -m pytest tests/test_profiles_probe.py -q`
 
 **Done When**
@@ -515,22 +524,36 @@ last-wins YAML key.
 - Create: `profiles/full.yaml`
 - Create: `profiles/harness-equivalences.yaml`
 - Create: `profiles/README.md`
-- Create: `scripts/profiles/__init__.py`
-- Create: `scripts/profiles/definitions.py`
+- Create: `scripts/profiles/definitions.py` (`__init__.py` already shipped in Task 0)
 - Test: `tests/test_profiles_definitions.py`
 
 **`harness-equivalences.yaml`** — the declaration spec revision 9 requires. One
 entry per `(canonical skill, harness)` pair stating that the harness ships its
 own equivalent, each carrying the bundled entry's identifier and an evidence
-string naming where it was observed. Seeded from live observation:
-`skill-creator` is bundled by Codex as a `.system` entry and is currently
-installed from dojo as well, so it is duplicated in every Codex session.
-`skill-installer`, image generation, `review-agent`, `plugin-creator`, and
-`openai-docs` are likewise Codex-bundled; Claude Code bundles `doctor`,
-`artifact-design`, and `artifact-capabilities`, none of which overlap the dojo
-catalog. Declare only pairs where the dojo catalog actually holds a member —
-declaring an equivalence for a skill dojo does not ship is a definition error,
-not a harmless no-op, because it hides a future collision.
+string naming where it was observed.
+
+> **Corrected 2026-08-03 during implementation.** This paragraph used to seed six
+> Codex names — `skill-creator`, `skill-installer`, image generation,
+> `review-agent`, `plugin-creator`, `openai-docs` — while the very next sentence
+> forbids declaring a pair whose dojo member does not exist. Three of the six
+> have no dojo counterpart at all, so the seed list contradicted its own rule.
+> Worse, `review-agent` is not listed by Codex in the first place: it sits at
+> `~/.codex/skills/.system/review-agent/` and appears in no capture or live
+> probe. Only **two** name-matched pairs are declarable, and the rule wins over
+> the list.
+
+Two conditions, both required. The dojo catalog must actually hold the member —
+declaring an equivalence for a skill dojo does not ship hides a future
+collision. And the bundled entry must be **observed in a listing**, not merely
+present on disk; an unlisted entry displaces nothing and cannot be an
+equivalence. Claude Code bundles `doctor`, `artifact-design`, and
+`artifact-capabilities`, none of which overlap the dojo catalog, so it declares
+nothing.
+
+A capability match across *differing* names (dojo `gpt-imagen` against Codex
+`imagegen`) is a candidate, not a declaration: record it with the comparison it
+still needs and leave it undeclared, since an undeclared collision is reported
+while a wrong declaration silently removes a selected skill.
 
 **Dependencies**
 
@@ -586,7 +609,7 @@ None
 **Verification**
 
 - Run: `.venv/bin/python -m pytest tests/test_profiles_definitions.py -q`
-- Expect: all pass, including one rejection test per failure mode in step 5.
+- Expect: all pass, including one rejection test per failure mode in steps 5 **and 6**.
 - Run (negative): copy `profiles/core.yaml` to `profiles/core-copy.yaml`, then
   `.venv/bin/python -c "import sys; sys.path.insert(0,'scripts'); from profiles.definitions import load_definitions; load_definitions('profiles')"`
 - Expect: raises with a message naming both files and the duplicated profile
@@ -608,9 +631,19 @@ None
   `len(json.load(open("skills.json"))["skills"])` rather than a literal, so
   authoring a skill cannot silently falsify it (SC-02, EV-LEG-01).
 - Every resolved member of every profile exists in `skills.json` (SC-02).
-- Each of the 8 rejection cases in step 5 raises, and each rejection test asserts
-  the *message* names the offending profile and member — a bare raise does not
-  pass (SC-01).
+- Every rejection case raises, and each rejection test asserts the *message*
+  names the offending profile and member — a bare raise does not pass (SC-01).
+  **The count is not eight.** Step 5 lists eight profile rules, step 6 adds six
+  equivalence rules, and failing closed needs several more that neither step
+  names: an empty profiles directory, an empty catalog, an unrecognised key, and
+  a `members` value that is not a non-empty list. That last one is the sharp
+  case — `members: core` is plausible YAML that is neither the sentinel nor a
+  list, and would otherwise be iterated character by character into four
+  one-letter "members". Implemented as 27 rules, each mutation-probed.
+- **Order the overlay checks so the non-`core` count can actually fail.** Every
+  anchor is itself a non-`core` skill, so an overlay holding its anchors always
+  satisfies the count. Check the count *before* the anchors, or the rule is
+  indistinguishable from one that was never written.
 
 ---
 
@@ -633,7 +666,11 @@ Task 1
 **Implementation Steps**
 
 1. Implement `resolve(selection, definitions, catalog)` where `selection` is a
-   list of profile tokens. Membership is set union over `core` plus the named
+   list of profile tokens. **Task 1 already shipped `load_definitions`,
+   `load_equivalences`, `equivalence_identity`, and `resolved_members` in
+   `scripts/profiles/definitions.py`** — `resolved_members` is what expands
+   `full`'s `"*"` sentinel against the manifest. Import them; a second sentinel
+   expansion is a second thing that can disagree with the first. Membership is set union over `core` plus the named
    overlays; the result is sorted lexically; duplicate inclusions collapse to one
    member.
 2. Reject, each with a distinct error code: unknown profile name; a selection
@@ -966,6 +1003,14 @@ policy that the observation code reads, never a rule the observation code hard-c
    for Claude, `~/.codex/plugins/cache` for Codex. Do **not** reuse
    `is_plugin_cache_path` for Codex; it would misclassify Codex's listed plugin
    entries as non-plugin and hide them.
+3b. **Resolve the project root before comparing it.** Codex reports the
+   symlink's *target*, not the link, so a project root that is a symlink into
+   the canonical catalog — how every dojo checkout exposes itself — appears in
+   the roots table as the canonical path. Comparing against the unresolved cwd
+   finds project scope nowhere and returns a confident zero. Task 0 shipped this
+   in `probe_codex.classify`; reuse it rather than re-deriving it. Resolve
+   non-strictly, since evidence captured on another machine names paths that
+   need not exist here.
 4. Read `shadows_by_name` and `project_scope_root` **from the harness policy**
    (Task 3) rather than branching on a harness name in the observation code. When
    `shadows_by_name` is false (Codex), a name in two roots is **two effective
@@ -1321,6 +1366,27 @@ Task 5
 
 ### Task 8: The `dojo profiles verify --all` entrypoint
 
+> **Revisit before implementing: how wide should `bin/dojo` be?**
+> This task creates the repo's first executable, so it settles a question larger
+> than the contract term that forces it. Task 0 shipped two probes that already
+> have full argparse entrypoints and answer something nothing else in the repo
+> answers — what a session's skill listing costs on a given harness right now —
+> from a path a human will never type. Adding `dojo probe codex|claude` here is
+> wiring, not design, and avoids designing the same executable twice.
+>
+> The discriminator is **who invokes it**. Human-run tooling benefits: the
+> probes, `skill-standardizer/scripts/{audit,sync}.py` (14 and 16 arguments, run
+> from a runbook on two machines), `skills_health.py`. Machine-run tooling does
+> not: hooks and CI already call ~13 scripts by path, two of them on every Bash
+> tool call, and a wrapper they bypass creates two paths to one behavior that can
+> drift. Skill-owned scripts under `skills/*/scripts/` stay out entirely — the
+> SKILL.md naming the command *is* the interface.
+>
+> Decide the width here rather than accreting it. Four subcommands is a tool;
+> fifteen is a project nobody chose to start. Context and the full inventory:
+> `docs/project/BACKLOG.md` → *dojo has 47 script entrypoints and no front door
+> for the human-run ones*.
+
 **Objective**
 
 Make the contract's literal observable invocation work.
@@ -1459,7 +1525,7 @@ Task 8
 - Expect: the check **fails** — proving it can see a violation, so a clean result
   is a measurement rather than a broken detector.
 - Run (full suite): `.venv/bin/python -m pytest tests/ -q`
-- Expect: **≥ 309 passed** (the current baseline) plus the new tests, 0 failed.
+- Expect: **≥ 391 passed** (the 2026-08-03 baseline) plus the new tests, 0 failed.
 
 **Test Discovery Verified**
 
@@ -1482,7 +1548,7 @@ Task 8
   definition validation) from a silent zero-target evaluation; a test asserts the
   fixture-backed step reports `state: unprofiled` for its target rather than
   skipping it (SC-01, SC-12).
-- The full suite stays green at **≥ 309 + new** tests.
+- The full suite stays green at **≥ 391 + new** tests.
 
 ---
 
@@ -2179,7 +2245,7 @@ Task 15
 - Run: `.venv/bin/python scripts/slop_scan.py`
 - Expect: exit 0.
 - Run: `.venv/bin/python -m pytest tests/ -q`
-- Expect: **≥ 309 passed** plus all tests added by this plan, 0 failed.
+- Expect: **≥ 391 passed** plus all tests added by this plan, 0 failed.
 - Run: `.venv/bin/python skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`
 - Expect: exit 0 (the repo's documented pre-push gate).
 
@@ -2282,7 +2348,7 @@ Task 15
 | Deprecated-alias path cannot change membership | `.venv/bin/python -m pytest tests/test_profiles_entrypoint_guards.py -q -k alias` | Fixture with a live deprecated alias: zero membership change |
 | One lock across all writers | `.venv/bin/python -m pytest tests/test_profiles_entrypoint_guards.py -q -k contention` | `sync.py --apply` vs `dojo profiles apply`: at most one writer |
 | Migration is explicit and recoverable | `.venv/bin/python -m pytest tests/test_profiles_migration.py -q` | Audit no-ops; migrate → exact membership; predecessor restorable |
-| Repo gates stay green | `.venv/bin/python -m pytest tests/ -q && .venv/bin/python scripts/check_links.py && .venv/bin/python scripts/slop_scan.py && .venv/bin/python skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict` | ≥ 309 + new passed; all exit 0 |
+| Repo gates stay green | `.venv/bin/python -m pytest tests/ -q && .venv/bin/python scripts/check_links.py && .venv/bin/python scripts/slop_scan.py && .venv/bin/python skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict` | ≥ 391 + new passed; all exit 0 |
 
 ## High-Risk Readiness
 

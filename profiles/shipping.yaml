@@ -1,0 +1,12 @@
+# Reviewed data. Changing `members` changes profile identity — see profiles/README.md.
+name: shipping
+kind: overlay
+description: >-
+  Getting a finished change out and finding out whether it landed. The SC-02
+  anchors cover the two outbound actions — open the PR, push the deployment —
+  and both are fire-and-forget without the third member, which is the only
+  skill in the catalog that reads back what the deployment did.
+members:
+  - gh-commit-push-pr    # SC-02 anchor
+  - vercel-deploy        # SC-02 anchor
+  - vercel-preview-logs  # closes the loop: build/runtime logs for the deployment vercel-deploy just created

@@ -1,0 +1,16 @@
+# Reviewed data. Changing `members` changes profile identity — see profiles/README.md.
+name: engineering
+kind: overlay
+description: >-
+  Designing the interfaces a system exposes, and checking that the code and the
+  repository behind them are safe to expose. The two SC-02 anchors set both
+  axes — `create-cli` (interface design) and `secure-code` (code-level
+  security) — and this overlay adds exactly one sibling to each rather than
+  every skill that touches code. Listing budget is the reason: at a 200k Claude
+  Code window a deployable realization is roughly `core` plus one overlay, so
+  an overlay that tries to be a category is not deployable at all.
+members:
+  - api-design       # create-cli's sibling: the same contract-design capability at the HTTP/RPC/service boundary
+  - create-cli       # SC-02 anchor
+  - repo-hardening   # secure-code's sibling: the same security capability at repo/CI/supply-chain scope
+  - secure-code      # SC-02 anchor

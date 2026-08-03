@@ -1,0 +1,14 @@
+# Reviewed data. Changing `members` changes profile identity — see profiles/README.md.
+name: research
+kind: overlay
+description: >-
+  The research loop end to end: commission a brief, execute it against the web,
+  and pull the sources it cites into readable text. Deliberately not "everything
+  that touches a document" — `markdown-converter` (PDF/docx/xlsx conversion) and
+  `compound-docs` (capturing solved problems) were considered and excluded, the
+  first because file-format conversion is a general capability rather than part
+  of this loop, the second because it belongs to `knowledge`.
+members:
+  - deep-research       # SC-02 anchor
+  - fetchmd             # the ingestion step deep-research needs: URL/HTML into token-efficient markdown
+  - research-architect  # SC-02 anchor

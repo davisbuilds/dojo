@@ -1,0 +1,17 @@
+# Reviewed data. Changing `members` changes profile identity — see profiles/README.md.
+name: skill-authoring
+kind: overlay
+description: >-
+  Authoring a skill and keeping it correct: write it, prove it routes, keep the
+  copies identical. `skill-creator` is declared equivalent on Codex
+  (profiles/harness-equivalences.yaml) and is therefore suppressed in a Codex
+  realization; per SC-02 the overlay still satisfies its anchor requirement,
+  because anchors constrain the definition rather than the realization.
+  `template` is excluded as a scaffold `skill-creator` already emits;
+  `skill-installer` is a distribution action rather than an authoring one — and
+  is itself Codex-bundled; `audit-skill` is third-party trust screening at
+  install time, not authoring.
+members:
+  - skill-creator       # SC-02 anchor
+  - skill-evals         # the check between creating and syncing: does the description actually route
+  - skill-standardizer  # SC-02 anchor

@@ -1,0 +1,22 @@
+# Reviewed data. Changing `members` changes profile identity — see profiles/README.md.
+name: core
+kind: baseline
+description: >-
+  The general delivery loop, mandatory in every deployable composition.
+  Membership is fixed by SC-03 of
+  docs/specs/2026-07-27-distribution-profiles-spec.md and was set on 2026-07-31
+  from observed session use measured per harness (Codex over 183 skill-using
+  sessions, Claude over 14), not from assertion: `handoff` was dropped at 2
+  observed Codex sessions against `session-retro`'s 14, `first-principles` was
+  added at 52, and `diagnose` was retained at 12. That is an engagement signal
+  and not an outcome one, so it is re-derivable rather than permanent — but
+  changing it is a contract revision, not an edit to this file.
+members:
+  - brainstorming            # clarify an ambiguous WHAT before anything is built
+  - diagnose                 # the only debugging loop in the catalog
+  - first-principles         # architecture and trade-off reasoning; routes into diagnose by name
+  - local-review             # read the diff before it ships
+  - test-strategy            # how to test what was just decided
+  - verify-before-complete   # the completion-claim guard; most-used skill on Codex
+  - write-plan               # HOW, once the WHAT is settled
+  - write-spec               # WHAT must be true, stated falsifiably

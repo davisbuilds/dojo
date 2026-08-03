@@ -1,0 +1,17 @@
+# Reviewed data. Changing `members` changes profile identity — see profiles/README.md.
+name: design
+kind: overlay
+description: >-
+  Build a UI and audit it two ways. The SC-02 anchors are both audits and they
+  are complementary rather than redundant — `design-critique` judges taste
+  against a slop catalog, `web-design-guidelines` judges rule compliance and
+  accessibility, and each of their descriptions routes explicitly to the other.
+  What the anchors lack is the producing step, which `frontend-design` supplies.
+  `design-md`, `theme-factory`, and the `vercel-*`/`nextjs-app-router` cluster
+  are adjacent and excluded: design-system extraction, artifact theming, and
+  framework performance are separate capabilities that would each pull the
+  overlay past a deployable size.
+members:
+  - design-critique        # SC-02 anchor
+  - frontend-design        # the produce step the two anchors audit; without it the overlay only reviews
+  - web-design-guidelines  # SC-02 anchor
