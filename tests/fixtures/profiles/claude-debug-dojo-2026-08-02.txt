@@ -1,0 +1,13 @@
+# Trimmed capture of `claude -p --no-session-persistence --model haiku --debug-file …`
+# run in ~/Dev/dojo on 2026-08-02.
+#
+# Only the skill-resolution lines are retained. The full --debug-file output also
+# carries permission allow-rule lists, MCP server names, and hook configuration —
+# machine configuration that has no business in a fixture, and that a test reading
+# four lines does not need.
+2026-08-03T01:00:45.967Z [DEBUG] Loading skills from: managed=/Library/Application Support/ClaudeCode/.claude/skills, user=/Users/example-dev/.claude/skills, project=[/Users/example-dev/Dev/dojo/.claude/skills]
+2026-08-03T01:00:46.039Z [DEBUG] Total plugin skills loaded: 2 (0 duplicate/user-owned entries skipped)
+2026-08-03T01:00:46.040Z [DEBUG] Loaded 94 unique skills (94 unconditional, 0 conditional, managed: 0, user: 30, project: 48, additional: 0, legacy commands: 16)
+2026-08-03T01:00:46.040Z [DEBUG] getSkills returning: 94 skill dir commands, 2 plugin skills, 35 bundled skills, 0 builtin plugin skills
+2026-08-03T01:00:46.370Z [DEBUG] Sending 75 skills via attachment (initial)
+2026-08-03T01:00:46.370Z [WARN] Skill listing over budget: 75 skills, 23287 chars > 8000 budget — descriptions will be truncated. Run /skills to disable some, or raise skillListingBudgetFraction in settings.
