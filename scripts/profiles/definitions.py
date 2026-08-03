@@ -66,6 +66,25 @@ ANCHORS = {
     "skill-authoring": ("skill-creator", "skill-standardizer"),
 }
 
+# SC-03 fixes `core`'s membership as tightly as SC-02 fixes the anchors, and it
+# matters more: `core` is mandatory in every deployable composition, so a
+# silently narrowed baseline ships a target missing the delivery safeguards the
+# contract promises. Enforced here rather than only in a repo test, because the
+# repo test protects this checkout while `load_definitions` is what a runtime
+# consumer calls against whatever `core.yaml` is on disk.
+#
+# Changing this set is a contract revision, not an edit to `core.yaml`.
+CORE_MEMBERS = (
+    "brainstorming",
+    "diagnose",
+    "first-principles",
+    "local-review",
+    "test-strategy",
+    "verify-before-complete",
+    "write-plan",
+    "write-spec",
+)
+
 MIN_NON_CORE_MEMBERS = 2
 SENTINEL = "*"
 REQUIRED_PROFILE_KEYS = ("name", "kind", "description", "members")
@@ -281,6 +300,13 @@ def _validate_membership(profile: Profile, core: Profile, catalog: dict[str, dic
         raise ProfileDefinitionError(
             f"{profile.source.name}: profile {profile.name!r} names member(s) "
             f"{', '.join(sorted(unknown))} absent from the canonical catalog"
+        )
+    if profile.name == BASELINE and set(profile.members) != set(CORE_MEMBERS):
+        missing = sorted(set(CORE_MEMBERS) - set(profile.members))
+        extra = sorted(set(profile.members) - set(CORE_MEMBERS))
+        raise ProfileDefinitionError(
+            f"{profile.source.name}: profile {BASELINE!r} must be exactly the SC-03 set; "
+            f"missing {', '.join(missing) or 'none'}; unexpected {', '.join(extra) or 'none'}"
         )
     if profile.kind != "overlay":
         return

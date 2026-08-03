@@ -484,3 +484,43 @@ def test_for_harness_is_empty_for_claude_code_today(equivalences):
     trustworthy instead of a silent instrument failure.
     """
     assert equivalences.for_harness("claude-code") == {}
+
+
+def test_rejects_a_core_that_is_not_exactly_the_sc03_set(workdir, catalog):
+    """PR #58 review, P2. The library accepted a two-member `core`.
+
+    A repo test already asserted `core.yaml`'s contents, but that protects this
+    checkout only — `load_definitions` is what a runtime consumer calls against
+    whatever is on disk, and it would have proceeded with a baseline missing the
+    delivery safeguards every deployable composition is promised. SC-02's
+    anchors were enforced in code from the start; SC-03's `core` is the same
+    kind of contract constant and is more load-bearing, so the asymmetry was the
+    defect.
+
+    Both directions are checked, and the message must name what moved: a
+    narrowed baseline and a widened one fail differently and a reader needs to
+    know which.
+    """
+    core_path = workdir / "core.yaml"
+    original = yaml.safe_load(core_path.read_text())
+
+    for members, needle in (
+        (["brainstorming", "write-spec"], "missing diagnose"),
+        (sorted(SC03_CORE) + ["caveman"], "unexpected caveman"),
+    ):
+        core_path.write_text(yaml.safe_dump({**original, "members": members}))
+        with pytest.raises(ProfileDefinitionError) as excinfo:
+            definitions.load_definitions(workdir, catalog)
+        assert "must be exactly the SC-03 set" in str(excinfo.value)
+        assert needle in str(excinfo.value)
+
+
+def test_the_enforced_core_matches_the_contract_restated_here(profiles):
+    """Positive control, and a cross-check of the constant against the spec.
+
+    Without this the rule above could pass by rejecting every input rather than
+    by discriminating. `SC03_CORE` is restated independently at the top of this
+    file, so editing the constant in `definitions.py` alone fails here.
+    """
+    assert set(definitions.CORE_MEMBERS) == SC03_CORE
+    assert set(profiles["core"].members) == SC03_CORE
