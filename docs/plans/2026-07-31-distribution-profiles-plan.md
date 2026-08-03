@@ -1366,6 +1366,27 @@ Task 5
 
 ### Task 8: The `dojo profiles verify --all` entrypoint
 
+> **Revisit before implementing: how wide should `bin/dojo` be?**
+> This task creates the repo's first executable, so it settles a question larger
+> than the contract term that forces it. Task 0 shipped two probes that already
+> have full argparse entrypoints and answer something nothing else in the repo
+> answers — what a session's skill listing costs on a given harness right now —
+> from a path a human will never type. Adding `dojo probe codex|claude` here is
+> wiring, not design, and avoids designing the same executable twice.
+>
+> The discriminator is **who invokes it**. Human-run tooling benefits: the
+> probes, `skill-standardizer/scripts/{audit,sync}.py` (14 and 16 arguments, run
+> from a runbook on two machines), `skills_health.py`. Machine-run tooling does
+> not: hooks and CI already call ~13 scripts by path, two of them on every Bash
+> tool call, and a wrapper they bypass creates two paths to one behavior that can
+> drift. Skill-owned scripts under `skills/*/scripts/` stay out entirely — the
+> SKILL.md naming the command *is* the interface.
+>
+> Decide the width here rather than accreting it. Four subcommands is a tool;
+> fifteen is a project nobody chose to start. Context and the full inventory:
+> `docs/project/BACKLOG.md` → *dojo has 47 script entrypoints and no front door
+> for the human-run ones*.
+
 **Objective**
 
 Make the contract's literal observable invocation work.

@@ -162,6 +162,43 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   the mini received 0 `.pyc` files from the sync. Any *new* drift check (e.g. in the
   mini health job) must reuse this logic rather than rolling its own `diff`.
 
+### dojo has 47 script entrypoints and no front door for the human-run ones
+- **What**: repo-level tooling a person invokes is reachable only by full path
+  through `.venv/bin/python`. The sharpest case is the Task 0 probes: `codex debug
+  prompt-input` and `claude --debug-file` were assumed not to exist for weeks, and
+  now that they are wrapped, the capability answers a question nothing else in the
+  repo answers — *what does this session's skill listing actually cost, on this
+  harness, right now* — from `scripts/profiles/probe_codex.py`, where nobody will
+  find it. `skill-standardizer/scripts/{audit,sync}.py` take **14 and 16
+  arguments** and are run from a runbook, from memory, on two machines.
+- **Why or evidence**: 47 `.py` files carry an argparse entrypoint (measured
+  2026-08-03). They are not one population and should not be treated as one:
+  - ~13 are **machine-invoked** by hooks or CI, which already call them by path.
+    Two run on *every* Bash tool call, so added indirection there is a new runtime
+    dependency, not a convenience.
+  - ~30 are **skill-owned** under `skills/*/scripts/`, invoked by an agent that
+    has just read the SKILL.md naming the exact command. The skill body is the
+    interface; wrapping them fights progressive disclosure.
+  - The remainder — the probes, the standardizer pair, `skills_health.py`,
+    `run_trigger_evals.py`, `bump_skill_version.py` — are **human-invoked** and
+    are the only ones a CLI would help.
+  Noted in passing: dojo ships a `create-cli` skill, an SC-02 anchor of the
+  `engineering` overlay, and has no CLI.
+- **Next**: none as a separate effort. `bin/dojo` is already created by Task 8 of
+  `docs/plans/2026-07-31-distribution-profiles-plan.md`, because `dojo profiles
+  verify --all` is a literal contract term in the spec. Building a CLI before then
+  means designing the same executable twice. Widen Task 8 to add
+  `dojo probe codex|claude` — wiring, since the argparse exists — and decide the
+  rest there.
+- **Revisit when**: Task 8 is reached, or the plan is descoped short of it. If the
+  plan stops before Task 8, this becomes a standalone decision rather than a
+  free rider, and the probes are the only part that clearly earns a CLI on their
+  own.
+- **Keep out deliberately**: generators, validators, and skill-owned scripts. A
+  wrapper that hooks and CI bypass creates two paths to one behavior that can
+  drift — the exact failure this program keeps finding. Four subcommands is a
+  tool; fifteen is a project nobody decided to start.
+
 ### Contract v1 has no shape for an opinion-only skill
 - **What**: `workflow` skills must carry scope, boundaries, verification, output,
   execution, and resource-map anchors, CI-enforced under `--strict`. That imposes a
