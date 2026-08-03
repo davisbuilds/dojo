@@ -78,11 +78,6 @@ def dojo() -> probe_codex.Listing:
 
 
 @pytest.fixture
-def viral() -> probe_codex.Listing:
-    return load_codex("codex-prompt-input-viral-2026-08-02.json")
-
-
-@pytest.fixture
 def truncating() -> probe_codex.Listing:
     return load_codex("codex-prompt-input-truncating-2026-08-02.json")
 
@@ -560,3 +555,34 @@ def test_utilization_never_mixes_tokens_against_a_character_limit(dojo):
     assert dojo.charged_chars > 3 * dojo.charged_tokens
     with pytest.raises(ValueError, match="unknown budget unit"):
         dojo.utilization(8_000, "furlongs")
+
+
+def test_fixtures_carry_no_real_machine_identity():
+    """This repository is public; captures are not.
+
+    Probe fixtures are verbatim harness output and therefore carry absolute
+    paths from whichever machine produced them. The home directory is
+    pseudonymised to `/Users/example-dev` — deliberately the **same byte length**
+    as the original, because `test_vendor_parity_…` asserts that a truncating
+    listing fills its budget exactly and any length change breaks that equality.
+
+    Capture a new fixture and this test fails until it is redacted.
+    """
+    leaked = []
+    for path in sorted(FIXTURES.iterdir()):
+        text = path.read_text()
+        for needle in ("dg-mac-mini", "claude-501"):
+            if needle in text:
+                leaked.append(f"{path.name}: {needle}")
+    assert not leaked, f"machine identity in public fixtures: {leaked}"
+
+
+def test_no_fixture_captures_another_project():
+    """Captures from unrelated repositories publish their contents.
+
+    A `viral`-rooted capture was committed here and used by nothing; it listed
+    six skill names and full descriptions belonging to a private project. Only
+    captures rooted in this repository, or in a synthetic directory, belong.
+    """
+    for path in sorted(FIXTURES.iterdir()):
+        assert "viral" not in path.name

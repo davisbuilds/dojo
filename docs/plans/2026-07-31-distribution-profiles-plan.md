@@ -118,7 +118,7 @@ both directions.
   `PyYAML==6.0.3` (`requirements.txt`). This plan adds no dependency. Local runs
   use `.venv/bin/python`; `python3` alone has no pytest on this machine.
 - **The vendor source is available locally at the pinned revision.**
-  `/Users/dg-mac-mini/Dev/_clones/codex` is at `f57467275c`, so Task 3's port of
+  `~/Dev/_clones/codex` is at `f57467275c`, so Task 3's port of
   `codex-rs/core-skills/src/render.rs` is checkable line by line rather than
   reconstructed from prose.
 
@@ -729,7 +729,7 @@ Task 0
 
 **Research Context — Codex**
 
-From `/Users/dg-mac-mini/Dev/_clones/codex` at `f57467275c`,
+From `~/Dev/_clones/codex` at `f57467275c`,
 `codex-rs/core-skills/src/render.rs`:
 
 - `default_skill_metadata_budget` (line 138): `Tokens(max(1, window * 2 / 100))`
@@ -1497,7 +1497,7 @@ Task 8
 
 **Verification**
 
-- Run: `PATH="$PWD/bin:$PATH" dojo profiles verify --all --json > /tmp/claude-501/-Users-dg-mac-mini-Dev/7ac27985-a9c5-4069-9fd8-34f35192fd7e/scratchpad/live.json && .venv/bin/python -m json.tool /tmp/claude-501/-Users-dg-mac-mini-Dev/7ac27985-a9c5-4069-9fd8-34f35192fd7e/scratchpad/live.json > /dev/null && echo OK`
+- Run: `PATH="$PWD/bin:$PATH" dojo profiles verify --all --json > /tmp/live.json && .venv/bin/python -m json.tool /tmp/live.json > /dev/null && echo OK`
 - Expect: `OK`
 - Run: `.venv/bin/python scripts/check_links.py`
 - Expect: exit 0 — the new note is linked and no dangling reference is introduced.

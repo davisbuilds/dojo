@@ -5,7 +5,7 @@
 # carries permission allow-rule lists, MCP server names, and hook configuration —
 # machine configuration that has no business in a fixture, and that a test reading
 # four lines does not need.
-2026-08-03T01:28:57.503Z [DEBUG] Loading skills from: managed=/Library/Application Support/ClaudeCode/.claude/skills, user=/Users/dg-mac-mini/.claude/skills, project=[/Users/dg-mac-mini/Dev/dojo/.claude/skills]
+2026-08-03T01:28:57.503Z [DEBUG] Loading skills from: managed=/Library/Application Support/ClaudeCode/.claude/skills, user=/Users/example-dev/.claude/skills, project=[/Users/example-dev/Dev/dojo/.claude/skills]
 2026-08-03T01:28:57.578Z [DEBUG] Loaded 94 unique skills (94 unconditional, 0 conditional, managed: 0, user: 30, project: 48, additional: 0, legacy commands: 16)
 2026-08-03T01:28:57.580Z [DEBUG] Total plugin skills loaded: 2 (0 duplicate/user-owned entries skipped)
 2026-08-03T01:28:57.580Z [DEBUG] getSkills returning: 94 skill dir commands, 2 plugin skills, 35 bundled skills, 0 builtin plugin skills
