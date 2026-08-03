@@ -88,10 +88,17 @@ both directions.
 - **The shell is zsh and does not word-split unquoted variables.** No
   verification command in this plan iterates an unquoted variable; loops use
   arrays or `while IFS= read -r`. `rg -r` is `--replace` and appears nowhere.
-- **Live subjects already exist.** Both machines carry an identical 32-entry
-  `~/.agents/skills` (31 canonical dojo skills plus the foreign
-  `microsoft-foundry`), verified 2026-07-31. SC-05's foreign-entry observation
-  and SC-11's cross-machine agreement case are real, not constructed.
+- **Live subjects exist but expire; re-establish them, never assume them.** Both
+  machines carry an identical 32-entry `~/.agents/skills` (31 canonical dojo
+  skills plus the foreign `microsoft-foundry`), verified 2026-07-31, **found
+  broken across 9 skills on 2026-08-02**, and restored the same day by an
+  explicit standardizer sync on the mini. Membership never diverged; content
+  identity did — precisely what SC-11 compares — and nothing reported it. Task 7
+  must re-verify cross-machine agreement at the moment it uses it. Separately,
+  `microsoft-foundry` is now **disabled in Codex config**: still installed, no
+  longer listed, so it is a live case for "the filesystem never adds an entry the
+  probe did not list" but **not** a live foreign-entry observation for SC-05,
+  which Task 4 must construct.
 - **Two harnesses are deployable** as of spec revision 8 — Codex and Claude
   Code — each with a limit read from vendor implementation source at a pinned
   version. They must not be assumed to behave alike: budgets differ in **unit**
@@ -146,26 +153,35 @@ in the contract — was considered and declined.
    nonconformant full-canonical membership, never migrated into a deployable
    `full` realization.
 
-**What phase 1's first honest run will say.** Two harnesses, both already in
-breach, measured 2026-08-01.
+**What phase 1's first honest run will say.** Re-measured 2026-08-02, after the
+#53/#54 merges. The two harnesses now disagree sharply, which is the finding.
 
-*Codex*, budget 5,440 tokens: ordinary sessions (`~`, `~/Dev`, `~/Dev/ops`,
-`~/Dev/habits-ai`) carry 46 entries demanding ~5,211 — **96% against a 90%
-ceiling**, already non-deployable. `blueprint-finance` 47 / ~5,341 / 98%.
-`viral` 52 / ~6,037 / **111%**, 19 descriptions truncated. `dojo` itself 95 /
-~9,616 / **177%**, 94 truncated.
+*Codex*, budget 5,440 tokens — **nothing truncates anywhere**. Ordinary sessions
+41 entries / ~4,232 / 78%. `blueprint-finance` 42 / ~4,363 / 80%. `dojo` itself
+41 / ~4,232 / 78%, down from 95 entries and 177% once `.agents` left
+`HARNESS_DIRS`. `viral` 47 / ~5,257 / **97%** — under the budget, over the 90%
+ceiling, therefore non-deployable.
 
-*Claude Code*, budget 8,000 characters at a 200k window: an ordinary session
-demands 17,072 chars (**2.13×**); a `dojo`-rooted session demands 24,558
-(**3.07×**), of which **54 of 76 entries have their descriptions removed
-entirely**. The same repository fits on a 1M-window model with no warning at all
-— which is why the model is part of policy identity.
+*Claude Code*, budget 8,000 characters at a 200k window — **still in breach
+everywhere**. Ordinary session 45 skills / 16,535 chars (**2.07×**); `viral` 51
+/ 20,220 (**2.53×**); `dojo` 75 / 23,287 (**2.91×**), with descriptions removed
+outright from the majority of entries. The same repository fits on a 1M-window
+model with no warning at all — which is why the model is part of policy
+identity.
 
-So the first honest output of this work is not "here is your headroom". It is
-that routing signal is being destroyed right now, on both harnesses, in this
-repository — and that the rendered Claude Code listing measures 8,058 chars
-against an 8,000 budget while true demand is 24,558. A verifier that read the
-rendered listing would call that 101% and pass. Every figure here is a dated
+Three things this changes for execution. First, **Codex conformance is now a
+narrow question** — one target over the ceiling, none truncating — so Task 10's
+adjudication has a much cleaner subject than expected. Second, **Claude Code is
+the binding harness**, and its overage is a membership problem no other lever
+reaches: description trimming recovered 537 characters against an 8,535-character
+gap. Third, and most relevant to why this work exists: **every Codex number
+above moved by roughly a factor of two in one day, by hand, with no distribution
+decision taken and nothing in the repository reporting it.**
+
+The elision hazard is unchanged and still the sharpest single argument for Task
+3's estimator rule: the rendered Claude Code listing measured 8,058 chars
+against an 8,000 budget while true demand was 24,558. A verifier reading
+rendered output would call that 101% and pass. Every figure here is a dated
 measurement; the verifier recomputes all of them at verify time.
 
 ## Map Before You Cut
@@ -466,8 +482,9 @@ None
 **Research Context**
 
 - All 12 SC-02 anchors and all 8 SC-03 `core` members exist in `skills/`
-  (verified by listing `skills/`, 50 entries of which `_fragments` is not a
-  skill, leaving 49). `gh-commit-push-pr` and `vercel-deploy` are present in the
+  (re-verified 2026-08-02 by testing each of the 20 names directly, rather than
+  by trusting a total: `skills/` holds 49 entries of which `_fragments` is not a
+  skill, and `skills.json` reports **48**). `gh-commit-push-pr` and `vercel-deploy` are present in the
   canonical catalog but are **not** currently installed in `~/.agents/skills` —
   which is expected and is precisely the gap a declaration closes.
 - `skills.json` entries carry `{name, description, path, version}`;
@@ -529,8 +546,8 @@ None
 - Exactly 8 definition files load. `core` has exactly the 8 SC-03 members
   (SC-03). Each of the 6 overlays has **≥ 2 non-`core` members** and contains
   both of its SC-02 anchors (SC-02).
-- `full` resolves to **all 49 canonical skills**, computed from `skills.json` at
-  resolve time; the test asserts the resolved count equals
+- `full` resolves to **every canonical skill** (48 on 2026-08-02), computed from
+  `skills.json` at resolve time; the test asserts the resolved count equals
   `len(json.load(open("skills.json"))["skills"])` rather than a literal, so
   authoring a skill cannot silently falsify it (SC-02, EV-LEG-01).
 - Every resolved member of every profile exists in `skills.json` (SC-02).
@@ -1003,7 +1020,7 @@ Task 2, Task 3, Task 4
 - The report contains **all 16** SC-06 fields; the test asserts the exact field
   set, so adding a field or dropping one fails (SC-06).
 - The whole-catalog-link fixture is reported as full canonical membership with a
-  count read from `skills.json` at check time (currently 49), **not** as an
+  count read from `skills.json` at check time (48 on 2026-08-02), **not** as an
   implicit `full` profile, and **not** as deployable (SC-05, SC-09, EV-LEG-01,
   recorded decision 3).
 - The intersection-only-with-stale-concrete-secondary fixture reports all four
@@ -1693,18 +1710,23 @@ Task 12
 
 **Assumptions Verified**
 
-- `scripts/gen_harness_adapters.py:261-269` is the exact cut: inside
-  `if not args.skip_symlinks:` it loops `HARNESS_DIRS` (line 36:
-  `.claude`, `.agents`, `.agent`) and calls `ensure_symlink(link, write)` for
-  `repo_root / harness / "skills"`, where `SYMLINK_TARGET` is `"../skills"`
-  (line 37) — one directory link exposing all 49 canonical skills at project
-  scope.
-- **All three roots need the guard, but for different reasons, and one needs
-  none.** `.agents/skills` is Codex's live project root and `.claude/skills` is
-  Claude Code's (probe A: `project=[…/Dev/dojo/.claude/skills]`), so both are
-  active causes of the measured over-budget state — dojo at 177% on Codex and
-  3.07× on Claude Code. `.agent/skills` is read by **neither** harness, so it
-  costs nothing and guards nothing; it is dead output.
+- **This task was drafted against pre-#54 code; re-read the file before starting.**
+  `HARNESS_DIRS` is now `(".claude", ".agent")` (line 61) — `.agents` was
+  removed — and `LEGACY_HARNESS_DIRS = (".agents",)` (line 68) with
+  `retire_legacy_symlink` now actively deletes a pre-existing link whose target
+  is exactly `SYMLINK_TARGET` (line 69, `"../skills"`), while leaving a real
+  directory or a foreign link untouched. Every line number below shifted;
+  verify each against the file rather than trusting this list.
+- The cut is inside `if not args.skip_symlinks:`, which loops `HARNESS_DIRS` and
+  calls `ensure_symlink(link, write)` for `repo_root / harness / "skills"` —
+  one directory link exposing the entire canonical catalog at project scope.
+- **Only `.claude/skills` is now a live over-budget cause, which changes this
+  task's weight.** Removing `.agents` already took `dojo` from 177% to 78% on
+  Codex, so the Codex half of this guard protects a fix rather than delivering
+  one. `.claude/skills` is Claude Code's project root (probe A:
+  `project=[…/Dev/dojo/.claude/skills]`) and `dojo` remains **2.91× over**
+  there, so that half is still live. `.agent/skills` is read by **neither**
+  harness — dead output, costing and guarding nothing.
 - `ensure_symlink` at line 111 replaces a wrong or broken symlink (line 124) and
   refuses a real directory with a message (line 130), so the refusal idiom and
   its message style already exist and should be matched.
@@ -2222,7 +2244,7 @@ Every SC-01…SC-13 and every EV scenario in the spec, in both directions.
 | Activate (two-rename swap; boundary = first rename) | Prior realization active | New realization active | Crash between renames: predecessor intact at `predecessors/<id>`, target absent, `verify` → nonconformant + recoverable; `restore --realization <id>`. On `EXDEV`, refuse before mutating (EV-REC-01, EV-REC-03) |
 | Commit record + prune staging | New realization active, record absent | New realization active, record written | Re-run commit; second run is a no-op (EV-CON-01) |
 | Multi-target partial (Task 12) | Both targets prior | A new, B prior or explicitly nonconformant | Per-target restore; agreement reported `indeterminate` (EV-REC-02, EV-REC-03) |
-| Migration of whole-catalog link (Task 15) | Directory link exposing all 49 | Per-skill links for resolved members | Restore predecessor link (EV-LEG-01) |
+| Migration of whole-catalog link (Task 15) | Directory link exposing the whole catalog | Per-skill links for resolved members | Restore predecessor link (EV-LEG-01) |
 | Adapter refresh refusal (Task 13) | Any | Byte-identical | None needed — refusal is not a mutation (EV-NEG-05) |
 
 ### Evidence Lifecycle

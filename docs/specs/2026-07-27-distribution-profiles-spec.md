@@ -42,22 +42,34 @@ effective catalog rather than estimates from the filesystem:
 
 | Session root | Listed entries | Demand (est. tokens) | % of budget | Truncated |
 |---|---|---|---|---|
-| Ordinary global session | 46 | ~5,211 | **96%** | 0 |
-| `blueprint-finance` | 47 | ~5,341 | 98% | 0 |
-| `viral` | 52 | ~6,037 | **111%** | 19 |
-| `dojo` itself | 95 | ~9,616 | **177%** | 94 |
+| Ordinary global session | 41 | ~4,232 | 78% | 0 |
+| `blueprint-finance` | 42 | ~4,363 | 80% | 0 |
+| `viral` | 47 | ~5,257 | **97%** | 0 |
+| `dojo` itself | 41 | ~4,232 | 78% | 0 |
 
-Measured 2026-08-01. Read them as dated observations, not as constants.
+Measured 2026-08-02. Read them as dated observations, not as constants — and
+note how far they moved in one day. The 2026-08-01 measurement of the same four
+roots read 96%, 98%, **111% with 19 truncated**, and **177% with 94 truncated**.
 
-Three things follow. **The contract is already being violated**: two
-repositories are silently degraded right now, and an ordinary session sits at
-96% against the 90% ceiling this contract sets — roughly one average skill from
-truncation. **The canonical catalog is not the population that matters**: those
-46 baseline entries include harness-bundled skills, plugin entries, and foreign
-skills, and one foreign directory contributes four listed entries because Codex
-lists nested subskills. **Codex does not shadow by name across roots**, unlike
-Claude Code, so a `dojo`-rooted session pays twice for 32 skills — 33 of its 95
-entries are redundant.
+Three things follow, and the first is not the one this contract originally
+argued. **Every Codex figure above was recovered by hand, in a day, without
+anyone deciding what any target should receive.** Disabling one unused foreign
+skill returned 18 points; deleting one line from an adapter generator took
+`dojo` from 177% to 78%. Those were real defects and fixing them was correct,
+but nothing in the repository proposed them, measured them, or now prevents
+their return — the same authoring that produced them can reproduce them, and
+the only reason anyone looked was that someone happened to be looking.
+**The canonical catalog is not the population that matters**: those baseline
+entries include harness-bundled skills, plugin entries, and foreign skills, and
+one foreign directory contributed four listed entries because Codex lists
+nested subskills. **Codex does not shadow by name across roots**, unlike Claude
+Code — the property that made `dojo` pay twice for 32 skills until its
+`.agents/skills` link was removed, and that will do so again for any target
+that acquires one.
+
+Codex now truncates nowhere. `viral` remains **non-deployable at 97%** against
+the 90% ceiling this contract sets — roughly one average skill from silent
+truncation, with no mechanism to notice it crossing.
 
 Every earlier figure in this contract was a filesystem count, understating the
 real listing by **1.78×**. Review did not catch that; running a probe that had
@@ -101,10 +113,22 @@ alongside `skillListingMaxDescChars` = 1536). That is **8,000 characters at a
 
 | Session | Skills | Chars | vs 8,000 |
 |---|---|---|---|
-| Ordinary global session | 45 | 17,072 | **2.13×** |
-| `dojo`-rooted | 75 | 23,824 | **2.98×** |
+| Ordinary global session | 45 | 16,535 | **2.07×** |
+| `viral`-rooted | 51 | 20,220 | **2.53×** |
+| `dojo`-rooted | 75 | 23,287 | **2.91×** |
 
-Measured 2026-08-01. Two properties distinguish it from Codex and both matter
+Measured 2026-08-02. **This is the harness where the recovery did not happen.**
+Every lever that moved Codex from 96% to 78% moved Claude Code by a few
+percent, because none of them addressed membership: description trimming
+recovered 537 characters against an 8,535-character overage, and the two
+symlink and foreign-skill fixes touched roots Claude Code either does not read
+or deduplicates. Nothing is left to trim. A 45-skill listing against an
+8,000-character budget allows ~178 characters per entry, and the contract that
+governs this catalog requires descriptions to carry trigger conditions. The
+only remaining lever is which skills are present at all, which is what a
+profile is.
+
+Two properties distinguish it from Codex and both matter
 to this contract. **Claude Code shadows by name across scopes** where Codex does
 not, so a project-scope link adds only skills absent from user scope rather than
 duplicating the catalog. And **its degradation drops descriptions outright**
@@ -425,15 +449,28 @@ The reference behavior is explicit:
   hashed.
 - The 31-skill global installation is evidence of intentional curation, not the
   default profile definition. Existing selection is preserved until a maintainer
-  explicitly applies a profile. It does **not** show that headroom exists: the
-  effective listing it participates in measures ~5,211 estimated tokens, 96% of
-  the Codex budget, on 2026-08-01. The contract's job is to make that figure
-  provable and durable rather than to reduce it, but no target is currently
-  conformant and the first honest verification run will say so.
-  Both machines currently carry the same 32 entries — the 31 canonical skills
-  plus one foreign skill, `microsoft-foundry` — so a live foreign-entry
-  observation and a live cross-machine agreement case both already exist and do
-  not need to be constructed.
+  explicitly applies a profile. The effective listing it participates in
+  measures ~4,232 estimated tokens, 78% of the Codex budget, on 2026-08-02 —
+  within the ceiling, and it was at 96% the day before. The contract's job is to
+  make that figure provable and durable rather than to reduce it. On Claude Code
+  the same installation participates in a listing 2.07× over budget, so no
+  target is conformant across both harnesses and the first honest verification
+  run will say so.
+- **The live subjects are real but they move, which is itself the evidence.**
+  Both machines carry the same 32 installed entries — 31 canonical skills plus
+  the foreign `microsoft-foundry`. That agreement was verified 2026-07-31,
+  **had silently broken by 2026-08-02** across 9 skills whose content was
+  updated on one machine and not the other, and was restored the same day by an
+  explicit sync. Membership never diverged; content identity did, which is
+  exactly what SC-11 compares. Nothing reported the divergence, and the only
+  reason it was found is that someone hashed both machines by hand while
+  checking something else. Read the cross-machine agreement case as a real
+  subject that needs re-establishing before each use, not as a standing fact.
+  `microsoft-foundry` remains installed but is **disabled in Codex config**, so
+  it is present on disk and absent from the listing — a useful live case for the
+  rule that the filesystem never adds an entry the probe did not list, but *not*
+  a live foreign-entry observation in the Codex listing, which must be
+  constructed.
 - Listing cost is a moving target, and every figure in this contract is a
   measurement with a date rather than a constant. Description edits move it
   without changing skill membership, and skill authoring moves it without any
@@ -488,9 +525,11 @@ The reference behavior is explicit:
   harness-independent; realization identity captures **what landed** and already
   binds the harness. Suppression moves resolved membership from the first to the
   second, which is where it belonged.
-- Routing coverage is currently sparse: 49 skills pass the structural contract,
+- Routing coverage is currently sparse: 48 skills pass the structural contract,
   but only three declare trigger fixtures (`blind-spots`, `test-strategy`,
-  `verify-before-complete`, measured 2026-07-31). Profile work reports that limitation
+  `verify-before-complete`, measured 2026-08-02; the catalog count is whatever
+  `skills.json` holds at verify time and has moved four times during this
+  contract's life). Profile work reports that limitation
   honestly and adds collision evidence where adjacent included skills need it;
   it does not manufacture low-quality trigger phrases for every skill.
 - `dojo profiles verify --all` is the required observable invocation. Whether
@@ -629,6 +668,41 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-08-02 (revision 10).** Re-measured, and the Problem's live-breach
+  evidence has moved to a different harness. Codex now **truncates nowhere**:
+  the ordinary session sits at 78% (was 96%), `dojo` at 78% (was 177% with 94
+  truncated), `viral` at 97% (was 111% with 19 truncated). Two merged changes
+  did it — disabling one unused foreign skill, and dropping `.agents` from the
+  adapter generator's harness list so the catalog stops being linked into Codex
+  project scope.
+
+  The honest reading is that the earlier framing was partly right for the wrong
+  reason. Two of the three Codex breaches were **defects, not distribution
+  problems**, and they were fixable without profiles. What survives, and is
+  strengthened: none of those fixes was proposed, measured, or is now prevented
+  from regressing by anything in this repository, and the figures moved by a
+  factor of two in one day with no distribution decision taken. `viral` is still
+  non-deployable at 97% against the 90% ceiling.
+
+  **Claude Code is where the argument now rests.** It moved by a few percent
+  under the same levers — 2.13× to 2.07× ordinary, 2.98× to 2.91× in `dojo` —
+  because none of them touched membership, which is the only lever it has. A
+  45-entry listing against 8,000 characters allows ~178 characters per
+  description while this repository's own skill contract requires descriptions
+  to carry trigger conditions. There is nothing left to trim.
+
+  Two live subjects were re-checked rather than assumed. The cross-machine
+  agreement case had **silently broken** since revision 9 — 9 skills differing
+  in content identity, membership unchanged, nothing reporting it — and was
+  restored by an explicit sync; it is now documented as a subject requiring
+  re-establishment rather than a standing fact. `microsoft-foundry` is installed
+  but disabled, so it is no longer a live foreign-entry observation in the Codex
+  listing and that fixture must be constructed. The catalog count is 48, not 49
+  — the fourth stale count in this document pair, now stated with the date and
+  the computed source rather than as a bare number.
+
+  No success criterion, evaluation scenario, or authority boundary changed.
 
 - **2026-08-01 (revision 9).** Overlays now resolve **against a harness**.
   Revisions 1–8 required identical membership everywhere, on the reasoning that
