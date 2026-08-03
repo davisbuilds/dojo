@@ -29,6 +29,7 @@ Three rules this module exists to enforce:
 from __future__ import annotations
 
 import argparse
+import collections
 import glob
 import json
 import os
@@ -54,7 +55,17 @@ LOADED_RE = re.compile(r"Loaded (\d+) unique skills \((.*?)\)")
 SENDING_RE = re.compile(r"Sending (\d+) skills via attachment")
 BUDGET_RE = re.compile(r"Skill listing over budget: (\d+) skills, (\d+) chars > (\d+) budget")
 SOURCES_RE = re.compile(r"Loading skills from: (.*)")
-ENTRY_RE = re.compile(r"^- (?P<name>[^:]+?)(?:: (?P<description>.*))?$")
+# ``- name`` or ``- name: description``. The name may itself contain colons —
+# plugin skills list as ``namespace:name`` (``workflows:brainstorm``,
+# ``supabase:supabase-postgres-best-practices``). The separator is a colon
+# **followed by a space**; a bare colon belongs to the name.
+#
+# An earlier version used ``[^:]+?`` for the name and silently dropped all six
+# namespaced entries in the live fixture — 75 listed, 69 parsed. That is the
+# same defect this module documents for the Codex parser, made a second time in
+# the same file. The test now asserts parsed count equals raw ``- `` line count,
+# so nothing can go missing quietly again.
+ENTRY_RE = re.compile(r"^- (?P<name>.+?)(?:: (?P<description>.*))?$")
 
 
 def budget_chars(context_tokens: int = DEFAULT_CONTEXT_TOKENS, fraction: float = SKILL_LISTING_BUDGET_FRACTION) -> int:
@@ -72,6 +83,12 @@ class Entry:
     description: str | None
     shape: str  # full | ellipsis_truncated | description_removed
     origin: str = "unknown"
+    scope: str = "unknown"
+
+    @property
+    def is_namespaced(self) -> bool:
+        """Plugin skills list as ``namespace:name``."""
+        return ":" in self.name
 
 
 @dataclass
@@ -212,26 +229,105 @@ def parse_listing(block: str) -> list[Entry]:
     return entries
 
 
+def classify(
+    result: RequestResult,
+    dojo_skills_root: Path,
+    project_root: Path | None = None,
+    user_root: Path | None = None,
+) -> RequestResult:
+    """Label each listed entry's origin and scope.
+
+    Claude Code's listing carries **no locators** — entries are ``- name`` or
+    ``- name: description`` and nothing more — so origin cannot be read off the
+    listing the way it can for Codex. It is resolved by joining listed names
+    against known roots.
+
+    That is filesystem input, and it is legitimate here for one specific reason:
+    the listing decides *membership* and the filesystem only *labels* entries the
+    listing already reported. Nothing on disk can add an entry. A name present in
+    a root but absent from the listing stays absent.
+
+    Namespaced names are plugin-provided by construction; Claude Code renders no
+    other entry that way.
+    """
+    canonical = {
+        p.name for p in dojo_skills_root.iterdir() if p.is_dir() and not p.name.startswith("_")
+    }
+    project = _names_in(project_root)
+    user = _names_in(user_root if user_root is not None else Path.home() / ".claude" / "skills")
+
+    for entry in result.entries:
+        if entry.is_namespaced:
+            entry.origin = "plugin"
+        elif entry.name in canonical and (entry.name in project or entry.name in user):
+            entry.origin = "dojo-managed"
+        elif entry.name in project or entry.name in user:
+            entry.origin = "foreign"
+        else:
+            # Listed but present in no inspectable root. Claude Code's bundled
+            # skills ship inside the binary and have no directory to find, so
+            # they land here — but so would anything else this probe cannot see.
+            #
+            # Deliberately **not** labelled `harness-bundled`: that would assert
+            # a positive identification the evidence does not support. Probe A
+            # reports source *counts* (`managed`, `user`, `project`, bundled)
+            # without a per-name mapping, so reconciling this bucket against
+            # those counts is Task 4's job. Naming it honestly keeps the gap
+            # visible instead of burying it in a plausible label.
+            entry.origin = "unresolved"
+
+        # Claude Code's project scope is `.claude/skills`; it shadows by name, so
+        # a name in both roots is one effective entry with project authoritative.
+        entry.scope = "project" if entry.name in project else "user" if entry.name in user else "bundled"
+    return result
+
+
+def _names_in(root: Path | None) -> set[str]:
+    if root is None or not root.is_dir():
+        return set()
+    return {p.name for p in root.iterdir() if p.is_dir() and not p.name.startswith(".")}
+
+
 def parse_request(body: dict) -> RequestResult:
     block = find_listing(body)
     if block is None:
         raise LookupError("no skills listing in request body")
+    entries = parse_listing(block)
+    raw = sum(1 for line in block.splitlines() if line.startswith("- "))
+    if len(entries) != raw:
+        raise ValueError(
+            f"parsed {len(entries)} entries from {raw} listing lines; "
+            "the parser is dropping entries rather than failing, which is the "
+            "defect that lost six namespaced plugin skills"
+        )
     return RequestResult(
         model=body.get("model"),
-        entries=parse_listing(block),
+        entries=entries,
         rendered_chars=len(block),
     )
 
 
-def request(cwd: str | Path | None = None, model: str = "haiku") -> RequestResult:
-    """Run probe B live."""
+def request(
+    cwd: str | Path | None = None,
+    model: str = "haiku",
+    dojo_skills_root: Path | None = None,
+) -> RequestResult:
+    """Run probe B live and classify the result.
+
+    Classification happens here rather than being left to the caller: an
+    unclassified listing reports every entry as ``origin="unknown"``, which reads
+    as "no plugin entries, no foreign entries" to anything downstream — a clean
+    answer that is entirely wrong.
+    """
     with tempfile.TemporaryDirectory() as tmp:
         _claude(["--model", model], cwd, env={"OTEL_LOG_RAW_API_BODIES": f"file:{tmp}"})
         files = sorted(glob.glob(f"{tmp}/*.request.json"))
         if not files:
             raise RuntimeError("probe B produced no request body")
         body = json.loads(Path(files[0]).read_text())
-    return parse_request(body)
+    result = parse_request(body)
+    root = dojo_skills_root or (Path(__file__).resolve().parents[2] / "skills")
+    return classify(result, root, Path(cwd or ".") / ".claude" / "skills")
 
 
 def fingerprint(model: str = "haiku") -> dict:
@@ -300,6 +396,8 @@ def main(argv: list[str] | None = None) -> int:
             if dbg["demand_chars"] and dbg["budget_chars"]:
                 print(f"ratio             : {dbg['demand_chars'] / dbg['budget_chars']:.2f}x")
         if req := payload.get("request"):
+            origins = collections.Counter(e["origin"] for e in req["entries"])
+            print(f"origins           : {dict(origins)}")
             print(f"rendered chars    : {req['rendered_chars']}  <- never a cost")
             print(f"descriptions gone : {req['description_removed']}")
             print(f"ellipsis-truncated: {req['ellipsis_truncated']}")

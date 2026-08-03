@@ -24,6 +24,7 @@ Vendor reference: ``codex-rs/core-skills/src/render.rs`` at pinned revision
 from __future__ import annotations
 
 import argparse
+import collections
 import json
 import re
 import subprocess
@@ -163,6 +164,27 @@ class Listing:
         comparable across modes.
         """
         return self.entry_cost_tokens + self.root_table_cost_tokens
+
+    @property
+    def charged_chars(self) -> int:
+        """The same quantity in characters, for the character-budget fallback.
+
+        ``SkillMetadataBudget::cost_from_counts`` picks characters or tokens by
+        which budget variant is in force. Comparing a token cost against the
+        8,000-**character** fallback understates utilization by about 4×, which
+        is enough to render an over-budget catalog as comfortably safe.
+        """
+        return sum(len(e.rendered) + 1 for e in self.entries) + sum(
+            len(r) + 1 for r in self.root_lines
+        )
+
+    def utilization(self, limit: int, unit: str) -> float:
+        """Utilization in the budget's own unit, never a mixture."""
+        if unit == "characters":
+            return self.charged_chars / limit
+        if unit == "tokens":
+            return self.charged_tokens / limit
+        raise ValueError(f"unknown budget unit {unit!r}")
 
 
 def _run(args: list[str], cwd: str | Path | None) -> str:
@@ -309,12 +331,19 @@ def active_model(codex_home: Path | None = None) -> str | None:
     return None
 
 
-def probe(cwd: str | Path | None = None) -> Listing:
-    """Run the probe live and parse the result."""
+def probe(cwd: str | Path | None = None, dojo_skills_root: Path | None = None) -> Listing:
+    """Run the probe live, parse, and classify.
+
+    Classification is not left to the caller. An unclassified listing reports
+    every entry as ``origin="unknown"``, which downstream reads as "no plugin
+    entries and no foreign entries" — a clean, confident, wrong answer, and the
+    exact shape of failure these probes exist to prevent.
+    """
     raw = _run(["codex", "debug", "prompt-input"], cwd)
     listing = parse_block(extract_block(json.loads(raw)))
     listing.fingerprint = fingerprint(cwd)
-    return listing
+    root = dojo_skills_root or (Path(__file__).resolve().parents[2] / "skills")
+    return classify(listing, root, None, Path(cwd) if cwd else None)
 
 
 def fingerprint(cwd: str | Path | None = None) -> dict:
@@ -476,13 +505,21 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.write("\n")
     else:
         limit = listing.fingerprint.get("budget_limit") or 0
+        unit = listing.fingerprint.get("budget_unit") or ""
+        origins = collections.Counter(e.origin for e in listing.entries)
         print(f"render mode      : {listing.render_mode}")
         print(f"entries          : {len(listing.entries)}")
         print(f"namespaced       : {sum(1 for e in listing.entries if e.is_namespaced)}")
+        print(f"origins          : {dict(origins)}")
         print(f"charged tokens   : {listing.charged_tokens}")
+        print(f"charged chars    : {listing.charged_chars}")
         print(f"block chars      : {listing.block_chars}")
         if limit:
-            print(f"budget           : {limit} ({100 * listing.charged_tokens / limit:.1f}%)")
+            pct = 100 * listing.utilization(limit, unit)
+            print(f"budget           : {limit} {unit} ({pct:.1f}%)")
+            if listing.fingerprint.get("model_resolution") == "indeterminate":
+                print("                   ^ UNSUPPORTED: no context window resolved, "
+                      "character fallback in force; do not treat as a deployable verdict")
         if listing.warning:
             print(f"warning          : {listing.warning}")
     return 0

@@ -320,7 +320,10 @@ def test_the_listing_is_found_by_its_opening_sentence_not_its_section(claude_req
     assert probe_claude.LISTING_OPENING in json.dumps(body)
     names = {e.name for e in claude_request.entries}
     assert "## Available Skills" not in names
-    assert len(names) > 10
+    # Was `> 10` on a 75-entry listing, which is why six dropped entries went
+    # unnoticed. The count is now pinned to the block itself in
+    # `test_every_listing_line_becomes_an_entry`.
+    assert len(names) > 50
 
 
 def test_description_removal_is_detected_by_absence(claude_request):
@@ -462,3 +465,98 @@ def test_refuses_to_classify_a_listing_with_no_discoverable_home():
     )
     with pytest.raises(ValueError, match="Codex home"):
         probe_codex.classify(empty, DOJO_SKILLS, None, REPO_ROOT)
+
+
+# --------------------------------------------------------------------------
+# Regressions found in review of PR #56
+# --------------------------------------------------------------------------
+
+
+def test_every_listing_line_becomes_an_entry(claude_request):
+    """75 lines in, 75 entries out — no silent drops.
+
+    The parser used ``[^:]+?`` for the name, so a bare namespaced entry like
+    ``- workflows:brainstorm`` matched nothing and was skipped: 75 listed, 69
+    parsed, all six plugin skills gone. A floor-style assertion (`> 10`) could
+    not see it. Membership must be conserved, so the count is compared against
+    the block rather than against a threshold.
+    """
+    body = json.loads((FIXTURES / "claude-request-dojo-2026-08-02.json").read_text())
+    block = probe_claude.find_listing(body)
+    raw = sum(1 for line in block.splitlines() if line.startswith("- "))
+    assert len(claude_request.entries) == raw
+
+
+def test_claude_recovers_namespaced_plugin_names(claude_request):
+    """The same defect the Codex parser has a test for, made twice."""
+    namespaced = [e for e in claude_request.entries if e.is_namespaced]
+    assert len(namespaced) >= 1
+    assert all(":" in e.name for e in namespaced)
+    # A colon *followed by a space* is the description separator; a bare colon
+    # belongs to the name. Both shapes appear in the fixture.
+    assert any(e.description is None for e in namespaced)
+    assert any(e.description for e in namespaced)
+
+
+def test_parse_request_refuses_to_drop_entries_silently():
+    """Failing loudly beats returning a short list that looks complete."""
+    body = {
+        "model": "x",
+        "messages": [{"content": [{"type": "text", "text":
+            probe_claude.LISTING_OPENING + "\n\n- alpha: one\n- \n- beta\n"}]}],
+    }
+    with pytest.raises(ValueError, match="dropping entries"):
+        probe_claude.parse_request(body)
+
+
+def test_claude_entries_are_classified(claude_request, tmp_path):
+    """Unclassified entries read downstream as 'no plugins, no foreign skills'."""
+    project = tmp_path / ".claude" / "skills"
+    project.mkdir(parents=True)
+    (project / "brainstorming").mkdir()
+    result = probe_claude.classify(claude_request, DOJO_SKILLS, project, tmp_path / "empty")
+    origins = collections.Counter(e.origin for e in result.entries)
+    assert origins["unknown"] == 0
+    assert origins["plugin"] >= 1, "namespaced entries are plugin-provided by construction"
+    # Entries this probe cannot place are `unresolved`, never asserted as
+    # `harness-bundled`: Claude Code's listing carries no locators, so that
+    # label would be a guess wearing a positive identification's clothes.
+    assert origins["harness-bundled"] == 0
+    assert origins["unresolved"] >= 1
+    scopes = collections.Counter(e.scope for e in result.entries)
+    assert scopes["project"] >= 1
+
+
+def test_the_live_probe_paths_classify(monkeypatch):
+    """Pins the fix, not just the capability.
+
+    ``probe()`` returned ``parse_block`` output directly, so every live call and
+    every CLI invocation reported ``origin='unknown'`` for all entries — which
+    downstream reads as a clean listing with no plugin or foreign entries. The
+    tests passed because they called ``classify`` themselves.
+    """
+    raw = (FIXTURES / "codex-prompt-input-dojo-2026-08-02.json").read_text()
+    monkeypatch.setattr(probe_codex, "_run", lambda args, cwd: raw)
+    monkeypatch.setattr(probe_codex, "fingerprint", lambda cwd=None: {"budget_limit": 5440, "budget_unit": "tokens"})
+    listing = probe_codex.probe(cwd=str(REPO_ROOT))
+    origins = collections.Counter(e.origin for e in listing.entries)
+    assert origins["unknown"] == 0
+    assert origins["plugin"] >= 1
+    assert origins["foreign"] >= 1
+
+
+def test_utilization_never_mixes_tokens_against_a_character_limit(dojo):
+    """A 4x understatement that renders an over-budget catalog as safe.
+
+    When no context window resolves, render.rs falls back to an 8,000-**character**
+    budget. Dividing the token cost by that limit reported 51.6% for a listing
+    whose honest character utilization is 205%.
+    """
+    tokens = dojo.utilization(5_440, "tokens")
+    chars = dojo.utilization(8_000, "characters")
+    assert 0.7 < tokens < 0.8
+    assert chars > 2.0
+    # The two costs must not be interchangeable: ~4 bytes per token.
+    assert dojo.charged_chars > 3 * dojo.charged_tokens
+    with pytest.raises(ValueError, match="unknown budget unit"):
+        dojo.utilization(8_000, "furlongs")
