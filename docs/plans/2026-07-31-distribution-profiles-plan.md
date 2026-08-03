@@ -775,9 +775,15 @@ cost.
 
 **Implementation Steps**
 
-1. Port Codex's primitives verbatim: `(n + 3) // 4` over UTF-8 **bytes**,
-   `line_cost` including the trailing newline, `budget_for_window`, the
-   1,024-char cap, both render modes with the lower taken.
+1. Port Codex's primitives verbatim, reusing what Task 0 already established
+   rather than re-deriving it: `(n + 3) // 4` over UTF-8 **bytes**, `line_cost`
+   including the trailing newline, `budget_for_window`, the 1,024-char cap, and
+   both render modes with the lower taken. Two of these are **not** what a
+   reasonable reading of the source suggests and Task 0 got them wrong first:
+   only skill lines are charged (not the intro or headers), and
+   `aliased_metadata_overhead_cost` is a rounded difference of two whole rendered
+   bodies, not a sum of per-line costs. Import `probe_codex`'s versions; do not
+   write second implementations that can disagree with it.
 2. Implement Claude Code's arithmetic in **characters end to end**:
    `budget_chars = context_tokens * 4 * fraction`, entry cost as the rendered
    `- {name}: {description}` character count, comparison characters-to-characters
@@ -785,14 +791,31 @@ cost.
    the harness itself never makes (SC-04).
 3. Implement `demand(entries, policy)` — the cost of the listing the harness
    *would* render if nothing were elided, from source frontmatter.
-4. Implement the **truncation detector** covering all three shapes: (a) Codex
-   mid-word clipping with no marker; (b) Claude Code `…`-marked truncation past
-   `skillListingMaxDescChars`; (c) Claude Code **description removed entirely**,
-   rendering as a bare `- name`. Shape (c) is the most severe and would **not**
-   match a naive "listed is a prefix of source" test, because there is no listed
-   description to compare — it must be detected by absence. Any shape sets
-   `truncated: true` and makes the target nonconformant **regardless of computed
-   cost**. Exempt entries (bundled, explicitly invoked) are excluded from (c).
+4. Implement the **degradation detector** covering all **five** shapes. Task 0's
+   read of `render.rs` found two more than this plan originally listed, and they
+   sit in `render_skill_lines_from_lines`'s three-tier ladder:
+
+   *Codex:* (a) budget-driven **mid-word clipping with no marker at all** — the
+   invisible one; (b) the 1,024-char pre-cap, which **does** append `"..."`, a
+   different mechanism that must not be confused with (a); (c) **whole-skill
+   omission**, the third tier, where entries are dropped and a warning
+   (`Exceeded skills context budget…`) is emitted *into the prompt*.
+
+   *Claude Code:* (d) `…`-marked truncation past `skillListingMaxDescChars`;
+   (e) **description removed entirely**, rendering as a bare `- name`.
+
+   (e) is the most severe and would **not** match a naive "listed is a prefix of
+   source" test, because there is no listed description to compare — it must be
+   detected by absence. (c) is detectable two ways and both should be used: the
+   prompt warning, and a listed-entry count below the observed candidate set.
+
+   A free signal to exploit rather than re-derive: Codex only falls back to alias
+   render mode when absolute mode omits or truncates, so **absolute mode is
+   positive evidence that neither happened**.
+
+   Any shape sets `degraded: true` and makes the target nonconformant
+   **regardless of computed cost**. Exempt entries (bundled, explicitly invoked)
+   are excluded from (e).
 5. Comparison is exact integer arithmetic in each policy's own unit:
    `deployable = demand * 10_000 <= limit * 9_000`.
 6. Write `profiles/policies/codex.yaml` and `profiles/policies/claude-code.yaml`.
@@ -811,13 +834,19 @@ cost.
 8. Build boundary fixtures at exactly 8,900 / 9,000 / 9,100 basis points **per
    policy**, choosing each fixture's limit so it lands exactly on its basis point
    and asserting the basis point before asserting the verdict.
-9. Add the **SC-03 fit proof as one named test per deployable harness/model
-   pair**, since SC-03 now requires every pair rather than one representative:
-   `test_fit_proof_codex_gpt56`, `test_fit_proof_claude_200k`, and
-   `test_fit_proof_claude_1m`. Each resolves `core` plus one non-empty capability
-   overlay, adds three foreign entries, and asserts deployable against that
-   pair's real policy. **The 200k Claude Code pair is the binding one** — a
-   1M-window pass proves nothing about it.
+9. Add the **SC-03 fit proof as one named test per declared pair**:
+   `test_fit_proof_codex_gpt56` and `test_fit_proof_claude_1m`. Each resolves
+   `core` plus one non-empty capability overlay, adds three foreign entries, and
+   asserts deployable against that pair's real policy.
+
+   Claude Code at 200k is **declared but not deployable** (spec revision 11): the
+   operator runs only 1M sessions, so 200k is scored and reported, never gating.
+   Add `test_reports_undeclared_pair_without_gating` asserting the 200k policy
+   produces a *non-conformant, non-blocking* verdict rather than either a pass or
+   a build failure — a session that does land there must be told, and the suite
+   must not fail for a path nobody uses. Policy files carry an explicit
+   `deployable: true|false`, so promoting a pair is a visible edit rather than a
+   consequence of someone selecting a different model.
 
 **Verification**
 
@@ -1457,12 +1486,24 @@ Task 8
 
 ---
 
-### Task 10: Adjudicate the budget disagreement
+### Task 10: Record the standing position and close the adjudication
 
 **Objective**
 
-Use the verifier to settle the 56%/85% versus 50%/75% conflict the spec
-deliberately left open, and record the outcome as a dated measurement.
+> **Rescoped 2026-08-03.** This task existed to settle the 56%/85% versus
+> 50%/75% conflict the spec left open. **That conflict is already resolved and
+> not by this task**: both figures were filesystem counts, superseded first by
+> the 1.78× listing correction and then by Task 0 finding that only skill lines
+> are charged. Adjudicating them now would be re-litigating two retracted
+> measurements. What remains worth doing is the part that was always the point —
+> producing the first machine-generated statement of where every target actually
+> stands, so the number stops being something a person derives by hand.
+
+Emit the first verifier-produced position for every observed target and declared
+pair, and retire the backlog entry that carries the unverified-budget caveat.
+The measurement document records what the verifier reported, not what anyone
+believed beforehand — including that the manual figures preceding it moved by a
+factor of two, twice, in two days.
 
 **Files**
 
@@ -2224,7 +2265,7 @@ Task 15
 | Cost comes from source on both harnesses | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k truncation` | Demand matches source-derived figure; all three degradation shapes ⇒ nonconformant |
 | Claude Code arithmetic stays in characters | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k characters` | `budget_chars == context_tokens*4*fraction`; no token conversion |
 | Shadowing follows harness policy, both ways | `.venv/bin/python -m pytest tests/test_profiles_observe.py -q -k shadow` | Flipping `shadows_by_name` flips duplicate accounting |
-| SC-03 fit proof, every deployable pair | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k fit_proof` | Three passes: Codex, Claude Code 200k, Claude Code 1M |
+| SC-03 fit proof, every declared pair | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k fit_proof` | Two passes: Codex, Claude Code 1M. Claude Code 200k is declared-not-deployable: reported, never gating |
 | 90% boundary is exact | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k boundary` | 8900 ok, 9000 ok, 9100 rejected |
 | Detectors see known cases; duplicates counted | `.venv/bin/python -m pytest tests/test_profiles_observe.py -q` | At least one each of foreign/bundled/plugin/project-scope; duplicate demand exceeds de-duplicated |
 | Evidence is byte-identical and whole | `.venv/bin/python -m pytest tests/test_profiles_evidence.py -q` | Equal SHA-256 on repeat; 16 fields |
@@ -2253,7 +2294,7 @@ Every SC-01…SC-13 and every EV scenario in the spec, in both directions.
 | --- | --- | --- |
 | SC-01 | Task 1, Task 2, Task 5 | `.venv/bin/python -m pytest tests/test_profiles_definitions.py tests/test_profiles_resolve.py -q` |
 | SC-02 | Task 1, Task 2 | `.venv/bin/python -m pytest tests/test_profiles_resolve.py -q` (720 permutations → 1 identity) |
-| SC-03 | Task 1, Task 3 | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k fit_proof` (one test per deployable harness/model pair) |
+| SC-03 | Task 1, Task 3 | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k fit_proof` (one test per declared harness/model pair; 200k reported not gated) |
 | SC-04 | Task 0, Task 3, Task 4 | `.venv/bin/python -m pytest tests/test_profiles_budget.py -q -k "boundary or vendor_parity or truncation or characters"` |
 | SC-05 | Task 4, Task 5 | `.venv/bin/python -m pytest tests/test_profiles_observe.py tests/test_profiles_evidence.py -q` |
 | SC-06 | Task 5, Task 8 | `.venv/bin/python -m pytest tests/test_profiles_evidence.py -q` (SHA-256 equality) |

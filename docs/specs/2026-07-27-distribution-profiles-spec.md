@@ -116,22 +116,38 @@ is `context_tokens × 4 bytes × that fraction` **characters** (bundle v2.1.220,
 alongside `skillListingMaxDescChars` = 1536). That is **8,000 characters at a
 200k window and 40,000 at 1M**.
 
-| Session | Skills | Chars | vs 8,000 |
-|---|---|---|---|
-| Ordinary global session | 45 | 16,535 | **2.07×** |
-| `viral`-rooted | 51 | 20,220 | **2.53×** |
-| `dojo`-rooted | 75 | 23,287 | **2.91×** |
+Demand does not move with the window; only the budget does. So one set of
+measurements scores against both, and the answer differs entirely:
 
-Measured 2026-08-02. **This is the harness where the recovery did not happen.**
-Every lever that moved Codex from 96% to 76% moved Claude Code by a few
-percent, because none of them addressed membership: description trimming
-recovered 537 characters against an 8,535-character overage, and the two
-symlink and foreign-skill fixes touched roots Claude Code either does not read
-or deduplicates. Nothing is left to trim. A 45-skill listing against an
-8,000-character budget allows ~178 characters per entry, and the contract that
-governs this catalog requires descriptions to carry trigger conditions. The
-only remaining lever is which skills are present at all, which is what a
+| Session | Skills | Demand (chars) | vs 40,000 (1M) | vs 8,000 (200k) |
+|---|---|---|---|---|
+| Ordinary global session | 45 | 16,535 | 41% | **2.07×** |
+| `viral`-rooted | 51 | 20,220 | 51% | **2.53×** |
+| `dojo`-rooted | 75 | 23,287 | 58% | **2.91×** |
+
+Measured 2026-08-02. **At the window this operator actually runs, Claude Code is
+conformant with room** — every session sits between 41% and 58% against a 90%
+ceiling, and a captured 1M session emits no budget warning at all. The 200k
+column is a real exposure, not a hypothetical one, but it is not on the path
+anyone uses today.
+
+That reframes rather than removes the case. Two things survive it. The margin is
+**one model selection wide**: the same catalog, on the same machine, on the same
+day, is 58% or 291% depending only on which model the session runs, and nothing
+announces the difference — the harness emits a warning the user never sees and
+the model receives bare skill names with no indication anything was dropped.
+And the levers that rescued Codex do not exist here: description trimming
+recovered 537 characters, the symlink and foreign-skill fixes touched roots
+Claude Code either does not read or deduplicates. If a 200k session ever matters,
+the only remaining lever is which skills are present at all — which is what a
 profile is.
+
+For calibration, since it is the number a maintainer would need: at 200k,
+harness-bundled entries are **exempt from stripping** and consume 3,774 of the
+8,000 budget at full length, leaving ~4,226 for everything dojo governs. Against
+a measured mean of 313 characters per dojo entry, that is **about 13 skills** —
+`core` plus roughly one overlay, which is what SC-03's fits-proof already
+specifies.
 
 Two properties distinguish it from Codex and both matter
 to this contract. **Claude Code shadows by name across scopes** where Codex does
@@ -225,12 +241,17 @@ catalog as conformant.
   eight days before this revision. Acceptance proves, for **every** deployable
   harness/model pair rather than one representative, a concrete realization
   where `core` plus one non-empty capability overlay and a three-entry foreign
-  baseline remains within the effective-catalog budget. Both currently
-  deployable pairs must be covered, including a 200k-context Claude Code pair,
-  since its budget scales with the model's context window and a 1M-window pass
-  proves nothing about a 200k one. A harness/model pair where the pinned
-  baseline does not fit is audit-only rather than repaired by weakening the
-  budget or rewriting skills.
+  baseline remains within the effective-catalog budget. **A pair is deployable
+  when it is declared as in use**, not merely because its limit is knowable.
+  The declared set is Codex at its current window and Claude Code at 1M. A
+  pair whose limit is established but which nobody runs — Claude Code at 200k
+  today — is **measured and reported, never gating**: the verifier scores it and
+  says so, and a session that does run there is told it is non-conformant rather
+  than left to discover bare skill names on its own. Declaring a pair deployable
+  is a maintainer act, so adding one is a contract change and cannot happen by a
+  session quietly selecting a different model. A deployable pair where the
+  pinned baseline does not fit is audit-only rather than repaired by weakening
+  the budget or rewriting skills.
 - **SC-04 — Budgeted effective catalog:** A realization is deployable only when
   the complete catalog visible to the harness—including user and project scope,
   shadowed names counted according to actual harness behavior, foreign skills,
@@ -679,6 +700,46 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-08-03 (revision 11).** Deployability is now scoped to the harness/model
+  pairs actually **in use**, and the effect is that nothing this operator runs is
+  in breach.
+
+  The operator runs Claude Code only at a 1M window. Demand does not move with
+  the window — only the budget does — so the existing measurements rescore
+  without re-probing: 41%, 51%, and 58% against a 90% ceiling, confirmed by a
+  captured 1M session that emits no budget warning. The 200k figures (2.07× to
+  2.91×) are real and stay recorded, but they describe a path nobody takes.
+
+  SC-03 previously required the fits-proof against every pair whose limit could
+  be *established*, which silently promoted 200k to a gate. It now turns on
+  whether a pair is **declared in use**: Codex, and Claude Code at 1M.
+  Established-but-undeclared pairs are measured and reported, never gating — so
+  a session that does run at 200k is told it is non-conformant instead of
+  discovering bare skill names on its own. Declaring a pair is a maintainer act,
+  so the gate cannot widen because a session picked a different model.
+
+  This is the third consecutive revision in which better information reduced the
+  urgency rather than confirming it: revision 7 found the measurements were
+  1.78× overstated, revision 10 found two of three Codex breaches were ordinary
+  defects, and this one finds the remaining harness conformant in practice. What
+  survives is worth stating plainly, because it is now the whole case. `viral`
+  sits at 95% on Codex against a 90% ceiling. The Claude Code margin is **one
+  model selection wide** — 58% or 291% for the same catalog on the same day,
+  with no announcement either way. The figures have moved by a factor of two in
+  a single day, twice, with no distribution decision taken. Cross-machine
+  agreement broke silently within 24 hours of being verified. And the curated
+  31-skill set remains installed state rather than a reviewable declaration.
+  None of that is firefighting; all of it is governance, which is what this
+  contract was always for.
+
+  Recorded for calibration since a maintainer will need it: at 200k,
+  harness-bundled entries are exempt from stripping and take 3,774 of the 8,000
+  budget at full length, leaving ~4,226 for dojo against a measured mean of 313
+  characters per entry — **about 13 skills**, which is `core` plus roughly one
+  overlay.
+
+  No evaluation scenario or authority boundary changed.
 
 - **2026-08-02 (revision 10).** Re-measured, and the Problem's live-breach
   evidence has moved to a different harness. Codex now **truncates nowhere**:
