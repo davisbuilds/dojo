@@ -47,6 +47,7 @@ SC06_FIELDS = (
     "foreign_entries",
     "harness",
     "legacy_topologies",
+    "membership",
     "plugin_entries",
     "profile",
     "realization_identity",
@@ -106,23 +107,29 @@ class Evidence:
             raise ValueError("a partial report cannot be conformant")
 
 
-def detect_legacy_topologies(observation: Observation, catalog_size: int) -> list[dict]:
-    """SC-09's four shapes, detected without mutating anything.
+def detect_legacy_topologies(observation: Observation, canonical_root: Path | None = None) -> list[dict]:
+    """SC-09's shapes, detected from **topology**, never inferred from a count.
 
-    (a) is the one that matters most: a scope root that *is* a symlink to a
-    canonical tree exposes the whole catalog. It is reported as **full canonical
-    membership at the selected revision**, never as an implicit `full` profile —
-    accepting it as `full` would launder an accident into a declaration.
+    A whole-catalog directory link is a property of the scope *root* — a root
+    that is itself a symlink into the canonical tree exposes everything under
+    it. An earlier version inferred it from `len(managed) >= catalog_size`,
+    which is wrong twice over: a legitimate `full` realization built from
+    per-skill links reaches that count without any directory link, and on a
+    harness that does not shadow, duplicated entries reach it too. The test that
+    covered it passed `catalog_size=len(managed)`, making the condition
+    trivially true — it asserted nothing at all.
     """
     found: list[dict] = []
-
     managed = [e for e in observation.entries if e.origin == "dojo-managed"]
-    if managed and len(managed) >= catalog_size:
-        found.append({
-            "kind": "whole-catalog-link",
-            "detail": "scope root exposes the full canonical catalog",
-            "member_count": len(managed),
-        })
+
+    for root, target in sorted(observation.symlinked_scope_roots):
+        if canonical_root is None or Path(target) == Path(canonical_root).resolve():
+            found.append({
+                "kind": "whole-catalog-link",
+                "root": root,
+                "target": target,
+                "detail": "scope root is a symlink into the canonical catalog, exposing all of it",
+            })
 
     concrete = sorted(e.name for e in managed if e.is_symlink is False)
     if concrete:
@@ -140,7 +147,8 @@ def detect_legacy_topologies(observation: Observation, catalog_size: int) -> lis
     return found
 
 
-def dirty_state(repo_root: Path, selected_members: tuple[str, ...]) -> list[str]:
+def dirty_state(repo_root: Path, selected_members: tuple[str, ...],
+                selected_definitions: tuple[str, ...] = ()) -> list[str]:
     """Paths whose uncommitted changes make a target audit-only (EV-NEG-04).
 
     Narrow by construction: only changes to a *selected* canonical skill or to
@@ -160,7 +168,12 @@ def dirty_state(repo_root: Path, selected_members: tuple[str, ...]) -> list[str]
     except (OSError, subprocess.SubprocessError):
         return ["<git unavailable: source revision unverifiable>"]
 
-    selected_paths = {f"skills/{name}/" for name in selected_members} | {"profiles/"}
+    # Only the *selected* definitions count. Including all of `profiles/` meant
+    # editing an unrelated overlay or another harness's policy made every
+    # composition audit-only — which contradicts this function's own promise and
+    # is how a gate ends up switched off during ordinary authoring.
+    selected_paths = {f"skills/{name}/" for name in selected_members}
+    selected_paths |= {f"profiles/{name}.yaml" for name in selected_definitions}
     dirty = []
     for line in out.splitlines():
         path = line[3:].strip()
@@ -194,7 +207,7 @@ def build_evidence(
     policy: Policy,
     *,
     repo_root: Path,
-    catalog_size: int,
+    canonical_root: Path | None = None,
     realization_id: str | None = None,
     equivalence_id: str | None = None,
     routing_coverage: dict | None = None,
@@ -207,7 +220,20 @@ def build_evidence(
     """
     revision = canonical_revision(repo_root)
     members = resolution.members if resolution else ()
-    dirty = dirty_state(repo_root, members)
+    expected = set(harness_resolution.realized) if harness_resolution else set(members)
+    dirty = dirty_state(
+        repo_root, members,
+        selected_definitions=resolution.selection if resolution else (),
+    )
+
+    # SC-05: a conformant target exposes every selected skill *and* no
+    # unselected dojo-managed one. Budget alone says nothing about membership —
+    # an under-budget observation containing a single foreign entry scored
+    # `conformant` while all eleven selected skills were absent, because being
+    # cheap was mistaken for being right.
+    observed_managed = {e.name for e in observation.entries if e.origin == "dojo-managed"}
+    missing = sorted(expected - observed_managed) if resolution else []
+    unexpected = sorted(observed_managed - expected) if resolution else []
 
     if partial:
         state = STATE_UNSUPPORTED
@@ -217,6 +243,13 @@ def build_evidence(
         state = STATE_UNPROFILED
     elif dirty:
         state = STATE_UNSUPPORTED
+    elif observation.unsupported:
+        # A reconciliation failure — e.g. Claude Code reporting a different
+        # `sent` count than the parser produced — means the observation itself
+        # is not trustworthy, so nothing downstream of it can be conformant.
+        state = STATE_UNSUPPORTED
+    elif missing or unexpected:
+        state = STATE_NONCONFORMANT
     elif assessment.verdict is Verdict.DEPLOYABLE:
         state = STATE_CONFORMANT
     elif assessment.verdict is Verdict.UNSUPPORTED:
@@ -277,7 +310,12 @@ def build_evidence(
         "foreign_entries": sorted(e.name for e in observation.entries if e.origin == "foreign"),
         "plugin_entries": sorted(e.name for e in observation.entries if e.origin == "plugin"),
         "shadowed_names": list(observation.duplicated_names),
-        "legacy_topologies": detect_legacy_topologies(observation, catalog_size),
+        "membership": {
+            "expected": sorted(expected) if resolution else [],
+            "missing": missing,
+            "unexpected": unexpected,
+        },
+        "legacy_topologies": detect_legacy_topologies(observation, canonical_root),
         "routing_coverage": routing_coverage or {"skills_with_fixtures": [], "reported": False},
         "assertions": {"executed": 0, "outcomes": []},
         "equivalence_identity": equivalence_id,

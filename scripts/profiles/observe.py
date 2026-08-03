@@ -84,6 +84,11 @@ class Observation:
     root_lines: list[str] = field(default_factory=list)
     unsupported: list[str] = field(default_factory=list)
     warning: str | None = None
+    # `(path, target)` for each scope root that is itself a symlink. A
+    # whole-catalog link is a property of the *root*, not of how many entries
+    # happen to be listed, so the detector needs the topology rather than a
+    # count it can be fooled by.
+    symlinked_scope_roots: list[tuple[str, str]] = field(default_factory=list)
 
     @property
     def duplicated_names(self) -> tuple[str, ...]:
@@ -214,7 +219,15 @@ def observe_codex(listing: Listing, policy: Policy, skills_root: Path,
             scope=entry.scope,
             locator=_absolute(entry.locator, listing.root_lines),
             listed_description=entry.description,
-            source_description=descriptions.get(entry.name),
+            # **Only a dojo-managed entry may take a canonical description.** A
+            # bundled, plugin, or foreign entry that merely shares a name is a
+            # different skill with different text: Codex's bundled
+            # `skill-creator` sits beside dojo's in this very fixture and their
+            # descriptions differ. Attaching dojo's text scored the wrong
+            # content *and* fabricated a truncation signal, because listed then
+            # differs from "source" for a reason that has nothing to do with
+            # elision.
+            source_description=descriptions.get(entry.name) if entry.origin == "dojo-managed" else None,
             cost=entry.cost_tokens,
             exempt=entry.origin == "harness-bundled",
         )
@@ -224,6 +237,11 @@ def observe_codex(listing: Listing, policy: Policy, skills_root: Path,
             observed.duplicate_of = seen[entry.name]
         seen.setdefault(entry.name, observed.locator)
         observation.entries.append(observed)
+
+    if cwd is not None:
+        candidate = Path(cwd) / policy.project_scope_root
+        if candidate.is_symlink():
+            observation.symlinked_scope_roots.append((str(candidate), str(candidate.resolve())))
 
     _attach_topology(observation, skills_root)
     return observation

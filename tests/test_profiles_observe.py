@@ -281,3 +281,40 @@ def test_no_observation_path_writes(codex_policy, tmp_path):
     observation = observe_codex(codex_listing(), codex_policy, tree)
     assess(observation.as_budget_entries(), codex_policy, root_lines=observation.root_lines)
     assert digest(tree) == before
+
+
+def test_only_managed_entries_take_a_canonical_description(codex_policy):
+    """PR #59 review, P2. A shared name is not a shared skill.
+
+    Codex's bundled `skill-creator` sits beside dojo's in this fixture and their
+    descriptions differ. Attaching dojo's text to the bundled entry scored the
+    wrong content *and* fabricated a truncation signal — listed then differs
+    from "source" for a reason that has nothing to do with elision.
+
+    The fix was made before this test existed, and a mutation reverting it passed
+    all 34 tests, which is why the test is here.
+    """
+    observation = observe_codex(codex_listing(), codex_policy, SKILLS)
+    duplicated = [e for e in observation.entries if e.name == "skill-creator"]
+    assert len(duplicated) == 2, "fixture no longer carries the same name twice"
+
+    managed = next(e for e in duplicated if e.origin == "dojo-managed")
+    bundled = next(e for e in duplicated if e.origin == "harness-bundled")
+
+    assert managed.source_description, "the managed copy must carry canonical text"
+    assert bundled.source_description is None, "a bundled entry took dojo's description"
+    assert bundled.listed_description != managed.source_description, (
+        "fixture no longer distinguishes the two texts; this test would be inert"
+    )
+
+
+def test_a_non_managed_entry_never_produces_a_false_truncation_signal(codex_policy):
+    """The consequence of the bug above, asserted at the detector.
+
+    With dojo's description attached, the bundled entry's listed text differs
+    from its "source" and the degradation detector reads that as clipping.
+    """
+    from profiles.budget import detect_degradation
+
+    observation = observe_codex(codex_listing(), codex_policy, SKILLS)
+    assert detect_degradation(observation.as_budget_entries(), codex_policy) == ()
