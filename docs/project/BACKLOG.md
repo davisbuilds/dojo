@@ -2,24 +2,35 @@
 
 Living list of future design gaps, tech debt, and better ways to do a thing noticed
 during normal execution. Fix simple, quick, or blocking issues inline; capture only
-durable follow-ups worth revisiting cold. This is not a release contract;
-`docs/project/ROADMAP.md` is the higher-bar shipped/in-progress view.
+durable follow-ups worth revisiting cold. Add an item only when it cannot be fixed inline
+and represents recurring friction, meaningful risk or cost, an unresolved decision, or a
+concrete trigger. This is not a release contract; `docs/project/ROADMAP.md` is the
+higher-bar shipped/in-progress view.
+
+This repository is the canonical owner for its follow-ups; cross-repository work belongs
+with the repository that owns the capability, with links from affected repositories only
+when useful. Date and source volatile external or runtime claims, or label them a
+hypothesis.
 
 Convention: each item has **What** (the friction), **Why or evidence**, and
 optionally **Next** (the smallest action that makes it actionable) or **Revisit
-when** (an intentional external or measurable gate). Status is usually omitted;
-use it only when it clarifies a gate or uncertainty.
+when** (an intentional external or measurable gate). Default state is omitted; use
+**Revisit when** for gates and `State: blocked — <reason>` only when work is genuinely
+blocked externally.
 
 When an item ships, remove it from this doc and record it as a concise completed
 highlight in `docs/project/ROADMAP.md` instead of keeping a shipped note here.
 This file stays future-only.
+
+Review this file after a significant shipped slice or at least quarterly: confirm each
+item is still open, refresh dated evidence, promote selected work to a plan, convert it
+to a trigger, or move completed decisions and work to the Roadmap or decision history.
 
 ---
 
 ## Open
 
 ### Port two pr-review-toolkit specialists into dojo before disabling the plugin
-Status: open
 - **What**: auditing Claude plugins on 2026-07-29 found two agents in
   `pr-review-toolkit@claude-plugins-official` that cover ground **no dojo skill
   does**, and they are the only reason the plugin is still enabled:
@@ -54,7 +65,6 @@ Status: open
   catalog already has 17 entry points for "review this".
 
 ### The gh-* family covers creating work but not cleaning up after it
-Status: open
 - **What**: auditing the `commit-commands@claude-plugins-official` plugin on
   2026-07-29 (now disabled) surfaced one thing the catalog does not cover. The
   `gh-*` family is now just `gh-commit-push-pr` — `gh-fix-issue`, `gh-review-pr`,
@@ -90,7 +100,6 @@ Status: open
   adjacent to an existing trigger rather than a new intent.
 
 ### Harness adapters promote the whole catalog to project scope, blowing the skill-listing budget
-Status: in-progress
 - **What**: `scripts/gen_harness_adapters.py` links `.claude/skills -> ../skills`,
   which makes every cataloged skill *project-scope* in whatever directory holds
   the adapter. Measured 2026-07-26 on macbook: the same symlink placed at
@@ -126,7 +135,6 @@ Status: in-progress
   on legacy adapter refreshes silently restoring whole-catalog links.
 
 ### Cross-machine profile drift is silent and can restore superseded skill behavior
-Status: in-progress
 - **What**: on 2026-07-27 the Mac mini's globals were **28 skills content-drifted**
   against a clean `origin/main` dojo checkout, including a `verify-before-complete`
   still on v1's broad "about to state work is fixed" wording — the exact text v2's
@@ -155,7 +163,6 @@ Status: in-progress
   mini health job) must reuse this logic rather than rolling its own `diff`.
 
 ### Contract v1 has no shape for an opinion-only skill
-Status: noted
 - **What**: `workflow` skills must carry scope, boundaries, verification, output,
   execution, and resource-map anchors, CI-enforced under `--strict`. That imposes a
   ~300-500 word scaffolding floor regardless of how much insight the skill holds, so
@@ -169,7 +176,6 @@ Status: noted
   `workflow` gave it anchors to fill.
 
 ### write-spec/write-plan: make high-risk validation incrementally adoptable for legacy artifacts
-Status: noted
 - **What**: adding `risk_profile: high` / `readiness` to a mature legacy spec or
   plan currently activates the entire new-contract gate at once. A pre-existing
   accepted artifact without `SC-NN` / `EV-*-NN` IDs must be retrofitted wholesale
@@ -187,7 +193,6 @@ Status: noted
   that must fail rather than silently downgrade.
 
 ### research-architect: remaining deferred tooling
-Status: noted
 - **What**: `scripts/diff_runs.py` and `references/rubric-library.md` remain
   deliberately deferred. (`scripts/score_report.py`, the third of the original
   trio, shipped in 2.2.0 once two real runs justified it.)
@@ -204,7 +209,6 @@ Status: noted
   only one report as hallucination candidates.
 
 ### skills-health: runtime join is last-wins, undercounts a version-split skill
-Status: noted
 - **What**: `skill_health_runtime.enrich_report` indexes health rows as
   `rows_by_name = {row["name"]: row}`, so if AgentMonitor returns more than one
   row for a skill (same name, different `version` — the phase-1 `(name, version)`
@@ -221,7 +225,6 @@ Status: noted
   fixture with two rows for one dojo skill to lock the behavior.
 
 ### skills-health: many canonical dojo skills aren't installed globally, so they're unmeasurable
-Status: noted
 - **What**: As of 2026-07-15, 26 of 57 canonical `skills/` are installed in none
   of the global catalog dirs AgentMonitor scans (`~/.claude/skills`,
   `~/.codex/skills`, `~/.agents/skills`) and have never fired, so AgentMonitor
@@ -246,40 +249,7 @@ Status: noted
   profiles; health coverage should distinguish excluded skills from missing or
   drifted members of the selected profile.
 
-### Standardizer has no allowlist for foreign non-skill dirs in mirror roots
-Status: resolved (2026-07-16)
-- **What**: `~/.codex/skills/codex-primary-runtime` is a Codex-specific runtime
-  directory with no `SKILL.md`, so every full-scan audit reported it as
-  `INVALID_SKILL_DIR`. The `_`-prefix convention added in 1.0.1 covers dirs dojo
-  controls (`skills/_fragments`), but Codex owns that path and won't rename it.
-- **Resolution** (1.1.0): `KNOWN_NON_SKILL_DIRS` in `skill_standardizer_lib.py`
-  is a built-in allowlist keyed by **root kind**, so `codex-primary-runtime` is
-  exempt in `global-codex` only and the exemption cannot leak into the canonical
-  root (covered by `test_known_non_skill_dir_still_reported_in_other_roots`).
-  `--ignore-dir NAME` (repeatable, on both `audit.py` and `sync.py`) handles
-  ad-hoc cases.
-- **Why both**: the flag alone would not have fixed the reported problem — the
-  warning only stops recurring if the operator remembers to pass it every run.
-  Built-in for permanent tool-owned dirs, flag for one-offs.
-
-### skill-standardizer regression tests never run in CI
-Status: resolved (2026-07-16)
-- **What**: CI runs `python -m pytest tests/ -q`, which only collects the
-  top-level `tests/` directory. The standardizer's 13-test regression suite lives
-  at `skills/skill-standardizer/scripts/test_skill_standardizer.py` and is not
-  referenced from `tests/`, so it ran only when invoked by hand — the same
-  failure shape as the `_fragments` bug fixed in 1.0.1, where a test file looked
-  like coverage but enforced nothing.
-- **Resolution**: added a `Run skill-standardizer regression tests` step to
-  `.github/workflows/skill-contract-pilot.yml` that invokes the file directly.
-  Verified the step has real signal: injecting a regression into
-  `KNOWN_NON_SKILL_DIRS` made it exit 1, and it exits 0 restored.
-- **Scope**: this is the only test file outside `tests/` — no other skill has the
-  hole.
-- **Follow-up**: see "Port skill-standardizer tests to pytest" below.
-
 ### Port skill-standardizer tests to pytest under tests/
-Status: noted
 - **What**: `skills/skill-standardizer/scripts/test_skill_standardizer.py` uses a
   hand-rolled `main()` runner and an `assert_true` helper instead of pytest. It
   is the only test file outside `tests/`, and CI needs a dedicated step for it.
@@ -315,7 +285,6 @@ Status: noted
   file. It preserves the anomaly instead of resolving it.
 
 ### bump_skill_version.py could regenerate the manifest itself
-Status: noted
 - **What**: `bump_skill_version.py` writes SKILL.md directly (subprocess, not the
   agent's Write/Edit tool), so the post-tool-use manifest-regen hook never fires
   and `skills.json`/catalog are left stale. It prints a reminder to run the
@@ -329,7 +298,6 @@ Status: noted
   batch bumps can regenerate once at the end.
 
 ### Shared SemVer helper
-Status: noted
 - **What**: SemVer parsing/validation now exists in multiple scripts.
 - **Why it matters**: The duplication is small, but future changes to prerelease
   or build-metadata handling could drift between validation, manifest generation,
@@ -339,7 +307,6 @@ Status: noted
   validators and generators use the same implementation.
 
 ### Changelog entry format hardening
-Status: noted
 - **What**: Version checks currently require a `CHANGELOG.md` heading containing
   the new version, but do not require dates or entry content.
 - **Why it matters**: This keeps adoption friction low, but changelog quality may
@@ -348,30 +315,9 @@ Status: noted
   `## 1.2.3 - YYYY-MM-DD` plus at least one bullet under the heading.
 
 ### Install/update workflows should understand skill versions
-Status: noted
 - **What**: The manifest and catalog now expose skill versions, but installer and
   standardizer workflows do not yet report available/current version deltas.
 - **Why it matters**: Version metadata is most useful when sync and install tools
   can say whether a local copy is behind, ahead, or divergent.
 - **Next**: Extend skill install/standardization reports to show source and
   destination versions alongside existing drift information.
-
-### Command wrappers are documented but never wired into any harness
-Status: resolved (2026-07-15)
-- **Resolution**: `scripts/gen_harness_adapters.py` now links each skill's
-  `commands/<rel>.md` into `.claude/commands/<rel>.md` (local-only, gitignored),
-  preserving the nested `workflows/` layout (`/workflows:brainstorm`). It refuses
-  on cross-skill name collisions, prunes symlinks whose source was removed, never
-  touches a hand-authored file, and reports drift under `--check`. Commands are
-  governed by the symlink phase, so CI's `--skip-symlinks` run is unaffected.
-- **Why Claude Code only**: verified on `codex-cli 0.144.1` that Codex has no
-  user-populated slash-command directory — its only `$CODEX_HOME/` filesystem
-  surfaces are `config`, `generated`, `skills`, and `themes`. Slash commands in
-  Codex are built-in TUI actions, plugin/marketplace-provided, or MCP-server
-  prompts (`prompts/list`); none are wireable from a repo `.md` file. Codex
-  instead consumes dojo skills via `~/.codex/skills/` (synced by the
-  standardizer) and invokes them with `$skill-name` from each skill's generated
-  `default_prompt`. So there is nothing to wire for Codex — the command wrappers
-  are a Claude Code affordance, and the capability reaches Codex as the skill.
-- **Follow-up (optional)**: `.agents` uses its own convention; wire it only if a
-  consuming harness there needs command files.
