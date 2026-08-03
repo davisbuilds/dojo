@@ -1,13 +1,14 @@
-# Improvement Backlog
+# Backlog
 
-Living list of future friction points, design gaps, and follow-up actions noticed
-during normal repo work. Lightweight: items get added when they bite, removed
-when they ship or prove not worth doing. This is not a release contract;
+Living list of future design gaps, tech debt, and better ways to do a thing noticed
+during normal execution. Fix simple, quick, or blocking issues inline; capture only
+durable follow-ups worth revisiting cold. This is not a release contract;
 `docs/project/ROADMAP.md` is the higher-bar shipped/in-progress view.
 
-Convention: each item has **What** (the friction), **Why it matters**, and
-optionally **Sketch** (a one-line implementation thought). Status values:
-`noted` / `in-progress` / `dropped`.
+Convention: each item has **What** (the friction), **Why or evidence**, and
+optionally **Next** (the smallest action that makes it actionable) or **Revisit
+when** (an intentional external or measurable gate). Status is usually omitted;
+use it only when it clarifies a gate or uncertainty.
 
 When an item ships, remove it from this doc and record it as a concise completed
 highlight in `docs/project/ROADMAP.md` instead of keeping a shipped note here.
@@ -17,7 +18,7 @@ This file stays future-only.
 
 ## Open
 
-#### Port two pr-review-toolkit specialists into dojo before disabling the plugin
+### Port two pr-review-toolkit specialists into dojo before disabling the plugin
 Status: open
 - **What**: auditing Claude plugins on 2026-07-29 found two agents in
   `pr-review-toolkit@claude-plugins-official` that cover ground **no dojo skill
@@ -47,12 +48,12 @@ Status: open
   attempts. Compare against `local-review` before reinventing.
 - See also the separate branch-hygiene entry below, which owns the one gap found
   in the `commit-commands` plugin.
-- **Sketch**: two new skills, or one `error-handling-review` skill plus a
+- **Next**: two new skills, or one `error-handling-review` skill plus a
   `type-design` section in an existing review skill. Add trigger fixtures so the
   routing collision with `local-review` and `secure-code` is tested, given the
   catalog already has 17 entry points for "review this".
 
-#### The gh-* family covers creating work but not cleaning up after it
+### The gh-* family covers creating work but not cleaning up after it
 Status: open
 - **What**: auditing the `commit-commands@claude-plugins-official` plugin on
   2026-07-29 (now disabled) surfaced one thing the catalog does not cover. The
@@ -83,12 +84,12 @@ Status: open
   covers no-changes, existing-PR, merge-conflict, binary-file, and
   sensitive-file cases. The commit/push/PR path itself is well covered and is a
   strict superset of what the plugin offered — do not reimplement it.
-- **Sketch**: either a `gh-branch-hygiene` skill or an Edge Cases/cleanup section
+- **Next**: either a `gh-branch-hygiene` skill or an Edge Cases/cleanup section
   appended to `gh-commit-push-pr`. Prefer the latter if it stays under a few dozen
   lines, since the catalog already has routing-collision pressure and this is
   adjacent to an existing trigger rather than a new intent.
 
-#### Harness adapters promote the whole catalog to project scope, blowing the skill-listing budget
+### Harness adapters promote the whole catalog to project scope, blowing the skill-listing budget
 Status: in-progress
 - **What**: `scripts/gen_harness_adapters.py` links `.claude/skills -> ../skills`,
   which makes every cataloged skill *project-scope* in whatever directory holds
@@ -113,7 +114,7 @@ Status: in-progress
   but at full-catalog width it degrades the routing it is meant to enable, and it
   silently changes which copy of a drifted skill is authoritative. Contradicts the
   repo's own "context is sacred" principle.
-- **Sketch**: teach the generator distribution *profiles* (see the existing
+- **Next**: teach the generator distribution *profiles* (see the existing
   "Add explicit distribution profiles" direction) so an adapter links a named
   subset rather than the whole tree; and/or emit per-skill symlinks so a profile
   is expressible. Report estimated listing cost under `--check` so budget
@@ -124,7 +125,7 @@ Status: in-progress
   managed realizations, authoritative harness-scoped budgets, and a prohibition
   on legacy adapter refreshes silently restoring whole-catalog links.
 
-#### Cross-machine profile drift is silent and can restore superseded skill behavior
+### Cross-machine profile drift is silent and can restore superseded skill behavior
 Status: in-progress
 - **What**: on 2026-07-27 the Mac mini's globals were **28 skills content-drifted**
   against a clean `origin/main` dojo checkout, including a `verify-before-complete`
@@ -136,7 +137,7 @@ Status: in-progress
   machines actually running the skills differ. The artifact that needs versioning is
   the *selected distribution profile plus its harness realization*, not the checkout.
   Nothing currently fails, warns, or reports when they diverge.
-- **Sketch**: have the mini's weekly health job run a read-only standardizer audit
+- **Next**: have the mini's weekly health job run a read-only standardizer audit
   after the scheduled checkout refresh and report canonical commit, installed profile,
   missing expected skills, content-drift count, and harness CLI versions. Detect and
   notify; do not auto-rewrite globals as part of a git pull.
@@ -153,7 +154,7 @@ Status: in-progress
   the mini received 0 `.pyc` files from the sync. Any *new* drift check (e.g. in the
   mini health job) must reuse this logic rather than rolling its own `diff`.
 
-#### Contract v1 has no shape for an opinion-only skill
+### Contract v1 has no shape for an opinion-only skill
 Status: noted
 - **What**: `workflow` skills must carry scope, boundaries, verification, output,
   execution, and resource-map anchors, CI-enforced under `--strict`. That imposes a
@@ -162,12 +163,12 @@ Status: noted
 - **Why it matters**: current provider guidance holds that the highest-value skills
   encode particular opinions and taste rather than procedure. The contract makes that
   the one shape the catalog cannot express, and rewards padding to reach the anchors.
-- **Sketch**: add an `opinion` (or `guidance`) `skill-type` requiring only valid
+- **Next**: add an `opinion` (or `guidance`) `skill-type` requiring only valid
   frontmatter plus `description_trigger_ready`, with `context_budget` still advisory.
   Re-evaluate `first-principles` against it — it is 1,683 words largely because
   `workflow` gave it anchors to fill.
 
-#### write-spec/write-plan: make high-risk validation incrementally adoptable for legacy artifacts
+### write-spec/write-plan: make high-risk validation incrementally adoptable for legacy artifacts
 Status: noted
 - **What**: adding `risk_profile: high` / `readiness` to a mature legacy spec or
   plan currently activates the entire new-contract gate at once. A pre-existing
@@ -177,7 +178,7 @@ Status: noted
   workflows adopt stronger authority/evidence/readiness checks where they matter.
   An all-or-nothing migration encourages agents to omit the metadata entirely—the
   opposite of progressive, risk-adaptive adoption.
-- **Sketch**: make ID enforcement conditional without weakening new contracts:
+- **Next**: make ID enforcement conditional without weakening new contracts:
   require full `SC`/`EV` closure when an ID-bearing schema/version is declared or
   any contract IDs exist, while allowing a high-risk legacy artifact to use named
   contract surfaces plus all other authority, failure-window, evidence, and
@@ -185,7 +186,7 @@ Status: noted
   legacy no-ID artifact receiving a high-risk amendment, and (3) partial-ID input
   that must fail rather than silently downgrade.
 
-#### research-architect: remaining deferred tooling
+### research-architect: remaining deferred tooling
 Status: noted
 - **What**: `scripts/diff_runs.py` and `references/rubric-library.md` remain
   deliberately deferred. (`scripts/score_report.py`, the third of the original
@@ -195,14 +196,14 @@ Status: noted
   Building a rubric library on one data point would encode guesses — the mistake
   the deferral exists to avoid. `diff_runs.py` only pays off on multi-run plans
   and depends on M1 section alignment holding in practice.
-- **Sketch**: Seed `rubric-library.md` once 2–3 more runs identify rubric items
+- **Next**: Seed `rubric-library.md` once 2–3 more runs identify rubric items
   that actually discriminate (items that always pass are dead weight and belong
   in the postmortem, not the library). Build `diff_runs.py` on top of
   `score_report.py`'s claim/citation extraction rather than duplicating it: align
   sections by the M1 fixed order, then surface confident specifics appearing in
   only one report as hallucination candidates.
 
-#### skills-health: runtime join is last-wins, undercounts a version-split skill
+### skills-health: runtime join is last-wins, undercounts a version-split skill
 Status: noted
 - **What**: `skill_health_runtime.enrich_report` indexes health rows as
   `rows_by_name = {row["name"]: row}`, so if AgentMonitor returns more than one
@@ -214,12 +215,12 @@ Status: noted
   versions mid-window could look under-used). Not observable today — the live
   payload has 79 rows / 79 unique names, zero splits — but it becomes wrong as
   version churn increases.
-- **Sketch**: When multiple rows share a name, aggregate before ranking — sum
+- **Next**: When multiple rows share a name, aggregate before ranking — sum
   `invocations`/`misfires`/`misfireEligible`, `neverFired` only if all rows are
   never-fired, and surface the newest/installed version for display. Add a
   fixture with two rows for one dojo skill to lock the behavior.
 
-#### skills-health: many canonical dojo skills aren't installed globally, so they're unmeasurable
+### skills-health: many canonical dojo skills aren't installed globally, so they're unmeasurable
 Status: noted
 - **What**: As of 2026-07-15, 26 of 57 canonical `skills/` are installed in none
   of the global catalog dirs AgentMonitor scans (`~/.claude/skills`,
@@ -245,7 +246,7 @@ Status: noted
   profiles; health coverage should distinguish excluded skills from missing or
   drifted members of the selected profile.
 
-#### Standardizer has no allowlist for foreign non-skill dirs in mirror roots
+### Standardizer has no allowlist for foreign non-skill dirs in mirror roots
 Status: resolved (2026-07-16)
 - **What**: `~/.codex/skills/codex-primary-runtime` is a Codex-specific runtime
   directory with no `SKILL.md`, so every full-scan audit reported it as
@@ -261,7 +262,7 @@ Status: resolved (2026-07-16)
   warning only stops recurring if the operator remembers to pass it every run.
   Built-in for permanent tool-owned dirs, flag for one-offs.
 
-#### skill-standardizer regression tests never run in CI
+### skill-standardizer regression tests never run in CI
 Status: resolved (2026-07-16)
 - **What**: CI runs `python -m pytest tests/ -q`, which only collects the
   top-level `tests/` directory. The standardizer's 13-test regression suite lives
@@ -277,7 +278,7 @@ Status: resolved (2026-07-16)
   hole.
 - **Follow-up**: see "Port skill-standardizer tests to pytest" below.
 
-#### Port skill-standardizer tests to pytest under tests/
+### Port skill-standardizer tests to pytest under tests/
 Status: noted
 - **What**: `skills/skill-standardizer/scripts/test_skill_standardizer.py` uses a
   hand-rolled `main()` runner and an `assert_true` helper instead of pytest. It
@@ -301,7 +302,7 @@ Status: noted
   there (stdlib-only, hermetic tempdir fixtures — verified passing from `/tmp`),
   but "can run" is not "has a consumer". Losing it from the global copy costs
   nothing, so the port is plain conformance.
-- **Sketch**: port ~13 tests to `tests/test_skill_standardizer.py` with
+- **Next**: port ~13 tests to `tests/test_skill_standardizer.py` with
   `tmp_path`/`monkeypatch`, delete the original, drop the dedicated CI step, and
   update both the `Run skill-standardizer regression tests` section of
   `docs/system/OPERATIONS.md` and the "known exception" paragraph under Test
@@ -313,7 +314,7 @@ Status: noted
   shared 184-test run and leaves a dead `main()` plus two ways to invoke one
   file. It preserves the anomaly instead of resolving it.
 
-#### bump_skill_version.py could regenerate the manifest itself
+### bump_skill_version.py could regenerate the manifest itself
 Status: noted
 - **What**: `bump_skill_version.py` writes SKILL.md directly (subprocess, not the
   agent's Write/Edit tool), so the post-tool-use manifest-regen hook never fires
@@ -322,40 +323,40 @@ Status: noted
 - **Why it matters**: The helper's whole point is doing the mechanical release
   edits in one command; a forgotten manifest regen re-introduces the friction it
   set out to remove.
-- **Sketch**: Optionally invoke `generate_skills_manifest.py` and `gen_catalog.py`
+- **Next**: Optionally invoke `generate_skills_manifest.py` and `gen_catalog.py`
   after a successful non-dry-run bump (behind a `--no-regen` escape hatch), or
   have the stop-hook manifest check auto-heal. Keep it opt-outable so scripted
   batch bumps can regenerate once at the end.
 
-#### Shared SemVer helper
+### Shared SemVer helper
 Status: noted
 - **What**: SemVer parsing/validation now exists in multiple scripts.
 - **Why it matters**: The duplication is small, but future changes to prerelease
   or build-metadata handling could drift between validation, manifest generation,
   and version-bump checks.
-- **Sketch**: Move the regex plus parse/compare helpers into a small importable
+- **Next**: Move the regex plus parse/compare helpers into a small importable
   module under `skills/skill-evals/scripts/` or `scripts/lib/`, then have
   validators and generators use the same implementation.
 
-#### Changelog entry format hardening
+### Changelog entry format hardening
 Status: noted
 - **What**: Version checks currently require a `CHANGELOG.md` heading containing
   the new version, but do not require dates or entry content.
 - **Why it matters**: This keeps adoption friction low, but changelog quality may
   vary once skills start receiving regular releases.
-- **Sketch**: After a few real version bumps, consider requiring headings like
+- **Next**: After a few real version bumps, consider requiring headings like
   `## 1.2.3 - YYYY-MM-DD` plus at least one bullet under the heading.
 
-#### Install/update workflows should understand skill versions
+### Install/update workflows should understand skill versions
 Status: noted
 - **What**: The manifest and catalog now expose skill versions, but installer and
   standardizer workflows do not yet report available/current version deltas.
 - **Why it matters**: Version metadata is most useful when sync and install tools
   can say whether a local copy is behind, ahead, or divergent.
-- **Sketch**: Extend skill install/standardization reports to show source and
+- **Next**: Extend skill install/standardization reports to show source and
   destination versions alongside existing drift information.
 
-#### Command wrappers are documented but never wired into any harness
+### Command wrappers are documented but never wired into any harness
 Status: resolved (2026-07-15)
 - **Resolution**: `scripts/gen_harness_adapters.py` now links each skill's
   `commands/<rel>.md` into `.claude/commands/<rel>.md` (local-only, gitignored),
