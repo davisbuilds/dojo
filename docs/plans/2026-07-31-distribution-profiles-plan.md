@@ -97,8 +97,12 @@ both directions.
   must re-verify cross-machine agreement at the moment it uses it. Separately,
   `microsoft-foundry` is now **disabled in Codex config**: still installed, no
   longer listed, so it is a live case for "the filesystem never adds an entry the
-  probe did not list" but **not** a live foreign-entry observation for SC-05,
-  which Task 4 must construct.
+  probe did not list". A live foreign entry for SC-05 nonetheless exists —
+  `spreadsheet`, under `~/.codex/skills`, listed in every session. An earlier
+  revision of this bullet reasoned from `microsoft-foundry`'s absence to a
+  general one and told Task 4 to construct the fixture; Task 0's probe found the
+  real entry immediately. Both facts are kept because the mistake is the plan's
+  own second methodological assumption, made while writing it down.
 - **Two harnesses are deployable** as of spec revision 8 — Codex and Claude
   Code — each with a limit read from vendor implementation source at a pinned
   version. They must not be assumed to behave alike: budgets differ in **unit**
@@ -157,9 +161,9 @@ in the contract — was considered and declined.
 #53/#54 merges. The two harnesses now disagree sharply, which is the finding.
 
 *Codex*, budget 5,440 tokens — **nothing truncates anywhere**. Ordinary sessions
-41 entries / ~4,232 / 78%. `blueprint-finance` 42 / ~4,363 / 80%. `dojo` itself
-41 / ~4,232 / 78%, down from 95 entries and 177% once `.agents` left
-`HARNESS_DIRS`. `viral` 47 / ~5,257 / **97%** — under the budget, over the 90%
+41 entries / 4,132 / 76%. `blueprint-finance` 42 / 4,263 / 78%. `dojo` itself
+41 / 4,132 / 76%, down from 95 entries and 177% once `.agents` left
+`HARNESS_DIRS`. `viral` 47 / 5,159 / **95%** — under the budget, over the 90%
 ceiling, therefore non-deployable.
 
 *Claude Code*, budget 8,000 characters at a 200k window — **still in breach
@@ -285,6 +289,59 @@ adapter-writing script, then reading each hit:
 ## Task Breakdown
 
 ### Task 0: Deterministic listing probes for both deployable harnesses
+
+> **Executed 2026-08-02.** `scripts/profiles/probe_codex.py`,
+> `scripts/profiles/probe_claude.py`, six fixtures, and
+> `tests/test_profiles_probe.py` (26 tests; suite 313 → 339). Nine findings the
+> plan did not predict, four of which change later tasks:
+>
+> 1. **Only skill lines are charged.** `render.rs` sums `line_cost` over entries;
+>    the intro prose and section headers are not counted. Every prior figure in
+>    this program charged the whole block and overstated by ~2 points. Corrected
+>    everywhere: ordinary session **76%** (not 78%), `viral` **95%** (not 97%).
+> 2. **The alias roots table is a rounded difference of two whole bodies**, not a
+>    sum of per-line costs — 24 tokens against 65 on the live fixture. Using the
+>    sum shrinks the apparent limit by 41 tokens, enough to misreport a listing
+>    that exactly fits. **Task 3 must port `aliased_metadata_overhead_cost`, not
+>    approximate it.**
+> 3. **Codex has a third degradation tier the docs missed: whole-skill omission**,
+>    and unlike truncation it *does* emit a warning into the prompt
+>    (`Exceeded skills context budget…`). Truncation stays unmarked. **Task 3's
+>    detector needs three Codex shapes, not one.**
+> 4. **Render mode is a free degradation signal.** `build_available_skills` tries
+>    absolute paths first and falls back to aliases only when that omits or
+>    truncates, so *absolute mode is proof nothing was clipped*.
+> 5. **Codex reports resolved paths.** A project root that is a symlink into the
+>    catalog — how every dojo checkout exposes itself — appears in the roots table
+>    as the canonical path. Comparing against the unresolved cwd finds project
+>    scope nowhere and returns a confident zero. **Task 4 must resolve.**
+> 6. **The plan's stated reason for reading `messages` was wrong**, though its
+>    conclusion was right. dojo's SessionStart `## Available Skills` decoy is in
+>    `messages` too, so the section does not discriminate. Only the literal
+>    opening sentence does; the fixture retains both to pin it.
+> 7. `codex debug models` takes no `--json`, returns `{"models": [...]}`, and
+>    marks no active model. The budget follows the *active* model, so it is read
+>    key-scoped from `config.toml`; when unset, the catalog is reported as
+>    unanimous or indeterminate rather than guessed.
+> 8. **Two different Codex truncations.** The 1,024-char cap appends `"..."`;
+>    budget-driven truncation appends nothing and cuts mid-word. Both need
+>    detecting and only the second is invisible.
+> 9. A live foreign entry exists — `spreadsheet` — see Assumptions.
+>
+> **Vendor parity is exact, not approximate**: on a capture that truncated, the
+> port's entry cost equals `limit - table_cost` to the token (5,416 = 5,416),
+> because `render_lines_with_description_budget` spends the description budget
+> down to the last one. That equality is the strongest available check on the
+> port and is asserted as a test.
+>
+> Every detector was mutation-probed. Five deliberate breakages were introduced;
+> four failed immediately and **one did not** — setting `sent := loaded` passed
+> all 23 tests, because the over-budget warning line also carries a skill count
+> and was silently overwriting `sent`. Fixed by keeping the two counts separate
+> and cross-checking them, and by capturing a 1M-window session that emits no
+> warning at all, which isolates the `sent` path. That fixture also demonstrates
+> SC-03's requirement directly: identical catalog, same machine, same day —
+> over budget on 200k, silent on 1M.
 
 **Objective**
 

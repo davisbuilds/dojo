@@ -40,14 +40,19 @@ The measured position, from `codex debug prompt-input` — which dumps the
 model-visible listing deterministically, so these are observations of the
 effective catalog rather than estimates from the filesystem:
 
-| Session root | Listed entries | Demand (est. tokens) | % of budget | Truncated |
+| Session root | Listed entries | Charged (tokens) | % of budget | Truncated |
 |---|---|---|---|---|
-| Ordinary global session | 41 | ~4,232 | 78% | 0 |
-| `blueprint-finance` | 42 | ~4,363 | 80% | 0 |
-| `viral` | 47 | ~5,257 | **97%** | 0 |
-| `dojo` itself | 41 | ~4,232 | 78% | 0 |
+| Ordinary global session | 41 | 4,132 | 76% | 0 |
+| `blueprint-finance` | 42 | 4,263 | 78% | 0 |
+| `viral` | 47 | 5,159 | **95%** | 0 |
+| `dojo` itself | 41 | 4,132 | 76% | 0 |
 
-Measured 2026-08-02. Read them as dated observations, not as constants — and
+Measured 2026-08-02 with Codex's own arithmetic rather than an approximation of
+it: only skill lines are charged, the intro prose and section headers are not,
+and the alias roots table is a rounded difference of two whole bodies rather
+than a sum of lines. Every earlier figure in this contract charged the whole
+block and so overstated by roughly two points. Read them as dated observations,
+not as constants — and
 note how far they moved in one day. The 2026-08-01 measurement of the same four
 roots read 96%, 98%, **111% with 19 truncated**, and **177% with 94 truncated**.
 
@@ -55,7 +60,7 @@ Three things follow, and the first is not the one this contract originally
 argued. **Every Codex figure above was recovered by hand, in a day, without
 anyone deciding what any target should receive.** Disabling one unused foreign
 skill returned 18 points; deleting one line from an adapter generator took
-`dojo` from 177% to 78%. Those were real defects and fixing them was correct,
+`dojo` from 177% to 76%. Those were real defects and fixing them was correct,
 but nothing in the repository proposed them, measured them, or now prevents
 their return — the same authoring that produced them can reproduce them, and
 the only reason anyone looked was that someone happened to be looking.
@@ -67,7 +72,7 @@ Code — the property that made `dojo` pay twice for 32 skills until its
 `.agents/skills` link was removed, and that will do so again for any target
 that acquires one.
 
-Codex now truncates nowhere. `viral` remains **non-deployable at 97%** against
+Codex now truncates nowhere. `viral` remains **non-deployable at 95%** against
 the 90% ceiling this contract sets — roughly one average skill from silent
 truncation, with no mechanism to notice it crossing.
 
@@ -118,7 +123,7 @@ alongside `skillListingMaxDescChars` = 1536). That is **8,000 characters at a
 | `dojo`-rooted | 75 | 23,287 | **2.91×** |
 
 Measured 2026-08-02. **This is the harness where the recovery did not happen.**
-Every lever that moved Codex from 96% to 78% moved Claude Code by a few
+Every lever that moved Codex from 96% to 76% moved Claude Code by a few
 percent, because none of them addressed membership: description trimming
 recovered 537 characters against an 8,535-character overage, and the two
 symlink and foreign-skill fixes touched roots Claude Code either does not read
@@ -450,7 +455,7 @@ The reference behavior is explicit:
 - The 31-skill global installation is evidence of intentional curation, not the
   default profile definition. Existing selection is preserved until a maintainer
   explicitly applies a profile. The effective listing it participates in
-  measures ~4,232 estimated tokens, 78% of the Codex budget, on 2026-08-02 —
+  measures 4,132 tokens, 76% of the Codex budget, on 2026-08-02 —
   within the ceiling, and it was at 96% the day before. The contract's job is to
   make that figure provable and durable rather than to reduce it. On Claude Code
   the same installation participates in a listing 2.07× over budget, so no
@@ -468,9 +473,15 @@ The reference behavior is explicit:
   subject that needs re-establishing before each use, not as a standing fact.
   `microsoft-foundry` remains installed but is **disabled in Codex config**, so
   it is present on disk and absent from the listing — a useful live case for the
-  rule that the filesystem never adds an entry the probe did not list, but *not*
-  a live foreign-entry observation in the Codex listing, which must be
-  constructed.
+  rule that the filesystem never adds an entry the probe did not list.
+- **A live foreign entry does exist, and an earlier draft of this bullet said it
+  did not.** Having established that `microsoft-foundry` was no longer listed,
+  that draft concluded the foreign-entry fixture would have to be constructed —
+  reasoning from one absence to a general one without running the probe. The
+  probe reports `spreadsheet`, installed under `~/.codex/skills` and listed in
+  every session. Recorded because the error is this contract's own subject
+  matter: an absence is a claim about the instrument, and the instrument was
+  sitting one command away.
 - Listing cost is a moving target, and every figure in this contract is a
   measurement with a date rather than a constant. Description edits move it
   without changing skill membership, and skill authoring moves it without any
@@ -671,8 +682,8 @@ budget checks, not an unresolved behavioral decision.
 
 - **2026-08-02 (revision 10).** Re-measured, and the Problem's live-breach
   evidence has moved to a different harness. Codex now **truncates nowhere**:
-  the ordinary session sits at 78% (was 96%), `dojo` at 78% (was 177% with 94
-  truncated), `viral` at 97% (was 111% with 19 truncated). Two merged changes
+  the ordinary session sits at 76% (was 96%), `dojo` at 76% (was 177% with 94
+  truncated), `viral` at 95% (was 111% with 19 truncated). Two merged changes
   did it — disabling one unused foreign skill, and dropping `.agents` from the
   adapter generator's harness list so the catalog stops being linked into Codex
   project scope.
@@ -683,7 +694,7 @@ budget checks, not an unresolved behavioral decision.
   strengthened: none of those fixes was proposed, measured, or is now prevented
   from regressing by anything in this repository, and the figures moved by a
   factor of two in one day with no distribution decision taken. `viral` is still
-  non-deployable at 97% against the 90% ceiling.
+  non-deployable at 95% against the 90% ceiling.
 
   **Claude Code is where the argument now rests.** It moved by a few percent
   under the same levers — 2.13× to 2.07× ordinary, 2.98× to 2.91× in `dojo` —
