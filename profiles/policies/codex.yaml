@@ -1,0 +1,38 @@
+# Reviewed budget policy. Derived from vendor implementation source at a pinned
+# revision, which SC-04 accepts as authoritative — so the "two unchanged runs
+# must agree within 2%" rule does not apply here. That rule governs the
+# *measured* route only, where a limit is established by observation.
+harness: codex
+harness_version: codex-cli 0.145.0
+model: gpt-5.6-terra
+
+unit: tokens
+limit: 5440
+context_window: 272000
+# The FULL window, not the 95%-effective one. codex-rs/core/src/session/mod.rs
+# passes model_info.context_window unmodified into default_skill_metadata_budget,
+# so the budget is 2% of 272,000 and not of 258,400. An earlier revision of this
+# program used 5,168 and every figure derived from it was wrong.
+window_field: context_window
+
+estimator: >-
+  Codex's own arithmetic, ported rather than approximated: ceiling division over
+  UTF-8 bytes at 4 bytes/token, per skill line including its trailing newline.
+  Only skill lines are charged — the intro prose and section headers are not —
+  and the alias roots table is a rounded difference of two whole rendered
+  bodies, not a sum of per-line costs. Both were measured wrong first.
+provenance: >-
+  codex-rs/core-skills/src/render.rs at pinned revision f57467275c
+  (default_skill_metadata_budget, line_cost, aliased_metadata_overhead_cost),
+  called from codex-rs/core/src/session/mod.rs.
+measured: 2026-08-02
+probe: codex debug prompt-input
+
+# Declared in use, so this pair gates (spec revision 11).
+deployable: true
+
+# Codex lists BOTH copies of a name across roots and charges for both. Verified:
+# a dojo-rooted session carried 32 duplicated names before the .agents link was
+# retired.
+shadows_by_name: false
+project_scope_root: .agents/skills

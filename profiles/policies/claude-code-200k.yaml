@@ -1,0 +1,33 @@
+# DECLARED, NOT DEPLOYABLE (spec revision 11).
+#
+# The limit here is every bit as authoritative as the 1M policy's — same vendor
+# constants, same probe. What differs is that nobody runs this pair. It is
+# scored and reported so a session that does land here is told it is
+# non-conformant, and it never gates, so a suite does not fail for a path in
+# nobody's use.
+#
+# Promoting it is a visible edit to `deployable` below, not a consequence of
+# someone selecting a different model. Demand does not move with the window —
+# only the budget does — so the same measurements score against both policies.
+harness: claude-code
+harness_version: 2.1.220
+model: haiku-200k
+
+unit: characters
+limit: 8000
+context_window: 200000
+window_field: context_window
+
+estimator: >-
+  Identical to the 1M policy: rendered character count, compared characters to
+  characters, no token conversion.
+provenance: >-
+  Claude Code bundle v2.1.220 constants, confirmed live by
+  `claude --debug-file`: "75 skills, 23287 chars > 8000 budget".
+measured: 2026-08-02
+probe: claude -p --no-session-persistence --model haiku --debug-file <path> "say ok"
+
+deployable: false
+
+shadows_by_name: true
+project_scope_root: .claude/skills

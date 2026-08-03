@@ -1,0 +1,33 @@
+# Reviewed budget policy. Vendor constants read from the shipped bundle, which
+# SC-04 accepts as authoritative — the 2%-agreement rule for measured policies
+# does not apply.
+harness: claude-code
+harness_version: 2.1.220
+model: opus-1m
+
+# CHARACTERS, end to end. context_tokens * 4 bytes * skillListingBudgetFraction.
+# No token conversion happens anywhere on this path; converting would introduce
+# an error the harness itself never makes.
+unit: characters
+limit: 40000
+context_window: 1000000
+window_field: context_window
+
+estimator: >-
+  Rendered `- {name}: {description}` character count plus a newline, compared
+  characters to characters. skillListingBudgetFraction defaults to 0.01 and
+  skillListingMaxDescChars to 1536.
+provenance: >-
+  Claude Code bundle v2.1.220 constants, confirmed live by
+  `claude --debug-file`, which states the budget verdict outright.
+measured: 2026-08-02
+probe: claude -p --no-session-persistence --model <model> --debug-file <path> "say ok"
+
+# The operator runs 1M sessions, so this pair is declared in use and gates.
+deployable: true
+
+# Claude Code deduplicates by name across scopes: a dojo session loads 94 and
+# sends 75. The opposite of Codex, which is why this is policy data rather than
+# a rule in the observation code.
+shadows_by_name: true
+project_scope_root: .claude/skills

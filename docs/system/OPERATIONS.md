@@ -218,6 +218,40 @@ not collect it. CI runs it as its own step; invoke it directly to run it locally
 python3 skills/skill-standardizer/scripts/test_skill_standardizer.py
 ```
 
+### Measure what a session's skill listing actually costs
+
+Both harnesses expose their model-visible listing deterministically, with no LLM
+in the loop. This answers a question nothing else in the repo answers — what the
+effective catalog costs *right now*, on this harness, in that harness's own
+arithmetic.
+
+```bash
+# Codex: entries, origins, and utilisation against the 2%-of-window budget
+.venv/bin/python scripts/profiles/probe_codex.py --cwd . [--json]
+
+# Claude Code: `sent` is the listing count, `demand_chars` the untruncated figure
+.venv/bin/python scripts/profiles/probe_claude.py --cwd . --model opus [--json]
+```
+
+Three things to know before trusting a number from these:
+
+- **`demand` is computed from untruncated source, never from the rendered
+  listing.** A harness that elides to fit produces output that always fits: a
+  live capture rendered 8,046 characters against an 8,000 budget while true
+  demand was 23,287. Anything calibrated on rendered output reports ~100% for a
+  291% listing.
+- **Claude Code's budget scales with the model's context window** — 8,000
+  characters at 200k, 40,000 at 1M — so a figure is meaningless without the
+  model. Pass `--model` deliberately.
+- **The filesystem is not the listing.** A skill can be installed and unlisted
+  (`microsoft-foundry`, disabled) or bundled and unlisted (`review-agent`).
+  Neither costs anything, and neither can displace a profile member.
+
+The profile library under `scripts/profiles/` composes these into resolution,
+budget assessment, observation, and a byte-identical evidence report. It is
+read-only and has no entrypoint yet; `dojo profiles verify --all` arrives with
+Task 8 of the distribution-profiles plan.
+
 ## Hook Configuration
 
 Hooks are configured in `.claude/settings.json` and `.agents/settings.json`. No manual installation is needed — they activate automatically when opening the repo in a supported harness.

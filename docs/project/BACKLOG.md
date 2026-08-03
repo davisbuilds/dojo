@@ -99,40 +99,37 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   lines, since the catalog already has routing-collision pressure and this is
   adjacent to an existing trigger rather than a new intent.
 
-### Harness adapters promote the whole catalog to project scope, blowing the skill-listing budget
+### Harness adapters can still promote the whole catalog to project scope
 - **What**: `scripts/gen_harness_adapters.py` links `.claude/skills -> ../skills`,
-  which makes every cataloged skill *project-scope* in whatever directory holds
-  the adapter. Measured 2026-07-26 on macbook: the same symlink placed at
-  `~/Dev/.claude/skills` produced a 58-skill listing costing ~6,738 est. tokens —
-  **3.4x** the ~1% context budget Claude Code allots the listing, past which
-  descriptions are silently truncated. Project scope also *shadows* user scope, so
-  31 of the 32 deliberately installed `~/.agents/skills` entries were overridden by
-  their dojo counterparts. Working inside `dojo` itself hits the same cost locally.
-- **Scope corrected 2026-07-29** (re-measured by live enumeration, not filesystem
-  inspection): **project-scope skills are not inherited by subdirectories.** A
-  `.claude/skills` adapter affects only sessions rooted at the directory holding
-  it — 88 skills at `~/Dev` vs 60 at `~/Dev/agentmonitor`, first 30 identical. So
-  no shadowing occurs in a subproject session, the cost of the extras is
-  **~1,948 est. tokens** and only at the adapter's own directory, and **Codex is
-  unaffected entirely** (`.claude/` is not a path it reads). Two further caveats
-  for the profile work: the "~1% budget" figure remains **unverified** against
-  vendor docs, and plugin plus bundled skills are roughly half of any Claude
-  listing — outside dojo's reach at any profile width. Measured Codex cost of the
-  shared 32 is ~3,185 est. tokens, which is the catalog a profile would govern.
-- **Why it matters**: the adapter is documented as making skills "discoverable",
-  but at full-catalog width it degrades the routing it is meant to enable, and it
-  silently changes which copy of a drifted skill is authoritative. Contradicts the
-  repo's own "context is sacred" principle.
-- **Next**: teach the generator distribution *profiles* (see the existing
-  "Add explicit distribution profiles" direction) so an adapter links a named
-  subset rather than the whole tree; and/or emit per-skill symlinks so a profile
-  is expressible. Report estimated listing cost under `--check` so budget
-  regressions are visible. Relates to
-  `skills-health: many canonical dojo skills aren't installed globally`.
-- **Contract**: `docs/specs/2026-07-27-distribution-profiles-spec.md` is ready
-  for planning. It defines a mandatory core plus capability overlays, exact
-  managed realizations, authoritative harness-scoped budgets, and a prohibition
-  on legacy adapter refreshes silently restoring whole-catalog links.
+  making every cataloged skill project-scope in whatever directory holds the
+  adapter. Nothing prevents a refresh from restoring that link, and nothing
+  reports the cost when it does.
+- **Why or evidence (re-measured 2026-08-03; three earlier figures here were
+  wrong and are recorded below because the pattern is the finding)**:
+  - Codex-facing `.agents` was dropped from `HARNESS_DIRS` in PR #54, which took
+    a dojo-rooted Codex session from **177% of budget with 94 truncated
+    descriptions to 76% with none**. The generator now also retires a
+    pre-existing link, so the fix reaches machines that ran the old version.
+  - `.claude/skills` **survives and is still a live cause**: a dojo-rooted Claude
+    Code session lists 75 skills against 45 in an ordinary one. At the 1M window
+    the operator actually uses that is 58% of 40,000 characters — inside the
+    ceiling. At 200k it is 2.91×.
+  - `.agent/skills` is read by **neither** harness. It is dead output.
+- **Superseded claims, kept so the corrections are not re-made**: the original
+  "3.4× the ~1% budget" does not reproduce (2.07× ordinary, 2.91× in dojo); the
+  "~1% budget" is no longer unverified but a confirmed vendor constant
+  (`skillListingBudgetFraction` = 0.01); "31 of 32 entries shadowed" was
+  corrected in 2026-07-29 when project scope turned out not to be inherited by
+  subdirectories; and every token figure predating 2026-08-02 charged the whole
+  instructions block rather than only the skill lines, overstating by ~2 points.
+- **Next**: Task 13 of `docs/plans/2026-07-31-distribution-profiles-plan.md`
+  makes the generator profile-aware and decides `.agent/skills`'s fate. The
+  measurement half is already shipped — `scripts/profiles/` computes the cost of
+  any target against either harness — so the remaining work is the refusal, not
+  the arithmetic.
+- **Revisit when**: Task 13 is implemented, or a `.claude/skills` link is
+  observed on a 200k-window session, which is the only configuration where this
+  currently degrades anything.
 
 ### Cross-machine profile drift is silent and can restore superseded skill behavior
 - **What**: on 2026-07-27 the Mac mini's globals were **28 skills content-drifted**
