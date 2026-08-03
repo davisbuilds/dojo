@@ -354,11 +354,20 @@ verify time rather than cached and trusted.
 
 - Create: `scripts/profiles/probe_codex.py`
 - Create: `scripts/profiles/probe_claude.py`
-- Create: `tests/fixtures/profiles/codex-prompt-input-dojo-2026-08-01.json`
-- Create: `tests/fixtures/profiles/codex-prompt-input-blueprint-2026-08-01.json`
-- Create: `tests/fixtures/profiles/codex-prompt-input-viral-2026-08-01.json`
-- Create: `tests/fixtures/profiles/claude-debug-dojo-2026-08-01.txt`
-- Create: `tests/fixtures/profiles/claude-request-dojo-2026-08-01.json`
+- Create: `tests/fixtures/profiles/codex-prompt-input-dojo-2026-08-02.json`
+- Create: `tests/fixtures/profiles/codex-prompt-input-truncating-2026-08-02.json`
+  (a synthetic cwd holding only `.agents/skills -> <catalog>`; no live Codex
+  session truncates any more, so the degraded case must be constructed)
+- Create: `tests/fixtures/profiles/claude-debug-dojo-2026-08-02.txt`
+- Create: `tests/fixtures/profiles/claude-debug-dojo-1m-under-budget-2026-08-02.txt`
+- Create: `tests/fixtures/profiles/claude-request-dojo-2026-08-02.json`
+
+**No fixture may be a capture of another repository.** A `viral`-rooted capture
+was taken and then deleted: it was used by no test and published a private
+project's skill names and descriptions into a public repo. Fixtures come from
+this repository or from a synthetic directory, and machine identity is
+pseudonymised **byte-length-preserving**, because the vendor-parity assertion
+compares exact costs.
 - Test: `tests/test_profiles_probe.py`
 
 **Dependencies**
@@ -465,7 +474,7 @@ None
 - Runner/discovery evidence: the repo has no `pytest.ini`/`pyproject.toml`; CI
   and `docs/system/OPERATIONS.md:31` both invoke `python -m pytest tests/ -q`,
   which collects any `tests/test_*.py`. `.venv/bin/python -m pytest tests/ -q
-  --collect-only` currently reports `309 tests collected`.
+  --collect-only` currently reports `391 tests collected` (2026-08-03; assert a floor, never this literal).
 - Literal proof: `.venv/bin/python -m pytest tests/test_profiles_probe.py -q`
 
 **Done When**
@@ -657,7 +666,11 @@ Task 1
 **Implementation Steps**
 
 1. Implement `resolve(selection, definitions, catalog)` where `selection` is a
-   list of profile tokens. Membership is set union over `core` plus the named
+   list of profile tokens. **Task 1 already shipped `load_definitions`,
+   `load_equivalences`, `equivalence_identity`, and `resolved_members` in
+   `scripts/profiles/definitions.py`** — `resolved_members` is what expands
+   `full`'s `"*"` sentinel against the manifest. Import them; a second sentinel
+   expansion is a second thing that can disagree with the first. Membership is set union over `core` plus the named
    overlays; the result is sorted lexically; duplicate inclusions collapse to one
    member.
 2. Reject, each with a distinct error code: unknown profile name; a selection
@@ -990,6 +1003,14 @@ policy that the observation code reads, never a rule the observation code hard-c
    for Claude, `~/.codex/plugins/cache` for Codex. Do **not** reuse
    `is_plugin_cache_path` for Codex; it would misclassify Codex's listed plugin
    entries as non-plugin and hide them.
+3b. **Resolve the project root before comparing it.** Codex reports the
+   symlink's *target*, not the link, so a project root that is a symlink into
+   the canonical catalog — how every dojo checkout exposes itself — appears in
+   the roots table as the canonical path. Comparing against the unresolved cwd
+   finds project scope nowhere and returns a confident zero. Task 0 shipped this
+   in `probe_codex.classify`; reuse it rather than re-deriving it. Resolve
+   non-strictly, since evidence captured on another machine names paths that
+   need not exist here.
 4. Read `shadows_by_name` and `project_scope_root` **from the harness policy**
    (Task 3) rather than branching on a harness name in the observation code. When
    `shadows_by_name` is false (Codex), a name in two roots is **two effective
@@ -1483,7 +1504,7 @@ Task 8
 - Expect: the check **fails** — proving it can see a violation, so a clean result
   is a measurement rather than a broken detector.
 - Run (full suite): `.venv/bin/python -m pytest tests/ -q`
-- Expect: **≥ 309 passed** (the current baseline) plus the new tests, 0 failed.
+- Expect: **≥ 391 passed** (the 2026-08-03 baseline) plus the new tests, 0 failed.
 
 **Test Discovery Verified**
 
@@ -1506,7 +1527,7 @@ Task 8
   definition validation) from a silent zero-target evaluation; a test asserts the
   fixture-backed step reports `state: unprofiled` for its target rather than
   skipping it (SC-01, SC-12).
-- The full suite stays green at **≥ 309 + new** tests.
+- The full suite stays green at **≥ 391 + new** tests.
 
 ---
 
@@ -2203,7 +2224,7 @@ Task 15
 - Run: `.venv/bin/python scripts/slop_scan.py`
 - Expect: exit 0.
 - Run: `.venv/bin/python -m pytest tests/ -q`
-- Expect: **≥ 309 passed** plus all tests added by this plan, 0 failed.
+- Expect: **≥ 391 passed** plus all tests added by this plan, 0 failed.
 - Run: `.venv/bin/python skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`
 - Expect: exit 0 (the repo's documented pre-push gate).
 
@@ -2306,7 +2327,7 @@ Task 15
 | Deprecated-alias path cannot change membership | `.venv/bin/python -m pytest tests/test_profiles_entrypoint_guards.py -q -k alias` | Fixture with a live deprecated alias: zero membership change |
 | One lock across all writers | `.venv/bin/python -m pytest tests/test_profiles_entrypoint_guards.py -q -k contention` | `sync.py --apply` vs `dojo profiles apply`: at most one writer |
 | Migration is explicit and recoverable | `.venv/bin/python -m pytest tests/test_profiles_migration.py -q` | Audit no-ops; migrate → exact membership; predecessor restorable |
-| Repo gates stay green | `.venv/bin/python -m pytest tests/ -q && .venv/bin/python scripts/check_links.py && .venv/bin/python scripts/slop_scan.py && .venv/bin/python skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict` | ≥ 309 + new passed; all exit 0 |
+| Repo gates stay green | `.venv/bin/python -m pytest tests/ -q && .venv/bin/python scripts/check_links.py && .venv/bin/python scripts/slop_scan.py && .venv/bin/python skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict` | ≥ 391 + new passed; all exit 0 |
 
 ## High-Risk Readiness
 
