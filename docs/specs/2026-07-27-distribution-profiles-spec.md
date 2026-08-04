@@ -72,11 +72,21 @@ each total **exactly 4,000 tokens**, entry cost plus alias table, with zero
 difference between them. Codex spends the listing budget to the last token, which
 is the vendor-parity property Task 0 already asserts; the error was the
 denominator. `codex debug models` reports a 272,000 window for this model
-(2% = 5,440), while the interactive surface budgets as though the window were
-200,000. The mechanism is unexplained and the figure is **observed, not derived**
-— two renders on one machine, one model, one day. It is recorded as unanswered
-rather than closed, and what would settle it is a third render on a different
-model.
+(2% = 5,440), while the interactive surface budgets against 4,000.
+
+**Confirmed 2026-08-04 across a third render on a second model.** A `gpt-5.6-sol`
+session in the same directory produced a listing byte-identical to the
+`gpt-5.6-terra` one — 56 entries, 3,892 + 108 = **4,000**, descriptions clipped
+to 207. Three renders, two models, entry counts from 56 to 110, all totalling
+exactly 4,000. **The interactive budget does not move with the model**, which
+contradicts the pinned vendor path in which `session/mod.rs` passes
+`model_info.context_window` into `default_skill_metadata_budget`. Whether this is
+a fixed 4,000-token cap or a hardcoded 200,000-token window cannot be
+distinguished from this machine, because every model in its catalog reports the
+same 272,000 window; that distinction remains **unanswered rather than closed**,
+and a harness build whose models differ in window would settle it. What is
+settled is the operative fact: **a Codex policy must not derive its limit from
+the reported context window.**
 
 The TUI listing charged 4,000 tokens *after* clipping — exactly the budget, which
 is why nothing downstream of the rendered output could detect it. Demand by source:

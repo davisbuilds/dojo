@@ -1290,7 +1290,12 @@ Task 0, Task 4, Task 5
    agreeing to the token before the limit is treated as established; a limit
    taken from `codex debug models` without that agreement is recorded
    `provisional: true`, and a provisional limit cannot make a pair deployable.
-   Seed from the two 2026-08-04 renders (110 and 56 entries, both exactly 4,000).
+   Seed from the three 2026-08-04 renders — 110 and 56 entries on
+   `gpt-5.6-terra` and 56 on `gpt-5.6-sol`, all exactly 4,000. **The limit must
+   not be derived from the reported context window**: both models report 272,000
+   (2% = 5,440) and both budget 4,000, so a policy computing `window × 2%` is
+   wrong on this surface by 36%. A test pins that a policy deriving its Codex
+   limit from `codex debug models` is rejected.
 8. **Render dojo entries with absolute locators.** The 14:00 render costs dojo
    skills as `/Users/<home>/.agents/skills/<name>/SKILL.md`, not as an `rN/`
    alias; assuming the alias form understated demand by **9%** and flipped the
