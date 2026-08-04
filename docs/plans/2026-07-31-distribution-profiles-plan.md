@@ -1207,11 +1207,24 @@ Task 2, Task 3, Task 4
 > that has been measuring the `exec` surface while the operator runs the TUI.
 > Building the CI gate first would pin the wrong number into automation.
 
+> **Scope expanded 2026-08-04 (spec revision 13).** Verifying the projection this
+> task was written to enable found a *second* surface-dependent error: the budget
+> itself. Two `codex-tui` renders of 110 and 56 entries each total **exactly
+> 4,000 tokens** — Codex saturates its listing budget, so two saturating renders
+> disclose the limit to the token. `codex debug models` reports a 272,000 window
+> (2% = 5,440); the interactive surface behaves as though it were 200,000. The
+> assumed limit was **36% too high**, so the live target was 246%, not 178%. This
+> task therefore derives the limit from observation as well as the entries.
+> It also may **not** consume the harness's shortening warning as a conformance
+> check: Codex warned at 246% and stayed silent at 144% while clipping 50 of 56
+> descriptions.
+
 **Objective**
 
 Make the observation authoritative: measure what the harness *sent*, on the
-surface the operator actually uses, and make demand outside local control
-separately attributable. Satisfies SC-04's revision-12 clauses.
+surface the operator actually uses, derive the limit from saturation rather than
+from a vendor constant, and make demand outside local control separately
+attributable. Satisfies SC-04's revision-12 and revision-13 clauses.
 
 **Files**
 
@@ -1271,6 +1284,23 @@ Task 0, Task 4, Task 5
 6. Commit `codex-tui-clipped.json` as a fixture, **derived from what the parser
    consumes** and redacted per R30: root table plus entry lines only, home
    pseudonymised byte-length-identically, no other project's skills.
+7. **Derive the limit by saturation.** Add `observed_limit_tokens` to a Codex
+   policy, computed as the total (entry cost + alias table) of a render known to
+   be clipped. Require **two** saturating renders with different entry counts
+   agreeing to the token before the limit is treated as established; a limit
+   taken from `codex debug models` without that agreement is recorded
+   `provisional: true`, and a provisional limit cannot make a pair deployable.
+   Seed from the two 2026-08-04 renders (110 and 56 entries, both exactly 4,000).
+8. **Render dojo entries with absolute locators.** The 14:00 render costs dojo
+   skills as `/Users/<home>/.agents/skills/<name>/SKILL.md`, not as an `rN/`
+   alias; assuming the alias form understated demand by **9%** and flipped the
+   `core + all six overlays` verdict from fits to over. Calibrate cost modelling
+   against a live render and assert 0.00% agreement in a test — the check that
+   caught this.
+9. **Do not consume the shortening warning as a conformance signal.** Record it
+   when present as positive evidence of degradation; never treat its absence as
+   evidence of fit. Pin with a test built from the 14:00 render: no warning, 50 of
+   56 entries clipped, 6,984 characters removed.
 
 **Verification**
 
@@ -1302,9 +1332,18 @@ Task 0, Task 4, Task 5
 - A connector set that changes between two observations of the same target
   produces `unsupported`, verified against the two 2026-07-28 TUI sessions two
   hours apart that differ in connector presence.
-- The corrected standing position is recorded, replacing 76%: **178% true demand,
-  110 entries, every description clipped** — with the caveat that it is the
-  position *before* the 2026-08-04 `vercel` disable, which Task 10 re-measures.
+- **The limit is established by saturation, not asserted.** Two renders with
+  different entry counts agree to the token (4,000); a test asserts that a policy
+  whose limit came only from `codex debug models` is `provisional` and cannot
+  produce a `deployable` verdict.
+- **Cost modelling reproduces a live render to 0.00%**, with the absolute-locator
+  form pinned — a test using the alias form must fail.
+- Warning-absence is not conformance: the 14:00 render (no warning, 50 of 56
+  clipped) scores nonconformant.
+- The corrected standing position is recorded, replacing 76%: **246% true demand,
+  110 entries, every description clipped**, against an observed 4,000-token
+  limit — and the post-connector-removal position of 144%, which Task 10
+  re-measures.
 
 ### Task 6: Anchor routing fixtures and profile-scoped routing coverage
 

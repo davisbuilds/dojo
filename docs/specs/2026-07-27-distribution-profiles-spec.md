@@ -60,13 +60,26 @@ ChatGPT connectors. Measured 2026-08-04 from the session rollout that a real TUI
 session wrote (`~/.codex/sessions/**/rollout-*.jsonl`, which records the block
 that was actually sent):
 
-| Surface | Roots | Entries | True demand | % of 5,440 | Rendered as |
+| Surface | Roots | Entries | True demand | % of budget | Rendered as |
 |---|---|---|---|---|---|
-| `codex debug prompt-input` / `codex exec` | 4 | 41 | 4,132 | 76% | full descriptions |
-| `codex-tui`, same cwd, same model, same minute | 9 | 110 | **9,706** | **178%** | every description clipped to ≤77 chars |
+| `codex debug prompt-input` / `codex exec` | 4 | 41 | 4,132 | 103% | full descriptions |
+| `codex-tui`, same cwd, same model, same minute | 9 | 110 | **9,838** | **246%** | every description clipped to ≤77 chars |
 
-The TUI listing charged 3,868 tokens *after* clipping — 71% of budget, which is
-why nothing downstream of the rendered output could detect it. Demand by source:
+**The budget is 4,000 tokens, not the 5,440 this contract assumed through
+revision 12.** Established by saturation rather than by a vendor constant: two
+`codex-tui` renders of radically different inputs — 110 entries and 56 entries —
+each total **exactly 4,000 tokens**, entry cost plus alias table, with zero
+difference between them. Codex spends the listing budget to the last token, which
+is the vendor-parity property Task 0 already asserts; the error was the
+denominator. `codex debug models` reports a 272,000 window for this model
+(2% = 5,440), while the interactive surface budgets as though the window were
+200,000. The mechanism is unexplained and the figure is **observed, not derived**
+— two renders on one machine, one model, one day. It is recorded as unanswered
+rather than closed, and what would settle it is a third render on a different
+model.
+
+The TUI listing charged 4,000 tokens *after* clipping — exactly the budget, which
+is why nothing downstream of the rendered output could detect it. Demand by source:
 `vercel` 4,048 · dojo + bundled 3,875 · `google-drive` 660 ·
 `openai-developers` 561 · `github` 335 · `browser` 86 · `gmail` 74 ·
 `computer-use` 67. **A single account-level connector consumed 74% of the entire
@@ -86,10 +99,39 @@ two `codex-tui` sessions hours apart on 2026-07-28 differed in whether the
 connectors were listed at all, with no local change between them.
 
 `openai-templates` is the standing case for why this cannot be inferred from
-disk: 20 skills, 1,870 tokens (34% of budget) if listed, structurally
-indistinguishable on disk from connectors that do list, and present in **zero**
-of eleven captured sessions. It is a latent third of the budget that no local
-state predicts.
+disk: 20 skills, **1,870 tokens — 47% of the 4,000 budget** — if listed,
+structurally indistinguishable on disk from connectors that do list, and present
+in **zero** of eleven captured sessions. It is a latent half of the budget that
+no local state predicts.
+
+**The harness's own warning is not a sufficient signal, and this contract must
+not treat it as one.** Removing the largest connector took the same target from
+246% to 144%. At 246% Codex printed *"Skill descriptions were shortened…"*; at
+144% it printed nothing at all — while still clipping **50 of 56 descriptions and
+removing 6,984 characters**, `research-architect` from 622 to 203,
+`test-strategy` from 513 to 203. A maintainer watching the warning would have
+concluded the problem was fixed. Silence from the harness is evidence about the
+warning's threshold, never about conformance.
+
+**What this establishes is that membership is now the binding constraint on
+Codex, not merely on Claude Code at 200k.** Scored against the observed 4,000
+ceiling, with the unavoidable floor of 959 tokens (harness-bundled entries, local
+plugin entries, and the alias roots table):
+
+| Composition | Skills | Demand | % of 4,000 |
+|---|---|---|---|
+| `core` | 8 | 1,865 | 47% |
+| `core` + any one overlay | 11–12 | 2,097–2,328 | 52–58% |
+| `core` + any three overlays | 18 | ~2,874 | 72% |
+| `core` + all six overlays | 27 | 3,697 | **92%** |
+| currently installed set | 31 | 4,007 | **100%** |
+| `full` | 48 | 5,590 | **140%** |
+
+The undocumented 31-skill curation this contract was written to replace does not
+fit the harness it runs on, by 407 tokens against the 90% ceiling — and with
+every connector removed it still does not. `full` is 140%. Every composition of
+`core` plus up to three overlays fits, and all twenty three-overlay combinations
+fit. Model calibrated against the live render to **0.00%**.
 
 Read every number in this contract as a dated observation of a **named
 surface**, not as a constant.
@@ -337,6 +379,21 @@ catalog as conformant.
   inventory entirely, and were observed present in one session and absent in
   another two hours later. A budget verdict that cannot attribute demand to a
   controllable source is reported as unsupported rather than as a pass.
+  **Where a vendor-reported limit and the limit observed by saturation disagree,
+  the observed limit governs and the disagreement is reported.** A harness that
+  spends its listing budget to the last token discloses that budget exactly: two
+  renders of different inputs that both saturate must total the same number, and
+  that number is the limit. Codex's model catalog reported a 272,000 window
+  (2% = 5,440) while two interactive renders each totalled exactly 4,000 — a 36%
+  overstatement that made a 100%-of-budget target read as 74%. A limit taken from
+  a vendor catalog without a saturation check is recorded as **provisional**, and
+  a policy carrying a provisional limit cannot make a pair deployable.
+  **A harness's own degradation warning is never sufficient evidence of
+  conformance.** Codex warns at 246% of budget and stays silent at 144% while
+  clipping 50 of 56 descriptions, so absence of a warning is a fact about the
+  warning's threshold, not about the listing. A warning may be consumed as a
+  positive signal of degradation; its absence may not be consumed as a negative
+  one.
 - **SC-05 — Exact managed realization:** A conformant target exposes every
   selected Dojo skill and selected command surface at the canonical version and
   content identity, exposes no unselected Dojo-managed skill at that target
@@ -764,6 +821,44 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-08-04 (revision 13, same day as 12).** **The budget was also wrong, and
+  in the same direction.** Verifying revision 12's own projection produced two
+  findings it had not predicted. **(1) The limit is 4,000 tokens, not 5,440.**
+  Two `codex-tui` renders — 110 entries and 56 — each total *exactly* 4,000,
+  entry cost plus alias table, zero difference. Codex saturates its budget, so
+  two saturating renders disclose the limit precisely; the vendor catalog's
+  272,000 window (2% = 5,440) overstates the interactive budget by 36%. Every
+  Codex percentage in revisions 7–12 is therefore understated on top of being
+  measured on the wrong surface: the live target was 246%, not 178%. **(2) The
+  harness's warning has false negatives.** Removing the largest connector took
+  the target from 246% to 144%; Codex warned at the first and said nothing at the
+  second, while still clipping 50 of 56 descriptions and removing 6,984
+  characters. Revision 12 had proposed consuming that warning as a check — it
+  would have reported the target healthy.
+
+  SC-04 gains two clauses: an observed-by-saturation limit **governs over a
+  vendor-reported one**, with a vendor limit unbacked by a saturation check
+  recorded as *provisional* and unable to make a pair deployable; and a harness
+  warning may be consumed as positive evidence of degradation but **never its
+  absence as evidence of conformance**.
+
+  **The consequence is that membership becomes the binding constraint on Codex
+  too, which no prior revision established.** Against the observed ceiling the
+  undocumented 31-skill curation sits at 100% of budget — over the 90% ceiling by
+  407 tokens — and stays over with every connector removed; `full` is 140%.
+  `core` is 47%, `core` plus any one overlay 52–58%, and all twenty
+  `core`-plus-three-overlay combinations fit. The overlay sizing chosen in Task 1
+  against Claude Code's 200k budget turns out to be right for Codex as well, from
+  an independent direction. Model calibrated against the live render to 0.00%
+  after correcting the locator form — dojo entries render with absolute paths,
+  not root aliases, which was worth 9% on its own.
+
+  Three corrections in one day, two of them found by measuring rather than
+  reasoning and within minutes of each other. The pattern is recorded rather than
+  smoothed over: this contract's numbers have been wrong in the same direction
+  every time, and every correction so far has come from looking at a surface
+  nobody had looked at yet.
 
 - **2026-08-04 (revision 12).** **The probe was measuring a surface nobody
   runs.** A live `codex-tui` session emitted the skill-shortening warning while

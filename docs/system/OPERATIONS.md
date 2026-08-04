@@ -239,9 +239,13 @@ Four things to know before trusting a number from these:
   quote it as a session cost until Task 5A lands.** `codex debug prompt-input`
   does not load account-synced connector plugins that `codex-tui` loads. On
   2026-08-04 the same directory, model, and minute measured 41 entries at 76% via
-  the probe and **110 entries at 178% with every description clipped to ≤77
-  characters** in the actual TUI session. Until the observation moves to the
-  rollout record, read a live session instead:
+  the probe and **110 entries at 246% with every description clipped to ≤77
+  characters** in the actual TUI session. The budget is also wrong from the
+  probe: two interactive renders each saturate at **exactly 4,000 tokens**, not
+  the 5,440 that `codex debug models`' 272,000 window implies. And **the
+  harness's shortening warning is not a fit signal** — Codex warned at 246% and
+  stayed silent at 144% while still clipping 50 of 56 descriptions. Until the
+  observation moves to the rollout record, read a live session instead:
 
   ```bash
   # what the harness ACTUALLY sent, per session, with its originator
