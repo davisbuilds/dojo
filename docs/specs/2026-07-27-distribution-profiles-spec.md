@@ -36,9 +36,8 @@ from a catalog whose descriptions were simply written short. Exactly the routing
 signal a skill catalog exists to provide is destroyed, invisibly, and nothing in
 the repository reports it.
 
-The measured position, from `codex debug prompt-input` — which dumps the
-model-visible listing deterministically, so these are observations of the
-effective catalog rather than estimates from the filesystem:
+**The measured position below is superseded as of 2026-08-04. It is retained
+because the reason it was wrong is the strongest argument this contract makes.**
 
 | Session root | Listed entries | Charged (tokens) | % of budget | Truncated |
 |---|---|---|---|---|
@@ -47,14 +46,53 @@ effective catalog rather than estimates from the filesystem:
 | `viral` | 47 | 5,159 | **95%** | 0 |
 | `dojo` itself | 41 | 4,132 | 76% | 0 |
 
-Measured 2026-08-02 with Codex's own arithmetic rather than an approximation of
-it: only skill lines are charged, the intro prose and section headers are not,
-and the alias roots table is a rounded difference of two whole bodies rather
-than a sum of lines. Every earlier figure in this contract charged the whole
-block and so overstated by roughly two points. Read them as dated observations,
-not as constants — and
-note how far they moved in one day. The 2026-08-01 measurement of the same four
-roots read 96%, 98%, **111% with 19 truncated**, and **177% with 94 truncated**.
+Measured 2026-08-02 from `codex debug prompt-input` with Codex's own arithmetic:
+only skill lines are charged, the intro prose and section headers are not, and
+the alias roots table is a rounded difference of two whole bodies rather than a
+sum of lines. The 2026-08-01 measurement of the same four roots read 96%, 98%,
+**111% with 19 truncated**, and **177% with 94 truncated**.
+
+**Every figure in that table describes a session the operator never runs.**
+`codex debug prompt-input` does not load remote-connector plugins; it renders
+the `codex exec` surface. Interactive `codex-tui` sessions — the only kind a
+person opens — additionally receive every skill synced from account-level
+ChatGPT connectors. Measured 2026-08-04 from the session rollout that a real TUI
+session wrote (`~/.codex/sessions/**/rollout-*.jsonl`, which records the block
+that was actually sent):
+
+| Surface | Roots | Entries | True demand | % of 5,440 | Rendered as |
+|---|---|---|---|---|---|
+| `codex debug prompt-input` / `codex exec` | 4 | 41 | 4,132 | 76% | full descriptions |
+| `codex-tui`, same cwd, same model, same minute | 9 | 110 | **9,706** | **178%** | every description clipped to ≤77 chars |
+
+The TUI listing charged 3,868 tokens *after* clipping — 71% of budget, which is
+why nothing downstream of the rendered output could detect it. Demand by source:
+`vercel` 4,048 · dojo + bundled 3,875 · `google-drive` 660 ·
+`openai-developers` 561 · `github` 335 · `browser` 86 · `gmail` 74 ·
+`computer-use` 67. **A single account-level connector consumed 74% of the entire
+skills budget**, and the 31 dojo skills this contract governs reached the model
+as 75-character fragments.
+
+Three properties of that finding bear directly on what this contract must
+require. **The clipping had been live since at least 2026-07-28** — eleven
+captured sessions show it — including the sessions of 2026-08-02, the day the
+superseded table was measured. **The connectors are not locally installed and
+not locally governed**: `codex plugin list` reports marketplace state and cannot
+see them at all, and the one that was disabled was disabled under a second
+config key (`vercel@openai-curated` while the loader read
+`vercel@openai-curated-remote`), so the CLI reported `installed, disabled` for a
+plugin that was supplying 54 skills. **Their presence is not deterministic**:
+two `codex-tui` sessions hours apart on 2026-07-28 differed in whether the
+connectors were listed at all, with no local change between them.
+
+`openai-templates` is the standing case for why this cannot be inferred from
+disk: 20 skills, 1,870 tokens (34% of budget) if listed, structurally
+indistinguishable on disk from connectors that do list, and present in **zero**
+of eleven captured sessions. It is a latent third of the budget that no local
+state predicts.
+
+Read every number in this contract as a dated observation of a **named
+surface**, not as a constant.
 
 Three things follow, and the first is not the one this contract originally
 argued. **Every Codex figure above was recovered by hand, in a day, without
@@ -72,9 +110,11 @@ Code — the property that made `dojo` pay twice for 32 skills until its
 `.agents/skills` link was removed, and that will do so again for any target
 that acquires one.
 
-Codex now truncates nowhere. `viral` remains **non-deployable at 95%** against
-the 90% ceiling this contract sets — roughly one average skill from silent
-truncation, with no mechanism to notice it crossing.
+On the `exec` surface Codex truncates nowhere, and `viral` sits at **95%**
+against the 90% ceiling this contract sets. **On the interactive surface Codex
+truncates everywhere** — every description in every observed `codex-tui` session
+since 2026-07-28, unmarked. The two sentences describe the same machine on the
+same day, and until 2026-08-04 only the first was known.
 
 Every earlier figure in this contract was a filesystem count, understating the
 real listing by **1.78×**. Review did not catch that; running a probe that had
@@ -279,6 +319,24 @@ catalog as conformant.
   marks the elision or not. An unknown or stale limit, uninspectable scope, or
   unknown precedence rule is reported as unsupported rather than assumed safe.
   The `full` profile receives no budget exemption and is never the default.
+  **A measurement must name the invocation surface it was taken from, and only a
+  surface declared in use can make a pair deployable.** A harness may render its
+  listing differently per entry point: Codex's `debug prompt-input` and `exec`
+  omit account-synced connector plugins that its interactive TUI loads, so the
+  same machine, model, and working directory measured 41 entries at 76% on one
+  surface and 110 entries at 178% on the other. A probe that renders a code path
+  nobody runs is not authoritative however deterministic it is, and its agreement
+  with the harness's own arithmetic — which held to 0.15% — says nothing about
+  whether it observed the right session. Where the harness records what it
+  actually sent, that record is the authoritative observation and a live probe is
+  a cross-check against it, never a substitute. **Demand the operator does not
+  control locally must be reported as a named, separately attributed share**,
+  because it can appear, change, or vanish between two sessions with no local
+  action: account-level connector skills are governed by a config key distinct
+  from the one the harness's own plugin CLI displays, are absent from that CLI's
+  inventory entirely, and were observed present in one session and absent in
+  another two hours later. A budget verdict that cannot attribute demand to a
+  controllable source is reported as unsupported rather than as a pass.
 - **SC-05 — Exact managed realization:** A conformant target exposes every
   selected Dojo skill and selected command surface at the canonical version and
   content identity, exposes no unselected Dojo-managed skill at that target
@@ -706,6 +764,44 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-08-04 (revision 12).** **The probe was measuring a surface nobody
+  runs.** A live `codex-tui` session emitted the skill-shortening warning while
+  the verifier reported 76% of budget and zero degradation for the same
+  directory, model, and minute. The TUI listing held **110 entries across 9
+  roots at 178% of budget with every description clipped to ≤77 characters**;
+  `codex debug prompt-input` — the basis of every Codex figure in revisions
+  7–11 — renders the `exec` path and omits account-synced connector plugins
+  entirely. The gap is 69 entries and 5,679 tokens, of which one connector
+  (`vercel`) is 4,048. SC-04 gains three normative clauses: a measurement must
+  **name its invocation surface** and only a declared-in-use surface can make a
+  pair deployable; where the harness records what it sent, that record is
+  authoritative and a live probe is a cross-check rather than a substitute; and
+  demand outside local control must be **separately attributed**, with an
+  unattributable verdict reported as unsupported rather than as a pass. No
+  success criterion was weakened and no scope changed.
+
+  Three properties make this worse than a stale number, and each one is a
+  requirement in disguise. The clipping had been live since **2026-07-28**,
+  including on the day revision 11's table was measured, so the contract has
+  been arguing from a conformant reading of a degraded machine for a week. The
+  connectors are **not locally governed**: `codex plugin list` cannot see them,
+  and the one that was disabled was disabled under a second config key while the
+  loader read another, so the CLI truthfully reported `installed, disabled` for
+  a plugin supplying 54 skills. And their presence is **not deterministic** —
+  two TUI sessions two hours apart differed in whether connectors were listed,
+  with no local change between them.
+
+  This reverses the direction of the previous three revisions. Revisions 7, 10,
+  and 11 each found that better information *reduced* urgency; this one restores
+  it, and on stronger evidence than the contract originally had. The failure it
+  describes is no longer hypothetical or off-path: the operator's 31 governed
+  skills reached the model as 75-character fragments, in the harness the
+  operator uses, for a week, while two separate instruments — the vendor's own
+  plugin CLI and this repository's verifier — both read clean. That is precisely
+  the silent, unannounced, unattributable degradation the contract exists to
+  make visible, and it was found by a warning line in a screenshot rather than
+  by anything either repository runs.
 
 - **2026-08-03 (revision 11).** Deployability is now scoped to the harness/model
   pairs actually **in use**, and the effect is that nothing this operator runs is
