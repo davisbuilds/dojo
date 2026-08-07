@@ -1277,14 +1277,26 @@ Task 0, Task 4, Task 5
 4. Attribute demand by **source group**: dojo-managed, harness-bundled, local
    plugin, and `connector` (detected from `remote_plugin_id`, with the connector
    name). Report each group's token share in evidence.
-5. Emit `unsupported` when connector-attributed demand is present and the
-   connector set differs from the previous observation for the same target —
-   presence is not deterministic, and an undetected change is exactly what
-   silently moved the budget.
-6. Commit `codex-tui-clipped.json` as a fixture, **derived from what the parser
+5. Emit `stale` when the **harness build** or the **uncontrolled entry set**
+   differs from the previous observation for the same target — presence is not
+   deterministic, and an undetected change is exactly what silently moved the
+   budget. Both triggers have live cases from 2026-08-06: a connector removed at
+   the account level, and a Codex desktop update that introduced the whole
+   `openai-primary-runtime` marketplace (6 skills) plus `sites` and `visualize`,
+   worth 723 tokens — 18% of budget — arriving from an app update taken for
+   unrelated reasons. The two changes cancelled to 11 tokens, so a check
+   comparing only *totals* would have reported nothing happened; compare the
+   **set**, not the sum.
+6. **Never infer removal from a control surface.** A local
+   `[plugins."<name>@openai-curated-remote"] enabled = false` is inert: it
+   changes the configuration and changes nothing the model sees. Only
+   re-observation clears a target. Pin with a test built from the 2026-08-04
+   control experiment — google-drive disabled in config, all five skills still
+   listed.
+7. Commit `codex-tui-clipped.json` as a fixture, **derived from what the parser
    consumes** and redacted per R30: root table plus entry lines only, home
    pseudonymised byte-length-identically, no other project's skills.
-7. **Derive the limit by saturation.** Add `observed_limit_tokens` to a Codex
+8. **Derive the limit by saturation.** Add `observed_limit_tokens` to a Codex
    policy, computed as the total (entry cost + alias table) of a render known to
    be clipped. Require **two** saturating renders with different entry counts
    agreeing to the token before the limit is treated as established; a limit
@@ -1296,13 +1308,13 @@ Task 0, Task 4, Task 5
    (2% = 5,440) and both budget 4,000, so a policy computing `window × 2%` is
    wrong on this surface by 36%. A test pins that a policy deriving its Codex
    limit from `codex debug models` is rejected.
-8. **Render dojo entries with absolute locators.** The 14:00 render costs dojo
+9. **Render dojo entries with absolute locators.** The 14:00 render costs dojo
    skills as `/Users/<home>/.agents/skills/<name>/SKILL.md`, not as an `rN/`
    alias; assuming the alias form understated demand by **9%** and flipped the
    `core + all six overlays` verdict from fits to over. Calibrate cost modelling
    against a live render and assert 0.00% agreement in a test — the check that
    caught this.
-9. **Do not consume the shortening warning as a conformance signal.** Record it
+10. **Do not consume the shortening warning as a conformance signal.** Record it
    when present as positive evidence of degradation; never treat its absence as
    evidence of fit. Pin with a test built from the 14:00 render: no warning, 50 of
    56 entries clipped, 6,984 characters removed.

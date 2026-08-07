@@ -114,6 +114,33 @@ structurally indistinguishable on disk from connectors that do list, and present
 in **zero** of eleven captured sessions. It is a latent half of the budget that
 no local state predicts.
 
+**The local control does not work, and the recovered budget did not stay
+recovered.** Both established by controlled test on 2026-08-06.
+`[plugins."<name>@openai-curated-remote"] enabled = false` is **inert** — set for
+`google-drive` with its cache intact and `openai-developers` left untouched as a
+control, the next session listed all five google-drive skills unchanged. Removal
+in the ChatGPT web app *does* work. So the only surface governing 22% of this
+target's demand is an account setting, and `codex plugin list` cannot see those
+entries at all: it reports them `not installed` while they are listing.
+
+Then the recovered budget was refilled. Removing `google-drive` and `gmail`
+freed **734 tokens**; a Codex desktop update the same day added a new
+`openai-primary-runtime` marketplace plus `sites` and `visualize`, worth **723**.
+Net recovery **11 tokens — 0.3% of budget**. Entry count 56 → 56, charged total
+still exactly 4,000, still 50 of 56 descriptions clipped.
+
+| Source | Tokens | % of 4,000 |
+|---|---|---|
+| dojo | 3,121 | **78%** |
+| remaining connectors | 896 | 22% |
+| Codex bundled | 728 | 18% |
+| new runtime plugins (arrived via app update) | 723 | 18% |
+| **total** | **5,468** | **137%** |
+
+Three distribution-relevant changes in six hours — a connector sync, a user
+uninstall, a desktop app update — none of them a distribution decision, netting
+to nothing. **That is this contract's argument, observed rather than reasoned.**
+
 **The harness's own warning is not a sufficient signal, and this contract must
 not treat it as one.** Removing the largest connector took the same target from
 246% to 144%. At 246% Codex printed *"Skill descriptions were shortened…"*; at
@@ -404,6 +431,17 @@ catalog as conformant.
   warning's threshold, not about the listing. A warning may be consumed as a
   positive signal of degradation; its absence may not be consumed as a negative
   one.
+  **A conformance verdict is bounded by the harness build and the uncontrolled
+  entry set it was measured against, and is invalidated when either moves.** Both
+  were observed to move demand with no local action and no notification: an
+  account connector sync, and a desktop application update that introduced an
+  entire new plugin marketplace worth 18% of budget. A verdict therefore records
+  the harness build identity and the set of entries outside local control, and a
+  target whose either has changed since its last observation is reported as
+  **stale rather than conformant**. Re-measurement is the only way to clear it —
+  a control surface's own report may not substitute, because a local disable of
+  an account-synced entry is **inert**: setting it changes the configuration and
+  changes nothing the model sees.
 - **SC-05 — Exact managed realization:** A conformant target exposes every
   selected Dojo skill and selected command surface at the canonical version and
   content identity, exposes no unselected Dojo-managed skill at that target
@@ -831,6 +869,29 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-08-06 (revision 14).** **The local control is inert, and the recovered
+  budget did not stay recovered.** Two controlled results.
+  `[plugins."<name>@openai-curated-remote"] enabled = false` does nothing —
+  tested single-variable with `google-drive` disabled, its cache intact, and
+  `openai-developers` left untouched as a control; the next session listed all
+  five google-drive skills unchanged. Removal in the ChatGPT web app works. This
+  retroactively explains the `vercel` case, where a disable and an uninstall
+  happened with no session between them, so for two days the natural reading was
+  wrong. Then removing `google-drive` and `gmail` freed 734 tokens and a Codex
+  desktop update added 723 the same day — **net 11 tokens, 0.3%** — with entry
+  count unchanged at 56, charged total still exactly 4,000, and still 50 of 56
+  descriptions clipped.
+
+  SC-04 gains one clause: **a verdict is bounded by the harness build and the
+  uncontrolled entry set, and is invalidated when either moves**, reported as
+  *stale* rather than conformant, clearable only by re-measurement — never by a
+  control surface's own report, since that report can be inert.
+
+  The Problem section's central claim was that the effective catalog moves
+  without anyone taking a distribution decision. Over six hours it moved three
+  times — connector sync, user uninstall, application update — and netted to
+  nothing. The contract no longer needs to argue this.
 
 - **2026-08-04 (revision 13, same day as 12).** **The budget was also wrong, and
   in the same direction.** Verifying revision 12's own projection produced two
