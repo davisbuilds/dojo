@@ -82,3 +82,10 @@ skills-lock.json
 # runs — repo root, the skill dir, or output/playwright/<label>/ — never part of
 # a skill). Repo-wide so no run leaves stray snapshots tracked.
 **/.playwright-cli/
+
+# Raw Codex session rollouts. `~/.codex/sessions/**/rollout-*.jsonl` is the
+# authoritative record of what a session sent (see scripts/profiles/rollout_codex.py),
+# and it is also ~1.8 MB of verbatim conversation, tool output, and file contents.
+# Test fixtures are DERIVED from these and named `codex-tui-*.jsonl`, so they are
+# unaffected by this rule; a raw capture copied in for convenience is not.
+rollout-*.jsonl

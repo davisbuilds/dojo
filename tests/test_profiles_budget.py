@@ -169,9 +169,51 @@ def test_claude_arithmetic_is_characters_end_to_end(claude_1m, claude_200k):
     assert claude_1m.limit == 5 * claude_200k.limit
 
 
-def test_codex_arithmetic_reproduces_the_vendor_constants(codex_policy):
-    assert probe_codex.budget_for_window(codex_policy.context_window) == (codex_policy.limit, "tokens")
-    assert codex_policy.limit == 5_440, "the full window, not the 95%-effective one"
+def test_the_codex_limit_is_not_derived_from_the_context_window(codex_policy):
+    """Task 5A's correction, replacing the assertion that encoded the defect.
+
+    This test previously asserted `limit == budget_for_window(context_window)`
+    and `limit == 5_440`. Both held, and both were wrong about the surface the
+    operator runs: `codex debug models` reports a 272,000 window for every model
+    in the catalog, while three interactive renders each saturated at exactly
+    4,000. The window is retained for provenance and must **not** drive the
+    limit — deriving it that way overstated the budget by 36% and made a
+    100%-of-budget target read as 74% for four days.
+    """
+    window_derived, unit = probe_codex.budget_for_window(codex_policy.context_window)
+    assert unit == "tokens"
+    assert codex_policy.limit == 4_000, "established by saturation, not by the catalog"
+    assert window_derived != codex_policy.limit, (
+        "if these ever agree, the surface split may have closed — re-verify "
+        "rather than deleting this assertion")
+    assert window_derived > codex_policy.limit
+
+
+def test_the_codex_limit_is_observed_and_therefore_gating(codex_policy):
+    """A saturation-established limit is not provisional and may gate."""
+    assert codex_policy.limit_basis == "observed"
+    assert codex_policy.provisional is False
+
+
+def test_a_provisional_limit_cannot_gate(codex_policy):
+    """SC-04 revision 13: a vendor limit unbacked by behaviour may not fail a build."""
+    import dataclasses
+
+    provisional = dataclasses.replace(codex_policy, limit_basis="vendor")
+    assert provisional.provisional is True
+    scored = assess(
+        [{"name": "n", "source_description": "d", "locator": "/r/n/SKILL.md"}],
+        provisional,
+    )
+    assert scored.gating is False, "a provisional ceiling must never fail a build"
+
+
+def test_only_a_declared_surface_is_accepted(codex_policy):
+    """`codex exec` renders a different code path and omitted 69 of 110 entries."""
+    assert codex_policy.declared_surfaces == ("codex-tui",)
+    assert codex_policy.accepts_surface("codex-tui") is True
+    assert codex_policy.accepts_surface("codex_exec") is False
+    assert codex_policy.accepts_surface(None) is False
 
 
 @pytest.mark.parametrize("bps, deployable", [(8_900, True), (9_000, True), (9_100, False)])

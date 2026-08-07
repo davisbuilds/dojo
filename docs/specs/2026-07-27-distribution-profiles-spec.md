@@ -36,9 +36,8 @@ from a catalog whose descriptions were simply written short. Exactly the routing
 signal a skill catalog exists to provide is destroyed, invisibly, and nothing in
 the repository reports it.
 
-The measured position, from `codex debug prompt-input` — which dumps the
-model-visible listing deterministically, so these are observations of the
-effective catalog rather than estimates from the filesystem:
+**The measured position below is superseded as of 2026-08-04. It is retained
+because the reason it was wrong is the strongest argument this contract makes.**
 
 | Session root | Listed entries | Charged (tokens) | % of budget | Truncated |
 |---|---|---|---|---|
@@ -47,14 +46,132 @@ effective catalog rather than estimates from the filesystem:
 | `viral` | 47 | 5,159 | **95%** | 0 |
 | `dojo` itself | 41 | 4,132 | 76% | 0 |
 
-Measured 2026-08-02 with Codex's own arithmetic rather than an approximation of
-it: only skill lines are charged, the intro prose and section headers are not,
-and the alias roots table is a rounded difference of two whole bodies rather
-than a sum of lines. Every earlier figure in this contract charged the whole
-block and so overstated by roughly two points. Read them as dated observations,
-not as constants — and
-note how far they moved in one day. The 2026-08-01 measurement of the same four
-roots read 96%, 98%, **111% with 19 truncated**, and **177% with 94 truncated**.
+Measured 2026-08-02 from `codex debug prompt-input` with Codex's own arithmetic:
+only skill lines are charged, the intro prose and section headers are not, and
+the alias roots table is a rounded difference of two whole bodies rather than a
+sum of lines. The 2026-08-01 measurement of the same four roots read 96%, 98%,
+**111% with 19 truncated**, and **177% with 94 truncated**.
+
+**Every figure in that table describes a session the operator never runs.**
+`codex debug prompt-input` does not load remote-connector plugins; it renders
+the `codex exec` surface. Interactive `codex-tui` sessions — the only kind a
+person opens — additionally receive every skill synced from account-level
+ChatGPT connectors. Measured 2026-08-04 from the session rollout that a real TUI
+session wrote (`~/.codex/sessions/**/rollout-*.jsonl`, which records the block
+that was actually sent):
+
+| Surface | Roots | Entries | True demand | % of budget | Rendered as |
+|---|---|---|---|---|---|
+| `codex debug prompt-input` / `codex exec` | 4 | 41 | 4,132 | 103% | full descriptions |
+| `codex-tui`, same cwd, same model, same minute | 9 | 110 | **9,838** | **246%** | every description clipped to ≤77 chars |
+
+**The budget is 4,000 tokens, not the 5,440 this contract assumed through
+revision 12.** Established by saturation rather than by a vendor constant: two
+`codex-tui` renders of radically different inputs — 110 entries and 56 entries —
+each total **exactly 4,000 tokens**, entry cost plus alias table, with zero
+difference between them. Codex spends the listing budget to the last token, which
+is the vendor-parity property Task 0 already asserts; the error was the
+denominator. `codex debug models` reports a 272,000 window for this model
+(2% = 5,440), while the interactive surface budgets against 4,000.
+
+**Confirmed 2026-08-04 across a third render on a second model.** A `gpt-5.6-sol`
+session in the same directory produced a listing byte-identical to the
+`gpt-5.6-terra` one — 56 entries, 3,892 + 108 = **4,000**, descriptions clipped
+to 207. Three renders, two models, entry counts from 56 to 110, all totalling
+exactly 4,000. **The interactive budget does not move with the model**, which
+contradicts the pinned vendor path in which `session/mod.rs` passes
+`model_info.context_window` into `default_skill_metadata_budget`. Whether this is
+a fixed 4,000-token cap or a hardcoded 200,000-token window cannot be
+distinguished from this machine, because every model in its catalog reports the
+same 272,000 window; that distinction remains **unanswered rather than closed**,
+and a harness build whose models differ in window would settle it. What is
+settled is the operative fact: **a Codex policy must not derive its limit from
+the reported context window.**
+
+The TUI listing charged 4,000 tokens *after* clipping — exactly the budget, which
+is why nothing downstream of the rendered output could detect it. Demand by source:
+`vercel` 4,048 · dojo + bundled 3,875 · `google-drive` 660 ·
+`openai-developers` 561 · `github` 335 · `browser` 86 · `gmail` 74 ·
+`computer-use` 67. **A single account-level connector consumed 74% of the entire
+skills budget**, and the 31 dojo skills this contract governs reached the model
+as 75-character fragments.
+
+Three properties of that finding bear directly on what this contract must
+require. **The clipping had been live since at least 2026-07-28** — eleven
+captured sessions show it — including the sessions of 2026-08-02, the day the
+superseded table was measured. **The connectors are not locally installed and
+not locally governed**: `codex plugin list` reports marketplace state and cannot
+see them at all, and the one that was disabled was disabled under a second
+config key (`vercel@openai-curated` while the loader read
+`vercel@openai-curated-remote`), so the CLI reported `installed, disabled` for a
+plugin that was supplying 54 skills. **Their presence is not deterministic**:
+two `codex-tui` sessions hours apart on 2026-07-28 differed in whether the
+connectors were listed at all, with no local change between them.
+
+`openai-templates` is the standing case for why this cannot be inferred from
+disk: 20 skills, **1,870 tokens — 47% of the 4,000 budget** — if listed,
+structurally indistinguishable on disk from connectors that do list, and present
+in **zero** of eleven captured sessions. It is a latent half of the budget that
+no local state predicts.
+
+**The local control does not work, and the recovered budget did not stay
+recovered.** Both established by controlled test on 2026-08-06.
+`[plugins."<name>@openai-curated-remote"] enabled = false` is **inert** — set for
+`google-drive` with its cache intact and `openai-developers` left untouched as a
+control, the next session listed all five google-drive skills unchanged. Removal
+in the ChatGPT web app *does* work. So the only surface governing 22% of this
+target's demand is an account setting, and `codex plugin list` cannot see those
+entries at all: it reports them `not installed` while they are listing.
+
+Then the recovered budget was refilled. Removing `google-drive` and `gmail`
+freed **734 tokens**; a Codex desktop update the same day added a new
+`openai-primary-runtime` marketplace plus `sites` and `visualize`, worth **723**.
+Net recovery **11 tokens — 0.3% of budget**. Entry count 56 → 56, charged total
+still exactly 4,000, still 50 of 56 descriptions clipped.
+
+| Source | Tokens | % of 4,000 |
+|---|---|---|
+| dojo | 3,121 | **78%** |
+| remaining connectors | 896 | 22% |
+| Codex bundled | 728 | 18% |
+| new runtime plugins (arrived via app update) | 723 | 18% |
+| **total** | **5,468** | **137%** |
+
+Three distribution-relevant changes in six hours — a connector sync, a user
+uninstall, a desktop app update — none of them a distribution decision, netting
+to nothing. **That is this contract's argument, observed rather than reasoned.**
+
+**The harness's own warning is not a sufficient signal, and this contract must
+not treat it as one.** Removing the largest connector took the same target from
+246% to 144%. At 246% Codex printed *"Skill descriptions were shortened…"*; at
+144% it printed nothing at all — while still clipping **50 of 56 descriptions and
+removing 6,984 characters**, `research-architect` from 622 to 203,
+`test-strategy` from 513 to 203. A maintainer watching the warning would have
+concluded the problem was fixed. Silence from the harness is evidence about the
+warning's threshold, never about conformance.
+
+**What this establishes is that membership is now the binding constraint on
+Codex, not merely on Claude Code at 200k.** Scored against the observed 4,000
+ceiling, with the unavoidable floor of 959 tokens (harness-bundled entries, local
+plugin entries, and the alias roots table):
+
+| Composition | Skills | Demand | % of 4,000 |
+|---|---|---|---|
+| `core` | 8 | 1,865 | 47% |
+| `core` + any one overlay | 11–12 | 2,097–2,328 | 52–58% |
+| `core` + any three overlays | 18 | ~2,874 | 72% |
+| `core` + all six overlays | 27 | 3,697 | **92%** |
+| currently installed set | 31 | 4,007 | **100%** |
+| `full` | 48 | 5,590 | **140%** |
+
+The undocumented 31-skill curation this contract was written to replace does not
+fit the harness it runs on, by 407 tokens against the 90% ceiling — and with
+every connector removed it still does not. `full` is 140%. Every composition of
+`core` plus up to three overlays fits, and all twenty three-overlay combinations
+fit. Model calibrated against the live render to **0.00%**.
+
+Read every number in this contract as a dated observation of a **named
+surface**, not as a constant.
 
 Three things follow, and the first is not the one this contract originally
 argued. **Every Codex figure above was recovered by hand, in a day, without
@@ -72,9 +189,11 @@ Code — the property that made `dojo` pay twice for 32 skills until its
 `.agents/skills` link was removed, and that will do so again for any target
 that acquires one.
 
-Codex now truncates nowhere. `viral` remains **non-deployable at 95%** against
-the 90% ceiling this contract sets — roughly one average skill from silent
-truncation, with no mechanism to notice it crossing.
+On the `exec` surface Codex truncates nowhere, and `viral` sits at **95%**
+against the 90% ceiling this contract sets. **On the interactive surface Codex
+truncates everywhere** — every description in every observed `codex-tui` session
+since 2026-07-28, unmarked. The two sentences describe the same machine on the
+same day, and until 2026-08-04 only the first was known.
 
 Every earlier figure in this contract was a filesystem count, understating the
 real listing by **1.78×**. Review did not catch that; running a probe that had
@@ -279,6 +398,50 @@ catalog as conformant.
   marks the elision or not. An unknown or stale limit, uninspectable scope, or
   unknown precedence rule is reported as unsupported rather than assumed safe.
   The `full` profile receives no budget exemption and is never the default.
+  **A measurement must name the invocation surface it was taken from, and only a
+  surface declared in use can make a pair deployable.** A harness may render its
+  listing differently per entry point: Codex's `debug prompt-input` and `exec`
+  omit account-synced connector plugins that its interactive TUI loads, so the
+  same machine, model, and working directory measured 41 entries at 76% on one
+  surface and 110 entries at 178% on the other. A probe that renders a code path
+  nobody runs is not authoritative however deterministic it is, and its agreement
+  with the harness's own arithmetic — which held to 0.15% — says nothing about
+  whether it observed the right session. Where the harness records what it
+  actually sent, that record is the authoritative observation and a live probe is
+  a cross-check against it, never a substitute. **Demand the operator does not
+  control locally must be reported as a named, separately attributed share**,
+  because it can appear, change, or vanish between two sessions with no local
+  action: account-level connector skills are governed by a config key distinct
+  from the one the harness's own plugin CLI displays, are absent from that CLI's
+  inventory entirely, and were observed present in one session and absent in
+  another two hours later. A budget verdict that cannot attribute demand to a
+  controllable source is reported as unsupported rather than as a pass.
+  **Where a vendor-reported limit and the limit observed by saturation disagree,
+  the observed limit governs and the disagreement is reported.** A harness that
+  spends its listing budget to the last token discloses that budget exactly: two
+  renders of different inputs that both saturate must total the same number, and
+  that number is the limit. Codex's model catalog reported a 272,000 window
+  (2% = 5,440) while two interactive renders each totalled exactly 4,000 — a 36%
+  overstatement that made a 100%-of-budget target read as 74%. A limit taken from
+  a vendor catalog without a saturation check is recorded as **provisional**, and
+  a policy carrying a provisional limit cannot make a pair deployable.
+  **A harness's own degradation warning is never sufficient evidence of
+  conformance.** Codex warns at 246% of budget and stays silent at 144% while
+  clipping 50 of 56 descriptions, so absence of a warning is a fact about the
+  warning's threshold, not about the listing. A warning may be consumed as a
+  positive signal of degradation; its absence may not be consumed as a negative
+  one.
+  **A conformance verdict is bounded by the harness build and the uncontrolled
+  entry set it was measured against, and is invalidated when either moves.** Both
+  were observed to move demand with no local action and no notification: an
+  account connector sync, and a desktop application update that introduced an
+  entire new plugin marketplace worth 18% of budget. A verdict therefore records
+  the harness build identity and the set of entries outside local control, and a
+  target whose either has changed since its last observation is reported as
+  **stale rather than conformant**. Re-measurement is the only way to clear it —
+  a control surface's own report may not substitute, because a local disable of
+  an account-synced entry is **inert**: setting it changes the configuration and
+  changes nothing the model sees.
 - **SC-05 — Exact managed realization:** A conformant target exposes every
   selected Dojo skill and selected command surface at the canonical version and
   content identity, exposes no unselected Dojo-managed skill at that target
@@ -706,6 +869,105 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-08-06 (revision 14).** **The local control is inert, and the recovered
+  budget did not stay recovered.** Two controlled results.
+  `[plugins."<name>@openai-curated-remote"] enabled = false` does nothing —
+  tested single-variable with `google-drive` disabled, its cache intact, and
+  `openai-developers` left untouched as a control; the next session listed all
+  five google-drive skills unchanged. Removal in the ChatGPT web app works. This
+  retroactively explains the `vercel` case, where a disable and an uninstall
+  happened with no session between them, so for two days the natural reading was
+  wrong. Then removing `google-drive` and `gmail` freed 734 tokens and a Codex
+  desktop update added 723 the same day — **net 11 tokens, 0.3%** — with entry
+  count unchanged at 56, charged total still exactly 4,000, and still 50 of 56
+  descriptions clipped.
+
+  SC-04 gains one clause: **a verdict is bounded by the harness build and the
+  uncontrolled entry set, and is invalidated when either moves**, reported as
+  *stale* rather than conformant, clearable only by re-measurement — never by a
+  control surface's own report, since that report can be inert.
+
+  The Problem section's central claim was that the effective catalog moves
+  without anyone taking a distribution decision. Over six hours it moved three
+  times — connector sync, user uninstall, application update — and netted to
+  nothing. The contract no longer needs to argue this.
+
+- **2026-08-04 (revision 13, same day as 12).** **The budget was also wrong, and
+  in the same direction.** Verifying revision 12's own projection produced two
+  findings it had not predicted. **(1) The limit is 4,000 tokens, not 5,440.**
+  Two `codex-tui` renders — 110 entries and 56 — each total *exactly* 4,000,
+  entry cost plus alias table, zero difference. Codex saturates its budget, so
+  two saturating renders disclose the limit precisely; the vendor catalog's
+  272,000 window (2% = 5,440) overstates the interactive budget by 36%. Every
+  Codex percentage in revisions 7–12 is therefore understated on top of being
+  measured on the wrong surface: the live target was 246%, not 178%. **(2) The
+  harness's warning has false negatives.** Removing the largest connector took
+  the target from 246% to 144%; Codex warned at the first and said nothing at the
+  second, while still clipping 50 of 56 descriptions and removing 6,984
+  characters. Revision 12 had proposed consuming that warning as a check — it
+  would have reported the target healthy.
+
+  SC-04 gains two clauses: an observed-by-saturation limit **governs over a
+  vendor-reported one**, with a vendor limit unbacked by a saturation check
+  recorded as *provisional* and unable to make a pair deployable; and a harness
+  warning may be consumed as positive evidence of degradation but **never its
+  absence as evidence of conformance**.
+
+  **The consequence is that membership becomes the binding constraint on Codex
+  too, which no prior revision established.** Against the observed ceiling the
+  undocumented 31-skill curation sits at 100% of budget — over the 90% ceiling by
+  407 tokens — and stays over with every connector removed; `full` is 140%.
+  `core` is 47%, `core` plus any one overlay 52–58%, and all twenty
+  `core`-plus-three-overlay combinations fit. The overlay sizing chosen in Task 1
+  against Claude Code's 200k budget turns out to be right for Codex as well, from
+  an independent direction. Model calibrated against the live render to 0.00%
+  after correcting the locator form — dojo entries render with absolute paths,
+  not root aliases, which was worth 9% on its own.
+
+  Three corrections in one day, two of them found by measuring rather than
+  reasoning and within minutes of each other. The pattern is recorded rather than
+  smoothed over: this contract's numbers have been wrong in the same direction
+  every time, and every correction so far has come from looking at a surface
+  nobody had looked at yet.
+
+- **2026-08-04 (revision 12).** **The probe was measuring a surface nobody
+  runs.** A live `codex-tui` session emitted the skill-shortening warning while
+  the verifier reported 76% of budget and zero degradation for the same
+  directory, model, and minute. The TUI listing held **110 entries across 9
+  roots at 178% of budget with every description clipped to ≤77 characters**;
+  `codex debug prompt-input` — the basis of every Codex figure in revisions
+  7–11 — renders the `exec` path and omits account-synced connector plugins
+  entirely. The gap is 69 entries and 5,679 tokens, of which one connector
+  (`vercel`) is 4,048. SC-04 gains three normative clauses: a measurement must
+  **name its invocation surface** and only a declared-in-use surface can make a
+  pair deployable; where the harness records what it sent, that record is
+  authoritative and a live probe is a cross-check rather than a substitute; and
+  demand outside local control must be **separately attributed**, with an
+  unattributable verdict reported as unsupported rather than as a pass. No
+  success criterion was weakened and no scope changed.
+
+  Three properties make this worse than a stale number, and each one is a
+  requirement in disguise. The clipping had been live since **2026-07-28**,
+  including on the day revision 11's table was measured, so the contract has
+  been arguing from a conformant reading of a degraded machine for a week. The
+  connectors are **not locally governed**: `codex plugin list` cannot see them,
+  and the one that was disabled was disabled under a second config key while the
+  loader read another, so the CLI truthfully reported `installed, disabled` for
+  a plugin supplying 54 skills. And their presence is **not deterministic** —
+  two TUI sessions two hours apart differed in whether connectors were listed,
+  with no local change between them.
+
+  This reverses the direction of the previous three revisions. Revisions 7, 10,
+  and 11 each found that better information *reduced* urgency; this one restores
+  it, and on stronger evidence than the contract originally had. The failure it
+  describes is no longer hypothetical or off-path: the operator's 31 governed
+  skills reached the model as 75-character fragments, in the harness the
+  operator uses, for a week, while two separate instruments — the vendor's own
+  plugin CLI and this repository's verifier — both read clean. That is precisely
+  the silent, unannounced, unattributable degradation the contract exists to
+  make visible, and it was found by a warning line in a screenshot rather than
+  by anything either repository runs.
 
 - **2026-08-03 (revision 11).** Deployability is now scoped to the harness/model
   pairs actually **in use**, and the effect is that nothing this operator runs is

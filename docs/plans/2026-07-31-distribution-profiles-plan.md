@@ -22,7 +22,10 @@ recoverable applicator that no existing adapter entrypoint can bypass.
 
 Delivered as the two phases the spec's Handoff mandates:
 
-- **Phase 1 — verify only** (Tasks 0–10). SC-01…SC-06, SC-10, SC-11, and the
+- **Phase 1 — verify only** (Tasks 0–10, including **Task 5A**, inserted
+  2026-08-04 after the Codex observation was found to be measuring the `exec`
+  surface rather than the interactive one; it blocks Tasks 6–10). SC-01…SC-06,
+  SC-10, SC-11, and the
   audit-only halves of SC-09 and SC-12. `dojo profiles verify --all` works end to
   end. Nothing mutates target state. Independently shippable: it is a new
   directory of profile data plus one new read-only CLI plus one new CI gate, and
@@ -342,6 +345,31 @@ adapter-writing script, then reading each hit:
 > warning at all, which isolates the `sent` path. That fixture also demonstrates
 > SC-03's requirement directly: identical catalog, same machine, same day —
 > over budget on 200k, silent on 1M.
+
+> **Partially falsified 2026-08-04 — the Codex probe measures the wrong
+> surface.** `codex debug prompt-input` renders the `codex exec` path, which does
+> **not** load account-synced connector plugins. A live `codex-tui` session in
+> the same directory, on the same model, in the same minute listed **110 entries
+> across 9 roots at 178% of budget with every description clipped to ≤77
+> characters**, against the probe's 41 entries at 76% with zero degradation. The
+> parsing, the vendor arithmetic port, and the 0.15% agreement with Codex's own
+> charged figure are all still correct — they were correct about a session
+> nobody opens.
+>
+> Two findings above are narrowed rather than retracted. **Finding 4 is now
+> surface-scoped**: absolute render mode remains proof that nothing was clipped
+> *in the render the probe observed*; the TUI render of the same target used
+> alias mode with 9 roots. **Finding 8 stands and is now the live case** — the
+> unmarked, mid-word, budget-driven truncation is what every TUI session has been
+> doing since at least 2026-07-28.
+>
+> The corrected instrument already exists and needs no new vendor surface: Codex
+> writes each session's rendered prompt to
+> `~/.codex/sessions/**/rollout-*.jsonl`, including the `<skills_instructions>`
+> block verbatim and the session's `originator` (`codex-tui` vs `codex_exec`).
+> That is a record of what was *sent*, not a re-render of what might be, and it
+> makes the surface split observable instead of invisible. **Task 5A closes
+> this and every task after it inherits the corrected observation.**
 
 **Objective**
 
@@ -1169,6 +1197,170 @@ Task 2, Task 3, Task 4
   state every real target occupies throughout phase 1 (SC-01, SC-06).
 
 ---
+
+### Task 5A: Authoritative surface — observe from the session rollout
+
+> **Inserted 2026-08-04**, numbered `5A` rather than renumbering so the
+> traceability table and every existing `Dependencies` reference stay valid.
+> **This blocks Tasks 6–10.** Every figure they would emit, gate on, compare
+> across machines, or record as the standing position comes from an observation
+> that has been measuring the `exec` surface while the operator runs the TUI.
+> Building the CI gate first would pin the wrong number into automation.
+
+> **Scope expanded 2026-08-04 (spec revision 13).** Verifying the projection this
+> task was written to enable found a *second* surface-dependent error: the budget
+> itself. Two `codex-tui` renders of 110 and 56 entries each total **exactly
+> 4,000 tokens** — Codex saturates its listing budget, so two saturating renders
+> disclose the limit to the token. `codex debug models` reports a 272,000 window
+> (2% = 5,440); the interactive surface behaves as though it were 200,000. The
+> assumed limit was **36% too high**, so the live target was 246%, not 178%. This
+> task therefore derives the limit from observation as well as the entries.
+> It also may **not** consume the harness's shortening warning as a conformance
+> check: Codex warned at 246% and stayed silent at 144% while clipping 50 of 56
+> descriptions.
+
+**Objective**
+
+Make the observation authoritative: measure what the harness *sent*, on the
+surface the operator actually uses, derive the limit from saturation rather than
+from a vendor constant, and make demand outside local control separately
+attributable. Satisfies SC-04's revision-12 and revision-13 clauses.
+
+**Files**
+
+- Create: `scripts/profiles/rollout_codex.py`
+- Modify: `scripts/profiles/probe_codex.py`
+- Modify: `scripts/profiles/observe.py`
+- Modify: `scripts/profiles/budget.py`
+- Modify: `scripts/profiles/evidence.py`
+- Modify: `profiles/policies/codex.yaml`
+- Create: `tests/fixtures/profiles/codex-tui-clipped.json`
+- Test: `tests/test_profiles_rollout.py`
+
+**Dependencies**
+
+Task 0, Task 4, Task 5
+
+**Assumptions Verified**
+
+- Rollouts live at `~/.codex/sessions/YYYY/MM/DD/rollout-<ts>-<uuid>.jsonl`, one
+  JSON object per line; 309 present on this machine spanning 2026-02 → 2026-08.
+- The first line carries `originator` (`codex-tui` | `codex_exec`), `cli_version`,
+  `cwd`, and `source`, so the surface is recorded rather than inferred.
+- The `<skills_instructions>` block appears verbatim inside a string field and is
+  extractable by walking the decoded structure; the existing `parse_block` in
+  `probe_codex.py` consumes it unchanged — the parser is correct, only its input
+  was wrong.
+- Eleven captured sessions cross the surface boundary and are available as
+  regression evidence: `exec` sessions show 4 roots / 41–46 entries / max
+  description 299; `codex-tui` sessions show 9 roots / 69–111 entries / max
+  description 153 then 75.
+- Connector plugins carry `.codex-remote-plugin-install.json` with a
+  `remote_plugin_id` (`plugin_connector_1p_*`, `plugin_connector_*`,
+  `plugin_asdk_app_*`), which distinguishes account-synced entries from locally
+  installed ones **from the plugin's own payload**, not from a path heuristic.
+
+**Implementation Steps**
+
+1. `rollout_codex.py`: locate rollouts (newest-first, filterable by `cwd` and
+   `originator`), extract the block, and return it with its recorded surface,
+   `cli_version`, and timestamp. Reuse `probe_codex.parse_block` — do not write a
+   second parser, or the two will disagree.
+2. Make surface a **required** field on a Codex observation. An observation whose
+   surface is not among the policy's `declared_surfaces` is `unsupported`, never
+   scored. Add `declared_surfaces: ["codex-tui"]` to `profiles/policies/codex.yaml`.
+3. Keep `probe_codex.probe()` as a live cross-check labelled surface `exec`, and
+   emit a named `surface-mismatch` finding when a live probe and the newest
+   rollout for the same cwd disagree on entry count. That disagreement is the
+   defect this task exists to catch, so it must be reportable rather than
+   reconciled away.
+4. Attribute demand by **source group**: dojo-managed, harness-bundled, local
+   plugin, and `connector` (detected from `remote_plugin_id`, with the connector
+   name). Report each group's token share in evidence.
+5. Emit `stale` when the **harness build** or the **uncontrolled entry set**
+   differs from the previous observation for the same target — presence is not
+   deterministic, and an undetected change is exactly what silently moved the
+   budget. Both triggers have live cases from 2026-08-06: a connector removed at
+   the account level, and a Codex desktop update that introduced the whole
+   `openai-primary-runtime` marketplace (6 skills) plus `sites` and `visualize`,
+   worth 723 tokens — 18% of budget — arriving from an app update taken for
+   unrelated reasons. The two changes cancelled to 11 tokens, so a check
+   comparing only *totals* would have reported nothing happened; compare the
+   **set**, not the sum.
+6. **Never infer removal from a control surface.** A local
+   `[plugins."<name>@openai-curated-remote"] enabled = false` is inert: it
+   changes the configuration and changes nothing the model sees. Only
+   re-observation clears a target. Pin with a test built from the 2026-08-04
+   control experiment — google-drive disabled in config, all five skills still
+   listed.
+7. Commit `codex-tui-clipped.json` as a fixture, **derived from what the parser
+   consumes** and redacted per R30: root table plus entry lines only, home
+   pseudonymised byte-length-identically, no other project's skills.
+8. **Derive the limit by saturation.** Add `observed_limit_tokens` to a Codex
+   policy, computed as the total (entry cost + alias table) of a render known to
+   be clipped. Require **two** saturating renders with different entry counts
+   agreeing to the token before the limit is treated as established; a limit
+   taken from `codex debug models` without that agreement is recorded
+   `provisional: true`, and a provisional limit cannot make a pair deployable.
+   Seed from the three 2026-08-04 renders — 110 and 56 entries on
+   `gpt-5.6-terra` and 56 on `gpt-5.6-sol`, all exactly 4,000. **The limit must
+   not be derived from the reported context window**: both models report 272,000
+   (2% = 5,440) and both budget 4,000, so a policy computing `window × 2%` is
+   wrong on this surface by 36%. A test pins that a policy deriving its Codex
+   limit from `codex debug models` is rejected.
+9. **Render dojo entries with absolute locators.** The 14:00 render costs dojo
+   skills as `/Users/<home>/.agents/skills/<name>/SKILL.md`, not as an `rN/`
+   alias; assuming the alias form understated demand by **9%** and flipped the
+   `core + all six overlays` verdict from fits to over. Calibrate cost modelling
+   against a live render and assert 0.00% agreement in a test — the check that
+   caught this.
+10. **Do not consume the shortening warning as a conformance signal.** Record it
+   when present as positive evidence of degradation; never treat its absence as
+   evidence of fit. Pin with a test built from the 14:00 render: no warning, 50 of
+   56 entries clipped, 6,984 characters removed.
+
+**Verification**
+
+- Run: `.venv/bin/python -m pytest tests/test_profiles_rollout.py tests/test_profiles_probe.py -q`
+- Expect: all pass.
+- Run: `.venv/bin/python -m pytest tests/ -q`
+- Expect: 475 + new, no regressions.
+
+**Test Discovery Verified**
+
+- `tests/test_profiles_rollout.py` matches the collected `tests/test_*.py` pattern.
+- Literal proof: `.venv/bin/python -m pytest tests/test_profiles_rollout.py -q`
+
+**Done When**
+
+- **The detector is proven able to see a known-clipped case.** Against
+  `codex-tui-clipped.json` the verifier reports 110 entries, 9 roots, alias
+  render mode, and budget-driven truncation — and a test asserts that the
+  pre-5A code path reports zero degradation on the same target, so the fix is
+  pinned by the failure it repairs, not only by the behavior it adds
+  (method note 5).
+- A live run against the `exec` surface alone is **refused**, not scored, unless
+  `exec` is a declared surface.
+- `surface-mismatch` fires on the real machine today: live probe 41 entries vs
+  newest `codex-tui` rollout 110.
+- Evidence attributes demand by group, and a test pins that connector demand is
+  reported separately — with the live figure `vercel` = 4,048 tokens = 74% of
+  budget as the worked case.
+- A connector set that changes between two observations of the same target
+  produces `unsupported`, verified against the two 2026-07-28 TUI sessions two
+  hours apart that differ in connector presence.
+- **The limit is established by saturation, not asserted.** Two renders with
+  different entry counts agree to the token (4,000); a test asserts that a policy
+  whose limit came only from `codex debug models` is `provisional` and cannot
+  produce a `deployable` verdict.
+- **Cost modelling reproduces a live render to 0.00%**, with the absolute-locator
+  form pinned — a test using the alias form must fail.
+- Warning-absence is not conformance: the 14:00 render (no warning, 50 of 56
+  clipped) scores nonconformant.
+- The corrected standing position is recorded, replacing 76%: **246% true demand,
+  110 entries, every description clipped**, against an observed 4,000-token
+  limit — and the post-connector-removal position of 144%, which Task 10
+  re-measures.
 
 ### Task 6: Anchor routing fixtures and profile-scoped routing coverage
 

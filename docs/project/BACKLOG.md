@@ -226,6 +226,77 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   legacy no-ID artifact receiving a high-risk amendment, and (3) partial-ID input
   that must fail rather than silently downgrade.
 
+### write-plan/write-spec: acceptance criteria that pass while the property is false
+- **What**: the contract has one degeneracy rule — "do not accept bare
+  existence/sign/completion checks such as `> 0`, 'not empty', or 'completes'"
+  (`skills/write-plan/SKILL.md:179`) — and it is scoped to a *verification run's
+  output magnitude*. It does not reach the `Done When` bullets themselves, and
+  three distinct degenerate forms got past it in a single project:
+  1. **An enumeration satisfiable while the invariant it stands for is violated.**
+     A criterion that lists the cases that must hold is not the property; an
+     implementation can satisfy every listed case and still break it.
+  2. **A partition assertion where only one branch exists yet.** "Only X takes the
+     legacy path" is unfalsifiable while *everything* takes the legacy path. The
+     test passes, is committed as proof, and silently starts meaning something
+     only after a later task creates the other branch.
+  3. **An assertion over a collection that is always empty.** "…and carries every
+     declared `--runtime-executable`" where no spec of that class declares any.
+     Vacuously true, and reads as coverage.
+- **Why or evidence**: all three, tokenmaxxing
+  `docs/plans/2026-08-03-detached-worker-authority-profiles-plan.md`, 2026-07-26 →
+  2026-08-04. Form 1 is recorded by the spec against itself (Revision 4: "Revision
+  3's *enumerated* SC-03 was satisfiable" while the property was violated); forms
+  2 and 3 were caught during execution of Task 4 and are noted inline in the plan.
+  Notably this survived a critique subagent pass that did find four other blocking
+  defects, so it is not covered by "have a critic read it" either.
+- **Next**: add a degeneracy gate to `## Verification Requirements` covering the
+  criteria and not just the output, phrased as the test the author must run
+  against their own bullet: **assert it against a case you believe is false; if it
+  still passes, it is not a criterion.** Concretely — (a) prefer stating the
+  invariant with the enumeration as examples, and ask what satisfies the list
+  while violating the intent; (b) a "only X does A" bullet requires a paired
+  assertion that some non-X does not-A **and** a note that the pair is
+  distinguishable *now*, else it is `pending`, not met; (c) an assertion over a
+  collection must say what makes it non-empty. Related and worth the same bullet:
+  when a task wires two components that share no test runner, the `Done When` must
+  name where the contract is pinned or state plainly that it is not — the
+  test-discovery rule at `SKILL.md:182` asks whether the runner finds the test,
+  never whether anything tests the seam between two runners. Validator support is
+  possible but partial: (b) and (c) are prose-detectable ("only", "every declared")
+  as advisories; (a) is not mechanically checkable and belongs in
+  `references/seam-selection.md`.
+
+### write-plan: `Assumptions Verified` has no shape for external-tool behavior
+- **What**: the rule reads "cite the exact file and symbol being cut, plus the
+  observed behavior checked at that line" (`skills/write-plan/SKILL.md:138-141`).
+  That is an in-repo mechanism, and it is the only evidence form the contract
+  offers. When a step depends on what a tool the repo does *not* own actually does
+  — a terminal multiplexer, a sandbox policy language, git, a package manager, a
+  vendor CLI — there is no line in the repository that exhibits the behavior, so
+  the requirement is satisfiable by a citation that does not support the claim.
+- **Why or evidence**: five wrong external-behavior claims in one project
+  (tokenmaxxing, 2026-08-03 → 2026-08-04): tmux's argv handling, Seatbelt
+  resolving last-match-wins *per operation set*, `(local ip "localhost:*")` not
+  constraining a bind, git *guessing* a commit identity from OS user + hostname
+  rather than failing, and npm's on-disk layout defeating a
+  parent-of-the-binary read grant. The tmux one is the clearest: the plan step
+  carried a **correct** citation (`internal/tmux/tmux.go:68`) attached to a false
+  claim — reading `append([]string{"new-session", …}, command…)` tells you what is
+  passed and nothing about what tmux does with it. The citation requirement was
+  met and produced false confidence. Each was a sub-minute probe once someone
+  thought to run one; the tmux check took ~30 seconds. `references/seam-selection.md`
+  currently contains no mention of external, vendor, third-party, probe, or measure.
+- **Next**: add a `**Behavior Measured**` block, distinct from
+  `**Assumptions Verified**` and required whenever a step depends on a tool the
+  repo does not own. Its artifact is a command and its observed output, not a line
+  number — the same standard the parent workspace already applies to measurement
+  ("measure what reaches the tool, not what is on disk"). At the same time
+  *loosen* `Assumptions Verified` from "cite the exact file and symbol" to "state
+  the claim the step depends on and the evidence appropriate to it": the current
+  form invites citation-as-ritual, which is precisely how the tmux defect passed.
+  Validator: a plan whose task steps name a known-external binary but carry no
+  `Behavior Measured` block is advisory-flaggable.
+
 ### research-architect: remaining deferred tooling
 - **What**: `scripts/diff_runs.py` and `references/rubric-library.md` remain
   deliberately deferred. (`scripts/score_report.py`, the third of the original

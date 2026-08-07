@@ -88,7 +88,28 @@ class Policy:
     deployable: bool             # declared in use, per spec revision 11
     shadows_by_name: bool
     project_scope_root: str
+    # SC-04, revision 13. "observed" = established by saturation; two renders of
+    # different inputs that both saturate must total the same number.
+    # "vendor-corroborated" = a vendor constant checked against behaviour.
+    # Bare "vendor" is PROVISIONAL and may not make a pair deployable — that is
+    # the mistake that made a 100%-of-budget Codex target read as 74%.
+    limit_basis: str = "vendor"
+    declared_surfaces: tuple[str, ...] = ()
     identity: str = ""
+
+    @property
+    def provisional(self) -> bool:
+        return self.limit_basis not in ("observed", "vendor-corroborated")
+
+    def accepts_surface(self, surface: str | None) -> bool:
+        """Only a surface declared in use can make a pair deployable.
+
+        An empty declaration accepts anything, for the harnesses that have not
+        been shown to render differently per entry point. Codex has.
+        """
+        if not self.declared_surfaces:
+            return True
+        return surface in self.declared_surfaces
 
     def with_identity(self) -> "Policy":
         payload = {
@@ -123,8 +144,13 @@ class Assessment:
         A policy that is *declared but not deployable* — Claude Code at 200k, per
         spec revision 11 — is scored and reported, never gating. A session that
         lands there must be told; a suite must not fail for a path nobody runs.
+
+        A **provisional** limit also cannot gate (spec revision 13): a limit read
+        from a vendor catalog and never checked against behaviour overstated
+        Codex's by 36%, and gating on it would fail builds against a ceiling that
+        does not exist.
         """
-        return self.policy.deployable
+        return self.policy.deployable and not self.policy.provisional
 
 
 def load_policy(path: Path | str) -> Policy:
@@ -155,6 +181,8 @@ def load_policy(path: Path | str) -> Policy:
         deployable=bool(data["deployable"]),
         shadows_by_name=bool(data["shadows_by_name"]),
         project_scope_root=data["project_scope_root"],
+        limit_basis=str(data.get("limit_basis", "vendor")).split()[0],
+        declared_surfaces=tuple(data.get("declared_surfaces") or ()),
     ).with_identity()
 
 
