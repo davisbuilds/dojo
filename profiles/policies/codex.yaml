@@ -3,17 +3,34 @@
 # must agree within 2%" rule does not apply here. That rule governs the
 # *measured* route only, where a limit is established by observation.
 harness: codex
-harness_version: codex-cli 0.145.0
+harness_version: codex-cli 0.146.0
 model: gpt-5.6-terra
 
 unit: tokens
-limit: 5440
+limit: 4000
+# Recorded for provenance only. THE LIMIT IS NOT DERIVED FROM THIS.
+# `codex debug models` reports 272,000 for every model in this catalog, implying
+# 2% = 5,440. The interactive surface budgets against 4,000 regardless of model:
+# gpt-5.6-terra and gpt-5.6-sol render byte-identically. Deriving the limit from
+# the window overstated it by 36% and made a 100%-of-budget target read as 74%
+# for four days.
 context_window: 272000
-# The FULL window, not the 95%-effective one. codex-rs/core/src/session/mod.rs
-# passes model_info.context_window unmodified into default_skill_metadata_budget,
-# so the budget is 2% of 272,000 and not of 258,400. An earlier revision of this
-# program used 5,168 and every figure derived from it was wrong.
-window_field: context_window
+window_field: null
+
+# The limit is established by SATURATION, not by a vendor constant. Codex spends
+# the listing budget to the last token, so two renders of different inputs that
+# both saturate must total the same number -- and that number is the limit.
+limit_basis: observed
+observed_limit_samples:
+  - [110, 4000]   # 2026-08-04, gpt-5.6-terra, connectors present
+  - [56, 4000]    # 2026-08-06, gpt-5.6-terra, after connector removal
+  - [56, 4000]    # 2026-08-04, gpt-5.6-sol -- the budget does not move with the model
+
+# Only a surface DECLARED IN USE can make a pair deployable. `codex exec` and
+# `codex debug prompt-input` render a different code path that omits
+# account-synced connector plugins entirely -- 69 of 110 entries on 2026-08-04.
+declared_surfaces:
+  - codex-tui
 
 estimator: >-
   Codex's own arithmetic, ported rather than approximated: ceiling division over
@@ -25,8 +42,8 @@ provenance: >-
   codex-rs/core-skills/src/render.rs at pinned revision f57467275c
   (default_skill_metadata_budget, line_cost, aliased_metadata_overhead_cost),
   called from codex-rs/core/src/session/mod.rs.
-measured: 2026-08-02
-probe: codex debug prompt-input
+measured: 2026-08-06
+probe: ~/.codex/sessions/**/rollout-*.jsonl (codex-tui surface)
 
 # Declared in use, so this pair gates (spec revision 11).
 deployable: true
