@@ -23,12 +23,30 @@ thing that can disagree.
 
 Two further corrections live here, both found by measuring rather than reasoning:
 
-**The limit is disclosed by saturation, never by the model catalog.** Codex spends
-the listing budget to the last token, so two renders of different inputs that both
-saturate must total the same number — and that number is the limit. Three renders
-(110 and 56 entries on ``gpt-5.6-terra``, 56 on ``gpt-5.6-sol``) each totalled
-exactly **4,000**, while ``codex debug models`` reported a 272,000 window implying
-5,440. The interactive budget does not move with the model at all.
+**The limit is disclosed by saturation, and it is a property of the build.** Codex
+spends the listing budget to the last token, so two renders of different inputs
+that both saturate must total the same number — and that number is the limit.
+Sweeping 89 parseable rollouts across twelve CLI builds:
+
+===========  ===============================================
+build        saturated total (= ceiling)
+===========  ===============================================
+0.139.0      5,358
+0.142.3/4    5,534
+0.143.0      5,440   = 2% x 272,000, the vendor formula
+0.144.1      5,440 **and** 7,440 (a 372,000-window model)
+0.144.6      5,440
+0.145.0      ~4,000
+0.146.0      4,000
+===========  ===============================================
+
+So ``2% x context_window`` was **correct through 0.144.x**, including the
+372,000-window case — and **0.145.0 changed it**. An earlier revision of this
+module claimed the budget "does not move with the model at all"; that was an
+overclaim from two models on one build, corrected once the history was swept.
+What survives is stronger and is what ``derive_limit`` enforces: a ceiling
+belongs to one build, samples from two builds may never be pooled, and a limit
+read from the catalog without a saturation check is provisional.
 
 **Demand outside local control must be attributed separately, and compared as a
 set.** Account connectors appear, change, and vanish with no local action:
@@ -43,6 +61,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -178,6 +197,21 @@ def classify_locator(locator: str) -> str:
     return ORIGIN_FOREIGN
 
 
+HARNESS_CONTEXT_ROLE = "developer"
+
+
+def _is_harness_context(record: dict) -> bool:
+    """Whether this record is the harness's own rendered context.
+
+    Keyed on the message role rather than on the record type, because the type
+    (`response_item`) is shared with ordinary conversation turns.
+    """
+    payload = record.get("payload")
+    if not isinstance(payload, dict):
+        return False
+    return payload.get("role") == HARNESS_CONTEXT_ROLE
+
+
 def _walk_strings(obj):
     if isinstance(obj, str):
         yield obj
@@ -230,6 +264,22 @@ def read_rollout(path: Path | str) -> RolloutObservation | None:
             record = json.loads(raw)
         except json.JSONDecodeError:
             continue
+        # **Only the harness-authored context record may supply the listing.**
+        # An earlier version walked every string in every record and took the
+        # first hit. A conversation that merely *discusses* a skills listing then
+        # supplies the measurement: across this machine's 309 rollouts the block
+        # appears 238 times as `developer` (the real context) but also twice as
+        # `user`, twice as `assistant`, 136 times inside `compacted` summaries,
+        # and 67 times in untyped response items. One live session —
+        # 2026-07-28T17-23-34 — has a **user-pasted block first**, so the naive
+        # reader would have measured pasted text as the effective catalog. The
+        # historical table in the spec used the sibling session recorded 14
+        # seconds later and was correct by luck.
+        #
+        # `compacted` is excluded deliberately: it is harness-authored but is a
+        # summary of an earlier turn, so its listing may be stale.
+        if not _is_harness_context(record):
+            continue
         for text in _walk_strings(record):
             match = _BLOCK_RE.search(text)
             if match:
@@ -261,13 +311,30 @@ def find_rollouts(sessions_root: Path | str | None = None) -> list[Path]:
 
 
 def observations(sessions_root: Path | str | None = None, *, cwd: str | Path | None = None,
-                 surface: str | None = None, limit: int | None = None
-                 ) -> list[RolloutObservation]:
-    """Parsed observations, newest first, optionally filtered by cwd and surface."""
+                 surface: str | None = None, limit: int | None = None,
+                 errors: list | None = None) -> list[RolloutObservation]:
+    """Parsed observations, newest first, optionally filtered by cwd and surface.
+
+    A rollout whose block cannot be parsed is **skipped, not fatal, and never
+    silent**: pass `errors` to receive `(path, reason)` for each. `parse_block`
+    fails closed when the vendor's intro wording changes, which is correct — but
+    an older wording is common enough that one bad file must not abort a scan.
+    On the capture machine **98 of 313** rollouts predate a change from "name,
+    description, and file path" to "name, description, and source locator", and
+    the first of them aborted a whole-history sweep.
+
+    Counting the skips matters more than skipping quietly: a sweep that silently
+    dropped a third of its input would report a confident, wrong history.
+    """
     wanted_cwd = str(Path(cwd).resolve()) if cwd else None
     found: list[RolloutObservation] = []
     for path in find_rollouts(sessions_root):
-        observation = read_rollout(path)
+        try:
+            observation = read_rollout(path)
+        except ValueError as exc:
+            if errors is not None:
+                errors.append((path, str(exc)))
+            continue
         if observation is None:
             continue
         if surface is not None and observation.meta.surface != surface:
@@ -374,6 +441,18 @@ def is_saturated(observation: RolloutObservation, source_descriptions: dict | No
     return longest < 1_000 and at_longest >= max(3, len(lengths) // 5)
 
 
+def qualified_identities(listing: Listing) -> Counter:
+    """`origin:name` per listed entry, with multiplicity preserved.
+
+    A `Counter` rather than a set because Codex charges each copy of a
+    duplicated name separately, so losing one copy is a real change.
+    """
+    return Counter(
+        f"{classify_locator(_absolute(e.locator, listing.root_lines))}:{e.name}"
+        for e in listing.entries
+    )
+
+
 def surface_mismatch(live: Listing, recorded: RolloutObservation) -> dict | None:
     """Report a live probe disagreeing with the recorded session.
 
@@ -381,18 +460,25 @@ def surface_mismatch(live: Listing, recorded: RolloutObservation) -> dict | None
     module exists to catch, so it must be visible in evidence. Reconciling it
     silently would restore exactly the failure of the last four days.
     """
-    live_names = frozenset(e.name for e in live.entries)
-    recorded_names = recorded.entry_names
-    if live_names == recorded_names:
+    # **A multiset of qualified identities, not a set of bare names.** Codex does
+    # not shadow across roots: it lists every copy of a duplicated name and
+    # charges for each. The 56-entry fixture carries two `skill-creator` entries
+    # — one bundled by Codex, one shipped by dojo — so a set of names reports no
+    # mismatch when one copy disappears, hiding a real cost difference.
+    live_ids = qualified_identities(live)
+    recorded_ids = qualified_identities(recorded.listing)
+    if live_ids == recorded_ids:
         return None
+    only_recorded = recorded_ids - live_ids     # Counter subtraction keeps multiplicity
+    only_live = live_ids - recorded_ids
     return {
         "kind": "surface-mismatch",
         "live_surface": SURFACE_PROBE,
         "recorded_surface": recorded.meta.surface,
-        "live_entries": len(live_names),
-        "recorded_entries": len(recorded_names),
-        "only_in_recorded": sorted(recorded_names - live_names),
-        "only_in_live": sorted(live_names - recorded_names),
+        "live_entries": sum(live_ids.values()),
+        "recorded_entries": sum(recorded_ids.values()),
+        "only_in_recorded": sorted(only_recorded.elements()),
+        "only_in_live": sorted(only_live.elements()),
         "detail": (
             "the live probe renders a different code path than the recorded "
             "session; the recorded session is authoritative"

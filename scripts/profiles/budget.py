@@ -131,6 +131,10 @@ class Assessment:
     degradations: tuple[Degradation, ...] = ()
     reason: str = ""
     entries_scored: int = 0
+    # The invocation surface this observation came from. `None` means the caller
+    # did not say — which a policy declaring surfaces must treat as undeclared,
+    # not as acceptable.
+    surface: str | None = None
 
     @property
     def basis_points(self) -> int:
@@ -149,8 +153,19 @@ class Assessment:
         from a vendor catalog and never checked against behaviour overstated
         Codex's by 36%, and gating on it would fail builds against a ceiling that
         does not exist.
+
+        And a verdict from an **undeclared surface** cannot gate either. Building
+        `Policy.accepts_surface` without consulting it here was the whole defect
+        in miniature: the capability existed, a unit test covered it, and the
+        assessment path never called it — so an `exec`-derived result under a
+        TUI-only policy still gated, preserving exactly the wrong-surface failure
+        this work exists to remove.
         """
-        return self.policy.deployable and not self.policy.provisional
+        return (
+            self.policy.deployable
+            and not self.policy.provisional
+            and self.policy.accepts_surface(self.surface)
+        )
 
 
 def load_policy(path: Path | str) -> Policy:
@@ -267,21 +282,34 @@ def detect_degradation(entries: list[dict], policy: Policy, warning: str | None 
 
 
 def assess(entries: list[dict], policy: Policy, *, root_lines: list[str] | None = None,
-           warning: str | None = None, candidate_count: int | None = None) -> Assessment:
+           warning: str | None = None, candidate_count: int | None = None,
+           surface: str | None = None) -> Assessment:
     """Score a target: cost from source, degradation from observation.
 
     Degradation makes a target nonconformant **regardless of computed cost** —
     a listing that fits after the harness elided it is not a listing that fits.
+
+    `surface` names the invocation surface the entries were observed on. A policy
+    declaring surfaces refuses anything else outright rather than scoring it,
+    because a number from the wrong code path is not a weaker measurement — it is
+    a measurement of something else.
     """
+    if not policy.accepts_surface(surface):
+        return Assessment(
+            policy=policy, demand=0, limit=policy.limit, unit=policy.unit,
+            verdict=Verdict.UNSUPPORTED, surface=surface,
+            reason=(f"surface {surface!r} is not declared for {policy.harness}; "
+                    f"declared: {', '.join(policy.declared_surfaces)}"),
+        )
     if not entries:
         return Assessment(
             policy=policy, demand=0, limit=policy.limit, unit=policy.unit,
-            verdict=Verdict.UNSUPPORTED, reason="no entries observed",
+            verdict=Verdict.UNSUPPORTED, reason="no entries observed", surface=surface,
         )
     if not policy.limit:
         return Assessment(
             policy=policy, demand=0, limit=0, unit=policy.unit,
-            verdict=Verdict.UNSUPPORTED, reason="no authoritative limit",
+            verdict=Verdict.UNSUPPORTED, reason="no authoritative limit", surface=surface,
         )
 
     cost = demand(entries, policy, root_lines)
@@ -297,4 +325,5 @@ def assess(entries: list[dict], policy: Policy, *, root_lines: list[str] | None 
     return Assessment(
         policy=policy, demand=cost, limit=policy.limit, unit=policy.unit,
         verdict=verdict, degradations=shapes, reason=reason, entries_scored=len(entries),
+        surface=surface,
     )

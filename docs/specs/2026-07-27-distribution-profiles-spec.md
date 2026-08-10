@@ -74,19 +74,32 @@ is the vendor-parity property Task 0 already asserts; the error was the
 denominator. `codex debug models` reports a 272,000 window for this model
 (2% = 5,440), while the interactive surface budgets against 4,000.
 
-**Confirmed 2026-08-04 across a third render on a second model.** A `gpt-5.6-sol`
-session in the same directory produced a listing byte-identical to the
-`gpt-5.6-terra` one — 56 entries, 3,892 + 108 = **4,000**, descriptions clipped
-to 207. Three renders, two models, entry counts from 56 to 110, all totalling
-exactly 4,000. **The interactive budget does not move with the model**, which
-contradicts the pinned vendor path in which `session/mod.rs` passes
-`model_info.context_window` into `default_skill_metadata_budget`. Whether this is
-a fixed 4,000-token cap or a hardcoded 200,000-token window cannot be
-distinguished from this machine, because every model in its catalog reports the
-same 272,000 window; that distinction remains **unanswered rather than closed**,
-and a harness build whose models differ in window would settle it. What is
-settled is the operative fact: **a Codex policy must not derive its limit from
-the reported context window.**
+**Corrected 2026-08-10 by sweeping the full session history.** An earlier
+revision concluded that "the interactive budget does not move with the model",
+contradicting the pinned vendor path where `session/mod.rs` passes
+`model_info.context_window` into `default_skill_metadata_budget`. That was an
+overclaim drawn from two models on a single build. Across 89 parseable rollouts
+spanning twelve CLI builds, the saturated total — which is the ceiling — is:
+
+| Build | Ceiling |
+|---|---|
+| 0.139.0 | 5,358 |
+| 0.142.3 / 0.142.4 | 5,534 |
+| 0.143.0, 0.144.1, 0.144.6 | **5,440** = 2% × 272,000, the vendor formula exactly |
+| 0.144.1 (second model) | **7,440** = 2% × 372,000 |
+| 0.145.0 | ~4,000 |
+| 0.146.0 | **4,000** |
+
+`2% × context_window` was therefore **correct through 0.144.x**, including for a
+larger-window model, and **0.145.0 changed it**. The vendor source was not wrong;
+it described a build that has since moved.
+
+What survives is stronger than the claim it replaces, because it is the general
+rule rather than one build's constant: **the ceiling is a property of the harness
+build, must be established by saturation, and samples from two builds may never
+be pooled.** Whether 0.145.0 introduced a fixed cap or changed the window it
+passes is **unanswered rather than closed**; a build whose models differ in
+window would settle it, as 0.144.1's 7,440 did for its predecessor.
 
 The TUI listing charged 4,000 tokens *after* clipping — exactly the budget, which
 is why nothing downstream of the rendered output could detect it. Demand by source:

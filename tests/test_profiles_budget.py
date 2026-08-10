@@ -201,11 +201,42 @@ def test_a_provisional_limit_cannot_gate(codex_policy):
 
     provisional = dataclasses.replace(codex_policy, limit_basis="vendor")
     assert provisional.provisional is True
-    scored = assess(
-        [{"name": "n", "source_description": "d", "locator": "/r/n/SKILL.md"}],
-        provisional,
-    )
+    entries = [{"name": "n", "source_description": "d", "locator": "/r/n/SKILL.md"}]
+
+    # The surface MUST be declared here. Without it the assessment is refused on
+    # surface grounds and this test passes without ever reaching the provisional
+    # check — found by mutation probe, which survived deleting that check
+    # entirely. A test that passes for the wrong reason is not coverage.
+    scored = assess(entries, provisional, surface="codex-tui")
+    assert scored.verdict is not Verdict.UNSUPPORTED, "must be scored, not refused"
     assert scored.gating is False, "a provisional ceiling must never fail a build"
+
+    established = assess(entries, codex_policy, surface="codex-tui")
+    assert established.gating is True, "control: the same input gates on an observed limit"
+
+
+def test_an_exec_derived_assessment_is_refused_and_cannot_gate(codex_policy):
+    """PR #60 review, P1 — the integration the isolated policy test missed.
+
+    `Policy.accepts_surface` existed, a unit test covered it, and `assess` never
+    called it. So an `exec`-derived result under a TUI-only policy still scored
+    and still gated, preserving exactly the wrong-surface failure this work
+    exists to remove. A capability nothing consults is not a control.
+    """
+    entries = [{"name": "n", "source_description": "d", "locator": "/r/n/SKILL.md"}]
+
+    refused = assess(entries, codex_policy, surface="codex_exec")
+    assert refused.verdict is Verdict.UNSUPPORTED
+    assert refused.gating is False
+    assert "not declared" in refused.reason
+    assert refused.demand == 0, "an undeclared surface is refused, not scored"
+
+    unstated = assess(entries, codex_policy)
+    assert unstated.verdict is Verdict.UNSUPPORTED, "silence is not a declaration"
+
+    accepted = assess(entries, codex_policy, surface="codex-tui")
+    assert accepted.verdict is Verdict.DEPLOYABLE
+    assert accepted.gating is True
 
 
 def test_only_a_declared_surface_is_accepted(codex_policy):
@@ -250,7 +281,7 @@ def test_the_ceiling_is_ninety_percent_not_a_hundred(codex_policy):
 
 def test_an_empty_catalog_is_unsupported_not_deployable(codex_policy):
     """A trivial catalog must not satisfy the check (spec Evaluation)."""
-    result = assess([], codex_policy)
+    result = assess([], codex_policy, surface="codex-tui")
     assert result.verdict is Verdict.UNSUPPORTED
     assert "no entries" in result.reason
 
@@ -274,7 +305,7 @@ def _fit_entries(catalog):
 
 
 def test_fit_proof_codex_gpt56(codex_policy, catalog):
-    result = assess(_fit_entries(catalog), codex_policy)
+    result = assess(_fit_entries(catalog), codex_policy, surface="codex-tui")
     assert result.verdict is Verdict.DEPLOYABLE, result.reason
 
 

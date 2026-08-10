@@ -91,6 +91,48 @@ def test_a_session_with_no_model_call_is_absent_not_empty(tmp_path):
     assert read_rollout(path) is None
 
 
+def test_a_user_pasted_block_is_never_measured(obs56):
+    """PR #60 review, P1. A conversation that *discusses* a listing must not supply it.
+
+    Both fixtures carry a user-authored decoy block placed **before** the
+    harness-authored record. An earlier reader walked every string in every
+    record and took the first hit, so it would have measured the paste. This is
+    not hypothetical: across 309 rollouts on the capture machine the block
+    appears twice with role `user`, and session 2026-07-28T17-23-34 has the user
+    copy first. The spec's historical table happened to use that session's
+    sibling, recorded 14 seconds later — correct by luck.
+    """
+    raw = F56.read_text()
+    assert "decoy-pasted-by-user" in raw, "fixture lost the decoy"
+    assert raw.index("decoy-pasted-by-user") < raw.index('"role": "developer"'), \
+        "the decoy must precede the harness record or this proves nothing"
+
+    assert not any(e.name == "decoy-pasted-by-user" for e in obs56.listing.entries)
+    assert len(obs56.listing.entries) == 56
+
+
+def test_compacted_summaries_are_not_measured(tmp_path):
+    """A compacted summary is harness-authored but its listing may be stale.
+
+    136 of the block's occurrences on the capture machine sit inside `compacted`
+    records. Accepting them would silently measure an earlier turn's catalog.
+    """
+    import json as _json
+
+    block = ("<skills_instructions>\n" + INTRO + "### Available skills\n"
+             "- stale: from a compaction summary "
+             "(file: /Users/example-dev/.agents/skills/stale/SKILL.md)\n"
+             "</skills_instructions>")
+    path = tmp_path / "rollout-compacted.jsonl"
+    path.write_text(
+        _json.dumps({"type": "session_meta",
+                     "payload": {"originator": "codex-tui", "cli_version": "0.146.0",
+                                 "cwd": str(tmp_path), "model": "m"}}) + "\n"
+        + _json.dumps({"type": "compacted", "payload": {"message": block}}) + "\n"
+    )
+    assert read_rollout(path) is None
+
+
 def test_surface_mismatch_is_reported_rather_than_reconciled(obs56):
     """EV: the live probe and the recorded session disagreeing is the finding."""
     live = probe_codex.parse_block(
@@ -111,6 +153,27 @@ def test_surface_mismatch_is_reported_rather_than_reconciled(obs56):
 def test_identical_listings_do_not_report_a_mismatch(obs56):
     """Guards the detector against firing on everything."""
     assert surface_mismatch(obs56.listing, obs56) is None
+
+
+def test_a_duplicate_only_difference_is_still_a_mismatch(obs56):
+    """PR #60 review, P2. Codex charges every copy of a duplicated name.
+
+    The fixture lists `skill-creator` twice — once bundled by Codex, once shipped
+    by dojo. Comparing bare-name sets reports no mismatch when one copy vanishes,
+    hiding a real cost difference. Compared as a multiset of qualified
+    identities, it does not.
+    """
+    import copy
+
+    live = copy.deepcopy(obs56.listing)
+    victim = next(e for e in live.entries if e.name == "skill-creator")
+    live.entries.remove(victim)
+
+    assert {e.name for e in live.entries} == {e.name for e in obs56.listing.entries}, \
+        "the bare-name sets must be identical or this proves nothing"
+    mismatch = surface_mismatch(live, obs56)
+    assert mismatch is not None
+    assert any("skill-creator" in i for i in mismatch["only_in_recorded"])
 
 
 # --------------------------------------------------------------------------
@@ -298,7 +361,11 @@ def test_no_fixture_is_a_raw_session_capture():
             "derivation of what the parser consumes")
         text = path.read_text()
         assert "/Users/example-dev" in text
-        assert text.count("<skills_instructions>") == 1
+        # Exactly one HARNESS-authored block. The fixtures deliberately carry a
+        # second, user-authored decoy to pin the extraction rule, so a bare
+        # count of the tag would now be wrong.
+        assert text.count('"role": "developer"') == 1
+        assert text.count("<skills_instructions>") <= 2
 
 
 def test_locator_classification_separates_connector_from_dojo():
@@ -387,12 +454,54 @@ def test_observations_filter_by_surface(tmp_path):
             _json.dumps({"type": "session_meta",
                          "payload": {"originator": originator, "cli_version": "0.146.0",
                                      "cwd": str(tmp_path), "model": "m"}}) + "\n"
-            + _json.dumps({"type": "turn", "payload": {"text": block}}) + "\n"
+            + _json.dumps({"type": "response_item",
+                           "payload": {"type": "message", "role": "developer",
+                                       "content": [{"type": "input_text", "text": block}]}}) + "\n"
         )
 
     tui = observations(tmp_path, surface="codex-tui")
     assert [o.meta.surface for o in tui] == ["codex-tui"]
     assert len(observations(tmp_path)) == 2
+
+
+def test_one_unparseable_rollout_does_not_abort_a_scan(tmp_path):
+    """Found by sweeping the real history: 98 of 313 rollouts use an older intro.
+
+    Codex changed the wording from "name, description, and file path" to "name,
+    description, and source locator". `parse_block` fails closed on the older
+    form, which is right — but the first such file aborted the entire sweep. The
+    skip must also be *counted*, because a scan that silently dropped a third of
+    its input would report a confident and wrong history.
+    """
+    import json as _json
+
+    day = tmp_path / "2026" / "08" / "06"
+    day.mkdir(parents=True)
+
+    def write(name, intro):
+        block = ("<skills_instructions>\n" + intro + "### Available skills\n"
+                 "- a: d (file: /Users/example-dev/.agents/skills/a/SKILL.md)\n"
+                 "</skills_instructions>")
+        (day / name).write_text(
+            _json.dumps({"type": "session_meta",
+                         "payload": {"originator": "codex-tui", "cli_version": "0.146.0",
+                                     "cwd": str(tmp_path), "model": "m"}}) + "\n"
+            + _json.dumps({"type": "response_item",
+                           "payload": {"type": "message", "role": "developer",
+                                       "content": [{"type": "input_text", "text": block}]}}) + "\n"
+        )
+
+    write("rollout-old.jsonl", "Each entry includes a name, description, and file path.\n")
+    write("rollout-new.jsonl", INTRO)
+
+    errors: list = []
+    found = observations(tmp_path, errors=errors)
+    assert len(found) == 1, "the parseable rollout must still be returned"
+    assert len(errors) == 1, "the skip must be reported, never silent"
+    assert "rollout-old" in errors[0][0].name
+
+    with pytest.raises(ValueError):
+        read_rollout(day / "rollout-old.jsonl")
 
 
 def test_find_rollouts_on_a_missing_root_is_empty_not_an_error():
