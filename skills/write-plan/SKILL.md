@@ -2,7 +2,7 @@
 name: write-plan
 description: 'Sequence the build: turn a settled target (a `write-spec` contract, a ticket, or a clear request) into an execution plan — task breakdown, files, ordered steps, seam selection, and verification commands. Use when WHAT is already decided and you need HOW: the file-level, dependency-ordered steps to implement it. If the target is not yet falsifiable, route back to `write-spec`.'
 skill-type: workflow
-version: 2.1.0
+version: 2.2.0
 ---
 
 # Write Plan
@@ -142,6 +142,14 @@ the ground first — do not pick a mechanism blind:
    verification.
    Create-only work does not need an invented target-file citation, though it may
    include labeled research context when helpful.
+
+   **An assumption is a dated observation, not a fact.** It is written when the
+   plan is drafted and consumed days or weeks later, by which time the runtime,
+   the vendor, or a sibling task may have moved. Write `verified YYYY-MM-DD`
+   beside each one and re-run the check at the start of the task that relies on
+   it. Anything observed from a runtime — version-dependent limits, output
+   shapes, tool behavior — also names the build it was seen on, because a
+   constant that holds for one release is not thereby a constant.
 5. **Resolve the current before prescribing.** Grep/read questions that can be
    answered now, then write facts. Do not leave conditional discovery in a step
    (for example, "if X is already wired"). Put only irreducible future
@@ -182,6 +190,13 @@ Granularity target:
 - When tests change, prove their discovery before claiming readiness: confirm the
   repository runner includes the new test path, then name a command that runs the
   literal test file (or exact test selector).
+- **A capability gate must prove fidelity, not just mechanism.** When an early
+  task establishes that some measurement or integration is possible at all,
+  passing it shows the mechanism works — not that it observes the thing that
+  matters. Require a **paired observation**: the tool's answer beside the same
+  quantity taken from the surface a user actually touches, with the gate failing
+  on disagreement. Name the entry point the evidence came from; a tool with
+  several has no obligation to make them agree, and precision is not fidelity.
 - Do not claim plan readiness until verification coverage is explicit.
 - For high-risk plans, do not set `readiness: ready` or announce completion until
   deterministic validation passes, adversarial critique findings are revised,

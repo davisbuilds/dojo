@@ -1,3 +1,7 @@
+## 2.2.0 - 2026-08-10
+
+- Assumptions are dated observations that must be re-verified before the task consuming them; capability gates must prove fidelity to the surface a user touches, not just working mechanism.
+
 ## 2.1.0 - 2026-07-27
 
 - Resolve consumer-repository paths correctly and plan pinned acceptance gates
