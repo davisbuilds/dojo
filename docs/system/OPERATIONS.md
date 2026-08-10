@@ -241,8 +241,11 @@ Four things to know before trusting a number from these:
   2026-08-04 the same directory, model, and minute measured 41 entries at 76% via
   the probe and **110 entries at 246% with every description clipped to ≤77
   characters** in the actual TUI session. The budget is also wrong from the
-  probe: two interactive renders each saturate at **exactly 4,000 tokens**, not
-  the 5,440 that `codex debug models`' 272,000 window implies. And **the
+  probe: interactive renders on build 0.146.0 saturate at **exactly 4,000
+  tokens**, not the 5,440 that `codex debug models`' 272,000 window implies.
+  **The ceiling is a property of the CLI build** — 0.143.0/0.144.x saturate at
+  5,440 (and at 7,440 for a 372,000-window model, both matching `2% × window`),
+  and 0.145.0 changed it. Never pool samples across builds. And **the
   harness's shortening warning is not a fit signal** — Codex warned at 246% and
   stayed silent at 144% while still clipping 50 of 56 descriptions. Until the
   observation moves to the rollout record, read a live session instead:

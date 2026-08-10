@@ -160,7 +160,16 @@ in the contract — was considered and declined.
    nonconformant full-canonical membership, never migrated into a deployable
    `full` realization.
 
-**What phase 1's first honest run will say.** Re-measured 2026-08-02, after the
+**What phase 1's first honest run will say.**
+
+> **Superseded 2026-08-10.** Every Codex figure below is from the `exec`
+> surface and a build-specific limit, both corrected by Task 5A. The real
+> interactive position on build 0.146.0 is **137% of a 4,000-token ceiling with
+> 50 of 56 descriptions clipped**. Retained because the gap between what this
+> paragraph confidently predicted and what the first honest run actually said is
+> the plan's own best argument for building the verifier.
+
+Re-measured 2026-08-02, after the
 #53/#54 merges. The two harnesses now disagree sharply, which is the finding.
 
 *Codex*, budget 5,440 tokens — **nothing truncates anywhere**. Ordinary sessions
@@ -1251,10 +1260,18 @@ Task 0, Task 4, Task 5
   extractable by walking the decoded structure; the existing `parse_block` in
   `probe_codex.py` consumes it unchanged — the parser is correct, only its input
   was wrong.
-- Eleven captured sessions cross the surface boundary and are available as
-  regression evidence: `exec` sessions show 4 roots / 41–46 entries / max
-  description 299; `codex-tui` sessions show 9 roots / 69–111 entries / max
-  description 153 then 75.
+- **Corrected 2026-08-10 after sweeping the full history with the fixed reader.**
+  The original assumption read: "`exec` sessions show 4 roots / 41–46 entries /
+  max description 299; `codex-tui` sessions show 9 roots / 69–111 entries". Two
+  parts were wrong. Those figures came from a reader that took the first
+  `<skills_instructions>` in any record, so some were parsed from the wrong one.
+  And **`exec` is not categorically connector-free**: builds 0.140.0 and 0.144.1
+  loaded 11 connector entries into `exec` sessions; 0.142.x, 0.145.0 and 0.146.0
+  do not. The paired 2026-08-04 observation — same directory, model, and minute,
+  41 entries on `exec` against 110 on `codex-tui` — stands, but it is a fact
+  about **build 0.146.0**, not a property of the two surfaces for all time.
+  Across 89 parseable rollouts spanning twelve builds: `codex-tui` 46–119
+  entries / 0–9 roots, `codex_exec` 40–57 entries / 0–7 roots.
 - Connector plugins carry `.codex-remote-plugin-install.json` with a
   `remote_plugin_id` (`plugin_connector_1p_*`, `plugin_connector_*`,
   `plugin_asdk_app_*`), which distinguishes account-synced entries from locally
@@ -1303,11 +1320,15 @@ Task 0, Task 4, Task 5
    taken from `codex debug models` without that agreement is recorded
    `provisional: true`, and a provisional limit cannot make a pair deployable.
    Seed from the three 2026-08-04 renders — 110 and 56 entries on
-   `gpt-5.6-terra` and 56 on `gpt-5.6-sol`, all exactly 4,000. **The limit must
-   not be derived from the reported context window**: both models report 272,000
-   (2% = 5,440) and both budget 4,000, so a policy computing `window × 2%` is
-   wrong on this surface by 36%. A test pins that a policy deriving its Codex
-   limit from `codex debug models` is rejected.
+   `gpt-5.6-terra` and 56 on `gpt-5.6-sol`, all exactly 4,000. **The limit is a
+   property of the build and must never be pooled across builds.** The full
+   sweep shows `2% × context_window` was *correct* through 0.144.x — builds
+   0.143.0, 0.144.1 and 0.144.6 saturate at exactly 5,440 (2% × 272,000) and
+   0.144.1 also at 7,440 (2% × 372,000, a larger-window model) — and that
+   **0.145.0 changed it** to ~4,000. So a policy may not take the catalog figure
+   on trust, but the vendor formula was not wrong; it described a build that has
+   since moved. Tests pin that an unchecked catalog-derived limit is provisional
+   and that samples from two builds are refused.
 9. **Render dojo entries with absolute locators.** The 14:00 render costs dojo
    skills as `/Users/<home>/.agents/skills/<name>/SKILL.md`, not as an `rN/`
    alias; assuming the alias form understated demand by **9%** and flipped the
