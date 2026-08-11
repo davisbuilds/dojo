@@ -297,6 +297,63 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   Validator: a plan whose task steps name a known-external binary but carry no
   `Behavior Measured` block is advisory-flaggable.
 
+### write-plan/test-strategy: high-risk proof can name the right artifact while leaving the property mutable
+- **What**: the high-risk workflow asks for authority maps, evidence lifecycle,
+  side-effect windows, recovery, partial rollout, and effective-runtime probes,
+  but it does not force three distinctions that decide whether those sections
+  are evidence or labels:
+  1. **Identity is not capture.** Hashing or naming live inputs does not prove a
+     later verifier, reviewer, or publisher consumed those bytes. The plan must
+     name the freeze/copy/revalidation barrier between producer and every
+     consumer, including mutation and inode/symlink swaps between phases.
+  2. **“Idempotent” is not recovery.** A transition spanning a durable artifact,
+     remote/local effect, outcome ledger, and lifecycle move needs persisted
+     intent, effect order, receipts, and a reconciler for every crash point. The
+     adjective alone hides the same partial-failure window the section is meant
+     to expose.
+  3. **Policy fixtures are not network-boundary proof.** A loopback server or
+     injected dialer can prove parsing and refusal logic, but not that production
+     connected to the public address it validated. Network authority needs the
+     observed peer from the real transport plus a fixed public end-to-end
+     control; the subject's requested URL is not the peer.
+- **Why or evidence**: surfaced 2026-08-11 while planning evidence-grounded
+  validation in tokenmaxxing. A structurally valid high-risk plan traced every
+  contract ID and carried all required readiness tables, yet an adversarial
+  closure review still found (a) roles reading live report/diff/transcript paths
+  after their generation hash was computed, (b) publication/lifecycle/outcome
+  effects described as idempotent with no durable executor, and (c) an SSRF test
+  design whose allowed “public” request terminated at a loopback fixture. The
+  same review found activation before declaration/recovery/inspection consumers;
+  this is the topology form of the issue: enforcement cannot flip until its
+  producer, recovery, and operator paths exist. These are reusable risks in
+  migrations, queues, deployment controllers, auth systems, evidence pipelines,
+  and any workflow that crosses mutable or remote state.
+- **Existing guidance that is already sufficient**: do not widen `write-spec`
+  for the initial contract revisions. Its high-risk protocol already requires
+  actor authority, indirect forbidden paths, unsupported-policy behavior,
+  partial failure, retry, concurrency, and adversarial closure; those misses
+  were failures to apply the guidance, and the required critique loop caught
+  them. Likewise, the existing effective-runtime/host-observer rule already
+  rejects prompt compliance as authority proof. The gap is the more specific
+  proof obligation above, not another tokenmaxxing/Agy checklist.
+- **Next / ownership split**:
+  - `write-plan/references/high-risk-readiness.md`: add a compact “prove the
+    handoff” check for mutable evidence (capture/revalidate), multi-effect
+    transitions (intent/order/receipt/reconcile), and activation topology (no
+    default-on enforcement before declaration, recovery, and operator
+    consumers). Require the plan critic to attack each distinction explicitly.
+  - `test-strategy/references/authority-boundary-testing.md`: for network
+    boundaries, separate deterministic policy tests, actual connected-peer
+    observation, and a public end-to-end control; prohibit claiming a loopback
+    fixture proves public-destination enforcement.
+  - `write-spec`: no change from this incident unless another run shows the
+    mechanism-free authority/recovery questions themselves are absent rather
+    than skipped.
+  Add skill-eval fixtures where a polished plan says “digest-bound” without a
+  capture barrier, “idempotent” without a reconciler, flips enforcement before
+  recovery exists, or labels a loopback transport “public”; each should be
+  rejected by critique even when structural validation passes.
+
 ### research-architect: remaining deferred tooling
 - **What**: `scripts/diff_runs.py` and `references/rubric-library.md` remain
   deliberately deferred. (`scripts/score_report.py`, the third of the original
