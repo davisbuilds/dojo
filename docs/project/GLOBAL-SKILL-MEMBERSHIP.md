@@ -138,6 +138,44 @@ project, add it to that project's skills root rather than to the global root —
 that is the point of the cut. `~/.agents/.removed-20260812/` holds copies, though
 the canonical source is dojo.
 
+## Verified position after the cuts (2026-08-12, build 0.146.0)
+
+Measured from a live `codex-tui` rollout in `~/Dev/podsave` — the same directory
+as the pre-cut baseline, so the only variable is the removals.
+
+| | Before (08-06) | After (08-12) |
+|---|---|---|
+| Listed entries | 56 | **50** |
+| dojo demand | 3,129 | **2,553** |
+| Total true demand | 4,936 (137%) | **4,554 (114%)** |
+| dojo entries clipped | 50 of 56 | **20 of 50** |
+| Characters removed | 6,317 | **2,186** |
+| Longest description | 207 | **248** |
+
+The cost model predicted 2,553 and the render charged 2,553. Two-thirds of the
+damage is gone and thirty skills that were being severed now render in full.
+
+**dojo is now the compliant part of the listing:**
+
+| Source | Tokens | % of 4,000 | Controlled from |
+|---|---|---|---|
+| dojo-managed | 2,553 | 64% | this repository |
+| plugin | 806 | 20% | Codex desktop app update |
+| connector | 708 | 18% | ChatGPT account |
+| harness-bundled | 366 | 9% | Codex itself |
+| alias table | 121 | 3% | — |
+| **total** | **4,554** | **114%** | |
+
+**The remaining 554-token overage cannot be closed from this repository.** dojo
+fits its 2,641 allowance with 88 to spare; the overage is entirely the 1,880
+tokens of plugins, connectors, and bundled entries. Cutting further would mean
+deleting skills in use to make room for `openai-primary-runtime` and account
+connectors. **Stop cutting dojo here.**
+
+Also confirmed: the listing still saturates at exactly 4,000 on a **third model**
+(`gpt-5.6-luna`), and Codex emitted **no shortening warning** at 114% while
+clipping 20 skills — the warning's false negative, reproduced a third time.
+
 ## Candidates not yet decided
 
 - **`research-architect`** — 179 tokens, the single most expensive skill in the
