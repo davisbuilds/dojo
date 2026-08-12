@@ -10,6 +10,10 @@
           {
             "type": "command",
             "command": "bash hooks/session-start-skill-drift.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/session-start-harness-drift.sh"
           }
         ]
       }
@@ -17,7 +21,9 @@
     "PreToolUse": [
       {
         "matcher": {
-          "tools": ["Bash"]
+          "tools": [
+            "Bash"
+          ]
         },
         "hooks": [
           {
@@ -28,7 +34,10 @@
       },
       {
         "matcher": {
-          "tools": ["Write", "Edit"]
+          "tools": [
+            "Write",
+            "Edit"
+          ]
         },
         "hooks": [
           {
@@ -41,7 +50,10 @@
     "PostToolUse": [
       {
         "matcher": {
-          "tools": ["Write", "Edit"]
+          "tools": [
+            "Write",
+            "Edit"
+          ]
         },
         "hooks": [
           {

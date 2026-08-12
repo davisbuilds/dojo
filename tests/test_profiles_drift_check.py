@@ -17,6 +17,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -37,6 +38,18 @@ from profiles.drift_check import (  # noqa: E402
 
 F110 = FIXTURES / "codex-tui-clipped-110.jsonl"
 F56 = FIXTURES / "codex-tui-clipped-56.jsonl"
+
+
+def _only(store: dict) -> dict:
+    """The single baseline in a one-entry store, as a mutable dict."""
+    assert len(store) == 1, f"expected one baseline, got {list(store)}"
+    return next(iter(store.values()))
+
+
+def _stamp(*, days_ago: int) -> str:
+    """A baseline `observed_at` that many days in the past."""
+    when = datetime.now() - timedelta(days=days_ago)
+    return when.strftime("%Y-%m-%dT%H-%M")
 
 
 @pytest.fixture
@@ -222,6 +235,213 @@ def test_no_session_is_cannot_evaluate_not_clean(tmp_path, capsys):
     assert "no parseable" in capsys.readouterr().out
 
 
+# --------------------------------------------------------------------------
+# Blind for too long is a finding, not a quiet pass
+# --------------------------------------------------------------------------
+
+
+def test_never_having_evaluated_is_escalated_not_tolerated(tmp_path, capsys, monkeypatch):
+    """The mini's real state on 2026-08-12, reported green every week.
+
+    Its newest interactive session was nine weeks old and unparseable, so the
+    check could never evaluate — and the health wrapper treated cannot-evaluate
+    as a pass. A machine that has *never* been observed is not a machine between
+    sessions; it is a machine nobody is watching, and saying so is the whole
+    point of the monitor.
+    """
+    import profiles.drift_check as dc
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [])
+    code = dc.run(tmp_path / "absent.json", max_blind_days=30)
+    assert code == dc.EXIT_BLIND, "never-evaluated must escalate, not pass"
+    assert "never" in capsys.readouterr().out.lower()
+
+
+def test_a_machine_merely_between_sessions_is_not_escalated(tmp_path, capsys, monkeypatch):
+    """The exemption that was right for the wrong reason.
+
+    Interactive work happens on the mini only when monitors are connected, so a
+    quiet week is normal and must not go red — that trains the operator to
+    ignore the job. Only *persistent* blindness escalates.
+    """
+    import profiles.drift_check as dc
+
+    path = tmp_path / "baseline.json"
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    dc.run(path, update=True)
+    store = json.loads(path.read_text())
+    _only(store)["observed_at"] = _stamp(days_ago=3)
+    path.write_text(json.dumps(store))
+    capsys.readouterr()
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [])
+    assert dc.run(path, max_blind_days=30) == EXIT_CANNOT_EVALUATE
+    assert "3d" in capsys.readouterr().out
+
+
+def test_blindness_past_the_threshold_escalates_and_dates_itself(
+        tmp_path, capsys, monkeypatch):
+    import profiles.drift_check as dc
+
+    path = tmp_path / "baseline.json"
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    dc.run(path, update=True)
+    store = json.loads(path.read_text())
+    _only(store)["observed_at"] = _stamp(days_ago=64)
+    path.write_text(json.dumps(store))
+    capsys.readouterr()
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [])
+    assert dc.run(path, max_blind_days=30) == dc.EXIT_BLIND
+    out = capsys.readouterr().out
+    assert "64d" in out, "the report must say how long it has been blind"
+
+
+def test_blindness_is_opt_in_so_ad_hoc_runs_are_unaffected(tmp_path, monkeypatch):
+    """Without a threshold the exit codes are exactly what they were."""
+    import profiles.drift_check as dc
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [])
+    assert dc.run(tmp_path / "absent.json") == EXIT_CANNOT_EVALUATE
+
+
+def test_a_machine_that_can_be_read_never_reports_blind(tmp_path, monkeypatch):
+    """Blindness is about the instrument, never about what the instrument saw.
+
+    A threshold that also fired on a healthy observation would make the check
+    unusable on the daily driver, which is the machine it most needs to watch.
+    """
+    import profiles.drift_check as dc
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    path = tmp_path / "baseline.json"
+    assert dc.run(path, update=True, max_blind_days=1) == EXIT_CLEAN
+    assert dc.run(path, max_blind_days=1) == EXIT_CLEAN
+
+
+def test_a_stale_but_readable_session_still_counts_as_blind(tmp_path, capsys, monkeypatch):
+    """The hole in the first version of the threshold.
+
+    It was reached only when *no* observation parsed. But nothing gives
+    `observations()` a freshness cutoff, so a machine that stops being used
+    interactively keeps returning the same historical rollout forever: it
+    matches the baseline, compares clean, and the monitor reports healthy
+    indefinitely while receiving nothing new. Being able to read a two-month-old
+    session is not the same as watching a machine.
+    """
+    import profiles.drift_check as dc
+
+    obs = rc.read_rollout(F56)
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [obs])
+    monkeypatch.setattr(dc, "_observation_age_days", lambda o: 70)
+    path = tmp_path / "baseline.json"
+
+    dc.run(path, update=True)          # seed from the same stale sample
+    capsys.readouterr()
+
+    assert dc.run(path, max_blind_days=30) == dc.EXIT_BLIND, \
+        "a stale sample that compares clean must not report clean"
+    assert "70d" in capsys.readouterr().out
+
+
+def test_degraded_classification_can_also_be_blind(tmp_path, capsys, monkeypatch):
+    """The other bypass: the alarm returned before the threshold was consulted.
+
+    A classifier broken by a render change yields cannot-evaluate on every run,
+    which the scheduled wrapper treats as a pass — the same silent-forever
+    failure, reached by a different door.
+    """
+    import copy
+
+    import profiles.drift_check as dc
+
+    broken = copy.deepcopy(rc.read_rollout(F56))
+    for entry in broken.listing.entries:
+        entry.locator = f"/nowhere/{entry.name}/SKILL.md"
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [broken])
+
+    assert dc.run(tmp_path / "b.json", max_blind_days=30) == dc.EXIT_BLIND
+    out = capsys.readouterr().out
+    assert "classification degraded" in out, "it must still say what broke"
+
+
+def test_real_drift_outranks_staleness(tmp_path, capsys, monkeypatch):
+    """Staleness must not mask a change the operator has never seen.
+
+    A stale sample that *differs* from the baseline is the more actionable
+    finding, so it is reported as drift; blindness is what a stale sample means
+    when there is otherwise nothing to say.
+    """
+    import profiles.drift_check as dc
+
+    monkeypatch.setattr(dc, "_observation_age_days", lambda o: 70)
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    path = tmp_path / "baseline.json"
+    dc.run(path, update=True)
+    capsys.readouterr()
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F110)])
+    assert dc.run(path, max_blind_days=30) == EXIT_DRIFT
+    assert "listed entries changed" in capsys.readouterr().out
+
+
+# --------------------------------------------------------------------------
+# Samples are not pooled across working directories
+# --------------------------------------------------------------------------
+
+
+def test_two_working_dirs_do_not_report_each_other_as_drift(tmp_path, capsys, monkeypatch):
+    """Measured on this machine: at build 0.144.1, `Dev` listed 55 entries and
+    `Dev/dojo` listed 112 — the repository's own project-scoped catalog on top of
+    the global one. With a single machine-wide baseline the hook accepts whichever
+    project it saw last and reports ~57 entries added, then the reverse on the next
+    switch. That is not noise to tune down; it fires on every project switch.
+
+    Same rule the module already applies to builds: compare like with like.
+    """
+    import profiles.drift_check as dc
+
+    in_dev = rc.read_rollout(F56)
+    in_dojo = rc.read_rollout(F110)
+    path = tmp_path / "baseline.json"
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [in_dev])
+    monkeypatch.setattr(dc, "_observation_cwd", lambda o: "/Users/x/Dev")
+    assert dc.run(path, update=True) == EXIT_CLEAN
+    capsys.readouterr()
+
+    # Switch project: a different cwd with a legitimately different catalog.
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [in_dojo])
+    monkeypatch.setattr(dc, "_observation_cwd", lambda o: "/Users/x/Dev/dojo")
+    assert dc.run(path, update=True) != EXIT_DRIFT, \
+        "a different project's catalog is not drift"
+    capsys.readouterr()
+
+    # ...and coming back must not report the reverse change either.
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [in_dev])
+    monkeypatch.setattr(dc, "_observation_cwd", lambda o: "/Users/x/Dev")
+    assert dc.run(path) == EXIT_CLEAN, "returning to a known project must be clean"
+
+
+def test_each_working_dir_keeps_its_own_baseline(tmp_path, monkeypatch):
+    """Accepting one project's listing must not overwrite another's."""
+    import profiles.drift_check as dc
+
+    path = tmp_path / "baseline.json"
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    monkeypatch.setattr(dc, "_observation_cwd", lambda o: "/Users/x/Dev")
+    dc.run(path, update=True)
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F110)])
+    monkeypatch.setattr(dc, "_observation_cwd", lambda o: "/Users/x/Dev/dojo")
+    dc.run(path, update=True)
+
+    store = json.loads(path.read_text())
+    assert set(store) == {"/Users/x/Dev", "/Users/x/Dev/dojo"}, store
+    assert len(store["/Users/x/Dev"]["entry_ids"]) == 56
+    assert len(store["/Users/x/Dev/dojo"]["entry_ids"]) == 110
+
+
 def test_a_missing_baseline_refuses_rather_than_passing(tmp_path, capsys, monkeypatch):
     """First run must not report clean; it has nothing to compare against."""
     import profiles.drift_check as dc
@@ -255,9 +475,11 @@ def test_drift_exits_two_and_names_what_moved(tmp_path, capsys, monkeypatch):
     dc.run(path, update=True)
     capsys.readouterr()
 
-    stale = Baseline(**json.loads(path.read_text()))
-    path.write_text(json.dumps(dataclasses.asdict(
-        dataclasses.replace(stale, harness_build="0.140.0/old", ceiling=5440)), indent=2))
+    store = json.loads(path.read_text())
+    key = next(iter(store))
+    store[key] = dataclasses.asdict(dataclasses.replace(
+        Baseline(**store[key]), harness_build="0.140.0/old", ceiling=5440))
+    path.write_text(json.dumps(store, indent=2))
 
     assert dc.run(path) == EXIT_DRIFT
     out = capsys.readouterr().out
