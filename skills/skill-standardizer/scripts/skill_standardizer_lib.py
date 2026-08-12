@@ -65,6 +65,21 @@ def _expand(path: str | Path) -> Path:
     return Path(path).expanduser().resolve()
 
 
+def _expand_nofollow(path: str | Path) -> Path:
+    """Absolute path to the entry *itself*, without following a final symlink.
+
+    `_expand` resolves, which is right for reading a skill's contents and wrong
+    for acting on the entry at a path. A skills root is a symlink farm: resolving
+    `~/.claude/skills/foo` yields `~/.agents/skills/foo`, so a backup of the
+    "destination" would move the real skill out of the primary root instead of
+    the link pointing at it, and a dangling link resolves to a path that does not
+    exist at all -- which is why removing one silently did nothing.
+
+    `os.path.abspath` normalizes lexically and never touches the filesystem.
+    """
+    return Path(os.path.abspath(Path(path).expanduser()))
+
+
 def _normalize_skills_root(path: str | Path) -> Path:
     candidate = _expand(path)
     if (candidate / "skills").is_dir():
@@ -243,8 +258,11 @@ def scan_root(root: RootSpec, ignore_dirs: set[str] | None = None) -> RootInvent
     return RootInventory(root=root, skills=skills, invalid_entries=invalid_entries)
 
 
+GLOBAL_ROOT_KINDS = ("global-agents", "global-codex", "global-claude")
+
+
 def _preferred_global_kinds() -> list[str]:
-    return ["global-agents", "global-codex", "global-claude"]
+    return list(GLOBAL_ROOT_KINDS)
 
 
 def preferred_global_for_skill(skill: str, inventories: list[RootInventory]) -> tuple[RootSpec, SkillEntry] | None:
@@ -511,9 +529,46 @@ def build_audit_report(
             if not inv.root.kind.startswith("global-"):
                 continue
 
-            if (
-                primary_global_inventory
+            is_secondary_global = (
+                primary_global_inventory is not None
                 and inv.root.kind != primary_global_inventory.root.kind
+                and inv.root.kind in GLOBAL_ROOT_KINDS
+            )
+
+            # "Absent from the primary root" has to mean absent *entirely* --
+            # neither a valid skill nor a broken entry. A primary entry that is
+            # merely damaged is repaired by a sync_copy earlier in this same plan
+            # (apply orders copies before links), so the secondary links pointing
+            # at it are about to become valid and must not be removed.
+            #
+            # Absent entirely is different: it is the operator's expressed
+            # intent. Removing six skills from ~/.agents/skills on 2026-08-12
+            # left exactly these orphans behind, and resurrecting them from
+            # canonical would silently undo a deliberate cut.
+            primary_has_name = primary_global_inventory is not None and (
+                invalid_name in primary_global_inventory.skills
+                or invalid_name in primary_global_inventory.invalid_entries
+            )
+            if is_secondary_global and not primary_has_name:
+                add_issue(
+                    severity="warning",
+                    code="STALE_SECONDARY_GLOBAL",
+                    skill=invalid_name,
+                    root=inv.root.path,
+                    global_root=primary_global_inventory.root.path,
+                    message="Entry names a skill absent from the primary global root",
+                )
+                add_action(
+                    action="remove_stale_entry",
+                    skill=invalid_name,
+                    dest=invalid_dest,
+                    reason="Drop secondary global entry whose skill is absent from the primary global root",
+                )
+                continue
+
+            if (
+                is_secondary_global
+                and primary_global_inventory is not None
                 and (
                     global_policy == "prefer-primary-link"
                     or (
@@ -522,6 +577,12 @@ def build_audit_report(
                         and primary_global_inventory.root.kind == "global-agents"
                     )
                 )
+                # Reaching here means the primary root has this name in some
+                # form: either a valid skill to link to, or a damaged entry that
+                # an earlier sync_copy restores. The case that used to produce a
+                # link to a nonexistent path -- no primary entry at all, matched
+                # on canonical alone -- is handled as stale above and never
+                # arrives here.
                 and (
                     invalid_name in primary_global_inventory.skills
                     or (canonical_inventory and invalid_name in canonical_inventory.skills)
@@ -1112,11 +1173,12 @@ def apply_actions(
 
     for action in ordered_actions:
         action_type = action["action"]
-        source = _expand(action["source"])
-        dest = _expand(action["dest"])
+        source = _expand(action["source"]) if action.get("source") else None
+        dest = _expand_nofollow(action["dest"])
 
         try:
-            if action_type in {"sync_copy", "create_copy", "relink_to_global", "replace_deprecated_skill"}:
+            if action_type in {"sync_copy", "create_copy", "relink_to_global",
+                               "replace_deprecated_skill", "remove_stale_entry"}:
                 backup = _backup_destination(dest, backup_base, stamp)
                 if backup:
                     result["backups"].append({"dest": str(dest), "backup": str(backup)})
@@ -1133,6 +1195,11 @@ def apply_actions(
                 _replace_with_copy(source, dest)
             elif action_type == "relink_to_global":
                 _replace_with_symlink(source, dest)
+            elif action_type == "remove_stale_entry":
+                # The backup above already moved it aside; removal *is* the action,
+                # and routing it through the same backup path means nothing is
+                # deleted outright.
+                pass
             elif action_type == "remove_deprecated_skill":
                 backup = _backup_destination(_expand(action["deprecated_dest"]), backup_base, stamp)
                 if backup:

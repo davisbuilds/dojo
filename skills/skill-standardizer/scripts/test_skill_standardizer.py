@@ -541,6 +541,124 @@ def test_ignore_dir_flag_suppresses_custom_dir() -> None:
         assert_true(exit_code == 0, f"--ignore-dir should suppress the warning, got exit {exit_code}")
 
 
+def test_stale_secondary_link_is_removed_not_relinked() -> None:
+    """A secondary global entry naming a skill the operator removed from primary.
+
+    Found live on 2026-08-12: cutting six skills from ~/.agents/skills left
+    dangling ~/.claude/skills symlinks behind. The planner proposed
+    relink_to_global with a source that no longer existed, and the applier
+    creates symlinks without checking, so `sync.py --apply` recreated the broken
+    link and reported success. The one repair path for a broken install was a
+    silent no-op.
+
+    Removal rather than restore-from-canonical is the point: absence from the
+    primary global root is the operator's expressed intent, and reinstalling from
+    canonical would quietly undo a deliberate cut.
+    """
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        # Still canonical -- only the *global install* was removed.
+        write_skill(skills, "audit-skill")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+
+        # Deliberately absent from the primary global root; stale link left behind.
+        stale = claude_home / "skills" / "audit-skill"
+        os.symlink(str(agents_home / "skills" / "audit-skill"), stale)
+        assert_true(stale.is_symlink() and not stale.exists(),
+                    "fixture must start dangling or it proves nothing")
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=False,
+            codex_agents_dedupe=True,
+        )
+
+        actions = [a for a in report["actions"] if a["skill"] == "audit-skill"]
+        types = [a["action"] for a in actions]
+        assert_true(
+            "relink_to_global" not in types,
+            f"must not relink to a source that does not exist: {actions}",
+        )
+        assert_true(
+            "sync_copy" not in types,
+            f"must not reinstall a deliberately removed skill: {actions}",
+        )
+        assert_true(
+            types == ["remove_stale_entry"],
+            f"expected a removal, got: {actions}",
+        )
+
+        apply_actions(report, apply=True, backup_root=str(base / "backups"))
+        assert_true(
+            not stale.is_symlink() and not stale.exists(),
+            "the stale link must be gone after apply",
+        )
+        # Backups are named <skill>-<digest>, not the bare skill name.
+        backups = list((base / "backups").rglob("audit-skill-*"))
+        assert_true(bool(backups), "removal must leave a backup behind")
+
+
+def test_a_broken_primary_entry_is_still_restored_from_canonical() -> None:
+    """The case removal must not swallow.
+
+    A broken directory in the *primary* global root is a damaged install of a
+    skill that is meant to be there, so canonical restores it. Only a *secondary*
+    root naming a skill absent from primary is stale.
+    """
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        write_skill(skills, "brainstorming")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+
+        # Present but damaged: a directory with no SKILL.md.
+        (agents_home / "skills" / "brainstorming").mkdir()
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=False,
+            codex_agents_dedupe=True,
+        )
+        types = [a["action"] for a in report["actions"] if a["skill"] == "brainstorming"]
+        assert_true("sync_copy" in types,
+                    f"a damaged primary entry must be restored from canonical: {types}")
+        assert_true("remove_stale_entry" not in types,
+                    f"a damaged primary entry is not stale: {types}")
+
+
 def main() -> int:
     tests = [
         test_invalid_entries_do_not_emit_missing_actions,
@@ -556,6 +674,8 @@ def main() -> int:
         test_selected_skill_limits_mirror_scope_and_invalid_reports,
         test_selected_skill_apply_creates_only_requested_global_mirror,
         test_selected_missing_skill_reports_typo,
+        test_stale_secondary_link_is_removed_not_relinked,
+        test_a_broken_primary_entry_is_still_restored_from_canonical,
     ]
 
     for test in tests:
