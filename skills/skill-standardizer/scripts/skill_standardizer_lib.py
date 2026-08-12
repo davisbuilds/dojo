@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 from typing import Any
 
@@ -1083,6 +1084,41 @@ def write_json(path: str | Path, payload: dict[str, Any]) -> None:
     output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
+BACKUP_RUN_RE = re.compile(r"^\d{8}-\d{6}$")
+DEFAULT_KEEP_BACKUPS = 10
+
+
+def prune_backups(backup_root: Path, keep: int) -> list[Path]:
+    """Keep the `keep` most recent backup runs; remove older ones.
+
+    Backups accumulate one directory per apply and nothing aged them out: 19
+    runs and 8.5M in dojo by 2026-08-12, with more in the harness roots. Harmless
+    until it is not, and invisible either way.
+
+    Count-based rather than age-based on purpose. Several applies in one
+    afternoon is the normal shape of this work, so an age rule would delete the
+    lot a month later while preserving nothing useful from a busy day. `keep=0`
+    disables pruning entirely.
+
+    Only directories whose names are run stamps are considered. This root sits
+    inside a repository and a caller may point it anywhere, so anything else
+    found here is somebody's file and is left alone -- a prune that guesses is a
+    prune that deletes the wrong thing.
+    """
+    if keep <= 0 or not backup_root.is_dir():
+        return []
+
+    runs = sorted(
+        (p for p in backup_root.iterdir() if p.is_dir() and BACKUP_RUN_RE.match(p.name)),
+        key=lambda p: p.name,
+    )
+    pruned: list[Path] = []
+    for run in runs[:-keep] if keep else runs:
+        shutil.rmtree(run, ignore_errors=True)
+        pruned.append(run)
+    return pruned
+
+
 def _backup_destination(dest: Path, backup_root: Path, stamp: str) -> Path | None:
     if not dest.exists() and not dest.is_symlink():
         return None
@@ -1152,6 +1188,7 @@ def apply_actions(
     report: dict[str, Any],
     apply: bool,
     backup_root: str,
+    keep_backups: int = DEFAULT_KEEP_BACKUPS,
 ) -> dict[str, Any]:
     actions = report.get("actions", [])
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -1164,6 +1201,7 @@ def apply_actions(
         "backups": [],
         "errors": [],
         "backup_root": str(backup_base),
+        "pruned_backups": [],
     }
 
     if not apply:
@@ -1231,6 +1269,11 @@ def apply_actions(
                     "error": str(exc),
                 }
             )
+
+    # After applying, never before: the run just written must be among the
+    # newest kept, or a prune could delete the only way to undo this apply.
+    for run in prune_backups(backup_base, keep_backups):
+        result["pruned_backups"].append(str(run))
 
     return result
 

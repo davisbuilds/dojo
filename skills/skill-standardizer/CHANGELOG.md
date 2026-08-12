@@ -1,6 +1,10 @@
 ## 1.2.0 - 2026-08-12
 
-- Detect STALE_SECONDARY_GLOBAL and repair it by removing the entry (with backup) instead of relinking to a source that no longer exists; stop resolving action destinations so an entry that is a symlink is acted on rather than its target.
+- Detect STALE_SECONDARY_GLOBAL and repair it by removing the entry (with backup) instead of
+  relinking to a source that no longer exists; stop resolving action destinations so an entry
+  that is a symlink is acted on rather than its target. Adds backup retention: `--keep-backups`
+  (default 10, `0` keeps everything) prunes old run directories after a successful apply, since
+  nothing else aged them out and they accumulate one directory per run.
 
 ## 1.1.0 - 2026-07-16
 

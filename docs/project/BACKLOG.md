@@ -131,28 +131,6 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   observed on a 200k-window session, which is the only configuration where this
   currently degrades anything.
 
-### A skill in the primary global root that no harness links is invisible to the audit
-
-- **What**: `microsoft-foundry` sits in `~/.agents/skills/` on both machines and is
-  linked from neither `~/.codex/skills` nor `~/.claude/skills`, so no harness can
-  ever load it. The standardizer reports nothing — 0 issues, 0 actions — because
-  its checks run from the secondary roots inward, and a name absent from both of
-  them is simply never considered.
-- **Why or evidence**: measured 2026-08-12 while confirming which root Codex reads.
-  `microsoft-foundry` is absent from every captured `codex-tui` listing across
-  0.146.0 and 0.147.0, which is what proves Codex reads via `~/.codex/skills`
-  rather than `~/.agents/skills` directly. It costs no listing budget precisely
-  because it is unreachable — the cost is that the primary global root is not a
-  truthful statement of what is installed, and `prefer-primary-link` treats that
-  root as the source of truth everywhere else.
-- **Next**: report it (`ORPHANED_PRIMARY_GLOBAL`) rather than act on it — the fix
-  is either "link it into the harness roots" or "remove it", and only the operator
-  knows which. Note this is the mirror image of `STALE_SECONDARY_GLOBAL`, added
-  2026-08-12: that one is a secondary entry with no primary, this is a primary
-  entry with no secondaries.
-- **Revisit when**: a skill is expected to be available and is not, or the next
-  time the global roots are audited by hand.
-
 ### Cross-machine profile drift is silent and can restore superseded skill behavior
 - **What**: on 2026-07-27 the Mac mini's globals were **28 skills content-drifted**
   against a clean `origin/main` dojo checkout, including a `verify-before-complete`

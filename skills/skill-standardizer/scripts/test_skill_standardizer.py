@@ -659,6 +659,106 @@ def test_a_broken_primary_entry_is_still_restored_from_canonical() -> None:
                     f"a damaged primary entry is not stale: {types}")
 
 
+def test_backup_retention_keeps_recent_runs_and_prunes_the_rest() -> None:
+    """Backups accumulate one directory per apply and nothing ages them out.
+
+    Measured 2026-08-12: 19 runs and 8.5M in dojo, 2.6M more in ~/.agents on the
+    mini. Harmless until it is not, and invisible either way.
+
+    Pruning is deliberately count-based rather than age-based: several applies in
+    one afternoon is the normal shape of this work, and an age rule would delete
+    all of them the following month while a burst of runs on one day would
+    survive.
+    """
+    from skill_standardizer_lib import prune_backups
+
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td) / "backups"
+        root.mkdir()
+        stamps = [f"2026081{n}-120000" for n in range(1, 6)]
+        for stamp in stamps:
+            (root / stamp).mkdir()
+            (root / stamp / "payload").write_text(stamp, encoding="utf-8")
+        # Anything that is not a run directory must be left alone: this root is
+        # inside a repository, and a prune that guesses is a prune that deletes.
+        (root / "README.md").write_text("not a run", encoding="utf-8")
+        (root / "manual-copy").mkdir()
+
+        pruned = prune_backups(root, keep=2)
+
+        remaining = sorted(p.name for p in root.iterdir())
+        assert_true(
+            remaining == ["20260814-120000", "20260815-120000", "README.md", "manual-copy"],
+            f"unexpected survivors: {remaining}",
+        )
+        assert_true(len(pruned) == 3, f"expected 3 pruned runs, got {pruned}")
+
+
+def test_backup_retention_never_removes_the_run_just_written() -> None:
+    """The newest run is the one that would be needed to undo this apply."""
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        write_skill(skills, "brainstorming")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+        # A drifted install, so the apply has something to back up.
+        write_skill(agents_home / "skills", "brainstorming")
+        (agents_home / "skills" / "brainstorming" / "SKILL.md").write_text(
+            "---\nname: brainstorming\ndescription: drifted\nversion: 1.0.0\n---\n",
+            encoding="utf-8")
+
+        backup_root = base / "backups"
+        for old in ["20260101-000000", "20260102-000000", "20260103-000000"]:
+            (backup_root / old).mkdir(parents=True)
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=False,
+            codex_agents_dedupe=True,
+        )
+        result = apply_actions(report, apply=True, backup_root=str(backup_root), keep_backups=1)
+
+        assert_true(bool(result["backups"]), "this fixture must produce a backup")
+        # Resolve both sides: on macOS /var is a symlink to /private/var, and the
+        # library resolves while the fixture path does not, so raw Path equality
+        # compares two spellings of the same directory and never matches.
+        written = {Path(b["backup"]).parent.resolve() for b in result["backups"]}
+        surviving = {p.resolve() for p in backup_root.iterdir() if p.is_dir()}
+        for run in written:
+            assert_true(run in surviving, f"pruned the run it just wrote: {run}")
+        assert_true(len(surviving) == 1, f"keep=1 should leave one run: {surviving}")
+
+
+def test_backup_retention_is_off_for_a_dry_run_and_when_disabled() -> None:
+    """A dry run must not touch the filesystem, and keep=0 means keep everything."""
+    from skill_standardizer_lib import prune_backups
+
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td) / "backups"
+        root.mkdir()
+        for stamp in ["20260101-000000", "20260102-000000", "20260103-000000"]:
+            (root / stamp).mkdir()
+
+        assert_true(prune_backups(root, keep=0) == [], "keep=0 must prune nothing")
+        assert_true(len(list(root.iterdir())) == 3, "keep=0 must leave every run")
+
+
 def main() -> int:
     tests = [
         test_invalid_entries_do_not_emit_missing_actions,
@@ -676,6 +776,9 @@ def main() -> int:
         test_selected_missing_skill_reports_typo,
         test_stale_secondary_link_is_removed_not_relinked,
         test_a_broken_primary_entry_is_still_restored_from_canonical,
+        test_backup_retention_keeps_recent_runs_and_prunes_the_rest,
+        test_backup_retention_never_removes_the_run_just_written,
+        test_backup_retention_is_off_for_a_dry_run_and_when_disabled,
     ]
 
     for test in tests:

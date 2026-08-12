@@ -7,6 +7,7 @@ import argparse
 import sys
 
 from skill_standardizer_lib import (
+    DEFAULT_KEEP_BACKUPS,
     apply_actions,
     build_audit_report,
     print_json,
@@ -30,6 +31,7 @@ class Args(argparse.Namespace):
     normalize_primary: bool
     apply: bool
     backup_root: str
+    keep_backups: int
     format: str
     report_out: str | None
 
@@ -117,6 +119,16 @@ def parse_args(argv: list[str]) -> Args:
         help="Backup directory used in apply mode.",
     )
     parser.add_argument(
+        "--keep-backups",
+        type=int,
+        default=DEFAULT_KEEP_BACKUPS,
+        help=(
+            "Backup runs to retain after applying (default "
+            f"{DEFAULT_KEEP_BACKUPS}; 0 keeps every run). Nothing else ages them "
+            "out, so they accumulate one directory per apply."
+        ),
+    )
+    parser.add_argument(
         "--format",
         choices=["text", "json"],
         default="text",
@@ -149,7 +161,12 @@ def main(argv: list[str]) -> int:
         selected_skills=set(args.skill or []),
         ignore_dirs=set(args.ignore_dir or []),
     )
-    sync_result = apply_actions(report, apply=args.apply, backup_root=args.backup_root)
+    sync_result = apply_actions(
+        report,
+        apply=args.apply,
+        backup_root=args.backup_root,
+        keep_backups=args.keep_backups,
+    )
 
     payload = {
         "report": report,
