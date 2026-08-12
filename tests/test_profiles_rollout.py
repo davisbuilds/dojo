@@ -368,6 +368,45 @@ def test_no_fixture_is_a_raw_session_capture():
         assert text.count("<skills_instructions>") <= 2
 
 
+def test_a_symlinked_locator_resolves_before_classification(tmp_path):
+    """Codex 0.147.0 reports the symlink path; 0.146.0 reported the target.
+
+    Task 0 recorded "Codex reports resolved paths" as a property of the harness.
+    It was a property of the builds observed. When 0.147.0 began reporting
+    `~/.codex/skills/<name>/SKILL.md` instead of the `~/.agents/skills/` target,
+    every dojo skill classified as `foreign` — 2,547 tokens of the operator's own
+    catalog relabelled, silently, with the totals still summing correctly.
+    """
+    target = tmp_path / ".agents" / "skills" / "brainstorming"
+    target.mkdir(parents=True)
+    (target / "SKILL.md").write_text("x")
+    link_root = tmp_path / ".codex" / "skills"
+    link_root.mkdir(parents=True)
+    (link_root / "brainstorming").symlink_to(target)
+
+    as_written = str(link_root / "brainstorming" / "SKILL.md")
+    assert "/.agents/skills/" not in as_written, "the link path must not name the target"
+    assert classify_locator(as_written) == ORIGIN_DOJO
+
+    # …and the pre-fix behaviour is pinned: without resolution it is unclassifiable.
+    assert ORIGIN_DOJO not in as_written
+
+
+def test_wholesale_foreign_classification_raises_an_alarm(obs56):
+    """`foreign` is the else-branch, so a render change degrades into it silently."""
+    from profiles.rollout_codex import classification_alarm
+
+    assert classification_alarm(obs56) is None, "the fixture classifies cleanly"
+
+    import copy
+    broken = copy.deepcopy(obs56)
+    for entry in broken.listing.entries:
+        entry.locator = f"/nowhere/unrecognised/{entry.name}/SKILL.md"
+    alarm = classification_alarm(broken)
+    assert alarm is not None
+    assert "may have changed how it renders locators" in alarm
+
+
 def test_locator_classification_separates_connector_from_dojo():
     assert classify_locator(
         "/Users/example-dev/.codex/plugins/cache/openai-curated-remote/github/0.1.8/skills/x/SKILL.md"
