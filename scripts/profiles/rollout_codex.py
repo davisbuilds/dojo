@@ -138,6 +138,11 @@ class RolloutObservation:
     def entry_names(self) -> frozenset[str]:
         return frozenset(e.name for e in self.listing.entries)
 
+    @property
+    def classification_alarm(self) -> str | None:
+        """Set when an implausible share of entries fell through to `foreign`."""
+        return classification_alarm(self)
+
     def absolute_locator(self, locator: str) -> str:
         """Expand an `rN/...` alias against the roots table.
 
@@ -540,6 +545,12 @@ def staleness(previous: RolloutObservation, current: RolloutObservation) -> list
     unchanged on 2026-08-06 while six entries left and nine arrived.
     """
     reasons = []
+    # The uncontrolled sets below are classification-derived, so a broken
+    # classifier produces a confident, meaningless diff.
+    for label, obs in (("previous", previous), ("current", current)):
+        alarm = obs.classification_alarm
+        if alarm:
+            reasons.append(f"{label} observation has degraded classification: {alarm}")
     if previous.meta.harness_build != current.meta.harness_build:
         reasons.append(
             f"harness build changed: {previous.meta.harness_build} -> "
@@ -555,8 +566,13 @@ def staleness(previous: RolloutObservation, current: RolloutObservation) -> list
     return reasons
 
 
+class ClassificationError(RuntimeError):
+    """Raised when origin classification is too degraded to attribute demand."""
+
+
 def attribute_demand(observation: RolloutObservation,
-                     source_descriptions: dict[str, str] | None = None) -> dict[str, int]:
+                     source_descriptions: dict[str, str] | None = None,
+                     *, allow_degraded: bool = False) -> dict[str, int]:
     """True demand per origin, from untruncated source where it is available.
 
     Where a source description is unavailable — a connector's payload, a bundled
@@ -565,6 +581,16 @@ def attribute_demand(observation: RolloutObservation,
     target by 20%.
     """
     from .probe_codex import line_cost_tokens  # noqa: PLC0415 — avoids a cycle at import
+
+    # **Fail closed.** SC-04: "a budget verdict that cannot attribute demand to a
+    # controllable source is reported as unsupported rather than as a pass." An
+    # attribution computed over wholesale-misclassified entries sums correctly
+    # and means nothing, which is worse than no attribution at all — that is how
+    # 2,547 tokens of the operator's own catalog were reported as someone
+    # else's. Pass `allow_degraded=True` only to inspect the broken labels.
+    alarm = classification_alarm(observation)
+    if alarm and not allow_degraded:
+        raise ClassificationError(alarm)
 
     totals: dict[str, int] = {}
     descriptions = source_descriptions or {}

@@ -407,6 +407,55 @@ def test_wholesale_foreign_classification_raises_an_alarm(obs56):
     assert "may have changed how it renders locators" in alarm
 
 
+def _wreck_classification(obs):
+    """Make every locator unrecognisable, as a harness render change would."""
+    import copy
+
+    broken = copy.deepcopy(obs)
+    for entry in broken.listing.entries:
+        entry.locator = f"/nowhere/unrecognised/{entry.name}/SKILL.md"
+    return broken
+
+
+def test_attribution_refuses_a_degraded_observation(obs56):
+    """PR #61 review, P2. The alarm existed and nothing consulted it.
+
+    This is the same defect as PR #60's P1 — a control nothing calls — repeated
+    in the PR that adds "a capability nothing calls is not a control" to the
+    guidance. An attribution over wholesale-misclassified entries sums correctly
+    and means nothing, which is worse than refusing: that is how 2,547 tokens of
+    the operator's own catalog were reported as someone else's.
+
+    SC-04 already required this: a verdict that cannot attribute demand to a
+    controllable source is unsupported rather than a pass.
+    """
+    from profiles.rollout_codex import ClassificationError
+
+    assert attribute_demand(obs56), "the healthy fixture must still attribute"
+
+    broken = _wreck_classification(obs56)
+    with pytest.raises(ClassificationError, match="renders locators"):
+        attribute_demand(broken)
+
+    # …and the escape hatch works, for inspecting the broken labels.
+    degraded = attribute_demand(broken, allow_degraded=True)
+    assert degraded, "allow_degraded must still return the (untrustworthy) split"
+
+
+def test_staleness_surfaces_degraded_classification(obs56):
+    """Its uncontrolled sets are classification-derived, so a broken classifier
+    produces a confident, meaningless diff."""
+    broken = _wreck_classification(obs56)
+    reasons = staleness(obs56, broken)
+    assert any("degraded classification" in r for r in reasons)
+
+
+def test_the_alarm_is_reachable_from_the_observation(obs56):
+    """A caller holding an observation must be able to ask without importing a helper."""
+    assert obs56.classification_alarm is None
+    assert _wreck_classification(obs56).classification_alarm is not None
+
+
 def test_locator_classification_separates_connector_from_dojo():
     assert classify_locator(
         "/Users/example-dev/.codex/plugins/cache/openai-curated-remote/github/0.1.8/skills/x/SKILL.md"
