@@ -5,14 +5,14 @@ on:
     paths:
       - 'skills/**'
       - 'scripts/**'
+      - 'profiles/**'
       - 'hooks/**'
       - 'tests/**'
       - 'rules/**'
       - 'docs/system/**'
       - 'docs/project/**'
-      - 'README.md'
-      - 'docs/system/**'
       - 'docs/specs/**'
+      - 'README.md'
       - 'requirements.txt'
       - 'requirements.lock'
       - '.github/workflows/skill-contract-pilot.yml'
@@ -22,14 +22,14 @@ on:
     paths:
       - 'skills/**'
       - 'scripts/**'
+      - 'profiles/**'
       - 'hooks/**'
       - 'tests/**'
       - 'rules/**'
       - 'docs/system/**'
       - 'docs/project/**'
-      - 'README.md'
-      - 'docs/system/**'
       - 'docs/specs/**'
+      - 'README.md'
       - 'requirements.txt'
       - 'requirements.lock'
       - '.github/workflows/skill-contract-pilot.yml'
@@ -110,6 +110,11 @@ jobs:
           python3 scripts/generate_skills_manifest.py --check
           python3 scripts/gen_harness_adapters.py --check --skip-symlinks
           python3 scripts/gen_catalog.py --check
+
+      - name: Verify distribution profiles
+        run: |
+          . .venv/bin/activate
+          python3 scripts/profiles/ci_check.py
 
       - name: Check for dangling links and skill references
         run: |
