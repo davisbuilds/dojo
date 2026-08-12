@@ -87,6 +87,20 @@ class Baseline:
         )
 
 
+def _observation_cwd(obs: rc.RolloutObservation) -> str:
+    """The working directory a session ran in — the key a baseline is filed under."""
+    return str(obs.meta.cwd)
+
+
+def _observation_age_days(obs: rc.RolloutObservation) -> int | None:
+    """How old the observed session is. None when the stamp is unreadable."""
+    try:
+        when = datetime.strptime(obs.meta.path.name[8:24], "%Y-%m-%dT%H-%M")
+    except (ValueError, TypeError):
+        return None
+    return (datetime.now() - when).days
+
+
 def _days_blind(baseline: Baseline | None) -> int | None:
     """Days since the last successful observation; None if there never was one.
 
@@ -104,10 +118,40 @@ def _days_blind(baseline: Baseline | None) -> int | None:
     return (datetime.now() - when).days
 
 
-def load_baseline(path: Path) -> Baseline | None:
+def load_store(path: Path) -> dict[str, Baseline]:
+    """Baselines keyed by working directory.
+
+    Keyed rather than single because a listing is not a property of the machine
+    alone. Measured here at build 0.144.1: `~/Dev` listed 55 entries while
+    `~/Dev/dojo` listed 112, the repository's own project-scoped catalog on top
+    of the global one. One shared baseline would accept whichever project was
+    seen last and report the difference as drift on the next switch, then report
+    the reverse after that.
+
+    This is the rule the module already applies to builds, extended to the other
+    axis a sample belongs to: never pool observations that were never comparable.
+    """
     if not path.exists():
-        return None
-    return Baseline(**json.loads(path.read_text()))
+        return {}
+    try:
+        raw = json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {}
+    if not isinstance(raw, dict):
+        return {}
+    # A pre-keying baseline is a bare Baseline object. It cannot be filed under a
+    # cwd it never recorded, so it is dropped rather than guessed at — one
+    # re-seeding cycle is cheap, a baseline attributed to the wrong project is not.
+    if "harness_build" in raw:
+        return {}
+    return {cwd: Baseline(**data) for cwd, data in raw.items()}
+
+
+def load_baseline(path: Path, cwd: str | None = None) -> Baseline | None:
+    store = load_store(path)
+    if cwd is not None:
+        return store.get(cwd)
+    return next(iter(store.values())) if len(store) == 1 else None
 
 
 def _ceiling_explains(previous: Baseline, current: Baseline, demand_delta: int) -> bool:
@@ -213,64 +257,90 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
     observations = rc.observations(
         cwd=cwd, surface=rc.SURFACE_TUI, errors=errors, limit=1)
 
-    if not observations:
-        detail = f"; {len(errors)} rollouts were unparseable" if errors else ""
-        findings = [f"no parseable {rc.SURFACE_TUI} session found{detail}"]
-
-        # Being unable to evaluate is normal for a machine used interactively
-        # only now and then, and treating a quiet week as red trains the
-        # operator to ignore the job. Being unable to evaluate *for months*, or
-        # never having managed it at all, is the opposite: it is the monitor
-        # reporting healthy while watching nothing, which is precisely the
-        # failure this module was written to prevent.
-        blind_days = _days_blind(load_baseline(baseline_path))
+    # Every path that cannot establish a *fresh, well-classified* observation
+    # runs through one gate. The first version of this threshold guarded only
+    # the no-rollout branch, which left two doors open: a degraded classifier
+    # returned before reaching it, and a machine that simply stopped being used
+    # kept re-reading the same historical rollout, comparing clean forever.
+    # Being able to read an old session is not the same as watching a machine.
+    def blind_or(state: str, findings: list[str], code: int) -> int:
+        blind_days = _days_blind(load_baseline(baseline_path, cwd))
         if max_blind_days is not None and (
                 blind_days is None or blind_days > max_blind_days):
-            findings.append(
-                (f"this machine has never been successfully observed"
+            findings = findings + [
+                ("this machine has never been successfully observed"
                  if blind_days is None else
                  f"last successful observation was {blind_days}d ago")
                 + f", past the {max_blind_days}d threshold. Nothing here is "
                   "being watched: run an interactive session on this machine, "
-                  "or stop scheduling the check on it.")
+                  "or stop scheduling the check on it."]
             _emit(as_json, "blind", findings, None)
             return EXIT_BLIND
-
         if blind_days is not None:
-            findings.append(f"last successful observation was {blind_days}d ago"
-                            + (f" (threshold {max_blind_days}d)"
-                               if max_blind_days is not None else ""))
-        _emit(as_json, "cannot-evaluate", findings, None)
-        return EXIT_CANNOT_EVALUATE
+            findings = findings + [
+                f"last successful observation was {blind_days}d ago"
+                + (f" (threshold {max_blind_days}d)" if max_blind_days is not None else "")]
+        _emit(as_json, state, findings, None)
+        return code
+
+    if not observations:
+        detail = f"; {len(errors)} rollouts were unparseable" if errors else ""
+        return blind_or("cannot-evaluate",
+                        [f"no parseable {rc.SURFACE_TUI} session found{detail}"],
+                        EXIT_CANNOT_EVALUATE)
 
     current_obs = observations[0]
     alarm = current_obs.classification_alarm
     if alarm:
-        _emit(as_json, "cannot-evaluate", [f"classification degraded: {alarm}"], None)
-        return EXIT_CANNOT_EVALUATE
+        return blind_or("cannot-evaluate",
+                        [f"classification degraded: {alarm}"], EXIT_CANNOT_EVALUATE)
 
+    observed_cwd = _observation_cwd(current_obs)
     current = Baseline.from_observation(current_obs)
-    previous = load_baseline(baseline_path)
+    store = load_store(baseline_path)
+    previous = store.get(observed_cwd)
 
     if previous is None:
         if update:
-            _write(baseline_path, current)
-            _emit(as_json, "baseline-recorded", [], current)
+            store[observed_cwd] = current
+            _write(baseline_path, store)
+            _emit(as_json, "baseline-recorded", [f"for {observed_cwd}"], current)
             return EXIT_CLEAN
         _emit(as_json, "cannot-evaluate",
-              [f"no baseline at {baseline_path}; run with --update to record one"], current)
+              [f"no baseline for {observed_cwd} at {baseline_path}; "
+               "run with --update to record one"], current)
         return EXIT_CANNOT_EVALUATE
 
     findings = compare(previous, current)
     if update:
-        _write(baseline_path, current)
-    _emit(as_json, "drift" if findings else "clean", findings, current)
-    return EXIT_DRIFT if findings else EXIT_CLEAN
+        store[observed_cwd] = current
+        _write(baseline_path, store)
+
+    if findings:
+        _emit(as_json, "drift", findings, current)
+        return EXIT_DRIFT
+
+    # Nothing changed -- but "nothing changed" from a sample months old is the
+    # monitor reporting healthy while receiving nothing new. Drift outranks this:
+    # a stale sample that *differs* is the more actionable finding, and is
+    # returned above.
+    age = _observation_age_days(current_obs)
+    if max_blind_days is not None and age is not None and age > max_blind_days:
+        _emit(as_json, "blind",
+              [f"the newest {rc.SURFACE_TUI} session is {age}d old, past the "
+               f"{max_blind_days}d threshold. It still matches the baseline, but "
+               "nothing new has been observed: this machine is not being watched."],
+              current)
+        return EXIT_BLIND
+
+    _emit(as_json, "clean", findings, current)
+    return EXIT_CLEAN
 
 
-def _write(path: Path, baseline: Baseline) -> None:
+def _write(path: Path, store: dict[str, Baseline]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(asdict(baseline), indent=2, sort_keys=True) + "\n")
+    payload = {cwd: asdict(b) for cwd, b in store.items()}
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
 
 
 def _emit(as_json: bool, state: str, findings: list[str], current: Baseline | None) -> None:

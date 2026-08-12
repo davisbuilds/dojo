@@ -310,7 +310,7 @@ python3 scripts/profiles/drift_check.py --json     # machine-readable
 
 It compares the newest `codex-tui` rollout against a recorded baseline (default
 `~/.agents/.dojo-profile-baseline.json`, deliberately outside this public
-repository) and reports build changes, model changes, a moved or newly
+repository, and **keyed by working directory**) and reports build changes, model changes, a moved or newly
 underivable ceiling, saturation starting or stopping, changes to the listed and
 uncontrolled entry **multisets**, and charged demand moving under unchanged
 membership. Exit `0` clean, `1` cannot evaluate, `2` drift, `3` blind too long.
@@ -335,6 +335,17 @@ It runs in two places, because neither alone is enough:
 - **Scheduled** from the `ops` weekly `mini-health.sh` job, which is the surface
   that can tell "quiet this week" from "never" and so carries
   `--max-blind-days`.
+
+Baselines are stored per working directory because a listing is not a property of
+the machine alone: Codex loads a project's own `.agents/skills` on top of the
+global root. Measured at build 0.144.1, `~/Dev` listed 55 entries while
+`~/Dev/dojo` listed 112. A single shared baseline would accept whichever project
+was seen last and report ~57 entries added on the next switch, then the reverse
+coming back — the check would fire on project switching rather than on drift.
+This is the rule already applied to builds, extended to the other axis a sample
+belongs to: never compare observations that were never comparable. A baseline
+file written before this keying is dropped and re-seeded rather than guessed at,
+which costs one silent cycle.
 
 It **fails closed**: no rollout, an unparseable one, a missing baseline, or
 degraded origin classification all report *cannot evaluate*, never clean — a

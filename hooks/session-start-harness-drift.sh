@@ -16,6 +16,16 @@
 #
 # Debounce comes free from --update: a change is reported once and then accepted
 # as the new baseline, so a Codex upgrade does not nag every session afterwards.
+#
+# Deliberately NOT scoped with --cwd. Baselines are filed per working directory
+# inside the checker, which is what stops one project's catalog being compared
+# against another's -- measured at build 0.144.1, ~/Dev listed 55 entries and
+# ~/Dev/dojo listed 112, so a shared baseline would report ~57 entries added on
+# every project switch and the reverse on the way back. With per-directory
+# baselines the comparison is already apples-to-apples, and leaving the
+# observation unscoped means this reports on the most recent interactive session
+# wherever it ran, rather than going silent in a repository where Codex is
+# rarely the harness in use.
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
 [[ -z "$REPO_ROOT" ]] && exit 0
