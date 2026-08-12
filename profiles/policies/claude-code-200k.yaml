@@ -24,6 +24,12 @@ estimator: >-
 provenance: >-
   Claude Code bundle v2.1.220 constants, confirmed live by
   `claude --debug-file`: "75 skills, 23287 chars > 8000 budget".
+limit_basis: vendor-corroborated  # bundle constant, corroborated by a render of 8,058 chars against the 8,000 budget
+# No declared_surfaces: no per-entry-point rendering split has been observed for
+# Claude Code, and its probe reads captured request bodies (OTEL_LOG_RAW_API_BODIES)
+# — the effective surface by construction. That is precisely why its figures
+# survived 2026-08-04 unchanged while every Codex figure did not. An empty
+# declaration accepts any surface; add one the moment a split is observed.
 measured: 2026-08-02
 probe: claude -p --no-session-persistence --model haiku --debug-file <path> "say ok"
 

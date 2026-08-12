@@ -88,7 +88,28 @@ class Policy:
     deployable: bool             # declared in use, per spec revision 11
     shadows_by_name: bool
     project_scope_root: str
+    # SC-04, revision 13. "observed" = established by saturation; two renders of
+    # different inputs that both saturate must total the same number.
+    # "vendor-corroborated" = a vendor constant checked against behaviour.
+    # Bare "vendor" is PROVISIONAL and may not make a pair deployable — that is
+    # the mistake that made a 100%-of-budget Codex target read as 74%.
+    limit_basis: str = "vendor"
+    declared_surfaces: tuple[str, ...] = ()
     identity: str = ""
+
+    @property
+    def provisional(self) -> bool:
+        return self.limit_basis not in ("observed", "vendor-corroborated")
+
+    def accepts_surface(self, surface: str | None) -> bool:
+        """Only a surface declared in use can make a pair deployable.
+
+        An empty declaration accepts anything, for the harnesses that have not
+        been shown to render differently per entry point. Codex has.
+        """
+        if not self.declared_surfaces:
+            return True
+        return surface in self.declared_surfaces
 
     def with_identity(self) -> "Policy":
         payload = {
@@ -110,6 +131,10 @@ class Assessment:
     degradations: tuple[Degradation, ...] = ()
     reason: str = ""
     entries_scored: int = 0
+    # The invocation surface this observation came from. `None` means the caller
+    # did not say — which a policy declaring surfaces must treat as undeclared,
+    # not as acceptable.
+    surface: str | None = None
 
     @property
     def basis_points(self) -> int:
@@ -123,8 +148,24 @@ class Assessment:
         A policy that is *declared but not deployable* — Claude Code at 200k, per
         spec revision 11 — is scored and reported, never gating. A session that
         lands there must be told; a suite must not fail for a path nobody runs.
+
+        A **provisional** limit also cannot gate (spec revision 13): a limit read
+        from a vendor catalog and never checked against behaviour overstated
+        Codex's by 36%, and gating on it would fail builds against a ceiling that
+        does not exist.
+
+        And a verdict from an **undeclared surface** cannot gate either. Building
+        `Policy.accepts_surface` without consulting it here was the whole defect
+        in miniature: the capability existed, a unit test covered it, and the
+        assessment path never called it — so an `exec`-derived result under a
+        TUI-only policy still gated, preserving exactly the wrong-surface failure
+        this work exists to remove.
         """
-        return self.policy.deployable
+        return (
+            self.policy.deployable
+            and not self.policy.provisional
+            and self.policy.accepts_surface(self.surface)
+        )
 
 
 def load_policy(path: Path | str) -> Policy:
@@ -155,6 +196,8 @@ def load_policy(path: Path | str) -> Policy:
         deployable=bool(data["deployable"]),
         shadows_by_name=bool(data["shadows_by_name"]),
         project_scope_root=data["project_scope_root"],
+        limit_basis=str(data.get("limit_basis", "vendor")).split()[0],
+        declared_surfaces=tuple(data.get("declared_surfaces") or ()),
     ).with_identity()
 
 
@@ -239,21 +282,34 @@ def detect_degradation(entries: list[dict], policy: Policy, warning: str | None 
 
 
 def assess(entries: list[dict], policy: Policy, *, root_lines: list[str] | None = None,
-           warning: str | None = None, candidate_count: int | None = None) -> Assessment:
+           warning: str | None = None, candidate_count: int | None = None,
+           surface: str | None = None) -> Assessment:
     """Score a target: cost from source, degradation from observation.
 
     Degradation makes a target nonconformant **regardless of computed cost** —
     a listing that fits after the harness elided it is not a listing that fits.
+
+    `surface` names the invocation surface the entries were observed on. A policy
+    declaring surfaces refuses anything else outright rather than scoring it,
+    because a number from the wrong code path is not a weaker measurement — it is
+    a measurement of something else.
     """
+    if not policy.accepts_surface(surface):
+        return Assessment(
+            policy=policy, demand=0, limit=policy.limit, unit=policy.unit,
+            verdict=Verdict.UNSUPPORTED, surface=surface,
+            reason=(f"surface {surface!r} is not declared for {policy.harness}; "
+                    f"declared: {', '.join(policy.declared_surfaces)}"),
+        )
     if not entries:
         return Assessment(
             policy=policy, demand=0, limit=policy.limit, unit=policy.unit,
-            verdict=Verdict.UNSUPPORTED, reason="no entries observed",
+            verdict=Verdict.UNSUPPORTED, reason="no entries observed", surface=surface,
         )
     if not policy.limit:
         return Assessment(
             policy=policy, demand=0, limit=0, unit=policy.unit,
-            verdict=Verdict.UNSUPPORTED, reason="no authoritative limit",
+            verdict=Verdict.UNSUPPORTED, reason="no authoritative limit", surface=surface,
         )
 
     cost = demand(entries, policy, root_lines)
@@ -269,4 +325,5 @@ def assess(entries: list[dict], policy: Policy, *, root_lines: list[str] | None 
     return Assessment(
         policy=policy, demand=cost, limit=policy.limit, unit=policy.unit,
         verdict=verdict, degradations=shapes, reason=reason, entries_scored=len(entries),
+        surface=surface,
     )

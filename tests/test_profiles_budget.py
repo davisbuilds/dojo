@@ -169,9 +169,82 @@ def test_claude_arithmetic_is_characters_end_to_end(claude_1m, claude_200k):
     assert claude_1m.limit == 5 * claude_200k.limit
 
 
-def test_codex_arithmetic_reproduces_the_vendor_constants(codex_policy):
-    assert probe_codex.budget_for_window(codex_policy.context_window) == (codex_policy.limit, "tokens")
-    assert codex_policy.limit == 5_440, "the full window, not the 95%-effective one"
+def test_the_codex_limit_is_not_derived_from_the_context_window(codex_policy):
+    """Task 5A's correction, replacing the assertion that encoded the defect.
+
+    This test previously asserted `limit == budget_for_window(context_window)`
+    and `limit == 5_440`. Both held, and both were wrong about the surface the
+    operator runs: `codex debug models` reports a 272,000 window for every model
+    in the catalog, while three interactive renders each saturated at exactly
+    4,000. The window is retained for provenance and must **not** drive the
+    limit — deriving it that way overstated the budget by 36% and made a
+    100%-of-budget target read as 74% for four days.
+    """
+    window_derived, unit = probe_codex.budget_for_window(codex_policy.context_window)
+    assert unit == "tokens"
+    assert codex_policy.limit == 4_000, "established by saturation, not by the catalog"
+    assert window_derived != codex_policy.limit, (
+        "if these ever agree, the surface split may have closed — re-verify "
+        "rather than deleting this assertion")
+    assert window_derived > codex_policy.limit
+
+
+def test_the_codex_limit_is_observed_and_therefore_gating(codex_policy):
+    """A saturation-established limit is not provisional and may gate."""
+    assert codex_policy.limit_basis == "observed"
+    assert codex_policy.provisional is False
+
+
+def test_a_provisional_limit_cannot_gate(codex_policy):
+    """SC-04 revision 13: a vendor limit unbacked by behaviour may not fail a build."""
+    import dataclasses
+
+    provisional = dataclasses.replace(codex_policy, limit_basis="vendor")
+    assert provisional.provisional is True
+    entries = [{"name": "n", "source_description": "d", "locator": "/r/n/SKILL.md"}]
+
+    # The surface MUST be declared here. Without it the assessment is refused on
+    # surface grounds and this test passes without ever reaching the provisional
+    # check — found by mutation probe, which survived deleting that check
+    # entirely. A test that passes for the wrong reason is not coverage.
+    scored = assess(entries, provisional, surface="codex-tui")
+    assert scored.verdict is not Verdict.UNSUPPORTED, "must be scored, not refused"
+    assert scored.gating is False, "a provisional ceiling must never fail a build"
+
+    established = assess(entries, codex_policy, surface="codex-tui")
+    assert established.gating is True, "control: the same input gates on an observed limit"
+
+
+def test_an_exec_derived_assessment_is_refused_and_cannot_gate(codex_policy):
+    """PR #60 review, P1 — the integration the isolated policy test missed.
+
+    `Policy.accepts_surface` existed, a unit test covered it, and `assess` never
+    called it. So an `exec`-derived result under a TUI-only policy still scored
+    and still gated, preserving exactly the wrong-surface failure this work
+    exists to remove. A capability nothing consults is not a control.
+    """
+    entries = [{"name": "n", "source_description": "d", "locator": "/r/n/SKILL.md"}]
+
+    refused = assess(entries, codex_policy, surface="codex_exec")
+    assert refused.verdict is Verdict.UNSUPPORTED
+    assert refused.gating is False
+    assert "not declared" in refused.reason
+    assert refused.demand == 0, "an undeclared surface is refused, not scored"
+
+    unstated = assess(entries, codex_policy)
+    assert unstated.verdict is Verdict.UNSUPPORTED, "silence is not a declaration"
+
+    accepted = assess(entries, codex_policy, surface="codex-tui")
+    assert accepted.verdict is Verdict.DEPLOYABLE
+    assert accepted.gating is True
+
+
+def test_only_a_declared_surface_is_accepted(codex_policy):
+    """`codex exec` renders a different code path and omitted 69 of 110 entries."""
+    assert codex_policy.declared_surfaces == ("codex-tui",)
+    assert codex_policy.accepts_surface("codex-tui") is True
+    assert codex_policy.accepts_surface("codex_exec") is False
+    assert codex_policy.accepts_surface(None) is False
 
 
 @pytest.mark.parametrize("bps, deployable", [(8_900, True), (9_000, True), (9_100, False)])
@@ -208,7 +281,7 @@ def test_the_ceiling_is_ninety_percent_not_a_hundred(codex_policy):
 
 def test_an_empty_catalog_is_unsupported_not_deployable(codex_policy):
     """A trivial catalog must not satisfy the check (spec Evaluation)."""
-    result = assess([], codex_policy)
+    result = assess([], codex_policy, surface="codex-tui")
     assert result.verdict is Verdict.UNSUPPORTED
     assert "no entries" in result.reason
 
@@ -232,7 +305,7 @@ def _fit_entries(catalog):
 
 
 def test_fit_proof_codex_gpt56(codex_policy, catalog):
-    result = assess(_fit_entries(catalog), codex_policy)
+    result = assess(_fit_entries(catalog), codex_policy, surface="codex-tui")
     assert result.verdict is Verdict.DEPLOYABLE, result.reason
 
 

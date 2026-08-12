@@ -75,10 +75,11 @@ def test_the_filesystem_never_adds_an_entry_the_probe_did_not_list(codex_policy,
     observation = observe_codex(codex_listing(), codex_policy, fake_root)
     assert "not-in-any-listing" not in {e.name for e in observation.entries}
 
-    result = assess(observation.as_budget_entries(), codex_policy, root_lines=observation.root_lines)
+    result = assess(observation.as_budget_entries(), codex_policy, root_lines=observation.root_lines, surface="codex-tui")
     baseline = observe_codex(codex_listing(), codex_policy, SKILLS)
     assert result.demand == assess(
-        baseline.as_budget_entries(), codex_policy, root_lines=baseline.root_lines
+        baseline.as_budget_entries(), codex_policy, root_lines=baseline.root_lines,
+        surface="codex-tui",
     ).demand
 
 
@@ -107,7 +108,7 @@ def test_computed_demand_agrees_with_the_probes_own_figure(codex_policy):
     """
     listing = codex_listing()
     observation = observe_codex(listing, codex_policy, SKILLS)
-    result = assess(observation.as_budget_entries(), codex_policy, root_lines=observation.root_lines)
+    result = assess(observation.as_budget_entries(), codex_policy, root_lines=observation.root_lines, surface="codex-tui")
 
     assert result.degradations == (), "fixture is degraded; the comparison would not hold"
     drift = abs(result.demand - listing.charged_tokens)
@@ -279,7 +280,7 @@ def test_no_observation_path_writes(codex_policy, tmp_path):
 
     before = digest(tree)
     observation = observe_codex(codex_listing(), codex_policy, tree)
-    assess(observation.as_budget_entries(), codex_policy, root_lines=observation.root_lines)
+    assess(observation.as_budget_entries(), codex_policy, root_lines=observation.root_lines, surface="codex-tui")
     assert digest(tree) == before
 
 

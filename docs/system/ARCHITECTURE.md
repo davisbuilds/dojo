@@ -148,7 +148,7 @@ skills/_fragments/        # Shared include fragments for opt-in SKILL.md composi
 rules/                    # Standing always-follow conventions (composable via rules/<name> includes)
 hooks/                    # lifecycle hook scripts (bash)
 scripts/                  # Manifest generation + generation pipeline (Python)
-scripts/profiles/         # Distribution-profile library: harness listing probes, resolution + identity, budget policies, observation, evidence (read-only; see docs/specs/2026-07-27-distribution-profiles-spec.md)
+scripts/profiles/         # Distribution-profile library: rollout observation (rollout_codex.py — what the harness actually SENT, the authoritative surface), live listing probes as cross-checks, resolution + identity, budget policies with saturation-derived limits, observation, evidence (read-only; see docs/specs/2026-07-27-distribution-profiles-spec.md)
 profiles/                 # Reviewed profile data: core + capability overlays + full, harness equivalences, and per-harness budget policies under profiles/policies/
 tests/                    # pytest suite for scripts/, hooks/, and skill-owned scripts (see Test Tiers); flat, one test file per script, plus tests/fixtures/
 .claude/ .agent/          # Each `skills/` is a generated relative symlink -> ../skills (Codex sidecars colocated at skills/<name>/agents/openai.yaml); .agents/skills is retired, not generated

@@ -60,7 +60,8 @@ def pieces(catalog, policy):
         probe_codex.parse_block(probe_codex.extract_block(payload)), SKILLS, None, REPO_ROOT
     )
     observation = observe_codex(listing, policy, SKILLS)
-    assessment = assess(observation.as_budget_entries(), policy, root_lines=observation.root_lines)
+    assessment = assess(observation.as_budget_entries(), policy,
+                        root_lines=observation.root_lines, surface="codex-tui")
     defs = load_definitions(REPO_ROOT / "profiles", catalog)
     equivalences = load_equivalences(REPO_ROOT / "profiles" / "harness-equivalences.yaml", catalog)
     resolution = resolve(("core", "skill-authoring"), defs, catalog)
@@ -279,7 +280,7 @@ def test_conformance_requires_membership_not_merely_a_small_budget(pieces, catal
     """
     resolution, harness, observation, _, policy, equivalences = pieces
     observation.entries = [e for e in observation.entries if e.origin == "foreign"]
-    assessment = assess(observation.as_budget_entries(), policy)
+    assessment = assess(observation.as_budget_entries(), policy, surface="codex-tui")
     assert assessment.verdict is Verdict.DEPLOYABLE, "fixture must be under budget for this to bite"
 
     report = build_evidence(
