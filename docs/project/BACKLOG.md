@@ -266,48 +266,26 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   as advisories; (a) is not mechanically checkable and belongs in
   `references/seam-selection.md`.
 
-### write-plan: `Assumptions Verified` has no shape for external-tool behavior
-- **What**: the rule reads "cite the exact file and symbol being cut, plus the
-  observed behavior checked at that line" (`skills/write-plan/SKILL.md:138-141`).
-  That is an in-repo mechanism, and it is the only evidence form the contract
-  offers. When a step depends on what a tool the repo does *not* own actually does
-  — a terminal multiplexer, a sandbox policy language, git, a package manager, a
-  vendor CLI — there is no line in the repository that exhibits the behavior, so
-  the requirement is satisfiable by a citation that does not support the claim.
-- **Why or evidence**: five wrong external-behavior claims in one project
-  (tokenmaxxing, 2026-08-03 → 2026-08-04): tmux's argv handling, Seatbelt
-  resolving last-match-wins *per operation set*, `(local ip "localhost:*")` not
-  constraining a bind, git *guessing* a commit identity from OS user + hostname
-  rather than failing, and npm's on-disk layout defeating a
-  parent-of-the-binary read grant. The tmux one is the clearest: the plan step
-  carried a **correct** citation (`internal/tmux/tmux.go:68`) attached to a false
-  claim — reading `append([]string{"new-session", …}, command…)` tells you what is
-  passed and nothing about what tmux does with it. The citation requirement was
-  met and produced false confidence. Each was a sub-minute probe once someone
-  thought to run one; the tmux check took ~30 seconds. `references/seam-selection.md`
-  currently contains no mention of external, vendor, third-party, probe, or measure.
-- **Second project, same gap (2026-08-10, dojo distribution-profiles)**: a task's
-  `Assumptions Verified` recorded external-CLI behavior — "`exec` sessions show 4
-  roots / 41–46 entries" — from a real observation. It was wrong six days later:
-  the same sweep found that CLI loading 11 extra entries on two other builds, so
-  the claim had been true of *some* builds and was recorded as a property of the
-  tool. Note this is the **staleness** half rather than the citation half, and
-  `write-plan` 2.2.0 has since addressed that half (date each assumption,
-  re-verify before the consuming task, name the build for runtime observations).
-  What remains unaddressed is exactly what this entry proposes: the *form* of the
-  evidence. A dated, correct, reproducible observation of a vendor CLI is still
-  not a statement about the tool — which reinforces rather than weakens the case
-  for a separate block whose artifact is a command and its output.
-- **Next**: add a `**Behavior Measured**` block, distinct from
-  `**Assumptions Verified**` and required whenever a step depends on a tool the
-  repo does not own. Its artifact is a command and its observed output, not a line
-  number — the same standard the parent workspace already applies to measurement
-  ("measure what reaches the tool, not what is on disk"). At the same time
-  *loosen* `Assumptions Verified` from "cite the exact file and symbol" to "state
-  the claim the step depends on and the evidence appropriate to it": the current
-  form invites citation-as-ritual, which is precisely how the tmux defect passed.
-  Validator: a plan whose task steps name a known-external binary but carry no
-  `Behavior Measured` block is advisory-flaggable.
+### write-plan: no validator signal for a step that depends on an external tool
+- **What**: `write-plan` 2.3.0 added a `**Behavior Measured**` block — required
+  when a step depends on a tool the repo does not own, with a command and its
+  observed output as the artifact rather than a citation — and loosened
+  `Assumptions Verified` to "state the claim and the evidence appropriate to it".
+  The guidance exists; nothing checks it. A plan whose steps invoke `tmux`, `git`,
+  `npm`, a sandbox policy, or a vendor CLI can still carry only in-repo citations
+  and validate clean.
+- **Why or evidence**: the guidance was written because a *correct* citation
+  attached to a false external-behavior claim reads as verified (five such claims
+  in tokenmaxxing, 2026-08-03/04; the tmux one cited `internal/tmux/tmux.go:68`
+  accurately and proved nothing about tmux). A second project hit the staleness
+  form of the same gap on 2026-08-10. Guidance alone did not prevent either — both
+  authors believed they had verified.
+- **Next**: advisory-only check in `validate_plan.py` — a task whose steps name a
+  known-external binary but carry no `Behavior Measured` block gets flagged, in
+  the same non-blocking channel as the existing weak-acceptance advisories. Keep
+  the binary list short and obvious (`tmux`, `git`, `npm`, `docker`, `codex`,
+  `claude`, `gh`) rather than attempting general detection; a false negative is
+  fine, a false positive that trains people to ignore advisories is not.
 
 ### write-plan/test-strategy: high-risk proof can name the right artifact while leaving the property mutable
 - **What**: the high-risk workflow asks for authority maps, evidence lifecycle,

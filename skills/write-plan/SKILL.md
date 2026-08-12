@@ -2,7 +2,7 @@
 name: write-plan
 description: 'Sequence the build: turn a settled target (a `write-spec` contract, a ticket, or a clear request) into an execution plan — task breakdown, files, ordered steps, seam selection, and verification commands. Use when WHAT is already decided and you need HOW: the file-level, dependency-ordered steps to implement it. If the target is not yet falsifiable, route back to `write-spec`.'
 skill-type: workflow
-version: 2.2.0
+version: 2.3.0
 ---
 
 # Write Plan
@@ -135,22 +135,33 @@ the ground first — do not pick a mechanism blind:
    alternate CLI branches, upstream/downstream stages, error paths, and ported
    implementations that must preserve the same property. Give each a `Done When`
    or an explicit out-of-scope note; do not fix only the focal instance.
-4. **Record `**Assumptions Verified**` for each existing-code task.** When its
-   `**Files**` block contains `Modify:`, cite the exact file and symbol being
-   cut, plus the observed behavior checked at that line. A neighboring file may
-   establish useful data shape, but label it `Research Context`; it is not target
-   verification.
-   Create-only work does not need an invented target-file citation, though it may
-   include labeled research context when helpful.
+4. **Record `**Assumptions Verified**` for each existing-code task** — state the
+   claim the step depends on, and the evidence appropriate to *that* claim. For
+   in-repo mechanism, that is the exact file and symbol being cut plus the
+   observed behavior at that line; a neighboring file may establish data shape,
+   but label it `Research Context`. Create-only work needs no invented citation.
 
-   **An assumption is a dated observation, not a fact.** It is written when the
-   plan is drafted and consumed days or weeks later, by which time the runtime,
-   the vendor, or a sibling task may have moved. Write `verified YYYY-MM-DD`
-   beside each one and re-run the check at the start of the task that relies on
-   it. Anything observed from a runtime — version-dependent limits, output
-   shapes, tool behavior — also names the build it was seen on, because a
-   constant that holds for one release is not thereby a constant.
-5. **Resolve the current before prescribing.** Grep/read questions that can be
+   **A citation is the right evidence only for a claim the repository can
+   exhibit.** Requiring one everywhere invites citation-as-ritual: a correct line
+   reference attached to a claim it does not support reads as verified and is
+   not.
+
+5. **Record `**Behavior Measured**` when a step depends on a tool the repo does
+   not own** — a shell, multiplexer, sandbox policy, VCS, package manager, or
+   vendor CLI. No line in the repository exhibits what that tool does, so the
+   artifact is **a command and its observed output**, not a citation. These
+   probes are almost always seconds long; the cost of skipping one is a plan step
+   built on a plausible guess.
+
+   **Both blocks record dated observations, not facts.** They are written when
+   the plan is drafted and consumed days or weeks later, by which time the
+   runtime, the vendor, or a sibling task may have moved. Write
+   `verified YYYY-MM-DD` beside each entry and re-run the check at the start of
+   the task that relies on it. Anything observed from a runtime — a
+   version-dependent limit, an output shape, a tool's behavior — also names the
+   build it was seen on, because a constant that holds for one release is not
+   thereby a constant.
+6. **Resolve the current before prescribing.** Grep/read questions that can be
    answered now, then write facts. Do not leave conditional discovery in a step
    (for example, "if X is already wired"). Put only irreducible future
    uncertainty in Risks And Mitigations, with a signal and mitigation.
@@ -164,8 +175,11 @@ Each task must be independently verifiable and include:
 - `**Objective**`
 - `**Files**` with exact repository paths
 - `**Dependencies**` (or `None`)
-- `**Assumptions Verified**` when the task modifies existing code; cite the exact
-  target file/symbol, not a neighboring precedent
+- `**Assumptions Verified**` when the task modifies existing code; state the claim
+  and evidence appropriate to it — for in-repo mechanism, the exact target
+  file/symbol, not a neighboring precedent
+- `**Behavior Measured**` when a step depends on a tool the repo does not own;
+  a command and its observed output, not a citation
 - `**Implementation Steps**` as ordered steps
 - `**Verification**` commands with expected signals
 - `**Test Discovery Verified**` when the task creates or changes tests; name the

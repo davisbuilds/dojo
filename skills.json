@@ -309,7 +309,7 @@
       "name": "write-plan",
       "description": "Sequence the build: turn a settled target (a `write-spec` contract, a ticket, or a clear request) into an execution plan \u2014 task breakdown, files, ordered steps, seam selection, and verification commands. Use when WHAT is already decided and you need HOW: the file-level, dependency-ordered steps to implement it. If the target is not yet falsifiable, route back to `write-spec`.",
       "path": "skills/write-plan",
-      "version": "2.2.0"
+      "version": "2.3.0"
     },
     {
       "name": "write-spec",
