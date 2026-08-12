@@ -323,7 +323,8 @@ adapter-writing script, then reading each hit:
 > 4. **Render mode is a free degradation signal.** `build_available_skills` tries
 >    absolute paths first and falls back to aliases only when that omits or
 >    truncates, so *absolute mode is proof nothing was clipped*.
-> 5. **Codex reports resolved paths.** A project root that is a symlink into the
+> 5. **Codex reports resolved paths** *(true through 0.146.0; reversed in
+>    0.147.0, which reports the symlink path as written — see Task 5A)*. A project root that is a symlink into the
 >    catalog — how every dojo checkout exposes itself — appears in the roots table
 >    as the canonical path. Comparing against the unresolved cwd finds project
 >    scope nowhere and returns a confident zero. **Task 4 must resolve.**
@@ -371,6 +372,15 @@ adapter-writing script, then reading each hit:
 > alias mode with 9 roots. **Finding 8 stands and is now the live case** — the
 > unmarked, mid-word, budget-driven truncation is what every TUI session has been
 > doing since at least 2026-07-28.
+>
+> **Amended 2026-08-12.** Two more build-scoped facts surfaced after this task
+> shipped. **0.147.0 reversed finding 5**: it reports the symlink path for global
+> skills where 0.146.0 reported the resolved target, which silently reclassified
+> every dojo skill as `foreign` until the classifier resolved before matching. And
+> **0.147.0 raised the ceiling** — a 4,843-token render does not saturate, against
+> a hard 4,000 on 0.146.0 — so the limit is again underivable until something
+> clips. Both reinforce the rule this task already enforces: a ceiling, a path
+> shape, and a render mode all belong to one build.
 >
 > The corrected instrument already exists and needs no new vendor surface: Codex
 > writes each session's rendered prompt to
