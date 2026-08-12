@@ -266,36 +266,83 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   as advisories; (a) is not mechanically checkable and belongs in
   `references/seam-selection.md`.
 
-### write-plan: `Assumptions Verified` has no shape for external-tool behavior
-- **What**: the rule reads "cite the exact file and symbol being cut, plus the
-  observed behavior checked at that line" (`skills/write-plan/SKILL.md:138-141`).
-  That is an in-repo mechanism, and it is the only evidence form the contract
-  offers. When a step depends on what a tool the repo does *not* own actually does
-  — a terminal multiplexer, a sandbox policy language, git, a package manager, a
-  vendor CLI — there is no line in the repository that exhibits the behavior, so
-  the requirement is satisfiable by a citation that does not support the claim.
-- **Why or evidence**: five wrong external-behavior claims in one project
-  (tokenmaxxing, 2026-08-03 → 2026-08-04): tmux's argv handling, Seatbelt
-  resolving last-match-wins *per operation set*, `(local ip "localhost:*")` not
-  constraining a bind, git *guessing* a commit identity from OS user + hostname
-  rather than failing, and npm's on-disk layout defeating a
-  parent-of-the-binary read grant. The tmux one is the clearest: the plan step
-  carried a **correct** citation (`internal/tmux/tmux.go:68`) attached to a false
-  claim — reading `append([]string{"new-session", …}, command…)` tells you what is
-  passed and nothing about what tmux does with it. The citation requirement was
-  met and produced false confidence. Each was a sub-minute probe once someone
-  thought to run one; the tmux check took ~30 seconds. `references/seam-selection.md`
-  currently contains no mention of external, vendor, third-party, probe, or measure.
-- **Next**: add a `**Behavior Measured**` block, distinct from
-  `**Assumptions Verified**` and required whenever a step depends on a tool the
-  repo does not own. Its artifact is a command and its observed output, not a line
-  number — the same standard the parent workspace already applies to measurement
-  ("measure what reaches the tool, not what is on disk"). At the same time
-  *loosen* `Assumptions Verified` from "cite the exact file and symbol" to "state
-  the claim the step depends on and the evidence appropriate to it": the current
-  form invites citation-as-ritual, which is precisely how the tmux defect passed.
-  Validator: a plan whose task steps name a known-external binary but carry no
-  `Behavior Measured` block is advisory-flaggable.
+### write-plan: no validator signal for a step that depends on an external tool
+- **What**: `write-plan` 2.3.0 added a `**Behavior Measured**` block — required
+  when a step depends on a tool the repo does not own, with a command and its
+  observed output as the artifact rather than a citation — and loosened
+  `Assumptions Verified` to "state the claim and the evidence appropriate to it".
+  The guidance exists; nothing checks it. A plan whose steps invoke `tmux`, `git`,
+  `npm`, a sandbox policy, or a vendor CLI can still carry only in-repo citations
+  and validate clean.
+- **Why or evidence**: the guidance was written because a *correct* citation
+  attached to a false external-behavior claim reads as verified (five such claims
+  in tokenmaxxing, 2026-08-03/04; the tmux one cited `internal/tmux/tmux.go:68`
+  accurately and proved nothing about tmux). A second project hit the staleness
+  form of the same gap on 2026-08-10. Guidance alone did not prevent either — both
+  authors believed they had verified.
+- **Next**: advisory-only check in `validate_plan.py` — a task whose steps name a
+  known-external binary but carry no `Behavior Measured` block gets flagged, in
+  the same non-blocking channel as the existing weak-acceptance advisories. Keep
+  the binary list short and obvious (`tmux`, `git`, `npm`, `docker`, `codex`,
+  `claude`, `gh`) rather than attempting general detection; a false negative is
+  fine, a false positive that trains people to ignore advisories is not.
+
+### write-plan/test-strategy: high-risk proof can name the right artifact while leaving the property mutable
+- **What**: the high-risk workflow asks for authority maps, evidence lifecycle,
+  side-effect windows, recovery, partial rollout, and effective-runtime probes,
+  but it does not force three distinctions that decide whether those sections
+  are evidence or labels:
+  1. **Identity is not capture.** Hashing or naming live inputs does not prove a
+     later verifier, reviewer, or publisher consumed those bytes. The plan must
+     name the freeze/copy/revalidation barrier between producer and every
+     consumer, including mutation and inode/symlink swaps between phases.
+  2. **“Idempotent” is not recovery.** A transition spanning a durable artifact,
+     remote/local effect, outcome ledger, and lifecycle move needs persisted
+     intent, effect order, receipts, and a reconciler for every crash point. The
+     adjective alone hides the same partial-failure window the section is meant
+     to expose.
+  3. **Policy fixtures are not network-boundary proof.** A loopback server or
+     injected dialer can prove parsing and refusal logic, but not that production
+     connected to the public address it validated. Network authority needs the
+     observed peer from the real transport plus a fixed public end-to-end
+     control; the subject's requested URL is not the peer.
+- **Why or evidence**: surfaced 2026-08-11 while planning evidence-grounded
+  validation in tokenmaxxing. A structurally valid high-risk plan traced every
+  contract ID and carried all required readiness tables, yet an adversarial
+  closure review still found (a) roles reading live report/diff/transcript paths
+  after their generation hash was computed, (b) publication/lifecycle/outcome
+  effects described as idempotent with no durable executor, and (c) an SSRF test
+  design whose allowed “public” request terminated at a loopback fixture. The
+  same review found activation before declaration/recovery/inspection consumers;
+  this is the topology form of the issue: enforcement cannot flip until its
+  producer, recovery, and operator paths exist. These are reusable risks in
+  migrations, queues, deployment controllers, auth systems, evidence pipelines,
+  and any workflow that crosses mutable or remote state.
+- **Existing guidance that is already sufficient**: do not widen `write-spec`
+  for the initial contract revisions. Its high-risk protocol already requires
+  actor authority, indirect forbidden paths, unsupported-policy behavior,
+  partial failure, retry, concurrency, and adversarial closure; those misses
+  were failures to apply the guidance, and the required critique loop caught
+  them. Likewise, the existing effective-runtime/host-observer rule already
+  rejects prompt compliance as authority proof. The gap is the more specific
+  proof obligation above, not another tokenmaxxing/Agy checklist.
+- **Next / ownership split**:
+  - `write-plan/references/high-risk-readiness.md`: add a compact “prove the
+    handoff” check for mutable evidence (capture/revalidate), multi-effect
+    transitions (intent/order/receipt/reconcile), and activation topology (no
+    default-on enforcement before declaration, recovery, and operator
+    consumers). Require the plan critic to attack each distinction explicitly.
+  - `test-strategy/references/authority-boundary-testing.md`: for network
+    boundaries, separate deterministic policy tests, actual connected-peer
+    observation, and a public end-to-end control; prohibit claiming a loopback
+    fixture proves public-destination enforcement.
+  - `write-spec`: no change from this incident unless another run shows the
+    mechanism-free authority/recovery questions themselves are absent rather
+    than skipped.
+  Add skill-eval fixtures where a polished plan says “digest-bound” without a
+  capture barrier, “idempotent” without a reconciler, flips enforcement before
+  recovery exists, or labels a loopback transport “public”; each should be
+  rejected by critique even when structural validation passes.
 
 ### research-architect: remaining deferred tooling
 - **What**: `scripts/diff_runs.py` and `references/rubric-library.md` remain

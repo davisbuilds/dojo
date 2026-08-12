@@ -138,6 +138,11 @@ class RolloutObservation:
     def entry_names(self) -> frozenset[str]:
         return frozenset(e.name for e in self.listing.entries)
 
+    @property
+    def classification_alarm(self) -> str | None:
+        """Set when an implausible share of entries fell through to `foreign`."""
+        return classification_alarm(self)
+
     def absolute_locator(self, locator: str) -> str:
         """Expand an `rN/...` alias against the roots table.
 
@@ -178,8 +183,55 @@ class RolloutObservation:
         )
 
 
+FOREIGN_SHARE_ALARM = 0.25
+
+
+def classification_alarm(observation: "RolloutObservation") -> str | None:
+    """Whether an implausible share of entries fell through to `foreign`.
+
+    `foreign` is the classifier's else-branch, so a change in how the harness
+    renders locators degrades into it **silently and wholesale** rather than
+    erroring. That is what 0.147.0 did: every dojo skill became `foreign`, the
+    attribution still summed correctly, and only reading the labels caught it.
+    A bucket that means "none of the above" must be watched, because a
+    classifier cannot tell the difference between a foreign skill and a shape it
+    no longer recognises.
+    """
+    entries = observation.listing.entries
+    if not entries:
+        return None
+    foreign = sum(1 for e in entries if observation.origin_of(e.locator) == ORIGIN_FOREIGN)
+    share = foreign / len(entries)
+    if share <= FOREIGN_SHARE_ALARM:
+        return None
+    return (
+        f"{foreign} of {len(entries)} entries ({share:.0%}) classified as "
+        f"{ORIGIN_FOREIGN!r} — above the {FOREIGN_SHARE_ALARM:.0%} alarm. The "
+        "harness may have changed how it renders locators; verify before "
+        "trusting any attribution from this observation."
+    )
+
+
 def classify_locator(locator: str) -> str:
-    """Origin from the locator, with the remote marker as confirmation when present."""
+    """Origin from the locator, with the remote marker as confirmation when present.
+
+    **Resolve before classifying.** Task 0 recorded "Codex reports resolved
+    paths" — true of every build through 0.146.0, and false from 0.147.0, which
+    reports the symlink path as written. `~/.codex/skills/<name>/SKILL.md` is a
+    link into `~/.agents/skills/`, so keying on the target segment alone made
+    every dojo skill classify as `foreign` the moment the build changed: 2,547
+    tokens of the operator's own catalog, silently relabelled as someone else's.
+    A path shape is a constant scoped to a version.
+
+    Resolution is best-effort: a fixture's paths do not exist on the machine
+    reading it, so an unresolvable locator is classified as written.
+    """
+    probe = Path(locator)
+    try:
+        if probe.exists():
+            locator = str(probe.resolve())
+    except OSError:
+        pass
     if CONNECTOR_SEGMENT in locator:
         return ORIGIN_CONNECTOR
     if DOJO_SEGMENT in locator:
@@ -493,6 +545,12 @@ def staleness(previous: RolloutObservation, current: RolloutObservation) -> list
     unchanged on 2026-08-06 while six entries left and nine arrived.
     """
     reasons = []
+    # The uncontrolled sets below are classification-derived, so a broken
+    # classifier produces a confident, meaningless diff.
+    for label, obs in (("previous", previous), ("current", current)):
+        alarm = obs.classification_alarm
+        if alarm:
+            reasons.append(f"{label} observation has degraded classification: {alarm}")
     if previous.meta.harness_build != current.meta.harness_build:
         reasons.append(
             f"harness build changed: {previous.meta.harness_build} -> "
@@ -508,8 +566,13 @@ def staleness(previous: RolloutObservation, current: RolloutObservation) -> list
     return reasons
 
 
+class ClassificationError(RuntimeError):
+    """Raised when origin classification is too degraded to attribute demand."""
+
+
 def attribute_demand(observation: RolloutObservation,
-                     source_descriptions: dict[str, str] | None = None) -> dict[str, int]:
+                     source_descriptions: dict[str, str] | None = None,
+                     *, allow_degraded: bool = False) -> dict[str, int]:
     """True demand per origin, from untruncated source where it is available.
 
     Where a source description is unavailable — a connector's payload, a bundled
@@ -518,6 +581,16 @@ def attribute_demand(observation: RolloutObservation,
     target by 20%.
     """
     from .probe_codex import line_cost_tokens  # noqa: PLC0415 — avoids a cycle at import
+
+    # **Fail closed.** SC-04: "a budget verdict that cannot attribute demand to a
+    # controllable source is reported as unsupported rather than as a pass." An
+    # attribution computed over wholesale-misclassified entries sums correctly
+    # and means nothing, which is worse than no attribution at all — that is how
+    # 2,547 tokens of the operator's own catalog were reported as someone
+    # else's. Pass `allow_degraded=True` only to inspect the broken labels.
+    alarm = classification_alarm(observation)
+    if alarm and not allow_degraded:
+        raise ClassificationError(alarm)
 
     totals: dict[str, int] = {}
     descriptions = source_descriptions or {}

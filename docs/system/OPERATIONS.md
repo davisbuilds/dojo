@@ -243,6 +243,8 @@ Four things to know before trusting a number from these:
   characters** in the actual TUI session. The budget is also wrong from the
   probe: interactive renders on build 0.146.0 saturate at **exactly 4,000
   tokens**, not the 5,440 that `codex debug models`' 272,000 window implies.
+  **0.147.0 raised it again** — a 4,843-token render no longer saturates, so the
+  limit there is only known to be `>= 4,843` until something clips.
   **The ceiling is a property of the CLI build** — 0.143.0/0.144.x saturate at
   5,440 (and at 7,440 for a 372,000-window model, both matching `2% × window`),
   and 0.145.0 changed it. Never pool samples across builds. And **the

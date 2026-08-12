@@ -2,7 +2,7 @@
 name: test-strategy
 description: Guide agents to follow preferred testing methodology — red/green TDD, real dependencies over mocks, behavior-based tests, and effective-runtime authority-boundary probes. Use when writing tests, planning test coverage, deciding between TDD and test-after, correcting excessive mocking, or testing filesystem, credential, process, network, or remote-mutation permissions. Triggers on 'write tests', 'add test coverage', 'how should I test this', 'TDD', 'test strategy', 'test plan', 'test the permission boundary'.
 skill-type: reference
-version: 1.1.0
+version: 1.2.0
 ---
 
 # Test Strategy
@@ -112,9 +112,39 @@ out of routine test work that does not cross an authority boundary.
 - Appropriate use of real dependencies vs mocks based on the decision framework
 - Test granularity matched to the change type
 
+## A Passing Test Is Not Yet Evidence
+
+A test can pass for a reason other than the one in its name. Three shapes:
+
+- **An earlier guard short-circuits it.** The test hits an unrelated precondition
+  or refusal before reaching the check it is named for, so deleting that check
+  entirely still passes.
+- **The setup makes the assertion tautological.** A parameter derived from the
+  value it is compared against, or a fixture built by the code under test.
+- **The detector cannot see a positive case.** An absence asserted on an
+  instrument never shown capable of reporting presence.
+
+Two cheap defences, in order of yield:
+
+1. **Mutation-probe what you just changed**, especially a *fix*. Break the line
+   deliberately and confirm a test fails. New behavior gets covered reliably;
+   corrections get covered from memory, so a fix believed to be covered is
+   exactly where nobody checks. A surviving mutation is untested behavior however
+   the suite reads.
+2. **Assert the control beside the case.** Pair every "this is refused" with "the
+   same input is accepted once the cause is removed", and every "the set is
+   empty" with a case known to be non-empty. Without a control, a detector that
+   always fires and one that never fires look identical.
+
+Prefer a failure you have *seen* over a pass you have reasoned about.
+
 ## Verification
 
 - Tests assert on behavior/outputs, not implementation details
+- A changed or corrected line has been mutation-probed, or its absence of
+  coverage is stated
+- Refusal and emptiness assertions carry a control that proves the detector can
+  report the other outcome
 - No unnecessary mocks (each mock has a documented reason from the acceptable list)
 - TDD was used for high-risk changes; test-after was justified for others
 - Test names are readable as behavior descriptions

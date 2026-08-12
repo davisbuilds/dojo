@@ -89,6 +89,7 @@ spanning twelve CLI builds, the saturated total — which is the ceiling — is:
 | 0.144.1 (second model) | **7,440** = 2% × 372,000 |
 | 0.145.0 | ~4,000 |
 | 0.146.0 | **4,000** |
+| 0.147.0 | **≥ 4,843** — underivable; nothing saturates |
 
 `2% × context_window` was therefore **correct through 0.144.x**, including for a
 larger-window model, and **0.145.0 changed it**. The vendor source was not wrong;

@@ -1,3 +1,11 @@
+## 2.3.0 - 2026-08-12
+
+- Add a Behavior Measured block for steps depending on tools the repo does not own — evidence is a command and its output, not a citation — and loosen Assumptions Verified to state the claim and evidence appropriate to it.
+
+## 2.2.0 - 2026-08-10
+
+- Assumptions are dated observations that must be re-verified before the task consuming them; capability gates must prove fidelity to the surface a user touches, not just working mechanism.
+
 ## 2.1.0 - 2026-07-27
 
 - Resolve consumer-repository paths correctly and plan pinned acceptance gates
