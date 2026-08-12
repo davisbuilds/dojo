@@ -759,6 +759,95 @@ def test_backup_retention_is_off_for_a_dry_run_and_when_disabled() -> None:
         assert_true(len(list(root.iterdir())) == 3, "keep=0 must leave every run")
 
 
+def test_mirror_copy_repairs_a_secondary_entry_instead_of_removing_it() -> None:
+    """Stale-entry removal is a claim about *link* topology.
+
+    Under the default prefer-primary-link policy the secondary roots are
+    symlinks to the primary copy, so a name the primary root does not have is an
+    orphan and removal is right. Under `--global-policy mirror-copy` the roots
+    hold deliberately independent copies -- absence from the primary carries no
+    intent at all -- so a damaged secondary entry is repaired from canonical, as
+    it always was.
+    """
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        write_skill(skills, "audit-skill")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+
+        stale = claude_home / "skills" / "audit-skill"
+        os.symlink(str(agents_home / "skills" / "audit-skill"), stale)
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="mirror-copy",
+            keep_local_skills=set(),
+            enforce_mirror=False,
+            codex_agents_dedupe=False,
+        )
+        claude_actions = [
+            a for a in report["actions"]
+            if a["skill"] == "audit-skill" and str(claude_home) in str(a["dest"])
+        ]
+        types = [a["action"] for a in claude_actions]
+        assert_true(
+            "remove_stale_entry" not in types,
+            f"mirror-copy keeps independent copies; it must not delete one: {claude_actions}",
+        )
+        assert_true(
+            "sync_copy" in types,
+            f"a damaged mirror-copy entry is repaired from canonical: {claude_actions}",
+        )
+
+
+def test_a_failed_apply_does_not_prune_backup_history() -> None:
+    """Pruning is promised *after a successful apply*.
+
+    A failed sync is exactly when older runs matter most, and an action that
+    errors writes no new backup -- so pruning to keep=1 during a failure would
+    discard every recovery point and keep nothing in their place.
+    """
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        backup_root = base / "backups"
+        for old in ["20260101-000000", "20260102-000000", "20260103-000000"]:
+            (backup_root / old).mkdir(parents=True)
+
+        broken = {
+            "actions": [
+                {
+                    "action": "sync_copy",
+                    "skill": "gone",
+                    "source": str(base / "does-not-exist"),
+                    "dest": str(base / "dest"),
+                }
+            ]
+        }
+        result = apply_actions(broken, apply=True, backup_root=str(backup_root), keep_backups=1)
+
+        assert_true(bool(result["errors"]), "this fixture must produce an error")
+        assert_true(
+            result["pruned_backups"] == [],
+            f"a failed apply must not prune: {result['pruned_backups']}",
+        )
+        surviving = sorted(p.name for p in backup_root.iterdir())
+        assert_true(len(surviving) == 3, f"all runs must survive a failure: {surviving}")
+
+
 def main() -> int:
     tests = [
         test_invalid_entries_do_not_emit_missing_actions,
@@ -779,6 +868,8 @@ def main() -> int:
         test_backup_retention_keeps_recent_runs_and_prunes_the_rest,
         test_backup_retention_never_removes_the_run_just_written,
         test_backup_retention_is_off_for_a_dry_run_and_when_disabled,
+        test_mirror_copy_repairs_a_secondary_entry_instead_of_removing_it,
+        test_a_failed_apply_does_not_prune_backup_history,
     ]
 
     for test in tests:

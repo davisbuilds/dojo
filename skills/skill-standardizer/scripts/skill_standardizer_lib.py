@@ -550,7 +550,18 @@ def build_audit_report(
                 invalid_name in primary_global_inventory.skills
                 or invalid_name in primary_global_inventory.invalid_entries
             )
-            if is_secondary_global and not primary_has_name:
+            # Staleness is a claim about *link* topology, so it only holds where
+            # the secondary roots are meant to be links. Under `mirror-copy` the
+            # roots hold deliberately independent copies and absence from the
+            # primary carries no intent at all, so a damaged entry there is
+            # repaired from canonical exactly as it always was.
+            links_to_primary = global_policy == "prefer-primary-link" or (
+                codex_agents_dedupe
+                and inv.root.kind == "global-codex"
+                and primary_global_inventory is not None
+                and primary_global_inventory.root.kind == "global-agents"
+            )
+            if is_secondary_global and links_to_primary and not primary_has_name:
                 add_issue(
                     severity="warning",
                     code="STALE_SECONDARY_GLOBAL",
@@ -1272,8 +1283,14 @@ def apply_actions(
 
     # After applying, never before: the run just written must be among the
     # newest kept, or a prune could delete the only way to undo this apply.
-    for run in prune_backups(backup_base, keep_backups):
-        result["pruned_backups"].append(str(run))
+    #
+    # And only after a *successful* one. A failed sync is when older runs
+    # matter most, and a failing action writes no new backup -- so pruning
+    # here would discard every recovery point and leave nothing in place of
+    # them.
+    if not result["errors"]:
+        for run in prune_backups(backup_base, keep_backups):
+            result["pruned_backups"].append(str(run))
 
     return result
 
