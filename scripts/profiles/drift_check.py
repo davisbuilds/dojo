@@ -27,7 +27,9 @@ Design rules carried from the rest of this package:
 - **A ceiling belongs to one build.** Samples are never pooled across builds, and
   a build change is itself reportable drift.
 
-Exit: 0 no drift, 1 cannot evaluate, 2 drift detected.
+Exit: 0 no drift, 1 cannot evaluate, 2 drift detected, 3 blind too long
+(with --max-blind-days: the check has not managed to evaluate in that many
+days, so it is reporting healthy while watching nothing).
 """
 
 from __future__ import annotations
@@ -37,6 +39,7 @@ import json
 import sys
 from collections import Counter
 from dataclasses import asdict, dataclass, field
+from datetime import datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -52,6 +55,9 @@ DEFAULT_BASELINE = Path.home() / ".agents" / ".dojo-profile-baseline.json"
 EXIT_CLEAN = 0
 EXIT_CANNOT_EVALUATE = 1
 EXIT_DRIFT = 2
+# Persistent blindness is its own outcome, not drift. Reporting it as drift
+# would mislabel what moved — nothing moved; the instrument stopped working.
+EXIT_BLIND = 3
 
 
 @dataclass
@@ -79,6 +85,23 @@ class Baseline:
             saturated=rc.is_saturated(obs),
             ceiling=obs.charged_tokens if rc.is_saturated(obs) else None,
         )
+
+
+def _days_blind(baseline: Baseline | None) -> int | None:
+    """Days since the last successful observation; None if there never was one.
+
+    None and a large number mean the same thing operationally — nobody is
+    watching this machine — but they are distinguished because the remedies
+    differ: one machine needs a session run on it, the other needs the check
+    moved off it.
+    """
+    if baseline is None:
+        return None
+    try:
+        when = datetime.strptime(baseline.observed_at[:16], "%Y-%m-%dT%H-%M")
+    except (ValueError, TypeError):
+        return None
+    return (datetime.now() - when).days
 
 
 def load_baseline(path: Path) -> Baseline | None:
@@ -185,15 +208,39 @@ def compare(previous: Baseline, current: Baseline) -> list[str]:
 
 
 def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
-        as_json: bool = False) -> int:
+        as_json: bool = False, max_blind_days: int | None = None) -> int:
     errors: list[tuple[Path, str]] = []
     observations = rc.observations(
         cwd=cwd, surface=rc.SURFACE_TUI, errors=errors, limit=1)
 
     if not observations:
         detail = f"; {len(errors)} rollouts were unparseable" if errors else ""
-        _emit(as_json, "cannot-evaluate",
-              [f"no parseable {rc.SURFACE_TUI} session found{detail}"], None)
+        findings = [f"no parseable {rc.SURFACE_TUI} session found{detail}"]
+
+        # Being unable to evaluate is normal for a machine used interactively
+        # only now and then, and treating a quiet week as red trains the
+        # operator to ignore the job. Being unable to evaluate *for months*, or
+        # never having managed it at all, is the opposite: it is the monitor
+        # reporting healthy while watching nothing, which is precisely the
+        # failure this module was written to prevent.
+        blind_days = _days_blind(load_baseline(baseline_path))
+        if max_blind_days is not None and (
+                blind_days is None or blind_days > max_blind_days):
+            findings.append(
+                (f"this machine has never been successfully observed"
+                 if blind_days is None else
+                 f"last successful observation was {blind_days}d ago")
+                + f", past the {max_blind_days}d threshold. Nothing here is "
+                  "being watched: run an interactive session on this machine, "
+                  "or stop scheduling the check on it.")
+            _emit(as_json, "blind", findings, None)
+            return EXIT_BLIND
+
+        if blind_days is not None:
+            findings.append(f"last successful observation was {blind_days}d ago"
+                            + (f" (threshold {max_blind_days}d)"
+                               if max_blind_days is not None else ""))
+        _emit(as_json, "cannot-evaluate", findings, None)
         return EXIT_CANNOT_EVALUATE
 
     current_obs = observations[0]
@@ -250,8 +297,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--update", action="store_true",
                         help="record the current observation as the new baseline")
     parser.add_argument("--json", dest="as_json", action="store_true")
+    parser.add_argument("--max-blind-days", type=int, default=None,
+                        help="escalate to exit 3 when the check has been unable "
+                             "to evaluate for longer than this")
     args = parser.parse_args(argv)
-    return run(args.baseline, cwd=args.cwd, update=args.update, as_json=args.as_json)
+    return run(args.baseline, cwd=args.cwd, update=args.update,
+           as_json=args.as_json, max_blind_days=args.max_blind_days)
 
 
 if __name__ == "__main__":

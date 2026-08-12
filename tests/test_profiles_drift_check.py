@@ -17,6 +17,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -37,6 +38,12 @@ from profiles.drift_check import (  # noqa: E402
 
 F110 = FIXTURES / "codex-tui-clipped-110.jsonl"
 F56 = FIXTURES / "codex-tui-clipped-56.jsonl"
+
+
+def _stamp(*, days_ago: int) -> str:
+    """A baseline `observed_at` that many days in the past."""
+    when = datetime.now() - timedelta(days=days_ago)
+    return when.strftime("%Y-%m-%dT%H-%M")
 
 
 @pytest.fixture
@@ -220,6 +227,90 @@ def test_no_session_is_cannot_evaluate_not_clean(tmp_path, capsys):
         rc.default_sessions_root = original  # type: ignore[assignment]
     assert code == EXIT_CANNOT_EVALUATE
     assert "no parseable" in capsys.readouterr().out
+
+
+# --------------------------------------------------------------------------
+# Blind for too long is a finding, not a quiet pass
+# --------------------------------------------------------------------------
+
+
+def test_never_having_evaluated_is_escalated_not_tolerated(tmp_path, capsys, monkeypatch):
+    """The mini's real state on 2026-08-12, reported green every week.
+
+    Its newest interactive session was nine weeks old and unparseable, so the
+    check could never evaluate — and the health wrapper treated cannot-evaluate
+    as a pass. A machine that has *never* been observed is not a machine between
+    sessions; it is a machine nobody is watching, and saying so is the whole
+    point of the monitor.
+    """
+    import profiles.drift_check as dc
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [])
+    code = dc.run(tmp_path / "absent.json", max_blind_days=30)
+    assert code == dc.EXIT_BLIND, "never-evaluated must escalate, not pass"
+    assert "never" in capsys.readouterr().out.lower()
+
+
+def test_a_machine_merely_between_sessions_is_not_escalated(tmp_path, capsys, monkeypatch):
+    """The exemption that was right for the wrong reason.
+
+    Interactive work happens on the mini only when monitors are connected, so a
+    quiet week is normal and must not go red — that trains the operator to
+    ignore the job. Only *persistent* blindness escalates.
+    """
+    import profiles.drift_check as dc
+
+    path = tmp_path / "baseline.json"
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    dc.run(path, update=True)
+    recent = json.loads(path.read_text())
+    recent["observed_at"] = _stamp(days_ago=3)
+    path.write_text(json.dumps(recent))
+    capsys.readouterr()
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [])
+    assert dc.run(path, max_blind_days=30) == EXIT_CANNOT_EVALUATE
+    assert "3d" in capsys.readouterr().out
+
+
+def test_blindness_past_the_threshold_escalates_and_dates_itself(
+        tmp_path, capsys, monkeypatch):
+    import profiles.drift_check as dc
+
+    path = tmp_path / "baseline.json"
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    dc.run(path, update=True)
+    stale = json.loads(path.read_text())
+    stale["observed_at"] = _stamp(days_ago=64)
+    path.write_text(json.dumps(stale))
+    capsys.readouterr()
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [])
+    assert dc.run(path, max_blind_days=30) == dc.EXIT_BLIND
+    out = capsys.readouterr().out
+    assert "64d" in out, "the report must say how long it has been blind"
+
+
+def test_blindness_is_opt_in_so_ad_hoc_runs_are_unaffected(tmp_path, monkeypatch):
+    """Without a threshold the exit codes are exactly what they were."""
+    import profiles.drift_check as dc
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [])
+    assert dc.run(tmp_path / "absent.json") == EXIT_CANNOT_EVALUATE
+
+
+def test_a_machine_that_can_be_read_never_reports_blind(tmp_path, monkeypatch):
+    """Blindness is about the instrument, never about what the instrument saw.
+
+    A threshold that also fired on a healthy observation would make the check
+    unusable on the daily driver, which is the machine it most needs to watch.
+    """
+    import profiles.drift_check as dc
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    path = tmp_path / "baseline.json"
+    assert dc.run(path, update=True, max_blind_days=1) == EXIT_CLEAN
+    assert dc.run(path, max_blind_days=1) == EXIT_CLEAN
 
 
 def test_a_missing_baseline_refuses_rather_than_passing(tmp_path, capsys, monkeypatch):
