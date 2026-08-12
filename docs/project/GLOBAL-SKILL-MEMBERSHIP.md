@@ -176,6 +176,51 @@ Also confirmed: the listing still saturates at exactly 4,000 on a **third model*
 (`gpt-5.6-luna`), and Codex emitted **no shortening warning** at 114% while
 clipping 20 skills — the warning's false negative, reproduced a third time.
 
+## Runtime-plugin disable works (2026-08-12, controlled)
+
+`documents`, `pdf`, `presentations`, and `spreadsheets` disabled in
+`config.toml`; `template-creator` left enabled as a control, `sites` and
+`visualize` untouched as a second control in a different marketplace. Result:
+**the four vanished from the listing and all three controls remained.**
+
+So **plugin-level `enabled = false` works for a configured marketplace plugin**,
+unlike the `@openai-curated-remote` connector keys, which are inert. The
+distinction is whether a local marketplace owns the plugin — account-synced
+connectors have none, and only removal in the ChatGPT web app governs them.
+
+## Position on build 0.147.0
+
+Codex upgraded mid-test, so two variables moved at once. The controls above
+isolate the disable; the build change shows up separately and is larger:
+
+| | 0.146.0 (pre-cut) | 0.146.0 (post-cut) | 0.147.0 (post-disable) |
+|---|---|---|---|
+| Entries | 56 | 50 | **45** |
+| Charged | 4,000 | 4,000 | **4,843** |
+| Saturated | yes | yes | **no** |
+| dojo clipped | 50 of 56 | 20 of 50 | **2 of 30** |
+| Characters removed | 6,317 | 2,186 | **21** |
+| Longest description | 207 | 248 | **622 — the source maximum** |
+
+**The clipping is effectively over.** The longest description in the catalog
+renders at full length, and the render is in `absolute` mode with no alias
+table, which Codex only chooses when everything fits.
+
+**The 0.147.0 ceiling is not yet derivable** and that is the correct answer, not
+a gap: nothing saturates, so no render discloses the limit. All that is known is
+that it is **at least 4,843**, up from 4,000. Re-derive when something clips
+again.
+
+Current attribution: dojo 2,547 (53%), connectors 1,102 (23%), Codex bundled 607
+(13%), local plugins 593 (12%) — total 4,849.
+
+> **Tooling note.** 0.147.0 reports the *symlink* path for global skills where
+> 0.146.0 reported the resolved target. The classifier keyed on the target, so
+> every dojo skill silently became `foreign` on the first 0.147.0 session — the
+> totals still summed correctly. Fixed by resolving before classifying, plus an
+> alarm when an implausible share falls through to `foreign`. A path shape is a
+> constant scoped to a version.
+
 ## Candidates not yet decided
 
 - **`research-architect`** — 179 tokens, the single most expensive skill in the
