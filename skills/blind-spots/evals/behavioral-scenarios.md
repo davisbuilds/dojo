@@ -1,7 +1,8 @@
 # Blind Spots — Behavioral Scenarios
 
-Frozen conversational acceptance for the `blind-spots` skill, per
-`docs/specs/2026-07-13-blind-spots-spec.md`.
+Frozen conversational acceptance for the `blind-spots` skill, per its completed
+contract — archived locally at `docs/archive/specs/2026-07-13-blind-spots-spec.md`
+and not part of the tracked tree.
 
 The deterministic trigger fixture (`trigger-cases.json`) checks *routing* by
 lexical overlap. It says nothing about how the skill behaves once it is running.
