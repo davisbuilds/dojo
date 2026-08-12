@@ -9,6 +9,26 @@ behind it. `profiles/` holds the reviewed *definitions* of what a profile
 contains; this file records what a specific machine actually carries and why it
 diverges from any of them.
 
+## Which harness this binds
+
+**One root, two budgets.** `~/.agents/skills` is read by both harnesses, so
+membership is shared — but the two score it very differently:
+
+| Harness | Budget | Installed dojo set | Binding? |
+|---|---|---|---|
+| Codex (build 0.146.0) | 4,000 tokens | ~78% before the unavoidable 24% | **yes — over the ceiling** |
+| Claude Code @ 1M | 40,000 chars | 41–58% | no |
+| Claude Code @ 200k | 8,000 chars | 2.07–2.91× | yes, but off-path |
+
+So every cut recorded here is driven by **Codex**, and Claude Code at the 1M
+window — the only one in use — is unaffected either way. The 200k column is a
+real exposure on a path nobody currently takes; if that changes, the same
+membership decisions apply with a tighter budget, since Claude's own levers
+(description trimming, symlink topology) were measured and cannot reach it.
+
+Do not read a cut here as a judgement that a skill is unhelpful in Claude Code.
+It is a statement that a shared root has to fit the smaller of two ceilings.
+
 ## Why membership is the binding constraint
 
 Codex renders a skill listing into every session with a hard token ceiling and
@@ -39,6 +59,10 @@ web app is the only lever.
 
 ## Measured cost and use
 
+**This table is the measurement that informed the decisions below — it is the
+state *before* any removal.** Rows since removed are marked; see Decisions for
+the current position.
+
 Cost is the rendered listing line, from untruncated source, in Codex's own
 arithmetic — calibrated to 0.00% against a live render. Codex use counts
 *sessions that consulted the skill* across 317 rollouts, matched only inside
@@ -50,20 +74,20 @@ dispatch count. The two are independent rankings, not one scale.
 |---|---|---|---|---|---|
 | research-architect | 179 | 1 | 1 | 89.5 | research |
 | screenshot | 75 | 1 | 0 | 75.0 | — |
-| find-skills | 71 | 1 | 0 | 71.0 | — |
+| ~~find-skills~~ *(removed)* | 71 | 1 | 0 | 71.0 | — |
 | handoff | 84 | 2 | 0 | 42.0 | — |
 | gpt-imagen | 81 | 2 | 0 | 40.5 | — |
 | obsidian-canvas | 79 | 2 | 0 | 39.5 | — |
 | blind-spots | 140 | 2 | 2 | 35.0 | — |
-| audit-skill | 105 | 3 | 0 | 35.0 | — |
+| ~~audit-skill~~ *(removed)* | 105 | 3 | 0 | 35.0 | — |
 | gemini-imagen | 66 | 2 | 0 | 33.0 | — |
-| web-design-guidelines | 100 | 4 | 0 | 25.0 | design |
-| design-critique | 109 | 2 | 3 | 21.8 | design |
+| ~~web-design-guidelines~~ *(removed)* | 100 | 4 | 0 | 25.0 | design |
+| ~~design-critique~~ *(removed)* | 109 | 2 | 3 | 21.8 | design |
 | api-design | 104 | 6 | 0 | 17.3 | engineering |
 | obsidian-bases | 86 | 5 | 1 | 14.3 | — |
 | secure-code | 128 | 11 | 0 | 11.6 | engineering |
-| frontend-design | 81 | 6 | 1 | 11.6 | design |
-| vercel-react-best-practices | 110 | 9 | 1 | 11.0 | — |
+| ~~frontend-design~~ *(removed)* | 81 | 6 | 1 | 11.6 | design |
+| ~~vercel-react-best-practices~~ *(removed)* | 110 | 9 | 1 | 11.0 | — |
 | create-cli | 109 | 13 | 0 | 8.4 | engineering |
 | diagnose | 116 | 15 | 0 | 7.7 | **core** |
 | session-retro | 103 | 15 | 1 | 6.4 | knowledge |
@@ -93,10 +117,26 @@ Neither is an overlay anchor, so no profile definition changes. Removed from
 `~/.agents/skills` and the `~/.codex/skills` symlink; both remain in the canonical
 catalog and reinstall from dojo.
 
-**2026-08-12 — the rest of the low-use tier is deliberately held.** Cutting only
-these two leaves the target over the deployable ceiling. That is a knowing
-choice: a skill that is cheap to reinstall but expensive to miss is worth paying
-for until the cost is felt.
+**2026-08-12 — remove the design group and `vercel-react-best-practices`
+(400 tokens).** `design-critique`, `web-design-guidelines`, `frontend-design`,
+and `vercel-react-best-practices`. The reasoning is *scope*, not disuse:
+these fire on UI and React/Next.js work, which happens in a few known
+repositories rather than in every session on the machine. A skill whose triggers
+are project-shaped belongs in project scope. `design-critique` and
+`web-design-guidelines` were also the mutually-disambiguating pair flagged below
+— removing both together avoids keeping one and leaving its description still
+pointing at a sibling that is gone.
+
+**Resulting position: 26 skills, 2,553 tokens against 2,641 of room — +88
+headroom.** The installed set fits the deployable ceiling for the first time,
+down 576 tokens (18%) from 3,129.
+
+**Consequence to know.** These four are now unavailable in an arbitrary
+directory. They remain in the canonical catalog, and dojo's own checkout exposes
+them to Claude Code through `.claude/skills`. To restore one for a specific
+project, add it to that project's skills root rather than to the global root —
+that is the point of the cut. `~/.agents/.removed-20260812/` holds copies, though
+the canonical source is dojo.
 
 ## Candidates not yet decided
 
@@ -113,12 +153,11 @@ for until the cost is felt.
   silently removes a selected skill. That reasoning governs *declaration*; it
   does not settle whether a Codex session needs two dojo image skills beside a
   bundled one.
-- **`design-critique` + `web-design-guidelines`** — decide as a pair, not
-  individually. 209 tokens and nine consultations combined, and their
-  descriptions exist partly to disambiguate each other ("for rule-compliance…use
-  web-design-guidelines instead" / "for visual taste…use design-critique
-  instead"). Two skills that must explain how they differ cost twice and split
-  their own routing signal.
+- **Project-scoping the four removed skills.** Removal from global is done;
+  deciding *which* repositories should carry them is not. Their descriptions
+  still cross-reference each other ("for rule-compliance…use
+  web-design-guidelines instead"), so a project that installs one and not its
+  pair leaves a dangling pointer in the listing.
 
 ## Reproducing this measurement
 
