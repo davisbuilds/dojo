@@ -1,3 +1,7 @@
+## 1.0.4 - 2026-08-12
+
+- Repoint the behavioral-scenarios reference at the archived spec path; the contract moved out of the tracked tree.
+
 # Changelog
 
 ## 1.0.3 - 2026-07-31
