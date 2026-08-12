@@ -120,6 +120,58 @@ def test_a_one_for_one_uncontrolled_swap_is_reported(base56):
     assert any("uncontrolled entries changed" in f for f in findings)
 
 
+def test_losing_one_copy_of_a_duplicated_identity_is_reported(base56):
+    """Codex does not shadow across roots, so it charges each copy separately.
+
+    `skill-creator` was listed twice pre-cut — bundled by Codex and shipped by
+    dojo — and each copy was charged. `Baseline` stores `Counter.elements()` for
+    exactly this reason, so the comparison has to subtract as a multiset: with
+    sets, dropping one of two copies leaves both sides equal and the freed
+    tokens are reported as coming from nowhere.
+    """
+    # A *second copy of an identity already listed* — not a new one, or set
+    # subtraction would catch it and this would prove nothing.
+    twin = base56.entry_ids[0]
+    doubled = dataclasses.replace(base56, entry_ids=sorted(base56.entry_ids + [twin]))
+    assert set(doubled.entry_ids) == set(base56.entry_ids), \
+        "the two must be set-identical or this tests the wrong thing"
+
+    findings = compare(doubled, base56)
+    assert any("listed entries changed" in f for f in findings), findings
+    assert any(twin in f for f in findings), (
+        "the surviving copy must not mask the one that disappeared")
+
+
+def test_charged_demand_moving_without_a_membership_change_is_reported(base56):
+    """A vendor rewriting one description costs headroom and moves no identity.
+
+    Membership answers *what* is listed; it cannot answer *how much* the same
+    listing now costs. An entry whose description grows is invisible to every
+    set comparison in this function, which is the shape of the 723-token desktop
+    update — only that one changed membership too, and so was caught by luck
+    rather than by design.
+    """
+    fits = dataclasses.replace(base56, saturated=False, ceiling=None)
+    grown = dataclasses.replace(fits, charged_tokens=fits.charged_tokens + 400)
+    findings = compare(fits, grown)
+    assert set(grown.entry_ids) == set(fits.entry_ids), "membership must be held equal"
+    assert any("charged demand" in f for f in findings), findings
+    assert any("+400" in f for f in findings), "the report must name the size of the move"
+
+
+def test_a_pinned_saturated_total_is_not_reported_twice(base56):
+    """When both samples clip, the total *is* the ceiling.
+
+    Saturation pins charged demand to the limit, so a moved ceiling and a moved
+    total are one event described twice. A monitor a human reads weekly must not
+    say the same thing in two voices, or the voices stop being read.
+    """
+    moved = dataclasses.replace(base56, ceiling=5440, charged_tokens=5440)
+    findings = compare(moved, base56)
+    assert any("ceiling moved" in f for f in findings)
+    assert not any("charged demand" in f for f in findings), findings
+
+
 def test_a_harness_build_change_is_reported(base56):
     build = dataclasses.replace(base56, harness_build="0.147.0/gpt-5.6-luna")
     findings = compare(base56, build)

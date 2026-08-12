@@ -35,6 +35,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections import Counter
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -86,6 +87,18 @@ def load_baseline(path: Path) -> Baseline | None:
     return Baseline(**json.loads(path.read_text()))
 
 
+def _ceiling_explains(previous: Baseline, current: Baseline, demand_delta: int) -> bool:
+    """Would reporting the demand move just restate the ceiling line?
+
+    Saturation pins charged demand *to* the limit, so when both samples clip and
+    the ceiling moved by the same amount, the two lines describe one event. A
+    weekly report that says the same thing in two voices stops being read.
+    """
+    return (previous.saturated and current.saturated
+            and previous.ceiling is not None and current.ceiling is not None
+            and current.ceiling - previous.ceiling == demand_delta)
+
+
 def compare(previous: Baseline, current: Baseline) -> list[str]:
     """Every difference worth a human's attention, most consequential first."""
     findings: list[str] = []
@@ -129,13 +142,34 @@ def compare(previous: Baseline, current: Baseline) -> list[str]:
     elif previous.saturated and not current.saturated:
         findings.append("the listing no longer saturates; clipping has stopped.")
 
-    before, after = set(previous.entry_ids), set(current.entry_ids)
-    gone, arrived = sorted(before - after), sorted(after - before)
+    # Multiset subtraction, not set subtraction. Codex does not shadow across
+    # roots — it lists and charges every copy of a duplicated name — so losing
+    # one of two copies is a real change that leaves the two *sets* identical.
+    before, after = Counter(previous.entry_ids), Counter(current.entry_ids)
+    gone = sorted((before - after).elements())
+    arrived = sorted((after - before).elements())
     if gone or arrived:
         findings.append(
             f"listed entries changed: -{len(gone)} +{len(arrived)}"
             + (f" | removed: {', '.join(gone[:6])}" if gone else "")
             + (f" | added: {', '.join(arrived[:6])}" if arrived else ""))
+
+    # Membership answers *what* is listed; only the total answers *how much the
+    # same listing now costs*. A vendor rewriting one description moves no
+    # identity and is invisible to every comparison above.
+    demand_delta = current.charged_tokens - previous.charged_tokens
+    if demand_delta and not _ceiling_explains(previous, current, demand_delta):
+        # Only attribute a cause when the evidence supports one. If membership
+        # moved, that line already explains this; claiming a vendor content
+        # rewrite on top of it would be a cause the observation does not show.
+        cause = (" with membership unchanged — entry content is rendered by the "
+                 "vendor and can change under a stable identity, so this is "
+                 "headroom moving with nothing done locally"
+                 if not (gone or arrived) else
+                 "; see the entry-set change above")
+        findings.append(
+            f"charged demand moved: {previous.charged_tokens} -> "
+            f"{current.charged_tokens} ({demand_delta:+d}){cause}.")
 
     ub, ua = set(previous.uncontrolled_ids), set(current.uncontrolled_ids)
     if ub != ua:

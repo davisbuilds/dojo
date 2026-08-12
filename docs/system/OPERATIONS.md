@@ -278,8 +278,50 @@ Four things to know before trusting a number from these:
 
 The profile library under `scripts/profiles/` composes these into resolution,
 budget assessment, observation, and a byte-identical evidence report. It is
-read-only and has no entrypoint yet; `dojo profiles verify --all` arrives with
-Task 8 of the distribution-profiles plan.
+read-only throughout — no command in it changes installed state. Two entrypoints
+ship today; the unified `dojo profiles verify --all` arrives with Task 8 of the
+distribution-profiles plan.
+
+**CI gate** — runs on every pull request touching `profiles/**`, `scripts/**`,
+`skills/**`, `tests/**`, or the docs trees:
+
+```bash
+python3 scripts/profiles/ci_check.py
+```
+
+It validates definitions, resolves every declared composition, loads each budget
+policy, refuses a policy declared deployable on a limit never checked against
+behaviour, and scores `core+engineering` so a green run cannot mean it evaluated
+nothing. It then **prints what it did not check**. That boundary is the point:
+CI has no harness binary and no session rollouts, so it cannot observe an
+effective catalog at all. Every failure this program actually hit — a ceiling
+that moved three times in eight days, a locator convention that reversed between
+builds, an account connector sync that refilled recovered headroom overnight —
+is invisible from CI by construction.
+
+**Machine-side drift check** — those failures need a machine with a harness on
+it, so they are watched there instead:
+
+```bash
+python3 scripts/profiles/drift_check.py            # report against the baseline
+python3 scripts/profiles/drift_check.py --update   # accept the current state
+python3 scripts/profiles/drift_check.py --json     # machine-readable
+```
+
+It compares the newest `codex-tui` rollout against a recorded baseline (default
+`~/.agents/.dojo-profile-baseline.json`, deliberately outside this public
+repository) and reports build changes, model changes, a moved or newly
+underivable ceiling, saturation starting or stopping, changes to the listed and
+uncontrolled entry **multisets**, and charged demand moving under unchanged
+membership. Exit `0` clean, `1` cannot evaluate, `2` drift.
+
+It **fails closed**: no rollout, an unparseable one, a missing baseline, or
+degraded origin classification all report *cannot evaluate*, never clean — a
+monitor that reports "no drift" when it observed nothing is worse than no
+monitor. The `ops` weekly `mini-health.sh` job runs it with `--update`, so a
+change is reported once and then accepted as the new normal; without that, one
+Codex upgrade would re-report the same drift every week until someone silenced
+the job.
 
 ## Hook Configuration
 
