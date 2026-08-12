@@ -286,6 +286,18 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   met and produced false confidence. Each was a sub-minute probe once someone
   thought to run one; the tmux check took ~30 seconds. `references/seam-selection.md`
   currently contains no mention of external, vendor, third-party, probe, or measure.
+- **Second project, same gap (2026-08-10, dojo distribution-profiles)**: a task's
+  `Assumptions Verified` recorded external-CLI behavior — "`exec` sessions show 4
+  roots / 41–46 entries" — from a real observation. It was wrong six days later:
+  the same sweep found that CLI loading 11 extra entries on two other builds, so
+  the claim had been true of *some* builds and was recorded as a property of the
+  tool. Note this is the **staleness** half rather than the citation half, and
+  `write-plan` 2.2.0 has since addressed that half (date each assumption,
+  re-verify before the consuming task, name the build for runtime observations).
+  What remains unaddressed is exactly what this entry proposes: the *form* of the
+  evidence. A dated, correct, reproducible observation of a vendor CLI is still
+  not a statement about the tool — which reinforces rather than weakens the case
+  for a separate block whose artifact is a command and its output.
 - **Next**: add a `**Behavior Measured**` block, distinct from
   `**Assumptions Verified**` and required whenever a step depends on a tool the
   repo does not own. Its artifact is a command and its observed output, not a line
