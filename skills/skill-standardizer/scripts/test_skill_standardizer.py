@@ -541,6 +541,313 @@ def test_ignore_dir_flag_suppresses_custom_dir() -> None:
         assert_true(exit_code == 0, f"--ignore-dir should suppress the warning, got exit {exit_code}")
 
 
+def test_stale_secondary_link_is_removed_not_relinked() -> None:
+    """A secondary global entry naming a skill the operator removed from primary.
+
+    Found live on 2026-08-12: cutting six skills from ~/.agents/skills left
+    dangling ~/.claude/skills symlinks behind. The planner proposed
+    relink_to_global with a source that no longer existed, and the applier
+    creates symlinks without checking, so `sync.py --apply` recreated the broken
+    link and reported success. The one repair path for a broken install was a
+    silent no-op.
+
+    Removal rather than restore-from-canonical is the point: absence from the
+    primary global root is the operator's expressed intent, and reinstalling from
+    canonical would quietly undo a deliberate cut.
+    """
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        # Still canonical -- only the *global install* was removed.
+        write_skill(skills, "audit-skill")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+
+        # Deliberately absent from the primary global root; stale link left behind.
+        stale = claude_home / "skills" / "audit-skill"
+        os.symlink(str(agents_home / "skills" / "audit-skill"), stale)
+        assert_true(stale.is_symlink() and not stale.exists(),
+                    "fixture must start dangling or it proves nothing")
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=False,
+            codex_agents_dedupe=True,
+        )
+
+        actions = [a for a in report["actions"] if a["skill"] == "audit-skill"]
+        types = [a["action"] for a in actions]
+        assert_true(
+            "relink_to_global" not in types,
+            f"must not relink to a source that does not exist: {actions}",
+        )
+        assert_true(
+            "sync_copy" not in types,
+            f"must not reinstall a deliberately removed skill: {actions}",
+        )
+        assert_true(
+            types == ["remove_stale_entry"],
+            f"expected a removal, got: {actions}",
+        )
+
+        apply_actions(report, apply=True, backup_root=str(base / "backups"))
+        assert_true(
+            not stale.is_symlink() and not stale.exists(),
+            "the stale link must be gone after apply",
+        )
+        # Backups are named <skill>-<digest>, not the bare skill name.
+        backups = list((base / "backups").rglob("audit-skill-*"))
+        assert_true(bool(backups), "removal must leave a backup behind")
+
+
+def test_a_broken_primary_entry_is_still_restored_from_canonical() -> None:
+    """The case removal must not swallow.
+
+    A broken directory in the *primary* global root is a damaged install of a
+    skill that is meant to be there, so canonical restores it. Only a *secondary*
+    root naming a skill absent from primary is stale.
+    """
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        write_skill(skills, "brainstorming")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+
+        # Present but damaged: a directory with no SKILL.md.
+        (agents_home / "skills" / "brainstorming").mkdir()
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=False,
+            codex_agents_dedupe=True,
+        )
+        types = [a["action"] for a in report["actions"] if a["skill"] == "brainstorming"]
+        assert_true("sync_copy" in types,
+                    f"a damaged primary entry must be restored from canonical: {types}")
+        assert_true("remove_stale_entry" not in types,
+                    f"a damaged primary entry is not stale: {types}")
+
+
+def test_backup_retention_keeps_recent_runs_and_prunes_the_rest() -> None:
+    """Backups accumulate one directory per apply and nothing ages them out.
+
+    Measured 2026-08-12: 19 runs and 8.5M in dojo, 2.6M more in ~/.agents on the
+    mini. Harmless until it is not, and invisible either way.
+
+    Pruning is deliberately count-based rather than age-based: several applies in
+    one afternoon is the normal shape of this work, and an age rule would delete
+    all of them the following month while a burst of runs on one day would
+    survive.
+    """
+    from skill_standardizer_lib import prune_backups
+
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td) / "backups"
+        root.mkdir()
+        stamps = [f"2026081{n}-120000" for n in range(1, 6)]
+        for stamp in stamps:
+            (root / stamp).mkdir()
+            (root / stamp / "payload").write_text(stamp, encoding="utf-8")
+        # Anything that is not a run directory must be left alone: this root is
+        # inside a repository, and a prune that guesses is a prune that deletes.
+        (root / "README.md").write_text("not a run", encoding="utf-8")
+        (root / "manual-copy").mkdir()
+
+        pruned = prune_backups(root, keep=2)
+
+        remaining = sorted(p.name for p in root.iterdir())
+        assert_true(
+            remaining == ["20260814-120000", "20260815-120000", "README.md", "manual-copy"],
+            f"unexpected survivors: {remaining}",
+        )
+        assert_true(len(pruned) == 3, f"expected 3 pruned runs, got {pruned}")
+
+
+def test_backup_retention_never_removes_the_run_just_written() -> None:
+    """The newest run is the one that would be needed to undo this apply."""
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        write_skill(skills, "brainstorming")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+        # A drifted install, so the apply has something to back up.
+        write_skill(agents_home / "skills", "brainstorming")
+        (agents_home / "skills" / "brainstorming" / "SKILL.md").write_text(
+            "---\nname: brainstorming\ndescription: drifted\nversion: 1.0.0\n---\n",
+            encoding="utf-8")
+
+        backup_root = base / "backups"
+        for old in ["20260101-000000", "20260102-000000", "20260103-000000"]:
+            (backup_root / old).mkdir(parents=True)
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=False,
+            codex_agents_dedupe=True,
+        )
+        result = apply_actions(report, apply=True, backup_root=str(backup_root), keep_backups=1)
+
+        assert_true(bool(result["backups"]), "this fixture must produce a backup")
+        # Resolve both sides: on macOS /var is a symlink to /private/var, and the
+        # library resolves while the fixture path does not, so raw Path equality
+        # compares two spellings of the same directory and never matches.
+        written = {Path(b["backup"]).parent.resolve() for b in result["backups"]}
+        surviving = {p.resolve() for p in backup_root.iterdir() if p.is_dir()}
+        for run in written:
+            assert_true(run in surviving, f"pruned the run it just wrote: {run}")
+        assert_true(len(surviving) == 1, f"keep=1 should leave one run: {surviving}")
+
+
+def test_backup_retention_is_off_for_a_dry_run_and_when_disabled() -> None:
+    """A dry run must not touch the filesystem, and keep=0 means keep everything."""
+    from skill_standardizer_lib import prune_backups
+
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td) / "backups"
+        root.mkdir()
+        for stamp in ["20260101-000000", "20260102-000000", "20260103-000000"]:
+            (root / stamp).mkdir()
+
+        assert_true(prune_backups(root, keep=0) == [], "keep=0 must prune nothing")
+        assert_true(len(list(root.iterdir())) == 3, "keep=0 must leave every run")
+
+
+def test_mirror_copy_repairs_a_secondary_entry_instead_of_removing_it() -> None:
+    """Stale-entry removal is a claim about *link* topology.
+
+    Under the default prefer-primary-link policy the secondary roots are
+    symlinks to the primary copy, so a name the primary root does not have is an
+    orphan and removal is right. Under `--global-policy mirror-copy` the roots
+    hold deliberately independent copies -- absence from the primary carries no
+    intent at all -- so a damaged secondary entry is repaired from canonical, as
+    it always was.
+    """
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        write_skill(skills, "audit-skill")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+
+        stale = claude_home / "skills" / "audit-skill"
+        os.symlink(str(agents_home / "skills" / "audit-skill"), stale)
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="mirror-copy",
+            keep_local_skills=set(),
+            enforce_mirror=False,
+            codex_agents_dedupe=False,
+        )
+        claude_actions = [
+            a for a in report["actions"]
+            if a["skill"] == "audit-skill" and str(claude_home) in str(a["dest"])
+        ]
+        types = [a["action"] for a in claude_actions]
+        assert_true(
+            "remove_stale_entry" not in types,
+            f"mirror-copy keeps independent copies; it must not delete one: {claude_actions}",
+        )
+        assert_true(
+            "sync_copy" in types,
+            f"a damaged mirror-copy entry is repaired from canonical: {claude_actions}",
+        )
+
+
+def test_a_failed_apply_does_not_prune_backup_history() -> None:
+    """Pruning is promised *after a successful apply*.
+
+    A failed sync is exactly when older runs matter most, and an action that
+    errors writes no new backup -- so pruning to keep=1 during a failure would
+    discard every recovery point and keep nothing in their place.
+    """
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        backup_root = base / "backups"
+        for old in ["20260101-000000", "20260102-000000", "20260103-000000"]:
+            (backup_root / old).mkdir(parents=True)
+
+        broken = {
+            "actions": [
+                {
+                    "action": "sync_copy",
+                    "skill": "gone",
+                    "source": str(base / "does-not-exist"),
+                    "dest": str(base / "dest"),
+                }
+            ]
+        }
+        result = apply_actions(broken, apply=True, backup_root=str(backup_root), keep_backups=1)
+
+        assert_true(bool(result["errors"]), "this fixture must produce an error")
+        assert_true(
+            result["pruned_backups"] == [],
+            f"a failed apply must not prune: {result['pruned_backups']}",
+        )
+        surviving = sorted(p.name for p in backup_root.iterdir())
+        assert_true(len(surviving) == 3, f"all runs must survive a failure: {surviving}")
+
+
 def main() -> int:
     tests = [
         test_invalid_entries_do_not_emit_missing_actions,
@@ -556,6 +863,13 @@ def main() -> int:
         test_selected_skill_limits_mirror_scope_and_invalid_reports,
         test_selected_skill_apply_creates_only_requested_global_mirror,
         test_selected_missing_skill_reports_typo,
+        test_stale_secondary_link_is_removed_not_relinked,
+        test_a_broken_primary_entry_is_still_restored_from_canonical,
+        test_backup_retention_keeps_recent_runs_and_prunes_the_rest,
+        test_backup_retention_never_removes_the_run_just_written,
+        test_backup_retention_is_off_for_a_dry_run_and_when_disabled,
+        test_mirror_copy_repairs_a_secondary_entry_instead_of_removing_it,
+        test_a_failed_apply_does_not_prune_backup_history,
     ]
 
     for test in tests:

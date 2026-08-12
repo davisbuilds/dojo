@@ -137,6 +137,28 @@ python scripts/gen_skill_docs.py          # write
 python scripts/gen_skill_docs.py --check  # verify no drift (CI)
 ```
 
+### Recover an earlier version of a skill
+
+**Use git.** Every canonical version of every skill is in this repository's
+history, and that is the answer in almost all cases:
+
+```bash
+git log --oneline -- skills/<name>              # what changed and when
+git show <sha>:skills/<name>/SKILL.md           # read that version
+git restore --source=<sha> skills/<name>        # bring it back
+```
+
+`sync.py --apply` also writes a timestamped backup of whatever it overwrote,
+under `--backup-root` (default `.skill-standardizer/backups/`, gitignored).
+Those hold the one thing git cannot: an *installed* copy that had drifted from
+canonical. That is worth little once drift is being watched, so they are pruned
+to the most recent `--keep-backups` runs (default 10; `0` keeps everything).
+
+Other backup directories on these machines are **not** managed by this
+repository and are left alone: `~/.agents/.skill-backups/` and
+`~/.agents/.backups/` are ad-hoc, and `~/.claude/backups/` belongs to Claude
+Code itself (its own `.claude.json` snapshots, nothing to do with skills).
+
 ### Regenerate harness adapters
 
 Creates the local `.claude/.agent` `skills/` symlinks and the colocated Codex `openai.yaml` sidecars from frontmatter. Also retires a legacy `.agents/skills` catalog link if one survives from an older checkout (a real directory or a foreign symlink is reported, never deleted). Run after cloning (symlinks are gitignored) and after editing skill descriptions:

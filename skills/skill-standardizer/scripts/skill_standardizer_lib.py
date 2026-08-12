@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 from typing import Any
 
@@ -63,6 +64,21 @@ class Context:
 
 def _expand(path: str | Path) -> Path:
     return Path(path).expanduser().resolve()
+
+
+def _expand_nofollow(path: str | Path) -> Path:
+    """Absolute path to the entry *itself*, without following a final symlink.
+
+    `_expand` resolves, which is right for reading a skill's contents and wrong
+    for acting on the entry at a path. A skills root is a symlink farm: resolving
+    `~/.claude/skills/foo` yields `~/.agents/skills/foo`, so a backup of the
+    "destination" would move the real skill out of the primary root instead of
+    the link pointing at it, and a dangling link resolves to a path that does not
+    exist at all -- which is why removing one silently did nothing.
+
+    `os.path.abspath` normalizes lexically and never touches the filesystem.
+    """
+    return Path(os.path.abspath(Path(path).expanduser()))
 
 
 def _normalize_skills_root(path: str | Path) -> Path:
@@ -243,8 +259,11 @@ def scan_root(root: RootSpec, ignore_dirs: set[str] | None = None) -> RootInvent
     return RootInventory(root=root, skills=skills, invalid_entries=invalid_entries)
 
 
+GLOBAL_ROOT_KINDS = ("global-agents", "global-codex", "global-claude")
+
+
 def _preferred_global_kinds() -> list[str]:
-    return ["global-agents", "global-codex", "global-claude"]
+    return list(GLOBAL_ROOT_KINDS)
 
 
 def preferred_global_for_skill(skill: str, inventories: list[RootInventory]) -> tuple[RootSpec, SkillEntry] | None:
@@ -511,9 +530,57 @@ def build_audit_report(
             if not inv.root.kind.startswith("global-"):
                 continue
 
-            if (
-                primary_global_inventory
+            is_secondary_global = (
+                primary_global_inventory is not None
                 and inv.root.kind != primary_global_inventory.root.kind
+                and inv.root.kind in GLOBAL_ROOT_KINDS
+            )
+
+            # "Absent from the primary root" has to mean absent *entirely* --
+            # neither a valid skill nor a broken entry. A primary entry that is
+            # merely damaged is repaired by a sync_copy earlier in this same plan
+            # (apply orders copies before links), so the secondary links pointing
+            # at it are about to become valid and must not be removed.
+            #
+            # Absent entirely is different: it is the operator's expressed
+            # intent. Removing six skills from ~/.agents/skills on 2026-08-12
+            # left exactly these orphans behind, and resurrecting them from
+            # canonical would silently undo a deliberate cut.
+            primary_has_name = primary_global_inventory is not None and (
+                invalid_name in primary_global_inventory.skills
+                or invalid_name in primary_global_inventory.invalid_entries
+            )
+            # Staleness is a claim about *link* topology, so it only holds where
+            # the secondary roots are meant to be links. Under `mirror-copy` the
+            # roots hold deliberately independent copies and absence from the
+            # primary carries no intent at all, so a damaged entry there is
+            # repaired from canonical exactly as it always was.
+            links_to_primary = global_policy == "prefer-primary-link" or (
+                codex_agents_dedupe
+                and inv.root.kind == "global-codex"
+                and primary_global_inventory is not None
+                and primary_global_inventory.root.kind == "global-agents"
+            )
+            if is_secondary_global and links_to_primary and not primary_has_name:
+                add_issue(
+                    severity="warning",
+                    code="STALE_SECONDARY_GLOBAL",
+                    skill=invalid_name,
+                    root=inv.root.path,
+                    global_root=primary_global_inventory.root.path,
+                    message="Entry names a skill absent from the primary global root",
+                )
+                add_action(
+                    action="remove_stale_entry",
+                    skill=invalid_name,
+                    dest=invalid_dest,
+                    reason="Drop secondary global entry whose skill is absent from the primary global root",
+                )
+                continue
+
+            if (
+                is_secondary_global
+                and primary_global_inventory is not None
                 and (
                     global_policy == "prefer-primary-link"
                     or (
@@ -522,6 +589,12 @@ def build_audit_report(
                         and primary_global_inventory.root.kind == "global-agents"
                     )
                 )
+                # Reaching here means the primary root has this name in some
+                # form: either a valid skill to link to, or a damaged entry that
+                # an earlier sync_copy restores. The case that used to produce a
+                # link to a nonexistent path -- no primary entry at all, matched
+                # on canonical alone -- is handled as stale above and never
+                # arrives here.
                 and (
                     invalid_name in primary_global_inventory.skills
                     or (canonical_inventory and invalid_name in canonical_inventory.skills)
@@ -1022,6 +1095,41 @@ def write_json(path: str | Path, payload: dict[str, Any]) -> None:
     output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
+BACKUP_RUN_RE = re.compile(r"^\d{8}-\d{6}$")
+DEFAULT_KEEP_BACKUPS = 10
+
+
+def prune_backups(backup_root: Path, keep: int) -> list[Path]:
+    """Keep the `keep` most recent backup runs; remove older ones.
+
+    Backups accumulate one directory per apply and nothing aged them out: 19
+    runs and 8.5M in dojo by 2026-08-12, with more in the harness roots. Harmless
+    until it is not, and invisible either way.
+
+    Count-based rather than age-based on purpose. Several applies in one
+    afternoon is the normal shape of this work, so an age rule would delete the
+    lot a month later while preserving nothing useful from a busy day. `keep=0`
+    disables pruning entirely.
+
+    Only directories whose names are run stamps are considered. This root sits
+    inside a repository and a caller may point it anywhere, so anything else
+    found here is somebody's file and is left alone -- a prune that guesses is a
+    prune that deletes the wrong thing.
+    """
+    if keep <= 0 or not backup_root.is_dir():
+        return []
+
+    runs = sorted(
+        (p for p in backup_root.iterdir() if p.is_dir() and BACKUP_RUN_RE.match(p.name)),
+        key=lambda p: p.name,
+    )
+    pruned: list[Path] = []
+    for run in runs[:-keep] if keep else runs:
+        shutil.rmtree(run, ignore_errors=True)
+        pruned.append(run)
+    return pruned
+
+
 def _backup_destination(dest: Path, backup_root: Path, stamp: str) -> Path | None:
     if not dest.exists() and not dest.is_symlink():
         return None
@@ -1091,6 +1199,7 @@ def apply_actions(
     report: dict[str, Any],
     apply: bool,
     backup_root: str,
+    keep_backups: int = DEFAULT_KEEP_BACKUPS,
 ) -> dict[str, Any]:
     actions = report.get("actions", [])
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -1103,6 +1212,7 @@ def apply_actions(
         "backups": [],
         "errors": [],
         "backup_root": str(backup_base),
+        "pruned_backups": [],
     }
 
     if not apply:
@@ -1112,11 +1222,12 @@ def apply_actions(
 
     for action in ordered_actions:
         action_type = action["action"]
-        source = _expand(action["source"])
-        dest = _expand(action["dest"])
+        source = _expand(action["source"]) if action.get("source") else None
+        dest = _expand_nofollow(action["dest"])
 
         try:
-            if action_type in {"sync_copy", "create_copy", "relink_to_global", "replace_deprecated_skill"}:
+            if action_type in {"sync_copy", "create_copy", "relink_to_global",
+                               "replace_deprecated_skill", "remove_stale_entry"}:
                 backup = _backup_destination(dest, backup_base, stamp)
                 if backup:
                     result["backups"].append({"dest": str(dest), "backup": str(backup)})
@@ -1133,6 +1244,11 @@ def apply_actions(
                 _replace_with_copy(source, dest)
             elif action_type == "relink_to_global":
                 _replace_with_symlink(source, dest)
+            elif action_type == "remove_stale_entry":
+                # The backup above already moved it aside; removal *is* the action,
+                # and routing it through the same backup path means nothing is
+                # deleted outright.
+                pass
             elif action_type == "remove_deprecated_skill":
                 backup = _backup_destination(_expand(action["deprecated_dest"]), backup_base, stamp)
                 if backup:
@@ -1164,6 +1280,17 @@ def apply_actions(
                     "error": str(exc),
                 }
             )
+
+    # After applying, never before: the run just written must be among the
+    # newest kept, or a prune could delete the only way to undo this apply.
+    #
+    # And only after a *successful* one. A failed sync is when older runs
+    # matter most, and a failing action writes no new backup -- so pruning
+    # here would discard every recovery point and leave nothing in place of
+    # them.
+    if not result["errors"]:
+        for run in prune_backups(backup_base, keep_backups):
+            result["pruned_backups"].append(str(run))
 
     return result
 
