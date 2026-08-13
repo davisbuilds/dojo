@@ -29,7 +29,13 @@ Design rules carried from the rest of this package:
 
 Exit: 0 no drift, 1 cannot evaluate, 2 drift detected, 3 blind too long
 (with --max-blind-days: the check has not managed to evaluate in that many
-days, so it is reporting healthy while watching nothing).
+days, so it is reporting healthy while watching nothing), 4 saturated (the
+listing is clipping right now, whether or not anything changed).
+
+Precedence among those, and why it is not arbitrary: 3 outranks 4 because a
+present-tense claim needs present-tense evidence; 4 outranks 2 because drift is
+accepted into the baseline by --update and saturation is not; 2 outranks a stale
+3 because "A differs from B" stays true however old A and B are.
 """
 
 from __future__ import annotations
@@ -58,6 +64,13 @@ EXIT_DRIFT = 2
 # Persistent blindness is its own outcome, not drift. Reporting it as drift
 # would mislabel what moved — nothing moved; the instrument stopped working.
 EXIT_BLIND = 3
+# Neither is saturation. A listing that clips is degraded *now*, and it stays
+# degraded until someone acts; drift is a transition, and `--update` accepts it.
+# Reported as drift it would be announced once and then debounced into silence,
+# which is exactly what happened: on 2026-08-13 the mini was clipping 24 of 48
+# descriptions mid-word and this check reported `state: clean`, because nothing
+# had moved since the baseline. Nothing had. It was broken the whole time.
+EXIT_SATURATED = 4
 
 
 @dataclass
@@ -251,6 +264,21 @@ def compare(previous: Baseline, current: Baseline) -> list[str]:
     return findings
 
 
+def _saturation_findings(obs: rc.RolloutObservation, current: Baseline) -> list[str]:
+    """The standing condition, stated with the number that makes it concrete."""
+    if not current.saturated:
+        return []
+    clipped = rc.clipped_entry_names(obs)
+    return [
+        f"the listing is saturated at its {current.ceiling}-token ceiling: "
+        f"{len(clipped)} of {len(obs.listing.entries)} descriptions are cut at "
+        "the clip length, mid-word and unmarked, so skill selection is running "
+        "on truncated text. This is a standing condition rather than a change — "
+        "it is reported on every run until the catalog fits or the ceiling rises."
+        + (f" Clipped include: {', '.join(clipped[:5])}." if clipped else "")
+    ]
+
+
 def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
         as_json: bool = False, max_blind_days: int | None = None) -> int:
     errors: list[tuple[Path, str]] = []
@@ -297,6 +325,32 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
 
     observed_cwd = _observation_cwd(current_obs)
     current = Baseline.from_observation(current_obs)
+
+    age = _observation_age_days(current_obs)
+    stale = (max_blind_days is not None and age is not None and age > max_blind_days)
+
+    # Drift and saturation are different kinds of claim, which is what settles
+    # their precedence against a stale sample. Drift is *historical* — sample A
+    # differs from sample B — and stays true however old both are. Saturation is
+    # *present tense*: this machine is clipping now. A sample too old to be
+    # evidence of the present cannot support it, so staleness suppresses it
+    # rather than being outranked by it.
+    saturation = [] if stale else _saturation_findings(current_obs, current)
+
+    def outcome(state: str, findings: list[str], code: int) -> int:
+        """Saturation outranks whatever else a fresh run found.
+
+        Not because it is worse than drift, but because it does not go away on
+        its own: `--update` accepts drift into the baseline, so reporting a
+        clipping listing as drift would announce it once and then debounce it
+        into silence — the failure mode this outcome exists to end.
+        """
+        if saturation:
+            _emit(as_json, "saturated", saturation + findings, current)
+            return EXIT_SATURATED
+        _emit(as_json, state, findings, current)
+        return code
+
     store = load_store(baseline_path)
     previous = store.get(observed_cwd)
 
@@ -304,12 +358,12 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
         if update:
             store[observed_cwd] = current
             _write(baseline_path, store)
-            _emit(as_json, "baseline-recorded", [f"for {observed_cwd}"], current)
-            return EXIT_CLEAN
-        _emit(as_json, "cannot-evaluate",
-              [f"no baseline for {observed_cwd} at {baseline_path}; "
-               "run with --update to record one"], current)
-        return EXIT_CANNOT_EVALUATE
+            # Recording settles what to compare against next time. It is not a
+            # judgement that the sample is healthy, and must not read as one.
+            return outcome("baseline-recorded", [f"for {observed_cwd}"], EXIT_CLEAN)
+        return outcome("cannot-evaluate",
+                       [f"no baseline for {observed_cwd} at {baseline_path}; "
+                        "run with --update to record one"], EXIT_CANNOT_EVALUATE)
 
     findings = compare(previous, current)
     if update:
@@ -317,15 +371,13 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
         _write(baseline_path, store)
 
     if findings:
-        _emit(as_json, "drift", findings, current)
-        return EXIT_DRIFT
+        return outcome("drift", findings, EXIT_DRIFT)
 
     # Nothing changed -- but "nothing changed" from a sample months old is the
     # monitor reporting healthy while receiving nothing new. Drift outranks this:
     # a stale sample that *differs* is the more actionable finding, and is
     # returned above.
-    age = _observation_age_days(current_obs)
-    if max_blind_days is not None and age is not None and age > max_blind_days:
+    if stale:
         _emit(as_json, "blind",
               [f"the newest {rc.SURFACE_TUI} session is {age}d old, past the "
                f"{max_blind_days}d threshold. It still matches the baseline, but "
@@ -333,8 +385,7 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
               current)
         return EXIT_BLIND
 
-    _emit(as_json, "clean", findings, current)
-    return EXIT_CLEAN
+    return outcome("clean", findings, EXIT_CLEAN)
 
 
 def _write(path: Path, store: dict[str, Baseline]) -> None:

@@ -486,6 +486,27 @@ def derive_limit(obs: list[RolloutObservation], *, clipped_only: bool = True) ->
                          tuple(samples))
 
 
+def clipped_entry_names(observation: RolloutObservation) -> list[str]:
+    """Names whose descriptions sit at the uniform clip length, in listed order.
+
+    The same shape rule `is_saturated` reduces to a boolean, kept in one place so
+    the two can never disagree about which entries are affected. Empty whenever
+    the listing is not saturated, so its emptiness is the predicate.
+    """
+    entries = observation.listing.entries
+    lengths = [len(e.description or "") for e in entries]
+    if len(lengths) < 3:
+        return []
+    longest = max(lengths)
+    if longest >= 1_000:
+        return []
+    at_longest = [
+        entry.name for entry, length in zip(entries, lengths)
+        if abs(length - longest) <= 3
+    ]
+    return at_longest if len(at_longest) >= max(3, len(lengths) // 5) else []
+
+
 def is_saturated(observation: RolloutObservation, source_descriptions: dict | None = None) -> bool:
     """Whether this render was clipped, i.e. spent its whole budget.
 
@@ -495,17 +516,14 @@ def is_saturated(observation: RolloutObservation, source_descriptions: dict | No
     budget clipping appends nothing, which is why the shape rather than a marker
     has to carry the signal.
     """
-    lengths = [len(e.description or "") for e in observation.listing.entries]
-    if len(lengths) < 3:
-        return False
     if source_descriptions:
+        if len(observation.listing.entries) < 3:
+            return False
         return any(
             len(e.description or "") < len(source_descriptions.get(e.name, ""))
             for e in observation.listing.entries
         )
-    longest = max(lengths)
-    at_longest = sum(1 for length in lengths if abs(length - longest) <= 3)
-    return longest < 1_000 and at_longest >= max(3, len(lengths) // 5)
+    return bool(clipped_entry_names(observation))
 
 
 def qualified_identities(listing: Listing) -> Counter:

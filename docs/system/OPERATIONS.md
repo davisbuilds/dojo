@@ -335,7 +335,8 @@ It compares the newest `codex-tui` rollout against a recorded baseline (default
 repository, and **keyed by working directory**) and reports build changes, model changes, a moved or newly
 underivable ceiling, saturation starting or stopping, changes to the listed and
 uncontrolled entry **multisets**, and charged demand moving under unchanged
-membership. Exit `0` clean, `1` cannot evaluate, `2` drift, `3` blind too long.
+membership. Exit `0` clean, `1` cannot evaluate, `2` drift, `3` blind too long,
+`4` saturated.
 
 It **fails closed**: no rollout, an unparseable one, a missing baseline, or
 degraded origin classification all report *cannot evaluate*, never clean — a
@@ -346,14 +347,33 @@ that has *never* been observed, or not in N days, exits `3`. Without that
 distinction a scheduled check reports healthy forever on a machine nobody uses
 interactively — which is exactly what the mini did for its first week.
 
+**Saturation (`4`) is a state, not a change.** Exit `2` answers "did it move?";
+a listing that was already clipping when the baseline was recorded has not
+moved, so on 2026-08-13 the mini reported `state: clean` while cutting 24 of 48
+descriptions mid-word. Exit `4` answers "is it broken?", is derived from the
+current observation alone, and repeats on every run until the catalog fits or
+the build's ceiling rises — `--update` cannot accept it into a baseline the way
+it accepts drift. Precedence, when more than one holds:
+
+| | outranks | because |
+|---|---|---|
+| `3` blind | `4` saturated | saturation is a present-tense claim, and a stale sample is not evidence of the present |
+| `4` saturated | `2` drift | `--update` accepts drift, so reporting clipping as drift announces it once and then debounces it into silence |
+| `2` drift | a stale `3` | "A differs from B" stays true however old A and B are |
+
+The report always carries every finding; precedence only decides which word the
+exit code says.
+
 It runs in two places, because neither alone is enough:
 
 - **SessionStart hook** (`hooks/session-start-harness-drift.sh`) on whichever
   machine you are working on. The data it reads is written by interactive
   sessions, so the daily driver is the only place it reliably sees anything. It
-  is silent on clean and on cannot-evaluate, and speaks only on drift or
-  persistent blindness. `--update` gives it debounce for free: a change is
+  is silent on clean and on cannot-evaluate, and speaks on drift, persistent
+  blindness, or saturation. `--update` gives it debounce for free: a change is
   reported once and then accepted, so a Codex upgrade does not nag every session.
+  Saturation is deliberately exempt from that debounce — the clipped listing it
+  describes is the one the session is about to run with.
 - **Scheduled** from the `ops` weekly `mini-health.sh` job, which is the surface
   that can tell "quiet this week" from "never" and so carries
   `--max-blind-days`.
