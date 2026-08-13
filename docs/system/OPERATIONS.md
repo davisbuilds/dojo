@@ -392,10 +392,18 @@ which costs one silent cycle.
 It **fails closed**: no rollout, an unparseable one, a missing baseline, or
 degraded origin classification all report *cannot evaluate*, never clean — a
 monitor that reports "no drift" when it observed nothing is worse than no
-monitor. The `ops` weekly `mini-health.sh` job runs it with `--update`, so a
-change is reported once and then accepted as the new normal; without that, one
-Codex upgrade would re-report the same drift every week until someone silenced
-the job.
+monitor. The one exception runs the same way: whether the current listing clips
+is knowable from that listing alone, so a missing baseline reports saturation
+(`4`) rather than *cannot evaluate* when it does. Falling back to `1` there
+would be the same silence by another door, because the scheduled wrapper treats
+it as a pass.
+
+The `ops` weekly `mini-health.sh` job runs it with `--update`, so a change is
+reported once and then accepted as the new normal; without that, one Codex
+upgrade would re-report the same drift every week until someone silenced the
+job. Saturation is deliberately outside that debounce — `--update` settles what
+to compare against next time, and says nothing about whether the sample was
+healthy.
 
 ## Hook Configuration
 

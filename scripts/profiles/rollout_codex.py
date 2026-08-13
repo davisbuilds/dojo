@@ -487,11 +487,26 @@ def derive_limit(obs: list[RolloutObservation], *, clipped_only: bool = True) ->
 
 
 def clipped_entry_names(observation: RolloutObservation) -> list[str]:
-    """Names whose descriptions sit at the uniform clip length, in listed order.
+    """Names whose descriptions were cut by the budget, in listed order.
 
-    The same shape rule `is_saturated` reduces to a boolean, kept in one place so
-    the two can never disagree about which entries are affected. Empty whenever
-    the listing is not saturated, so its emptiness is the predicate.
+    The shape rule `is_saturated` reduces to a boolean, kept in one place so the
+    two can never disagree about which entries are affected. Empty whenever the
+    listing is not saturated, so its emptiness is the predicate.
+
+    Two independent signals must agree, because the shape rule alone cannot tell
+    "clipped to a common length" from "written to a common length". A catalog of
+    templated descriptions — generated metadata, a vendor bundle sharing a
+    boilerplate summary — can put a fifth of its entries within three characters
+    of the longest without anything having been cut, and this feeds a persistent
+    outcome that speaks every session, so a false positive here is not a stray
+    line in a report but a warning the operator learns to scroll past.
+
+    The corroborating signal is that budget clipping cuts *mid-sentence*: it
+    appends nothing and respects no boundary, so a clipped description does not
+    end in terminal punctuation. Measured across every sample on hand, the two
+    agree almost exactly on real clipping (42 of 42, 76 of 79, 32 of 33) and not
+    at all on listings that fit (0 of 2, 0 of 1) -- so requiring both costs
+    nothing that was ever detected and refuses the case the shape alone invents.
     """
     entries = observation.listing.entries
     lengths = [len(e.description or "") for e in entries]
@@ -501,10 +516,18 @@ def clipped_entry_names(observation: RolloutObservation) -> list[str]:
     if longest >= 1_000:
         return []
     at_longest = [
-        entry.name for entry, length in zip(entries, lengths)
+        entry for entry, length in zip(entries, lengths)
         if abs(length - longest) <= 3
     ]
-    return at_longest if len(at_longest) >= max(3, len(lengths) // 5) else []
+    if len(at_longest) < max(3, len(lengths) // 5):
+        return []
+    cut_midsentence = sum(
+        1 for entry in at_longest
+        if not (entry.description or "").rstrip().endswith((".", "!", "?"))
+    )
+    if cut_midsentence * 2 <= len(at_longest):
+        return []
+    return [entry.name for entry in at_longest]
 
 
 def is_saturated(observation: RolloutObservation, source_descriptions: dict | None = None) -> bool:
