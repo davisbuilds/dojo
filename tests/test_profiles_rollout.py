@@ -594,3 +594,34 @@ def test_one_unparseable_rollout_does_not_abort_a_scan(tmp_path):
 
 def test_find_rollouts_on_a_missing_root_is_empty_not_an_error():
     assert rollout_codex.find_rollouts(Path("/nonexistent/sessions")) == []
+
+def test_ordering_follows_the_session_not_the_file_mtime(tmp_path):
+    """A resumed old session must not present itself as the current state.
+
+    `find_rollouts` sorted by modification time, but a rollout's listing block is
+    captured once at session start and never rewritten. Touching a July file --
+    resuming it, or any tool that rewrites it -- therefore floated a stale
+    observation to the top: on 2026-08-12 the live check reported a 0.144.1
+    session from 2026-07-10 as newest while 0.147.0 sessions from that morning
+    sat below it. The drift check would have called that a build regression from
+    0.147.0 back to 0.144.1, an event that never happened.
+
+    Order by the stamp in the filename, which is when the block was captured.
+    """
+    import shutil
+
+    root = tmp_path / "sessions" / "2026" / "08" / "12"
+    root.mkdir(parents=True)
+    older = root / "rollout-2026-07-10T09-40-00000000-0000-0000-0000-000000000000.jsonl"
+    newer = root / "rollout-2026-08-12T12-43-11111111-1111-1111-1111-111111111111.jsonl"
+    shutil.copy(F110, older)
+    shutil.copy(F56, newer)
+
+    # The stale one is the most recently *modified*, which is the trap.
+    import os
+    os.utime(newer, (1_700_000_000, 1_700_000_000))
+    os.utime(older, (1_800_000_000, 1_800_000_000))
+
+    found = rollout_codex.find_rollouts(tmp_path / "sessions")
+    assert [p.name[8:24] for p in found] == ["2026-08-12T12-43", "2026-07-10T09-40"], (
+        "newest session first, regardless of which file was touched last")

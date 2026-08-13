@@ -349,7 +349,16 @@ def default_sessions_root() -> Path:
 
 
 def find_rollouts(sessions_root: Path | str | None = None) -> list[Path]:
-    """Every rollout, newest first by modification time.
+    """Every rollout, newest session first.
+
+    Ordered by the timestamp in the filename, **not** by modification time. A
+    rollout's listing block is written once at session start and never rewritten,
+    so the filename stamp is when the observation was actually made, while the
+    mtime only says when the file was last touched. Sorting by mtime floated a
+    resumed July session to the top on 2026-08-12 and presented its 0.144.1
+    listing as the current state, with 0.147.0 sessions from that morning below
+    it -- which the drift check would have reported as a build regression that
+    never happened.
 
     Deliberately not a `find -newermt` style filter: on BSD `find` that flag
     silently matches nothing rather than erroring, and it produced two false
@@ -359,7 +368,13 @@ def find_rollouts(sessions_root: Path | str | None = None) -> list[Path]:
     if not root.is_dir():
         return []
     paths = list(root.rglob("rollout-*.jsonl"))
-    return sorted(paths, key=lambda p: p.stat().st_mtime, reverse=True)
+    # Fall back to mtime only when the name carries no stamp to read.
+    return sorted(
+        paths,
+        key=lambda p: (p.name[8:24], p.stat().st_mtime)
+        if len(p.name) >= 24 else ("", p.stat().st_mtime),
+        reverse=True,
+    )
 
 
 def observations(sessions_root: Path | str | None = None, *, cwd: str | Path | None = None,
