@@ -269,6 +269,40 @@ def test_saturation_is_detected_on_a_known_clipped_render(obs110, obs56):
     assert is_saturated(obs56) is True
 
 
+def test_uniform_lengths_alone_are_not_clipping(obs56):
+    """Written to a common length is not cut to a common length.
+
+    Templated descriptions — generated metadata, a vendor bundle sharing one
+    boilerplate summary — can put well over a fifth of a catalog within three
+    characters of the longest without anything having been clipped. The shape
+    rule cannot tell that from budget clipping, and it feeds an outcome that
+    speaks every session, so the shape needs corroborating: budget clipping cuts
+    mid-sentence, and text written to a length does not.
+    """
+    for entry in obs56.listing.entries:
+        entry.description = "a templated summary of the skill and its use."
+    assert is_saturated(obs56) is False, \
+        "uniform but complete descriptions are a catalog style, not a clipped render"
+    assert rollout_codex.clipped_entry_names(obs56) == []
+
+    # The same uniform lengths, now cut mid-sentence: both signals agree.
+    for entry in obs56.listing.entries:
+        entry.description = "a templated summary of the skill and its us"
+    assert is_saturated(obs56) is True
+
+
+def test_one_stray_unpunctuated_description_does_not_raise_clipping(obs56):
+    """Corroboration is about the group, not any single entry.
+
+    A description that simply omits its full stop is common; the claim being
+    made is about the listing as a whole, so it takes a majority to support it.
+    """
+    for entry in obs56.listing.entries:
+        entry.description = "a templated summary of the skill and its use."
+    obs56.listing.entries[0].description = "a templated summary of the skill and its u"
+    assert is_saturated(obs56) is False
+
+
 # --------------------------------------------------------------------------
 # The pre-5A path, pinned by the failure it repairs
 # --------------------------------------------------------------------------

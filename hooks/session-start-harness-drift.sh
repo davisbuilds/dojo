@@ -41,8 +41,13 @@ code=$?
 # interactive Codex session has nothing to say, and a hook that speaks every
 # session is a hook that gets ignored. Persistent blindness (3) is caught by the
 # scheduled check, which is the surface that can tell "quiet" from "never".
+#
+# Saturation (4) is the one outcome that repeats until it is acted on, and it is
+# printed every session on purpose: the listing it describes is the one this
+# session is running with, so the cost of staying quiet is paid here and now, in
+# skills selected against descriptions cut mid-word.
 case "$code" in
-  2 | 3) printf '%s\n' "$report" ;;
+  2 | 3 | 4) printf '%s\n' "$report" ;;
 esac
 
 exit 0

@@ -31,6 +31,7 @@ from profiles.drift_check import (  # noqa: E402
     EXIT_CANNOT_EVALUATE,
     EXIT_CLEAN,
     EXIT_DRIFT,
+    EXIT_SATURATED,
     Baseline,
     compare,
     run,
@@ -38,6 +39,10 @@ from profiles.drift_check import (  # noqa: E402
 
 F110 = FIXTURES / "codex-tui-clipped-110.jsonl"
 F56 = FIXTURES / "codex-tui-clipped-56.jsonl"
+# A listing that fits, so "clean" can be asserted without a clipped sample
+# standing in for a healthy one — and so the saturation checks below have a
+# control that proves they are not simply firing on everything.
+FOK45 = FIXTURES / "codex-tui-healthy-45.jsonl"
 
 
 def _only(store: dict) -> dict:
@@ -313,7 +318,7 @@ def test_a_machine_that_can_be_read_never_reports_blind(tmp_path, monkeypatch):
     """
     import profiles.drift_check as dc
 
-    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(FOK45)])
     path = tmp_path / "baseline.json"
     assert dc.run(path, update=True, max_blind_days=1) == EXIT_CLEAN
     assert dc.run(path, max_blind_days=1) == EXIT_CLEAN
@@ -401,7 +406,7 @@ def test_two_working_dirs_do_not_report_each_other_as_drift(tmp_path, capsys, mo
     """
     import profiles.drift_check as dc
 
-    in_dev = rc.read_rollout(F56)
+    in_dev = rc.read_rollout(FOK45)
     in_dojo = rc.read_rollout(F110)
     path = tmp_path / "baseline.json"
 
@@ -447,16 +452,32 @@ def test_a_missing_baseline_refuses_rather_than_passing(tmp_path, capsys, monkey
     import profiles.drift_check as dc
 
     monkeypatch.setattr(dc.rc, "observations",
-                        lambda **kw: [rc.read_rollout(F56)])
+                        lambda **kw: [rc.read_rollout(FOK45)])
     code = dc.run(tmp_path / "absent.json")
     assert code == EXIT_CANNOT_EVALUATE
     assert "no baseline" in capsys.readouterr().out
 
 
-def test_update_records_a_baseline_then_reports_clean(tmp_path, capsys, monkeypatch):
+def test_a_missing_baseline_does_not_hide_saturation(tmp_path, capsys, monkeypatch):
+    """Whether the listing clips is knowable without any baseline at all.
+
+    Falling back to cannot-evaluate here would be the same silence by a
+    different door: the scheduled wrapper treats exit 1 as a pass, so a machine
+    that had never recorded a baseline could clip indefinitely without a word.
+    """
     import profiles.drift_check as dc
 
     monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    assert dc.run(tmp_path / "absent.json") == EXIT_SATURATED
+    out = capsys.readouterr().out
+    assert "no baseline" in out, "it must still say the comparison could not run"
+    assert "clipped" in out
+
+
+def test_update_records_a_baseline_then_reports_clean(tmp_path, capsys, monkeypatch):
+    import profiles.drift_check as dc
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(FOK45)])
     path = tmp_path / "baseline.json"
 
     assert dc.run(path, update=True) == EXIT_CLEAN
@@ -470,7 +491,7 @@ def test_update_records_a_baseline_then_reports_clean(tmp_path, capsys, monkeypa
 def test_drift_exits_two_and_names_what_moved(tmp_path, capsys, monkeypatch):
     import profiles.drift_check as dc
 
-    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(FOK45)])
     path = tmp_path / "baseline.json"
     dc.run(path, update=True)
     capsys.readouterr()
@@ -478,12 +499,13 @@ def test_drift_exits_two_and_names_what_moved(tmp_path, capsys, monkeypatch):
     store = json.loads(path.read_text())
     key = next(iter(store))
     store[key] = dataclasses.asdict(dataclasses.replace(
-        Baseline(**store[key]), harness_build="0.140.0/old", ceiling=5440))
+        Baseline(**store[key]), harness_build="0.140.0/old",
+        saturated=True, ceiling=5440))
     path.write_text(json.dumps(store, indent=2))
 
     assert dc.run(path) == EXIT_DRIFT
     out = capsys.readouterr().out
-    assert "harness build changed" in out and "ceiling moved" in out
+    assert "harness build changed" in out and "no longer derivable" in out
 
 
 def test_degraded_classification_is_cannot_evaluate(tmp_path, capsys, monkeypatch):
@@ -510,9 +532,142 @@ def test_the_check_never_writes_without_update(tmp_path, monkeypatch):
     dc.run(path, update=True)
     before = path.read_bytes()
 
+    # Both fixtures clip, so the run reports the standing state rather than the
+    # change; either way it found something, which is what makes the write
+    # assertion meaningful.
     monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F110)])
-    assert dc.run(path) == EXIT_DRIFT
+    assert dc.run(path) == EXIT_SATURATED
     assert path.read_bytes() == before, "a run without --update must not rewrite the baseline"
+
+
+# --------------------------------------------------------------------------
+# Saturation is a standing state, not a change
+# --------------------------------------------------------------------------
+
+
+def test_a_clipping_listing_is_never_reported_as_clean(tmp_path, capsys, monkeypatch):
+    """The gap this exit code closes, taken from the machine that had it.
+
+    On 2026-08-13 the mini was saturated at its 4,000-token ceiling with 24 of
+    48 descriptions cut mid-word, and this check printed `state: clean` with
+    exit 0 — correctly, under the old contract: it compares against a baseline,
+    and nothing had moved. But the program exists to notice clipping, and in the
+    one case where clipping was real it said everything was fine.
+
+    Drift asks "did it move?". This asks "is it broken?", which a comparison
+    against a baseline recorded while already broken can never answer.
+    """
+    import profiles.drift_check as dc
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    path = tmp_path / "baseline.json"
+    dc.run(path, update=True)
+    capsys.readouterr()
+
+    assert dc.run(path) == EXIT_SATURATED, \
+        "an unchanged but clipping listing must not report clean"
+    out = capsys.readouterr().out
+    assert "state: saturated" in out
+    assert "4000" in out, "the report must name the ceiling being hit"
+
+
+def test_recording_a_first_baseline_does_not_launder_saturation(
+        tmp_path, capsys, monkeypatch):
+    """`--update` accepts an observation; it must not bless it.
+
+    This is the exact shape the mini reported: `state: baseline-recorded`,
+    exit 0, on a listing that was clipping as it was recorded. Accepting a
+    sample settles what to compare against next time and says nothing about
+    whether the sample is healthy.
+    """
+    import profiles.drift_check as dc
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    path = tmp_path / "baseline.json"
+
+    assert dc.run(path, update=True) == EXIT_SATURATED
+    assert path.exists(), "it must still record the baseline it refuses to call clean"
+    assert "clipped" in capsys.readouterr().out
+
+
+def test_saturation_outranks_drift_and_still_names_what_moved(
+        tmp_path, capsys, monkeypatch):
+    """Both can hold. The exit code names the standing state, the report names both.
+
+    Drift is debounced by `--update` and saturation is not, so letting drift win
+    would report the transition once and then fall back to reporting the
+    degraded state — which is the silence this code exists to prevent.
+    """
+    import profiles.drift_check as dc
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    path = tmp_path / "baseline.json"
+    dc.run(path, update=True)
+    capsys.readouterr()
+
+    store = json.loads(path.read_text())
+    key = next(iter(store))
+    store[key] = dataclasses.asdict(dataclasses.replace(
+        Baseline(**store[key]), harness_build="0.140.0/old"))
+    path.write_text(json.dumps(store, indent=2))
+
+    assert dc.run(path) == EXIT_SATURATED
+    out = capsys.readouterr().out
+    assert "harness build changed" in out, \
+        "the drift finding must survive being outranked"
+
+
+def test_a_listing_that_fits_is_clean(tmp_path, capsys, monkeypatch):
+    """The control. A detector that cannot pass a healthy sample is not a detector."""
+    import profiles.drift_check as dc
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(FOK45)])
+    path = tmp_path / "baseline.json"
+
+    assert dc.run(path, update=True) == EXIT_CLEAN
+    capsys.readouterr()
+    assert dc.run(path) == EXIT_CLEAN
+    assert "state: clean" in capsys.readouterr().out
+
+
+def test_blindness_outranks_saturation(tmp_path, capsys, monkeypatch):
+    """A degraded state you are no longer observing is a broken instrument first.
+
+    Reporting "you are clipping" from a sample two months stale would assert a
+    present-tense fact the check has no current evidence for.
+    """
+    import profiles.drift_check as dc
+
+    obs = rc.read_rollout(F56)
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [obs])
+    monkeypatch.setattr(dc, "_observation_age_days", lambda o: 70)
+    path = tmp_path / "baseline.json"
+    dc.run(path, update=True)
+    capsys.readouterr()
+
+    assert dc.run(path, max_blind_days=30) == dc.EXIT_BLIND
+    assert "70d" in capsys.readouterr().out
+
+
+def test_saturation_clearing_returns_to_clean(tmp_path, capsys, monkeypatch):
+    """It must be able to go green again, or it is a permanent alarm.
+
+    A raised ceiling or a trimmed catalog is the outcome this code is asking
+    for, and the run after that has to say so.
+    """
+    import profiles.drift_check as dc
+
+    path = tmp_path / "baseline.json"
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F56)])
+    monkeypatch.setattr(dc, "_observation_cwd", lambda o: "/Users/x/Dev")
+    assert dc.run(path, update=True) == EXIT_SATURATED
+    capsys.readouterr()
+
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(FOK45)])
+    assert dc.run(path, update=True) == EXIT_DRIFT, \
+        "the listing changing shape is still drift; it is just no longer clipping"
+    capsys.readouterr()
+    assert dc.run(path) == EXIT_CLEAN
 
 
 def test_a_model_switch_is_not_called_a_build_change(base56):
