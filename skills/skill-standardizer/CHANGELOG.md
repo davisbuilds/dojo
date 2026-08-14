@@ -1,3 +1,7 @@
+## 1.3.0 - 2026-08-14
+
+- Report a dangling symlink as DANGLING_SKILL_LINK rather than a missing SKILL.md
+
 ## 1.2.0 - 2026-08-12
 
 - Detect STALE_SECONDARY_GLOBAL and repair it by removing the entry (with backup) instead of

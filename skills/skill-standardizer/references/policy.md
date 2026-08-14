@@ -17,8 +17,14 @@ This reference defines default policy for `skill-standardizer`.
 - `GLOBAL_DUPLICATE_PRIMARY*`: secondary global copy should be linked to primary global source
 - `GLOBAL_DUPLICATE_PREFERRED*`: secondary global copy should be linked to preferred existing global source
 - `CODEX_AGENTS_DUPLICATE*`: Codex global copy should symlink to Agents source to avoid duplicate Codex catalog entries
-- `LOCAL_DUPLICATE_GLOBAL`: local copy duplicates global and should be linked
+- `LOCAL_DUPLICATE_GLOBAL`: local copy duplicates global and should be linked.
+  A local entry that symlinks to the **global copy or straight to canonical**
+  is already correct and is not reported — project roots link to canonical,
+  because project scope exists for skills that are deliberately not global.
 - `INVALID_SKILL_DIR`: directory under skills root missing `SKILL.md`
+- `DANGLING_SKILL_LINK`: symlink under a skills root whose target no longer
+  exists. Split from `INVALID_SKILL_DIR` because the repair differs — recreate
+  the link, rather than author a missing file
 - `MISSING_GLOBAL_MIRROR`: canonical skill missing in global (only when `--enforce-mirror`)
 - `MISSING_GLOBAL_LINK`: canonical skill missing as a secondary global link (only when `--enforce-mirror` and link policy)
 - `MISSING_CODEX_LINK_TO_AGENTS`: Codex global is missing a link to the Agents source

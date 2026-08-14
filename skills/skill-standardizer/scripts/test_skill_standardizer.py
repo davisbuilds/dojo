@@ -39,6 +39,106 @@ def assert_true(condition: bool, message: str) -> None:
         raise AssertionError(message)
 
 
+def test_a_project_root_linking_to_canonical_is_not_a_duplicate() -> None:
+    """Project scope links to canonical, and that is the correct state.
+
+    Global roots hold *copies* synced from canonical, so `already_linked` only
+    recognised a local entry pointing at the global copy. A project repository
+    links straight to canonical instead — deliberately, because project scope
+    exists for skills that are *not* global (four design skills were cut from
+    the machine-global root in dojo PR #61 precisely so they would be paid for
+    only where they are used). Requiring the link to go through a global copy
+    would break the case project scope is for, and leave the correct wiring
+    reported as a duplicate on every run.
+    """
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        write_skill(skills, "write-plan")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+        # The global root holds a copy, which is what the sync produces.
+        write_skill(agents_home / "skills", "write-plan")
+
+        project = base / "some-project" / ".agents" / "skills"
+        project.mkdir(parents=True)
+        os.symlink(str(skills / "write-plan"), project / "write-plan")
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [str(project)], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=True,
+            codex_agents_dedupe=True,
+        )
+
+        offending = [
+            issue for issue in report["issues"]
+            if issue.get("skill") == "write-plan"
+            and str(issue.get("code", "")).startswith("LOCAL_DUPLICATE_GLOBAL")
+        ]
+        assert_true(
+            not offending,
+            f"a link to canonical must not read as a local duplicate: {offending}")
+
+
+def test_a_project_root_holding_a_copy_is_still_reported() -> None:
+    """The control. Accepting a link must not accept a copy along with it."""
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        repo = base / "repo"
+        skills = repo / "skills"
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+        write_skill(skills, "write-plan")
+
+        agents_home = base / ".agents"
+        codex_home = base / ".codex"
+        claude_home = base / ".claude"
+        for home in [agents_home, codex_home, claude_home]:
+            (home / "skills").mkdir(parents=True)
+        write_skill(agents_home / "skills", "write-plan")
+
+        project = base / "some-project" / ".agents" / "skills"
+        project.mkdir(parents=True)
+        write_skill(project, "write-plan")           # a copy, not a link
+
+        os.environ["AGENTS_HOME"] = str(agents_home)
+        os.environ["CODEX_HOME"] = str(codex_home)
+        os.environ["CLAUDE_HOME"] = str(claude_home)
+        os.chdir(repo)
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [str(project)], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=True,
+            codex_agents_dedupe=True,
+        )
+
+        codes = {
+            issue["code"] for issue in report["issues"]
+            if issue.get("skill") == "write-plan"
+        }
+        assert_true(
+            any(code.startswith("LOCAL_DUPLICATE_GLOBAL") for code in codes),
+            f"a project copy of a global skill must still be reported: {codes}")
+
+
 def test_invalid_entries_do_not_emit_missing_actions() -> None:
     with tempfile.TemporaryDirectory() as td:
         base = Path(td)
@@ -863,6 +963,8 @@ def main() -> int:
         test_selected_skill_limits_mirror_scope_and_invalid_reports,
         test_selected_skill_apply_creates_only_requested_global_mirror,
         test_selected_missing_skill_reports_typo,
+        test_a_project_root_linking_to_canonical_is_not_a_duplicate,
+        test_a_project_root_holding_a_copy_is_still_reported,
         test_stale_secondary_link_is_removed_not_relinked,
         test_a_broken_primary_entry_is_still_restored_from_canonical,
         test_backup_retention_keeps_recent_runs_and_prunes_the_rest,

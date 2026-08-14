@@ -2,7 +2,7 @@
 name: skill-standardizer
 description: Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.
 skill-type: workflow
-version: 1.2.0
+version: 1.3.0
 ---
 
 # Skill Standardizer
@@ -93,7 +93,9 @@ Run from anywhere; scripts auto-discover repo root when possible.
 ## Non-Skill Directories
 
 A directory inside a skills root that has no `SKILL.md` is normally reported as
-`INVALID_SKILL_DIR`. Three kinds are exempt:
+`INVALID_SKILL_DIR` — or as `DANGLING_SKILL_LINK` when the entry is a symlink
+whose target no longer exists, since that is repaired by recreating the link
+rather than by authoring a file. Three kinds are exempt:
 
 - **Underscore-prefixed** (`skills/_fragments`) — the convention for support
   directories this repo owns. Preferred for anything you control.
