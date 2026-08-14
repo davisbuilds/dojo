@@ -499,3 +499,28 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   can say whether a local copy is behind, ahead, or divergent.
 - **Next**: Extend skill install/standardization reports to show source and
   destination versions alongside existing drift information.
+
+### Validator crashes on a deleted cwd; a test leaves one under Python 3.14
+- **What**: `discover_repo_root` (`skills/write-plan/scripts/validate_plan.py`)
+  falls back to `Path.cwd().resolve()` when the target artifact has no Git root.
+  On Python 3.14 that raises `FileNotFoundError` if the process's working
+  directory has been removed, so `validate_high_risk` crashes instead of
+  validating. Separately, running the full `pytest tests/` suite under 3.14
+  leaves the process cwd deleted, so
+  `test_validate_plan.py::test_high_risk_plan_requires_linked_spec_and_structured_addendum`
+  fails — but only in full-suite ordering, never in isolation.
+- **Why or evidence**: reproduced 2026-08-14 on local Python 3.14.6; identical
+  failure on `origin/main`, so it predates the current work and is not caused by
+  it. CI is green because it pins Python 3.12 (`skill-contract-pilot.yml`), where
+  neither the cwd deletion nor the `Path.cwd()` behavior triggers. Two distinct
+  defects: (a) the validator is not robust to a missing cwd — a real user could
+  hit this validating a plan from a directory that was removed out from under the
+  shell; (b) some test in the suite deletes the process cwd without restoring it,
+  which the 3.14 `os.getcwd()` change surfaces. The poisoner was not isolated;
+  it does not reproduce in the pairwise combinations tried.
+- **Next**: guard the fallback (catch `FileNotFoundError` from `Path.cwd()` and
+  return a sentinel/repo-relative default, or require an explicit `repo_root` on
+  that path), then find the test leaving cwd deleted and have it restore or avoid
+  chdir. Add 3.14 to the CI matrix once both are fixed so the regression cannot
+  return silently.
+- **Revisit when**: moving CI to Python 3.14, or the failure appears in isolation.
