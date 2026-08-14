@@ -2,7 +2,7 @@
 name: skill-standardizer
 description: Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.
 skill-type: workflow
-version: 1.3.0
+version: 1.3.1
 ---
 
 # Skill Standardizer
@@ -115,13 +115,13 @@ otherwise.
 ### 1) Discover
 
 ```bash
-python3 skills/skill-standardizer/scripts/discover.py
+python3 <skill-dir>/scripts/discover.py
 ```
 
 ### 2) Audit (dry run)
 
 ```bash
-python3 skills/skill-standardizer/scripts/audit.py \
+python3 <skill-dir>/scripts/audit.py \
   --global-policy prefer-primary-link \
   --format text
 ```
@@ -129,7 +129,7 @@ python3 skills/skill-standardizer/scripts/audit.py \
 Optional JSON report:
 
 ```bash
-python3 skills/skill-standardizer/scripts/audit.py \
+python3 <skill-dir>/scripts/audit.py \
   --format json \
   --report-out /tmp/skill-drift-report.json
 ```
@@ -137,7 +137,7 @@ python3 skills/skill-standardizer/scripts/audit.py \
 ### 3) Apply Synchronization
 
 ```bash
-python3 skills/skill-standardizer/scripts/sync.py \
+python3 <skill-dir>/scripts/sync.py \
   --global-policy prefer-primary-link \
   --apply
 ```
@@ -145,7 +145,7 @@ python3 skills/skill-standardizer/scripts/sync.py \
 ### 4) Verify
 
 ```bash
-python3 skills/skill-standardizer/scripts/audit.py \
+python3 <skill-dir>/scripts/audit.py \
   --global-policy prefer-primary-link \
   --format text
 ```
@@ -155,7 +155,7 @@ python3 skills/skill-standardizer/scripts/audit.py \
 When a skill appears multiple times in a client catalog, normalize globals to primary+links:
 
 ```bash
-python3 skills/skill-standardizer/scripts/sync.py \
+python3 <skill-dir>/scripts/sync.py \
   --global-policy prefer-primary-link \
   --enforce-mirror \
   --apply
@@ -164,7 +164,7 @@ python3 skills/skill-standardizer/scripts/sync.py \
 For targeted fixes, scope the operation to the affected skill:
 
 ```bash
-python3 skills/skill-standardizer/scripts/sync.py \
+python3 <skill-dir>/scripts/sync.py \
   --skill api-design \
   --global-policy prefer-primary-link \
   --enforce-mirror \
@@ -178,7 +178,7 @@ python3 skills/skill-standardizer/scripts/sync.py \
 Use `--only-existing` to restrict canonical sync to skills already installed in target roots. This prevents adding new skills that happen to exist in the canonical repo but were never installed globally.
 
 ```bash
-python3 skills/skill-standardizer/scripts/sync.py \
+python3 <skill-dir>/scripts/sync.py \
   --only-existing \
   --global-policy prefer-primary-link \
   --apply
@@ -189,7 +189,7 @@ python3 skills/skill-standardizer/scripts/sync.py \
 Use `--normalize-primary` to promote concrete skills from secondary globals (`~/.codex/skills`, `~/.claude/skills`) to the primary global root (`~/.agents/skills`) and replace the secondary copies with symlinks. This is useful when skills were originally installed in a secondary root and need to be consolidated.
 
 ```bash
-python3 skills/skill-standardizer/scripts/sync.py \
+python3 <skill-dir>/scripts/sync.py \
   --normalize-primary \
   --global-policy prefer-primary-link \
   --apply

@@ -2,7 +2,7 @@
 name: vercel-preview-logs
 description: Retrieve and diagnose Vercel build/runtime logs. Use when the user asks to check errors, inspect logs, debug a failed build, or correlate a PR/commit with log output from an existing environment.
 skill-type: workflow
-version: 1.0.0
+version: 1.0.1
 ---
 
 # Vercel Preview Logs
@@ -28,7 +28,7 @@ Trigger this skill for requests like:
 Use the bundled wrapper for all commands:
 
 ```bash
-bash skills/vercel-preview-logs/scripts/vc_safe.sh <vc-subcommand> [args...]
+bash <skill-dir>/scripts/vc_safe.sh <vc-subcommand> [args...]
 ```
 
 What it does:
@@ -43,30 +43,30 @@ What it does:
 
 If URL/ID is provided:
 ```bash
-bash skills/vercel-preview-logs/scripts/vc_safe.sh inspect <url-or-id> --format=json -t "$VERCEL_TOKEN"
+bash <skill-dir>/scripts/vc_safe.sh inspect <url-or-id> --format=json -t "$VERCEL_TOKEN"
 ```
 
 If not provided, list recent deployments for the linked project:
 ```bash
-bash skills/vercel-preview-logs/scripts/vc_safe.sh list --format=json --status ERROR,BUILDING,READY -t "$VERCEL_TOKEN"
+bash <skill-dir>/scripts/vc_safe.sh list --format=json --status ERROR,BUILDING,READY -t "$VERCEL_TOKEN"
 ```
 
 Optional filters:
 ```bash
-bash skills/vercel-preview-logs/scripts/vc_safe.sh list --format=json -m githubCommitRef=<branch> -t "$VERCEL_TOKEN"
-bash skills/vercel-preview-logs/scripts/vc_safe.sh list --format=json -m githubCommitSha=<sha> -t "$VERCEL_TOKEN"
+bash <skill-dir>/scripts/vc_safe.sh list --format=json -m githubCommitRef=<branch> -t "$VERCEL_TOKEN"
+bash <skill-dir>/scripts/vc_safe.sh list --format=json -m githubCommitSha=<sha> -t "$VERCEL_TOKEN"
 ```
 
 2. Fetch build logs
 
 ```bash
-bash skills/vercel-preview-logs/scripts/vc_safe.sh inspect <url-or-id> --logs -t "$VERCEL_TOKEN"
+bash <skill-dir>/scripts/vc_safe.sh inspect <url-or-id> --logs -t "$VERCEL_TOKEN"
 ```
 
 3. Fetch runtime logs (for READY deployments)
 
 ```bash
-bash skills/vercel-preview-logs/scripts/vc_safe.sh logs <url-or-id> --format=json -t "$VERCEL_TOKEN"
+bash <skill-dir>/scripts/vc_safe.sh logs <url-or-id> --format=json -t "$VERCEL_TOKEN"
 ```
 
 ## Output Requirements

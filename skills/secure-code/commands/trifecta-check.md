@@ -14,13 +14,13 @@ Detect the lethal trifecta anti-pattern: files where private data access, untrus
 1. Run the trifecta audit on specified targets:
 
 ```bash
-python3 skills/secure-code/scripts/trifecta_audit.py $ARGUMENTS
+python3 <skill-dir>/scripts/trifecta_audit.py $ARGUMENTS
 ```
 
 If no arguments are provided, scan the current working directory:
 
 ```bash
-python3 skills/secure-code/scripts/trifecta_audit.py .
+python3 <skill-dir>/scripts/trifecta_audit.py .
 ```
 
 2. Parse the JSON output and present results:

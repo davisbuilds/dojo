@@ -8,7 +8,7 @@ description: >-
   and mixed-stack repos. On-demand via /repo-audit and /repo-harden.
 skill-type: workflow
 compatibility: "Requires python3. Uses only Python standard library. Writes artifacts into the target repo under .repo-hardening by default."
-version: 1.0.1
+version: 1.0.2
 ---
 
 # Repo Hardening
@@ -58,19 +58,19 @@ If the repo already uses a canonical location such as `security/`, you may overr
 1. Run the deterministic inventory:
 
 ```bash
-python3 skills/repo-hardening/scripts/repo_inventory.py <repo-path>
+python3 <skill-dir>/scripts/repo_inventory.py <repo-path>
 ```
 
 Optional incident-package checks:
 
 ```bash
-python3 skills/repo-hardening/scripts/repo_inventory.py <repo-path> --package axios --package litellm
+python3 <skill-dir>/scripts/repo_inventory.py <repo-path> --package axios --package litellm
 ```
 
 Optional output override:
 
 ```bash
-python3 skills/repo-hardening/scripts/repo_inventory.py <repo-path> --out-dir security
+python3 <skill-dir>/scripts/repo_inventory.py <repo-path> --out-dir security
 ```
 
 2. Read the generated artifacts in the target repo:
@@ -118,7 +118,7 @@ When updating the repo-local artifacts:
 ## Verification
 
 - Run the target repo's native lint, build, and test commands before calling the hardening pass complete.
-- Re-run `python3 skills/repo-hardening/scripts/repo_inventory.py <repo-path>` after changes so the repo-local artifacts reflect the post-change state.
+- Re-run `python3 <skill-dir>/scripts/repo_inventory.py <repo-path>` after changes so the repo-local artifacts reflect the post-change state.
 - If workflow files changed, confirm there are no mutable `uses:` refs and no missing top-level `permissions:` blocks.
 - If install paths changed, confirm the repo now uses a frozen or hash-verified form in CI.
 

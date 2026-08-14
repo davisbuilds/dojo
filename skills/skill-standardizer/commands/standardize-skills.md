@@ -11,13 +11,13 @@ Load `skill-standardizer` and run this sequence:
 1. Discover roots:
 
 ```bash
-python3 skills/skill-standardizer/scripts/discover.py
+python3 <skill-dir>/scripts/discover.py
 ```
 
 2. Audit drift:
 
 ```bash
-python3 skills/skill-standardizer/scripts/audit.py \
+python3 <skill-dir>/scripts/audit.py \
   --enforce-mirror \
   --global-policy prefer-primary-link \
   --format text
@@ -26,7 +26,7 @@ python3 skills/skill-standardizer/scripts/audit.py \
 3. If user confirms apply, synchronize:
 
 ```bash
-python3 skills/skill-standardizer/scripts/sync.py \
+python3 <skill-dir>/scripts/sync.py \
   --enforce-mirror \
   --global-policy prefer-primary-link \
   --apply

@@ -15,7 +15,7 @@ Use this wrapper to run the canonical deep research pipeline from `skills/deep-r
 2. Run the pipeline script:
 
 ```bash
-python3 skills/deep-research/scripts/run_pipeline.py $ARGUMENTS
+python3 <skill-dir>/scripts/run_pipeline.py $ARGUMENTS
 ```
 
 3. Interpret output sections in this order:

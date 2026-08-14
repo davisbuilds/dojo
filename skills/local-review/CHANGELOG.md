@@ -1,3 +1,7 @@
+## 1.1.3 - 2026-08-14
+
+- Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout
+
 ## 1.1.2 - 2026-08-01
 
 - Drop the git-context-collection mechanic from the description; output contract and triggers unchanged.

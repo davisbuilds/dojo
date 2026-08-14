@@ -3,7 +3,7 @@ name: audit-skill
 description: Security audit for agent skills — prompt-injection and exfiltration scanning with an A–F trust score. Use when reviewing a skill for security, auditing a skill before installation, checking for prompt injection, or when the user says 'audit skill', 'check skill security', 'trust score', 'is this skill safe'. On-demand via /audit-skill.
 skill-type: workflow
 compatibility: "Requires python3, PyYAML. Layer 3 code audit requires semgrep CLI (brew install semgrep). Semgrep rule downloads require network on first run."
-version: 1.0.3
+version: 1.0.4
 ---
 
 # audit-skill
@@ -51,27 +51,27 @@ Use this skill when:
 ### Full Audit
 
 ```bash
-python3 skills/audit-skill/scripts/audit_skill.py <skill-directory>
+python3 <skill-dir>/scripts/audit_skill.py <skill-directory>
 ```
 
 ### Quick Audit (Layers 1-2 only, no semgrep)
 
 ```bash
-python3 skills/audit-skill/scripts/audit_skill.py <skill-directory> --quick
+python3 <skill-dir>/scripts/audit_skill.py <skill-directory> --quick
 ```
 
 ### JSON Output
 
 ```bash
-python3 skills/audit-skill/scripts/audit_skill.py <skill-directory> --json
+python3 <skill-dir>/scripts/audit_skill.py <skill-directory> --json
 ```
 
 ### Single Layer
 
 ```bash
-python3 skills/audit-skill/scripts/audit_skill.py <skill-directory> --layer 1
-python3 skills/audit-skill/scripts/audit_skill.py <skill-directory> --layer 2
-python3 skills/audit-skill/scripts/audit_skill.py <skill-directory> --layer 3
+python3 <skill-dir>/scripts/audit_skill.py <skill-directory> --layer 1
+python3 <skill-dir>/scripts/audit_skill.py <skill-directory> --layer 2
+python3 <skill-dir>/scripts/audit_skill.py <skill-directory> --layer 3
 ```
 
 ## Output Requirements

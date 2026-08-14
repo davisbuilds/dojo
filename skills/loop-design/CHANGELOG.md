@@ -1,3 +1,7 @@
+## 1.0.4 - 2026-08-14
+
+- Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout
+
 ## 1.0.3 - 2026-08-01
 
 - Trim the internal go/no-go-gate and blueprint-then-scaffold procedure from the description; triggers unchanged.

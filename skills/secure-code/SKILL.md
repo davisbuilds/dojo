@@ -8,7 +8,7 @@ description: >-
   'SAST', or 'secure this code'. On-demand via /scan and /trifecta-check commands.
 skill-type: workflow
 compatibility: "Requires semgrep CLI (brew install semgrep), python3, PyYAML. Semgrep rule downloads require network on first run."
-version: 1.0.1
+version: 1.0.2
 ---
 
 # secure-code
@@ -45,7 +45,7 @@ Use this skill when:
 Run setup before first use:
 
 ```bash
-bash skills/secure-code/scripts/setup.sh
+bash <skill-dir>/scripts/setup.sh
 ```
 
 ## Scan Workflow
@@ -53,7 +53,7 @@ bash skills/secure-code/scripts/setup.sh
 1. Run semgrep on target files:
 
 ```bash
-bash skills/secure-code/scripts/scan.sh <targets> | python3 skills/secure-code/scripts/parse_findings.py
+bash <skill-dir>/scripts/scan.sh <targets> | python3 <skill-dir>/scripts/parse_findings.py
 ```
 
 2. Present findings grouped by severity: CRITICAL > HIGH > MEDIUM > LOW.
@@ -66,7 +66,7 @@ bash skills/secure-code/scripts/scan.sh <targets> | python3 skills/secure-code/s
 1. Run trifecta detection:
 
 ```bash
-python3 skills/secure-code/scripts/trifecta_audit.py <targets>
+python3 <skill-dir>/scripts/trifecta_audit.py <targets>
 ```
 
 2. For flagged files, explain which three legs are present and where.
@@ -85,7 +85,7 @@ Report findings with:
 Project-specific semgrep rules live in `rules/`. Run them with:
 
 ```bash
-bash skills/secure-code/scripts/scan.sh <targets> --config skills/secure-code/rules/
+bash <skill-dir>/scripts/scan.sh <targets> --config <skill-dir>/rules/
 ```
 
 See `references/writing-custom-rules.md` for authoring guidance.

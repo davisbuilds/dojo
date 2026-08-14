@@ -86,7 +86,7 @@ When enabled, concrete skills found in secondary global roots are promoted to th
 Audit drift in CI:
 
 ```bash
-python3 skills/skill-standardizer/scripts/audit.py --format text
+python3 <skill-dir>/scripts/audit.py --format text
 ```
 
 Treat exit code `2` as drift detected.

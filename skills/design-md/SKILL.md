@@ -8,7 +8,7 @@ metadata:
     cli: "@google/design.md@0.1.1 (npm)"
     license: "Apache-2.0"
     exemplar-source: "https://styles.refero.design"
-version: 1.0.1
+version: 1.0.2
 ---
 
 # design-md
@@ -41,9 +41,9 @@ The skill exposes four operations. They share one entry point: `scripts/run_cli.
 Validate a DESIGN.md file's structure, references, and contrast.
 
 ```bash
-bash skills/design-md/scripts/run_cli.sh lint path/to/DESIGN.md
-bash skills/design-md/scripts/run_cli.sh lint --format json path/to/DESIGN.md
-cat path/to/DESIGN.md | bash skills/design-md/scripts/run_cli.sh lint -
+bash <skill-dir>/scripts/run_cli.sh lint path/to/DESIGN.md
+bash <skill-dir>/scripts/run_cli.sh lint --format json path/to/DESIGN.md
+cat path/to/DESIGN.md | bash <skill-dir>/scripts/run_cli.sh lint -
 ```
 
 Steps:
@@ -62,7 +62,7 @@ Steps:
 Compare two DESIGN.md versions and summarize what changed.
 
 ```bash
-bash skills/design-md/scripts/run_cli.sh diff path/to/old/DESIGN.md path/to/new/DESIGN.md
+bash <skill-dir>/scripts/run_cli.sh diff path/to/old/DESIGN.md path/to/new/DESIGN.md
 ```
 
 Steps:
@@ -77,9 +77,9 @@ Steps:
 Convert tokens to Tailwind or DTCG.
 
 ```bash
-bash skills/design-md/scripts/run_cli.sh export --format json-tailwind path/to/DESIGN.md > tailwind.theme.json
-bash skills/design-md/scripts/run_cli.sh export --format css-tailwind path/to/DESIGN.md > theme.css
-bash skills/design-md/scripts/run_cli.sh export --format dtcg path/to/DESIGN.md > tokens.json
+bash <skill-dir>/scripts/run_cli.sh export --format json-tailwind path/to/DESIGN.md > tailwind.theme.json
+bash <skill-dir>/scripts/run_cli.sh export --format css-tailwind path/to/DESIGN.md > theme.css
+bash <skill-dir>/scripts/run_cli.sh export --format dtcg path/to/DESIGN.md > tokens.json
 ```
 
 Format selection:
@@ -119,7 +119,7 @@ Steps:
 3. Read `references/format-primer.md` for the **canonical structure** the linter expects: frontmatter schema, token types, and section order. The output must conform to the primer, not the exemplar.
 4. Draft the frontmatter first. Define `colors`, `typography`, and at least three components — one interactive (a button), one surface (a card or container), and one prose role (e.g. `prose-body` with `textColor` and `typography` refs to anchor global body styles). "Text style" here means a component entry, not a typography token. Use token references rather than raw values wherever possible.
 5. Draft the Markdown body in canonical section order. Each section is short — a paragraph of rationale, not an essay.
-6. Lint the draft via stdin: `printf '%s' "<draft>" | bash skills/design-md/scripts/run_cli.sh lint -`. Stdin is the canonical path for in-context drafts; reserve a temp file for iterative editing across multiple turns. Resolve any errors before showing it to the user. Surface warnings as discussion points rather than fixing them silently — the orphaned-tokens warnings on global text/border/hover tokens are often the right tradeoff to accept.
+6. Lint the draft via stdin: `printf '%s' "<draft>" | bash <skill-dir>/scripts/run_cli.sh lint -`. Stdin is the canonical path for in-context drafts; reserve a temp file for iterative editing across multiple turns. Resolve any errors before showing it to the user. Surface warnings as discussion points rather than fixing them silently — the orphaned-tokens warnings on global text/border/hover tokens are often the right tradeoff to accept.
 7. Save the file as `DESIGN.md` at the project root unless the user specifies a different path.
 
 ## Inputs The Skill Accepts

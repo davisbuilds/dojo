@@ -14,19 +14,19 @@ Run a semgrep security scan on target files and present findings grouped by seve
 1. Verify semgrep is installed. If not, run setup:
 
 ```bash
-bash skills/secure-code/scripts/setup.sh
+bash <skill-dir>/scripts/setup.sh
 ```
 
 2. Run semgrep on the specified targets:
 
 ```bash
-bash skills/secure-code/scripts/scan.sh $ARGUMENTS | python3 skills/secure-code/scripts/parse_findings.py
+bash <skill-dir>/scripts/scan.sh $ARGUMENTS | python3 <skill-dir>/scripts/parse_findings.py
 ```
 
 If no arguments are provided, scan the current working directory:
 
 ```bash
-bash skills/secure-code/scripts/scan.sh . | python3 skills/secure-code/scripts/parse_findings.py
+bash <skill-dir>/scripts/scan.sh . | python3 <skill-dir>/scripts/parse_findings.py
 ```
 
 3. Present findings in this order:
@@ -42,13 +42,13 @@ bash skills/secure-code/scripts/scan.sh . | python3 skills/secure-code/scripts/p
 To scan with project-specific rules:
 
 ```bash
-/scan <targets> --config skills/secure-code/rules/trifecta/
+/scan <targets> --config <skill-dir>/rules/trifecta/
 ```
 
 Or combine with default rules:
 
 ```bash
-/scan <targets> --config p/default --config skills/secure-code/rules/trifecta/
+/scan <targets> --config p/default --config <skill-dir>/rules/trifecta/
 ```
 
 ## Rules
@@ -68,7 +68,7 @@ Or combine with default rules:
 /scan src/
 
 # Scan with custom rules
-/scan src/ --config skills/secure-code/rules/trifecta/
+/scan src/ --config <skill-dir>/rules/trifecta/
 
 # Scan with a specific semgrep registry config
 /scan src/ --config p/python

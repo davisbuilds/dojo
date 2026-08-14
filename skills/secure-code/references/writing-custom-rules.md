@@ -94,7 +94,7 @@ skills/secure-code/rules/
 Run custom rules:
 
 ```bash
-bash skills/secure-code/scripts/scan.sh <targets> --config skills/secure-code/rules/custom/
+bash <skill-dir>/scripts/scan.sh <targets> --config <skill-dir>/rules/custom/
 ```
 
 ## Testing Rules

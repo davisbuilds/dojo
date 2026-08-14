@@ -1,3 +1,7 @@
+## 2.1.1 - 2026-08-14
+
+- Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout
+
 ## 2.1.0 - 2026-07-27
 
 - Require non-degenerate acceptance bounds and edge-defined reference oracles

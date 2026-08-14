@@ -2,7 +2,7 @@
 name: write-plan
 description: 'Sequence the build: turn a settled target (a `write-spec` contract, a ticket, or a clear request) into an execution plan — task breakdown, files, ordered steps, seam selection, and verification commands. Use when WHAT is already decided and you need HOW: the file-level, dependency-ordered steps to implement it. If the target is not yet falsifiable, route back to `write-spec`.'
 skill-type: workflow
-version: 2.3.0
+version: 2.3.1
 ---
 
 # Write Plan
@@ -224,7 +224,7 @@ plan quality.
 After writing a plan, run:
 
 ```bash
-python3 skills/write-plan/scripts/validate_plan.py docs/plans/<filename>.md
+python3 <skill-dir>/scripts/validate_plan.py docs/plans/<filename>.md
 ```
 
 The validator resolves `spec:` and `Modify:` paths against the target plan's Git

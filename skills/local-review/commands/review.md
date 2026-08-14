@@ -19,13 +19,13 @@ Use this command to perform a `/review`-style local code review with no GitHub s
 2. Collect deterministic review context:
 
 ```bash
-bash skills/local-review/scripts/collect_review_context.sh $ARGUMENTS
+bash <skill-dir>/scripts/collect_review_context.sh $ARGUMENTS
 ```
 
 If no arguments are passed:
 
 ```bash
-bash skills/local-review/scripts/collect_review_context.sh --mode working
+bash <skill-dir>/scripts/collect_review_context.sh --mode working
 ```
 
 The `skills/local-review/...` path is the command-wrapper layout. When invoking
