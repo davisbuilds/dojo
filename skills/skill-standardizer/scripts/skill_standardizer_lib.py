@@ -444,12 +444,25 @@ def build_audit_report(
     for inv in inventories:
         invalid_by_root[inv.root.path] = set(inv.invalid_entries)
         for name in inv.invalid_entries:
+            # A link pointing at nothing and a directory missing its SKILL.md
+            # are different faults with different repairs — recreate the link
+            # against the current canonical name, versus author the file. They
+            # were reported identically, under a message that is simply untrue
+            # of the first: there is no directory to be missing anything. The
+            # case that prompted it was a project-scoped
+            # `habits-ai/.claude/skills/compact-session` pointing at a skill
+            # that exists in neither canonical nor any global root.
+            entry_path = inv.root.path / name
+            dangling = entry_path.is_symlink() and not entry_path.exists()
             add_issue(
                 severity="warning",
-                code="INVALID_SKILL_DIR",
+                code="DANGLING_SKILL_LINK" if dangling else "INVALID_SKILL_DIR",
                 skill=name,
                 root=inv.root.path,
-                message="Directory does not contain a valid SKILL.md",
+                message=(
+                    "Symlink does not resolve; its target no longer exists"
+                    if dangling else
+                    "Directory does not contain a valid SKILL.md"),
             )
 
     all_skill_names: set[str] = set()
@@ -921,8 +934,23 @@ def build_audit_report(
                 if skill in keep_local_skills:
                     continue
 
-                already_linked = entry.is_symlink and entry.path.resolve() == global_target
-                if already_linked:
+                # A local entry is correctly wired if it links to the global copy
+                # *or* straight to canonical. Global roots hold copies produced
+                # by the sync, so only the first was ever recognised — but a
+                # project repository links to canonical on purpose. Project scope
+                # exists for skills that are deliberately *not* global (four
+                # design skills were cut from the machine-global root in dojo
+                # PR #61 so they are paid for only where they are used), and
+                # routing those through a global copy that does not exist is not
+                # possible. Requiring it would report correct wiring as a
+                # duplicate on every run, in the one place the convention is
+                # already right.
+                canonical_target = (
+                    (canonical_inventory.root.path / skill).resolve()
+                    if canonical_inventory and skill in canonical_inventory.skills
+                    else None)
+                if entry.is_symlink and entry.path.resolve() in {
+                        t for t in (global_target, canonical_target) if t is not None}:
                     continue
 
                 code = "LOCAL_DUPLICATE_GLOBAL"
