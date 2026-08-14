@@ -42,13 +42,13 @@ bash <skill-dir>/scripts/scan.sh . | python3 <skill-dir>/scripts/parse_findings.
 To scan with project-specific rules:
 
 ```bash
-/scan <targets> --config skills/secure-code/rules/trifecta/
+/scan <targets> --config <skill-dir>/rules/trifecta/
 ```
 
 Or combine with default rules:
 
 ```bash
-/scan <targets> --config p/default --config skills/secure-code/rules/trifecta/
+/scan <targets> --config p/default --config <skill-dir>/rules/trifecta/
 ```
 
 ## Rules
@@ -68,7 +68,7 @@ Or combine with default rules:
 /scan src/
 
 # Scan with custom rules
-/scan src/ --config skills/secure-code/rules/trifecta/
+/scan src/ --config <skill-dir>/rules/trifecta/
 
 # Scan with a specific semgrep registry config
 /scan src/ --config p/python

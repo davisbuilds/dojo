@@ -118,7 +118,7 @@ When updating the repo-local artifacts:
 ## Verification
 
 - Run the target repo's native lint, build, and test commands before calling the hardening pass complete.
-- Re-run `python3 skills/repo-hardening/scripts/repo_inventory.py <repo-path>` after changes so the repo-local artifacts reflect the post-change state.
+- Re-run `python3 <skill-dir>/scripts/repo_inventory.py <repo-path>` after changes so the repo-local artifacts reflect the post-change state.
 - If workflow files changed, confirm there are no mutable `uses:` refs and no missing top-level `permissions:` blocks.
 - If install paths changed, confirm the repo now uses a frozen or hash-verified form in CI.
 

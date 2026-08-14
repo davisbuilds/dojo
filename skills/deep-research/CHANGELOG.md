@@ -1,6 +1,6 @@
 ## 2.3.3 - 2026-08-14
 
-- Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout
+- Anchor runnable script commands and their bundled-resource operands (`--input <skill-dir>/assets/...`) to <skill-dir> so they resolve outside a dojo checkout
 
 ## 2.3.2 - 2026-08-01
 

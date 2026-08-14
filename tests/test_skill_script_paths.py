@@ -20,6 +20,17 @@ not settle a **shell command**, where the anchor has to be explicit because the
 shell's cwd is the user's repository. dojo already had the working form in
 `gemini-imagen` and `screenshot`: `<skill-dir>/scripts/...`, which tells the
 agent to substitute the directory it loaded the skill from.
+
+The failing path is not always the executable: `bash <skill-dir>/scripts/scan.sh
+--config skills/secure-code/rules/` anchors the script but not the operand, so
+Semgrep is still handed a path that does not exist outside dojo. Any
+`skills/<name>/...` operand on a runnable line fails the same way, whatever
+subdirectory it names — so this guard matches the whole prefix, not just
+`scripts/`. And a runnable command is not always fenced: an inline
+`` `python3 skills/foo/scripts/x.py` `` runs just as literally, so inline code
+spans that look like commands are scanned too — while an inline *mention* of a
+path (`see skills/foo/references/bar.md`), which carries no executor, is left to
+the file-reference rule above.
 """
 
 from __future__ import annotations
@@ -32,31 +43,73 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILLS_ROOT = REPO_ROOT / "skills"
 
-# A command line invoking a script by a *repository*-relative skills path.
-REPO_RELATIVE = re.compile(r"(?<![\w/<-])skills/[a-z0-9-]+/scripts/[\w./-]+")
+# Any repository-relative skills subpath — scripts/, rules/, assets/, whatever —
+# because all of them resolve against the caller's cwd, not dojo. The lookbehind
+# keeps an *absolute* anchor from matching: `$CODEX_HOME/skills/foo/...` and
+# `.claude/skills/foo/...` are preceded by `/` and are already correct.
+REPO_RELATIVE = re.compile(r"(?<![\w/<.-])skills/[a-z0-9-]+/[\w./-]+")
 
-# Genuine dojo-repository tooling: these document how to run dojo's own gates
-# from a dojo checkout, where the repo-relative path is the correct one. They are
-# named individually rather than pattern-matched, so adding one is a decision.
+# Fenced blocks tagged as a shell: every line is a command (so a `\`-continued
+# operand on its own line is still covered). An untagged fence may be a directory
+# tree or sample data, so those lines qualify only if they carry an executor,
+# the same bar inline spans must clear.
+SHELL_FENCES = {"bash", "sh", "shell", "zsh", "console", "shell-session"}
+
+# An executor at a command position: line start, or right after a pipe/`;`/`&&`
+# /`$(`. Anchoring it here is what separates `python3 skills/foo/...` (a command)
+# from a bare mention of `skills/foo/scripts/run.sh` (whose `.sh` would otherwise
+# read as the `sh` executor).
+_EXECUTOR = re.compile(r"(?:^|[|;&]\s*|\$\(\s*)(?:bash|sh|zsh|python3?|node|printf|\./)\b")
+_INLINE_CODE = re.compile(r"`([^`]+)`")
+
+# dojo's own skill-authoring and validation gates. A command that runs one of
+# these is meant to run from a dojo checkout — that is the workflow — so a
+# repo-relative path to `skill-evals`/`skill-creator` is correct wherever it is
+# cited. The exemption keys on the tool being invoked, not the file citing it:
+# `loop-design` telling an author to run `skill-evals` is the same correct case
+# as `skill-evals` documenting itself.
 REPO_TOOLING = {
-    "skill-evals",      # CI gate over dojo's own catalog (`--skills-root skills`)
+    "skill-evals",      # strict contract gate over dojo's own catalog
+    "skill-creator",    # scaffolds/validates a new skill, from a dojo checkout
 }
 
 
 def _command_lines(text: str) -> list[tuple[int, str]]:
-    """Lines inside fenced code blocks — where a path is executed, not described.
+    """(line number, text) for every place a command is actually run.
 
-    Prose may legitimately name a repository path ("see skills/foo/scripts/bar");
-    only a line the agent is meant to run has to resolve at runtime.
+    Three sources: every line of a shell-tagged fence; a line of any other fence
+    that carries an executor; and an inline code span that carries an executor.
+    Prose that merely names a path resolves to none of these.
     """
-    lines, inside, out = text.splitlines(), False, []
-    for number, line in enumerate(lines, 1):
-        if line.lstrip().startswith("```"):
-            inside = not inside
+    out: list[tuple[int, str]] = []
+    inside = shell = False
+    for number, line in enumerate(text.splitlines(), 1):
+        stripped = line.lstrip()
+        if stripped.startswith("```"):
+            if inside:
+                inside = shell = False
+            else:
+                inside = True
+                shell = stripped[3:].strip().lower() in SHELL_FENCES
             continue
         if inside:
-            out.append((number, line))
+            if shell or _EXECUTOR.search(line):
+                out.append((number, line))
+            continue
+        for span in _INLINE_CODE.findall(line):
+            if _EXECUTOR.search(span):
+                out.append((number, span))
     return out
+
+
+def _offenders(text: str) -> list[tuple[int, str]]:
+    found: list[tuple[int, str]] = []
+    for number, line in _command_lines(text):
+        for match in REPO_RELATIVE.finditer(line):
+            if match.group(0).split("/")[1] in REPO_TOOLING:
+                continue
+            found.append((number, match.group(0)))
+    return found
 
 
 def _skill_files() -> list[Path]:
@@ -82,18 +135,10 @@ def test_there_are_skills_to_check():
 
 @pytest.mark.parametrize("skill_file", _skill_files(), ids=lambda p: str(p.relative_to(SKILLS_ROOT)))
 def test_runnable_commands_do_not_assume_a_dojo_checkout(skill_file: Path):
-    offenders = [
-        (number, line.strip())
-        for number, line in _command_lines(skill_file.read_text(encoding="utf-8"))
-        if REPO_RELATIVE.search(line)
-    ]
-    owner = skill_file.relative_to(SKILLS_ROOT).parts[0]
-    if owner in REPO_TOOLING:
-        return
+    offenders = _offenders(skill_file.read_text(encoding="utf-8"))
     assert not offenders, (
         f"{skill_file.relative_to(SKILLS_ROOT)}: command(s) resolve only inside a dojo checkout.\n"
-        + "\n".join(f"  line {n}: {t}" for n, t in offenders)
-        + "\nUse <skill-dir>/scripts/... so the command anchors to wherever the "
-          "skill was loaded from, rather than to the repository the session "
-          "happens to be in."
+        + "\n".join(f"  line {n}: {path}" for n, path in offenders)
+        + "\nUse <skill-dir>/... so the command anchors to wherever the skill was "
+          "loaded from, rather than to the repository the session happens to be in."
     )

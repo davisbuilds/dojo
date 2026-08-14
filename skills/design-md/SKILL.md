@@ -119,7 +119,7 @@ Steps:
 3. Read `references/format-primer.md` for the **canonical structure** the linter expects: frontmatter schema, token types, and section order. The output must conform to the primer, not the exemplar.
 4. Draft the frontmatter first. Define `colors`, `typography`, and at least three components — one interactive (a button), one surface (a card or container), and one prose role (e.g. `prose-body` with `textColor` and `typography` refs to anchor global body styles). "Text style" here means a component entry, not a typography token. Use token references rather than raw values wherever possible.
 5. Draft the Markdown body in canonical section order. Each section is short — a paragraph of rationale, not an essay.
-6. Lint the draft via stdin: `printf '%s' "<draft>" | bash skills/design-md/scripts/run_cli.sh lint -`. Stdin is the canonical path for in-context drafts; reserve a temp file for iterative editing across multiple turns. Resolve any errors before showing it to the user. Surface warnings as discussion points rather than fixing them silently — the orphaned-tokens warnings on global text/border/hover tokens are often the right tradeoff to accept.
+6. Lint the draft via stdin: `printf '%s' "<draft>" | bash <skill-dir>/scripts/run_cli.sh lint -`. Stdin is the canonical path for in-context drafts; reserve a temp file for iterative editing across multiple turns. Resolve any errors before showing it to the user. Surface warnings as discussion points rather than fixing them silently — the orphaned-tokens warnings on global text/border/hover tokens are often the right tradeoff to accept.
 7. Save the file as `DESIGN.md` at the project root unless the user specifies a different path.
 
 ## Inputs The Skill Accepts

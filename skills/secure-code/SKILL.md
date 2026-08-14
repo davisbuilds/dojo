@@ -85,7 +85,7 @@ Report findings with:
 Project-specific semgrep rules live in `rules/`. Run them with:
 
 ```bash
-bash <skill-dir>/scripts/scan.sh <targets> --config skills/secure-code/rules/
+bash <skill-dir>/scripts/scan.sh <targets> --config <skill-dir>/rules/
 ```
 
 See `references/writing-custom-rules.md` for authoring guidance.

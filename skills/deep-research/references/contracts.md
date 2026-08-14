@@ -46,7 +46,7 @@ Example:
 
 ```bash
 python3 <skill-dir>/scripts/run_pipeline.py \
-  --input skills/deep-research/assets/sample-input.json \
+  --input <skill-dir>/assets/sample-input.json \
   --pretty
 ```
 
