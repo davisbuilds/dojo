@@ -21,7 +21,7 @@ Turn a task into a verifiable, portable autonomous loop — or decide it should 
 2. **Draft the blueprint** using the schema in `references/blueprint-spec.md` (`name`, `goal`, `done_when`, `constraints`, `cadence`, `harness`, `checker`, `sandbox`). Use `test-strategy` to design the oracle if one does not exist yet.
 3. **Scaffold the bundle:**
    ```bash
-   python3 skills/loop-design/scripts/scaffold_loop.py --blueprint <blueprint.json> --out-dir .loops/<name>
+   python3 <skill-dir>/scripts/scaffold_loop.py --blueprint <blueprint.json> --out-dir .loops/<name>
    ```
    (or pass `--name --goal --done-when --harness` directly).
 4. **Bind to the harness** using the generated `BINDINGS.md` and `references/harness-bindings.md`. Place the checker in `.claude/agents/` or `.codex/agents/`.

@@ -61,7 +61,7 @@ Write the plan to:
 Run:
 
 ```bash
-python3 skills/write-plan/scripts/validate_plan.py docs/plans/<filename>.md
+python3 <skill-dir>/scripts/validate_plan.py docs/plans/<filename>.md
 ```
 
 The validator discovers the target plan's Git root for repository-relative

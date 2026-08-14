@@ -45,7 +45,7 @@ This file defines the JSON contracts for `depth_router.py` and `evidence_filter.
 Example:
 
 ```bash
-python3 skills/deep-research/scripts/run_pipeline.py \
+python3 <skill-dir>/scripts/run_pipeline.py \
   --input skills/deep-research/assets/sample-input.json \
   --pretty
 ```

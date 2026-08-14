@@ -1,3 +1,7 @@
+## 2.2.2 - 2026-08-14
+
+- Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout
+
 ## 2.2.1 - 2026-07-31
 
 - Trim mechanism from the description (777 -> 622 chars) while restoring the full trigger list and the external deep-research-product use case, both of which an earlier pass in this session dropped by accident. Routing is unchanged from 2.2.0.

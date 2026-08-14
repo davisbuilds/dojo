@@ -17,7 +17,7 @@
       "name": "audit-skill",
       "description": "Security audit for agent skills \u2014 prompt-injection and exfiltration scanning with an A\u2013F trust score. Use when reviewing a skill for security, auditing a skill before installation, checking for prompt injection, or when the user says 'audit skill', 'check skill security', 'trust score', 'is this skill safe'. On-demand via /audit-skill.",
       "path": "skills/audit-skill",
-      "version": "1.0.3"
+      "version": "1.0.4"
     },
     {
       "name": "blind-spots",
@@ -66,7 +66,7 @@
       "name": "deep-research",
       "description": "Use when a task needs direct web-backed research with citation-ready synthesis \u2014 the user wants the answer, not a commissioned research program. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead \u2014 this skill is its execution backend.",
       "path": "skills/deep-research",
-      "version": "2.3.2"
+      "version": "2.3.3"
     },
     {
       "name": "design-critique",
@@ -78,13 +78,13 @@
       "name": "design-md",
       "description": "Read, write, lint, diff, and export DESIGN.md files using the Google @google/design.md format. Use when the user mentions DESIGN.md, design tokens, extracting a design system, linting design tokens, exporting tokens to Tailwind, DTCG, or CSS variables, or when authoring a fresh design-system reference for a project.",
       "path": "skills/design-md",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "diagnose",
       "description": "Disciplined debugging loop for hard bugs and performance regressions. Use when the user says \"diagnose this\", \"debug this\", \"this is broken/throwing/failing\", reports a bug whose cause is non-obvious, or describes a performance regression. For completion-time evidence checks use verify-before-complete; for new-test methodology use test-strategy; for post-hoc code review use local-review.",
       "path": "skills/diagnose",
-      "version": "1.0.3"
+      "version": "1.0.4"
     },
     {
       "name": "fetchmd",
@@ -121,7 +121,7 @@
       "name": "gh-commit-push-pr",
       "description": "Commit staged changes, push branch, and open a GitHub PR. Use when user asks to commit and push, create a PR, ship changes, send for review, or open a pull request. Triggers on phrases like 'commit and push', 'create a PR', 'open a pull request', 'send this for review', 'ship it', 'push and PR'.",
       "path": "skills/gh-commit-push-pr",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "allowed-tools": "Bash(git checkout:*), Bash(git add:*), Bash(git status:*), Bash(git push:*), Bash(git commit:*), Bash(git diff:*), Bash(git log:*), Bash(git branch:*), Bash(git stash:*), Bash(git remote:*), Bash(gh auth status:*), Bash(gh repo view:*), Bash(gh pr create:*), Bash(gh pr view:*)"
     },
     {
@@ -140,13 +140,13 @@
       "name": "local-review",
       "description": "Perform local code reviews on workspace changes without posting to GitHub. Use for requests like /review, review this diff, audit staged changes, or check branch changes. Produces findings-first reports with severity, file line references, risks, and test gaps.",
       "path": "skills/local-review",
-      "version": "1.1.2"
+      "version": "1.1.3"
     },
     {
       "name": "loop-design",
       "description": "Design a reusable, verifiable autonomous loop on top of harness primitives like /loop and /goal. Use when setting up a recurring, unattended, or overnight agent loop, an automation or cron task, a /loop or /goal run, a Ralph-style while-true loop, or when deciding whether a task SHOULD be looped at all. Agent-agnostic across Claude Code, Codex, and CI. On-demand via /loop-design.",
       "path": "skills/loop-design",
-      "version": "1.0.3"
+      "version": "1.0.4"
     },
     {
       "name": "markdown-converter",
@@ -189,13 +189,13 @@
       "name": "repo-hardening",
       "description": "Audit and harden a software repo against supply-chain and workflow risks. Use when a user asks to audit a repo, harden CI, pin GitHub Actions, freeze installs, reduce bot workflow risk, review lockfile/package-manager discipline, or create repo-local security investigation artifacts. Supports Node, Python, GitHub Actions, GitLab CI, and mixed-stack repos. On-demand via /repo-audit and /repo-harden.",
       "path": "skills/repo-hardening",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "research-architect",
       "description": "Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or brief; commission or plan a multi-source or multi-model research run; run research through external deep-research products (Claude/OpenAI/Gemini DR); or verify and score a research report that something else produced. Triggers on \"research prompt\", \"research brief\", \"commission research\", \"plan a research run\", \"verify this report\", \"research architect\". For a direct low-stakes lookup where the user just wants the answer, use deep-research instead.",
       "path": "skills/research-architect",
-      "version": "2.2.1",
+      "version": "2.2.2",
       "triggers": [
         "research prompt",
         "research brief",
@@ -215,7 +215,7 @@
       "name": "secure-code",
       "description": "Static analysis security scanning and architectural trifecta detection using semgrep. Use when reviewing code for security vulnerabilities, running SAST scans, checking for the lethal trifecta (private data + untrusted input + external comms co-occurrence), or when the user says 'scan', 'security scan', 'trifecta check', 'check for vulnerabilities', 'SAST', or 'secure this code'. On-demand via /scan and /trifecta-check commands.",
       "path": "skills/secure-code",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "session-retro",
@@ -246,7 +246,7 @@
       "name": "skill-standardizer",
       "description": "Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.",
       "path": "skills/skill-standardizer",
-      "version": "1.3.0"
+      "version": "1.3.1"
     },
     {
       "name": "template",
@@ -284,7 +284,7 @@
       "name": "vercel-preview-logs",
       "description": "Retrieve and diagnose Vercel build/runtime logs. Use when the user asks to check errors, inspect logs, debug a failed build, or correlate a PR/commit with log output from an existing environment.",
       "path": "skills/vercel-preview-logs",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "vercel-react-best-practices",
@@ -309,13 +309,13 @@
       "name": "write-plan",
       "description": "Sequence the build: turn a settled target (a `write-spec` contract, a ticket, or a clear request) into an execution plan \u2014 task breakdown, files, ordered steps, seam selection, and verification commands. Use when WHAT is already decided and you need HOW: the file-level, dependency-ordered steps to implement it. If the target is not yet falsifiable, route back to `write-spec`.",
       "path": "skills/write-plan",
-      "version": "2.3.0"
+      "version": "2.3.1"
     },
     {
       "name": "write-spec",
       "description": "Define the target before building: write a falsifiable contract \u2014 problem, end-state, success criteria, evaluation \u2014 that states WHAT must be true, with no files or implementation steps. Use when you need to specify or align on what \"done\" means before sequencing work, or are handed a feature/change and must pin its acceptance criteria. Hand off to `write-plan` for the HOW.",
       "path": "skills/write-spec",
-      "version": "2.1.0"
+      "version": "2.1.1"
     }
   ]
 }

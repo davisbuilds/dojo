@@ -30,6 +30,32 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
 
 ## Open
 
+### `allowed-tools` permission patterns still hardcode a dojo-relative path
+
+- **What**: command wrappers declare permissions as literal command prefixes —
+  `allowed-tools: [Bash(bash skills/secure-code/scripts/scan.sh:*), ...]` in
+  `secure-code/commands/scan.md` and similarly in the other wrappers that ship
+  scripts. The bodies now use `<skill-dir>/scripts/...` so the command resolves
+  in whatever repository the session is in, but the permission pattern was left
+  alone.
+- **Why or evidence**: found 2026-08-14 while fixing the runnable paths. The
+  frontmatter is a **matcher**, not an instruction the agent substitutes, so
+  rewriting it to `<skill-dir>` would not make it match — it would only stop it
+  matching in dojo too. The command an agent actually runs after substitution is
+  an absolute path under whichever root the skill was loaded from
+  (`~/.agents/skills/secure-code/scripts/scan.sh`), which the current pattern
+  does not match either. Net effect: outside dojo these commands prompt for
+  permission every time rather than being pre-approved.
+- **Now**: bodies are correct and the commands work; only the pre-approval is
+  lost. Not guessed at, because a plausible-looking permission pattern that
+  silently fails to match is worse than an honest prompt.
+- **Next**: establish what Claude Code's `allowed-tools` matcher actually
+  supports — whether a leading wildcard (`Bash(bash *secure-code/scripts/scan.sh:*)`)
+  matches an absolute path — from the vendor's own documentation or a probe,
+  rather than by pattern-guessing. Then apply it across the wrappers that ship
+  scripts, and extend `tests/test_skill_script_paths.py` to cover frontmatter.
+- **Revisit when**: doing it, or if a wrapper starts prompting unexpectedly.
+
 ### Port two pr-review-toolkit specialists into dojo before disabling the plugin
 - **What**: auditing Claude plugins on 2026-07-29 found two agents in
   `pr-review-toolkit@claude-plugins-official` that cover ground **no dojo skill

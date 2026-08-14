@@ -1,3 +1,7 @@
+## 2.3.3 - 2026-08-14
+
+- Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout
+
 ## 2.3.2 - 2026-08-01
 
 - Trim internal depth/filtering mechanics from the description; triggers and research-architect hand-off unchanged.

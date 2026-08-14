@@ -2,7 +2,7 @@
 name: local-review
 description: Perform local code reviews on workspace changes without posting to GitHub. Use for requests like /review, review this diff, audit staged changes, or check branch changes. Produces findings-first reports with severity, file line references, risks, and test gaps.
 skill-type: workflow
-version: 1.1.2
+version: 1.1.3
 ---
 
 # local-review

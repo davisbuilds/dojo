@@ -2,7 +2,7 @@
 name: diagnose
 description: Disciplined debugging loop for hard bugs and performance regressions. Use when the user says "diagnose this", "debug this", "this is broken/throwing/failing", reports a bug whose cause is non-obvious, or describes a performance regression. For completion-time evidence checks use verify-before-complete; for new-test methodology use test-strategy; for post-hoc code review use local-review.
 skill-type: workflow
-version: 1.0.3
+version: 1.0.4
 ---
 
 # Diagnose
@@ -153,7 +153,7 @@ If any item is unchecked, diagnosis is not done — even if "the bug seems fixed
 Writes a starter template for the most common Phase 1 loop kinds:
 
 ```bash
-bash skills/diagnose/scripts/scaffold_feedback_loop.sh <kind> [path]
+bash <skill-dir>/scripts/scaffold_feedback_loop.sh <kind> [path]
 ```
 
 `<kind>` is one of: `failing-test` · `curl` · `cli-diff` · `playwright` · `replay` · `harness` · `hitl`.

@@ -18,13 +18,13 @@ Run the deterministic `repo-hardening` inventory and write audit artifacts into 
 2. Run the inventory:
 
 ```bash
-python3 skills/repo-hardening/scripts/repo_inventory.py $ARGUMENTS
+python3 <skill-dir>/scripts/repo_inventory.py $ARGUMENTS
 ```
 
 If no arguments are provided:
 
 ```bash
-python3 skills/repo-hardening/scripts/repo_inventory.py .
+python3 <skill-dir>/scripts/repo_inventory.py .
 ```
 
 3. Read the generated:

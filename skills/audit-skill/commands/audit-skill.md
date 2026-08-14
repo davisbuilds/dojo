@@ -14,7 +14,7 @@ Run a three-layer security audit on a skill directory and present the trust scor
 1. Run the audit on the specified skill directory:
 
 ```bash
-python3 skills/audit-skill/scripts/audit_skill.py $ARGUMENTS
+python3 <skill-dir>/scripts/audit_skill.py $ARGUMENTS
 ```
 
 If no arguments are provided, prompt the user for a skill directory path.

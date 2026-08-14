@@ -1,3 +1,7 @@
+## 1.3.1 - 2026-08-14
+
+- Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout
+
 ## 1.3.0 - 2026-08-14
 
 - Report a dangling symlink as DANGLING_SKILL_LINK rather than a missing SKILL.md

@@ -54,7 +54,7 @@ If a design summary already exists for the topic
 Run:
 
 ```bash
-python3 skills/write-spec/scripts/validate_spec.py docs/specs/<filename>.md
+python3 <skill-dir>/scripts/validate_spec.py docs/specs/<filename>.md
 ```
 
 Fix any validation errors before presenting the contract. The validator fails if

@@ -1,3 +1,7 @@
+## 1.0.4 - 2026-08-14
+
+- Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout
+
 ## 1.0.3 - 2026-08-01
 
 - Trim the internal debugging-loop step list from the description; routing signal (triggers, sibling hand-offs) unchanged.

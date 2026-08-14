@@ -2,7 +2,7 @@
 name: research-architect
 description: Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or brief; commission or plan a multi-source or multi-model research run; run research through external deep-research products (Claude/OpenAI/Gemini DR); or verify and score a research report that something else produced. Triggers on "research prompt", "research brief", "commission research", "plan a research run", "verify this report", "research architect". For a direct low-stakes lookup where the user just wants the answer, use deep-research instead.
 skill-type: workflow
-version: 2.2.1
+version: 2.2.2
 triggers:
   - research prompt
   - research brief
@@ -147,7 +147,7 @@ artifacts, delete guidance comments, apply the per-executor calibration table.
 Then lint:
 
 ```bash
-python3 skills/research-architect/scripts/lint_prompt.py --executor terminal 04-prompt-claude-code.md
+python3 <skill-dir>/scripts/lint_prompt.py --executor terminal 04-prompt-claude-code.md
 ```
 
 The script enforces the deterministic checks (instruction budget ≤40 web DR /
@@ -204,10 +204,10 @@ reports in hand.
    `scripts/score_report.py` does the mechanical half:
 
    ```bash
-   python3 skills/research-architect/scripts/score_report.py worksheet report.md > 08-worksheet.json
+   python3 <skill-dir>/scripts/score_report.py worksheet report.md > 08-worksheet.json
    # each sampled check is one claim/citation pair: fetch its url, then fill
    # "verdicts" with supported / partial / unsupported / unreachable
-   python3 skills/research-architect/scripts/score_report.py score 08-worksheet.json
+   python3 <skill-dir>/scripts/score_report.py score 08-worksheet.json
    ```
 
    Checks are per **claim/citation pair**, not per claim — a claim resting on

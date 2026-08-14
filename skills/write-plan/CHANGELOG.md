@@ -1,3 +1,7 @@
+## 2.3.1 - 2026-08-14
+
+- Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout
+
 ## 2.3.0 - 2026-08-12
 
 - Add a Behavior Measured block for steps depending on tools the repo does not own — evidence is a command and its output, not a citation — and loosen Assumptions Verified to state the claim and evidence appropriate to it.

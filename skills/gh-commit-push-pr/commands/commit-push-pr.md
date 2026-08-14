@@ -14,7 +14,7 @@ Use this wrapper to standardize commit/push/PR creation with safety checks.
 1. Run preflight context collection:
 
 ```bash
-bash skills/gh-commit-push-pr/scripts/prepare_commit.sh
+bash <skill-dir>/scripts/prepare_commit.sh
 ```
 
 2. Verify:

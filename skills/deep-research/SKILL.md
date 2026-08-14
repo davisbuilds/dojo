@@ -3,7 +3,7 @@ name: deep-research
 description: Use when a task needs direct web-backed research with citation-ready synthesis — the user wants the answer, not a commissioned research program. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead — this skill is its execution backend.
 skill-type: workflow
 compatibility: "Requires python3. Requires network access for web research."
-version: 2.3.2
+version: 2.3.3
 ---
 
 # Deep Research
@@ -32,7 +32,7 @@ Skip this skill for:
 For one-command execution (route + optional filter), run:
 
 ```bash
-python3 skills/deep-research/scripts/run_pipeline.py --input /path/to/research.json --pretty
+python3 <skill-dir>/scripts/run_pipeline.py --input /path/to/research.json --pretty
 ```
 
 Use `--depth-only` to return routing budgets without filtering.
@@ -52,7 +52,7 @@ If scope is ambiguous, ask clarifying questions first.
 Use `scripts/depth_router.py` to select `quick`, `standard`, or `deep`.
 
 ```bash
-python3 skills/deep-research/scripts/depth_router.py --pretty <<'JSON'
+python3 <skill-dir>/scripts/depth_router.py --pretty <<'JSON'
 {
   "research_brief": "Compare incident response platforms for SOC teams in regulated healthcare environments.",
   "task_context": {
@@ -86,7 +86,7 @@ Prefer primary sources first, then secondary analysis.
 After collecting raw findings, run `scripts/evidence_filter.py`.
 
 ```bash
-python3 skills/deep-research/scripts/evidence_filter.py --pretty <<'JSON'
+python3 <skill-dir>/scripts/evidence_filter.py --pretty <<'JSON'
 {
   "research_brief": "Compare incident response platforms for SOC teams in regulated healthcare environments.",
   "depth": "standard",
