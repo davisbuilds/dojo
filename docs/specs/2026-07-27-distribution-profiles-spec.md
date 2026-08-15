@@ -3,7 +3,7 @@ date: 2026-07-27
 author: gpt-5.6-sol
 topic: distribution-profiles
 stage: spec
-status: draft
+status: in-progress
 source: conversation
 risk_profile: high
 readiness: ready
@@ -518,8 +518,12 @@ catalog as conformant.
 ## Evaluation
 
 Acceptance is mechanical, not an experiment. The contract is accepted when the
-profile verifier and its behavior fixtures prove all success criteria across
-the nominal, boundary, and failure scenarios below. The fixed catalog fixture
+profile verifier and its behavior fixtures prove the **Phase 1** success criteria
+(SC-01…SC-06, SC-10, SC-11, and the audit-only halves of SC-09 and SC-12) across
+the nominal, boundary, and failure scenarios below. The Phase 2 criteria (SC-07,
+SC-08, SC-13, the migration half of SC-09, and the EV-REC/EV-CON scenarios) were
+descoped in revision 15 and do not gate acceptance; they remain written as the
+contract an applicator would satisfy if one is ever built. The fixed catalog fixture
 contains the full canonical catalog at the selected revision, the current
 curated global subset, every canonical skill absent from it, at least three foreign entries, and
 both user- and project-scope observations. Budget fixtures straddle the boundary
@@ -883,6 +887,23 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-08-14 (revision 15). Phase 2 (apply) descoped; acceptance closes at
+  Phase 1.** Operator decision. The two remediations the program ran — R38's
+  six-skill machine-global cut and R41's codex-cli version-skew fix — were
+  performed by hand, rarely, cheaply, and correctly. Governance of the ~26-skill
+  machine-global catalog is now carried by Phase 1's measurement plus the weekly
+  `mini-health` drift checks (installed-versus-canonical, listing stability),
+  the declared cross-machine manifests (toolchain, project-skill wiring), and a
+  manual `sync.py --apply` after each merge. Against that realized problem size
+  the staged applicator — realization identity, per-target locking, concurrency,
+  partial-failure recovery (Tasks 11–16) — is disproportionate high-risk
+  mutation code for a rare, small, adequately-handled action. SC-07, SC-08,
+  SC-13, the migration half of SC-09, and the EV-REC/EV-CON scenarios move out
+  of scope: retained as the contract an applicator *would* owe, no longer gating
+  acceptance. This is a scope reduction, recorded as one. It also settles the
+  Phase-1-supplies-the-referent argument below: `ops` register D6 is discharged
+  by the ops-side cross-machine checks, not by a profiles applicator.
 
 - **2026-08-06 (revision 14).** **The local control is inert, and the recovered
   budget did not stay recovered.** Two controlled results.
@@ -1273,17 +1294,29 @@ mutating half, as separately shippable phases:
   the entire recovery, idempotence, and concurrency surface is out of phase 1 by
   construction rather than by omission.
 - **Phase 2 — apply.** SC-07, SC-08, SC-13, migration under SC-09, and the
-  EV-REC and EV-CON scenarios.
+  EV-REC and EV-CON scenarios. **Descoped 2026-08-14 (revision 15) — not built,
+  not owed. See below.**
 
-This is a sequencing constraint, not a scope reduction: every success criterion
-and evaluation scenario remains in the contract and phase 2 is required for
-acceptance. The reason to split is that phase 1 carries most of the value and
-almost none of the risk. It answers the question no tool in this repository
-answers today — what does the effective catalog cost right now, against an
-authoritative limit — and the figures in this contract had to be measured by
-hand, twice, with conflicting results, precisely because it does not exist.
-Phase 2 automates an action a maintainer performs rarely, and is where the whole
-partial-failure and concurrency apparatus lives.
+Phase 1 carries most of the value and almost none of the risk. It answers the
+question no tool in this repository answers today — what does the effective
+catalog cost right now, against an authoritative limit — and the figures in this
+contract had to be measured by hand, twice, with conflicting results, precisely
+because it did not exist. Phase 2 would automate an action a maintainer performs
+rarely, and is where the whole partial-failure and concurrency apparatus lives.
+
+**Acceptance closes at Phase 1 (revision 15).** The two remediations this program
+actually ran — R38's six-skill cut and R41's version-skew fix — were done by
+hand, infrequently, cheaply, and correctly, against a machine-global catalog of
+~26 skills that is now governed by phase 1's measurement plus the weekly
+`mini-health` drift checks (installed-versus-canonical, listing stability),
+declared cross-machine manifests (toolchain, project-skill wiring), and a manual
+`sync.py --apply` after each merge. Against that realized problem size, the
+staged applicator with its realization-identity, locking, concurrency, and
+recovery machinery is disproportionate — high-risk mutation code standing in for
+a rare, small, adequately-handled action. SC-07, SC-08, SC-13, the migration
+half of SC-09, and the EV-REC/EV-CON scenarios are therefore **out of scope**:
+they define what an applicator *would* owe if one is ever built, and no longer
+gate acceptance. This is a scope reduction, recorded as one.
 
 Phase 1 also supplies the missing referent for cross-machine drift monitoring
 (`ops` register D6): a drift monitor needs a declaration of intended membership
