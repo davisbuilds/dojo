@@ -3,7 +3,7 @@ date: 2026-08-01
 author: claude-opus-5
 topic: distribution-profiles
 stage: plan
-status: draft
+status: in-progress
 source: conversation
 risk_profile: high
 readiness: ready
@@ -31,11 +31,16 @@ Delivered as the two phases the spec's Handoff mandates:
   directory of profile data plus one new read-only CLI plus one new CI gate, and
   it changes no existing runtime behavior.
 - **Phase 2 — apply** (Tasks 11–16). SC-07, SC-08, SC-13, migration under SC-09,
-  and the EV-REC and EV-CON scenarios.
+  and the EV-REC and EV-CON scenarios. **Descoped 2026-08-14 (spec revision 15) —
+  not built, not owed.** Remediation proved to be a rare, small, by-hand action
+  (R38, R41); the staged applicator's locking/concurrency/recovery machinery is
+  disproportionate to it, and governance is carried by Phase 1 measurement plus
+  ops-side monitoring. Tasks 11–16 remain below as the plan an applicator would
+  follow if one is ever built.
 
-Phase 2 is required for acceptance. Every `Done When` traces to a spec success
+Acceptance closes at Phase 1. Every Phase 1 `Done When` traces to a spec success
 criterion or evaluation scenario; the Traceability table below is exhaustive in
-both directions.
+both directions. Phase 2 tasks are retained for reference and are not gating.
 
 ## Scope
 
@@ -1849,8 +1854,17 @@ Task 8
 
 **— End of Phase 1. Phase 1 is independently shippable here: profile definitions
 exist, `dojo profiles verify --all` works, CI gates it, and nothing has gained
-mutation authority. This also unblocks ops register D6, which needs a declaration
-of intended membership to compare against. —**
+mutation authority. —**
+
+---
+
+> **Phase 2 (Tasks 11–16) descoped 2026-08-14 (spec revision 15).** Not built,
+> not owed. The applicator automates a rare, small remediation that has been
+> handled by hand (R38, R41); its locking/concurrency/recovery machinery is
+> disproportionate to that, and `ops` register D6 (cross-machine drift) is
+> discharged by ops-side checks rather than by a profiles applicator. The tasks
+> below are kept as the plan an applicator would follow if one is ever built —
+> reference only, not gating acceptance.
 
 ---
 
