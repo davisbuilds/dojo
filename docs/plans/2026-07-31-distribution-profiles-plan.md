@@ -3,7 +3,7 @@ date: 2026-08-01
 author: claude-opus-5
 topic: distribution-profiles
 stage: plan
-status: in-progress
+status: complete
 source: conversation
 risk_profile: high
 readiness: ready
@@ -41,6 +41,15 @@ Delivered as the two phases the spec's Handoff mandates:
 Acceptance closes at Phase 1. Every Phase 1 `Done When` traces to a spec success
 criterion or evaluation scenario; the Traceability table below is exhaustive in
 both directions. Phase 2 tasks are retained for reference and are not gating.
+
+**Closed at shipped scope 2026-08-15 (spec revision 16).** Tasks 0–5A and 9
+shipped and are the deliverable, together with the weekly `mini-health` drift
+checks and `docs/project/GLOBAL-SKILL-MEMBERSHIP.md`. Within Phase 1, **Tasks
+6–8 are descoped, not delivered**: Task 8 (`dojo profiles verify --all`) because
+a single entrypoint would only wrap a measurement the audit repeatedly proved
+could be wrong; Task 7 (cross-machine comparison) because `ops` register R42
+ships it; Task 6 (routing-coverage fixtures) because it is test polish. Task 10's
+standing position lives in `GLOBAL-SKILL-MEMBERSHIP.md`. Recorded as `ops` R44.
 
 ## Scope
 

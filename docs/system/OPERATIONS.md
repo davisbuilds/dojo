@@ -300,9 +300,12 @@ Four things to know before trusting a number from these:
 
 The profile library under `scripts/profiles/` composes these into resolution,
 budget assessment, observation, and a byte-identical evidence report. It is
-read-only throughout — no command in it changes installed state. Two entrypoints
-ship today; the unified `dojo profiles verify --all` arrives with Task 8 of the
-distribution-profiles plan.
+read-only throughout — no command in it changes installed state. The individual
+entrypoints are the interface; the unified `dojo profiles verify --all` wrapper
+(Task 8) was **dropped** when the distribution-profiles contract closed at
+shipped scope (spec revision 16) — it would only have wrapped a measurement the
+audit repeatedly proved could be wrong, so it solved no problem the library
+does not already expose.
 
 **CI gate** — runs on every pull request touching `profiles/**`, `scripts/**`,
 `skills/**`, `tests/**`, or the docs trees:

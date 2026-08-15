@@ -3,7 +3,7 @@ date: 2026-07-27
 author: gpt-5.6-sol
 topic: distribution-profiles
 stage: spec
-status: in-progress
+status: complete
 source: conversation
 risk_profile: high
 readiness: ready
@@ -887,6 +887,23 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-08-15 (revision 16). Contract closed at shipped scope; the `verify --all`
+  CLI is dropped.** Operator decision, `status: complete`. What ships is the
+  deliverable: the read-only measurement stack under `scripts/profiles/`
+  (probes, definitions, resolution, budget policy, rollout-authoritative
+  observation, byte-identical evidence), the Phase-1 CI gate, the weekly
+  `mini-health` drift checks, and the standing membership decision in
+  `docs/project/GLOBAL-SKILL-MEMBERSHIP.md`. Three Phase-1 tasks are **descoped,
+  not delivered**: Task 8 (`dojo profiles verify --all`) because a single
+  entrypoint would only wrap a measurement the audit repeatedly proved could be
+  wrong — it solves no measurement-correctness problem, which was the whole
+  difficulty; Task 7 (cross-machine comparison) because `ops` register R42
+  delivers it as declared, fail-closed SSH checks; Task 6 (routing-coverage
+  fixtures) because it is test polish, not a governance capability. Task 10's
+  standing position is carried by `GLOBAL-SKILL-MEMBERSHIP.md` plus the register.
+  Recorded as `ops` R44. This is the program's formal close, not an assertion
+  that every original task landed.
 
 - **2026-08-14 (revision 15). Phase 2 (apply) descoped; acceptance closes at
   Phase 1.** Operator decision. The two remediations the program ran — R38's
