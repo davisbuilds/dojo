@@ -67,6 +67,34 @@ When a task adds or changes tests, confirm two distinct facts before prescribing
 The full suite is still the regression gate; neither fact follows automatically
 from the other.
 
+## Enumeration Is Not the Invariant
+
+A `Done When` bullet that *lists the cases that must hold* is not the property it
+stands for. An implementation can satisfy every listed case and still break the
+invariant, so the criterion passes while the thing it protects is false.
+
+State the invariant, and keep the enumeration as examples beneath it. Then apply
+the author's test: **assert the bullet against a case you believe is false; if it
+still passes, it is not a criterion.** Ask what could satisfy the whole list while
+violating the intent — if such a case exists, the list is the wrong gate.
+
+Two related degeneracies are prose-detectable and surface as validator
+advisories, but the fix is yours: an `only X does A` partition asserted while
+everything still takes one branch is unfalsifiable until the other branch exists
+(pair it with a non-X that does *not* do A, and confirm the pair is
+distinguishable *now* — else mark it `pending`, not met); and an assertion over a
+collection that can be empty — `every declared …` — is vacuously true, so state
+what makes the collection non-empty.
+
+## Pin the Cross-Runner Seam
+
+Test discovery (above) asks whether the runner finds a test, never whether
+anything tests the *seam between two components that share no runner*. When a task
+wires such a pair, the `Done When` must name where the contract across the seam is
+pinned — an integration check that exercises both sides — or state plainly that
+the seam is not yet covered. A green unit suite on each side is not evidence the
+boundary between them holds.
+
 ## Worked Example (anonymized)
 
 A trace-quality reframe was planned as: *"build a scoring subsystem that ingests
