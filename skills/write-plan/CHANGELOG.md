@@ -1,3 +1,7 @@
+## 2.4.0 - 2026-08-16
+
+- Advise (non-blocking) when a task invokes a known-external binary (tmux/git/npm/docker/codex/claude/gh) without a Behavior Measured block, and when a Done When bullet is degenerate — an "only X" partition with a single branch, or an "every declared …" assertion over a possibly-empty collection. Add the degeneracy gate ("assert each bullet against a case you believe is false") and the enumeration-is-not-the-invariant / cross-runner-seam guidance. Guard discover_repo_root against a deleted cwd (no longer crashes under Python 3.14).
+
 ## 2.3.1 - 2026-08-14
 
 - Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout
