@@ -56,39 +56,27 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   scripts, and extend `tests/test_skill_script_paths.py` to cover frontmatter.
 - **Revisit when**: doing it, or if a wrapper starts prompting unexpectedly.
 
-### Port two pr-review-toolkit specialists into dojo before disabling the plugin
-- **What**: auditing Claude plugins on 2026-07-29 found two agents in
-  `pr-review-toolkit@claude-plugins-official` that cover ground **no dojo skill
-  does**, and they are the only reason the plugin is still enabled:
-  - `silent-failure-hunter` (130 lines) — enumerates every catch block, fallback,
-    default-on-failure value, "logged but execution continues" path, and optional
-    chain that can hide an error, then interrogates each for logging quality, user
-    feedback, and catch-block specificity.
-  - `type-design-analyzer` (118 lines) — rates encapsulation and *invariant
-    expression*: whether a type makes illegal states unrepresentable.
-- **Why it matters**: `secure-code` is a scanner and `local-review` is a workflow;
-  neither hunts swallowed errors, and nothing in the catalog reviews type design.
-  The remaining four agents (`code-reviewer`, `code-simplifier`,
-  `comment-analyzer`, `pr-test-analyzer`) are baseline knowledge and duplicate
-  existing skills, so the plugin cannot be dropped without losing these two.
-- **Known defect to fix on port**: `silent-failure-hunter` hardcodes another
-  project's conventions — three `Sentry` references, two `logError`, and two
-  `constants/errorIds.ts` — and will flag missing error IDs against a file that
-  does not exist in this portfolio. Rewrite those checks against the actual stacks
-  (Next.js/Supabase, Python) rather than copying them.
-- **Also worth lifting** (pattern, not prose): both the plugin's `review-pr`
-  command and its `code-reviewer` agent score each finding 0-100 and **report only
-  at >= 80**, and `review-pr` maps diff content to specialists (test files ->
-  test analyzer, new types -> type analyzer). `code-review@claude-plugins-official`
-  goes further with five parallel reviewers on distinct lenses, two of which —
-  git blame/history and prior PR comments on the same files — no dojo review skill
-  attempts. Compare against `local-review` before reinventing.
+### Disable pr-review-toolkit now that its two specialists are ported
+- **What**: the two specialist lenses that were the only reason
+  `pr-review-toolkit@claude-plugins-official` stayed enabled shipped as dojo
+  skills — `error-handling-review` and `type-design-review` (see ROADMAP). The
+  plugin's remaining four agents (`code-reviewer`, `code-simplifier`,
+  `comment-analyzer`, `pr-test-analyzer`) are baseline knowledge that duplicates
+  existing skills, so nothing unique is left. Disabling was deliberately deferred
+  when the port landed.
+- **Why or evidence**: keeping an otherwise-redundant plugin enabled is standing
+  context/maintenance cost the whole audit program exists to cut; the two skills
+  now cover the unique ground.
+- **Next**: disable the plugin (reversible local/user-scope settings change:
+  `"enabledPlugins": {"pr-review-toolkit@claude-plugins-official": false}` in the
+  right settings scope, or via `/plugin`), then confirm no workflow depended on
+  its four baseline agents. Before disabling, lift one pattern worth keeping if
+  not already present: the plugin's `review-pr` and `code-review` map diff content
+  to specialists (new types → type reviewer, error handling → the failure lens) —
+  the sibling cross-references from `local-review` now do this manually, but a
+  routing note is cheap to formalize.
 - See also the separate branch-hygiene entry below, which owns the one gap found
   in the `commit-commands` plugin.
-- **Next**: two new skills, or one `error-handling-review` skill plus a
-  `type-design` section in an existing review skill. Add trigger fixtures so the
-  routing collision with `local-review` and `secure-code` is tested, given the
-  catalog already has 17 entry points for "review this".
 
 ### The gh-* family covers creating work but not cleaning up after it
 - **What**: auditing the `commit-commands@claude-plugins-official` plugin on

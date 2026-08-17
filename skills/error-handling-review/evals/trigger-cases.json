@@ -1,0 +1,41 @@
+{
+  "description": "Routing fixture for error-handling-review. Positive cases keep error-handling / silent-failure / fallback intents with this skill; negative controls keep general diff review with local-review, security scanning with secure-code, and completion-proof with verify-before-complete.",
+  "cases": [
+    {
+      "id": "silent-failure-hunt",
+      "type": "implicit",
+      "prompt": "Review the error handling in this change — I want to find any swallowed errors, empty catch blocks, or places we log and continue instead of surfacing the failure.",
+      "expected": {
+        "trigger": ["error-handling-review"],
+        "avoid": ["local-review", "secure-code"]
+      }
+    },
+    {
+      "id": "fallback-audit",
+      "type": "implicit",
+      "prompt": "Audit the fallback behavior in this API client — check the catch blocks and any default-on-failure values that might be hiding the real error from the user.",
+      "expected": {
+        "trigger": ["error-handling-review"],
+        "avoid": ["local-review", "diagnose"]
+      }
+    },
+    {
+      "id": "negative-general-review",
+      "type": "negative",
+      "prompt": "Give this diff a general code review covering correctness, performance, and maintainability.",
+      "expected": {
+        "trigger": [],
+        "avoid": ["error-handling-review"]
+      }
+    },
+    {
+      "id": "negative-security-scan",
+      "type": "implicit",
+      "prompt": "Run a semgrep SAST scan on this codebase and check for injection and credential-exposure vulnerabilities.",
+      "expected": {
+        "trigger": ["secure-code"],
+        "avoid": ["error-handling-review"]
+      }
+    }
+  ]
+}

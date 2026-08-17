@@ -1,3 +1,7 @@
+## 1.1.4 - 2026-08-17
+
+- Cross-reference the error-handling-review and type-design-review specialist lenses in Sibling skills.
+
 ## 1.1.3 - 2026-08-14
 
 - Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout

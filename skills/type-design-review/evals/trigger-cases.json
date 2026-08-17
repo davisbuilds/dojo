@@ -1,0 +1,41 @@
+{
+  "description": "Routing fixture for type-design-review. Positive cases keep type/invariant/encapsulation design intents with this skill; negative controls keep general diff review with local-review, API-contract shape with api-design, and error handling with error-handling-review.",
+  "cases": [
+    {
+      "id": "new-type-invariants",
+      "type": "implicit",
+      "prompt": "Review the design of this new domain type — does it make illegal states unrepresentable and enforce its invariants at construction, or can a caller build an invalid instance?",
+      "expected": {
+        "trigger": ["type-design-review"],
+        "avoid": ["local-review", "api-design"]
+      }
+    },
+    {
+      "id": "pr-types-encapsulation",
+      "type": "implicit",
+      "prompt": "This PR adds several new data model types — rate each one's encapsulation and invariant enforcement and flag any anemic models or exposed mutable internals.",
+      "expected": {
+        "trigger": ["type-design-review"],
+        "avoid": ["local-review"]
+      }
+    },
+    {
+      "id": "negative-general-review",
+      "type": "negative",
+      "prompt": "Give this diff a general code review covering correctness, performance, and maintainability.",
+      "expected": {
+        "trigger": [],
+        "avoid": ["type-design-review"]
+      }
+    },
+    {
+      "id": "negative-api-contract",
+      "type": "implicit",
+      "prompt": "Design the HTTP API contract for this endpoint — the request and response schema, status codes, and pagination.",
+      "expected": {
+        "trigger": ["api-design"],
+        "avoid": ["type-design-review"]
+      }
+    }
+  ]
+}
