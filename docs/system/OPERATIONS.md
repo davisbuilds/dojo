@@ -119,14 +119,17 @@ Not release-relevant (changing these alone needs no bump): `CHANGELOG.md`, the g
 
 ### Bump a skill version
 
-Performs the two-file edit the version check requires: updates the `version` field in SKILL.md frontmatter and prepends a matching `## <version> - <date>` heading (and bullet) to `CHANGELOG.md`, creating it if absent:
+Performs the two-file edit the version check requires — updates the `version` field in SKILL.md frontmatter and prepends a matching `## <version> - <date>` heading (and bullet) to `CHANGELOG.md`, creating it if absent — and then, on a successful non-dry-run bump, **regenerates `skills.json` and refreshes `docs/catalog/index.html`** so a bump never leaves generated artifacts stale for CI's `--check` steps:
 
 ```bash
 python3 skills/skill-evals/scripts/bump_skill_version.py skills/<name> patch   # or minor / major
 python3 skills/skill-evals/scripts/bump_skill_version.py skills/<name> minor -m "What changed."
 python3 skills/skill-evals/scripts/bump_skill_version.py skills/<name> --set 2.0.0   # explicit version
-python3 skills/skill-evals/scripts/bump_skill_version.py skills/<name> patch --dry-run
+python3 skills/skill-evals/scripts/bump_skill_version.py skills/<name> patch --dry-run   # no writes
+python3 skills/skill-evals/scripts/bump_skill_version.py skills/<name> patch --no-regen  # skip regen
 ```
+
+Because the bump writes SKILL.md directly (the post-tool-use manifest hook does not see it), the regeneration is built in — so a normal bump touches up to four tracked files (SKILL.md, CHANGELOG.md, `skills.json`, `docs/catalog/index.html`). Pass `--no-regen` for batch bumps and run `scripts/generate_skills_manifest.py` once at the end instead of regenerating per bump. Regeneration no-ops with a printed reminder when the skill is bumped outside a dojo checkout (e.g. a global install, where the generator is absent).
 
 Bumping resets lower parts and drops any prerelease (`1.2.0-rc.1` patch → `1.2.1`). It refuses a non-increasing `--set` and refuses to duplicate an existing changelog heading. `-m/--message` supplies the entry bullet (a placeholder is written otherwise).
 

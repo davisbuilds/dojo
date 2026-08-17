@@ -172,10 +172,14 @@ def regenerate_manifest(skill_dir: Path) -> Path | None:
         return None
     manifest_path = repo_root / "skills.json"
     catalog_path = repo_root / "docs" / "catalog" / "index.html"
+    # This is a recognized dojo checkout (skills/ parent + generator present), so
+    # always pass the catalog path: the generator creates it when missing, which
+    # is exactly what CI's `gen_catalog.py --check` step expects. Guarding on
+    # existence would skip a deleted/omitted catalog and still fail that check.
     generator.generate_manifest(
         str(repo_root / "skills"),
         str(manifest_path),
-        catalog_path=str(catalog_path) if catalog_path.exists() else None,
+        catalog_path=str(catalog_path),
     )
     return manifest_path
 

@@ -210,6 +210,20 @@ def test_regenerate_manifest_writes_manifest_and_cascades_catalog(tmp_path: Path
     assert (tmp_path / "docs" / "catalog" / "index.html").read_text() != "<stale/>"
 
 
+def test_regenerate_manifest_creates_absent_catalog(tmp_path: Path):
+    m = load_module()
+    d = _fake_checkout(tmp_path, "1.2.3")
+    # A checkout whose generated catalog was deleted/omitted: regen must create
+    # it, not skip it (else CI's gen_catalog --check would still fail).
+    catalog = tmp_path / "docs" / "catalog" / "index.html"
+    catalog.unlink()
+
+    m.regenerate_manifest(d)
+
+    assert catalog.exists()
+    assert "<stale/>" not in catalog.read_text()
+
+
 def test_regenerate_manifest_noops_outside_a_checkout(tmp_path: Path):
     m = load_module()
     d = make_skill(tmp_path, "1.2.3")  # parent is tmp_path, not a skills/ dir
