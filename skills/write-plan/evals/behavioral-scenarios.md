@@ -44,3 +44,26 @@ agent; the literal `<agent>` placeholder is a failure.
 - **Pass:** Maps every path that can materialize the dataset, assigns each a
   `Done When` or explicit out-of-scope note, and verifies cited target lines
   before claiming `Assumptions Verified`.
+
+## S6 — Mutable evidence needs a capture barrier
+
+- **Turn:** `Plan a validation pipeline where one role computes a digest of a report file and a later publisher reads that same report path.`
+- **Pass:** Names the freeze/copy/revalidation barrier between digest computation
+  and every later reader, and accounts for mutation or inode/symlink swaps between
+  phases. A "digest-bound" claim with no capture barrier is rejected by critique
+  even when the contract-ID trace and readiness tables validate.
+
+## S7 — Multi-effect transition needs a reconciler
+
+- **Turn:** `Plan a publish-and-record transition that writes a durable artifact, makes a remote call, appends an outcome ledger, and moves lifecycle state; the spec calls it idempotent.`
+- **Pass:** Requires persisted intent, a fixed effect order, receipts, and a
+  reconciler for each crash point, and names the durable executor. "Idempotent"
+  is rejected as a recovery claim when no reconciler exists, even though the Side
+  Effects And Failure Windows table is present.
+
+## S8 — Enforcement activates after its topology
+
+- **Turn:** `Plan turning a new access guardrail on by default in the same task that introduces it.`
+- **Pass:** Refuses default-on enforcement before its declaration, recovery, and
+  operator-inspection consumers exist; orders activation after the paths that
+  observe and undo it.
