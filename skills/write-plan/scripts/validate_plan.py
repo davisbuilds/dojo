@@ -88,8 +88,14 @@ DONE_WHEN_DEGENERACY_PATTERNS = (
 # Kept short and obvious on purpose: a false negative is fine, a false positive
 # that trains people to ignore advisories is not.
 EXTERNAL_TOOLS = ("tmux", "git", "npm", "docker", "codex", "claude", "gh")
+# Match a tool only in command position: at the start of a span or after a shell
+# separator, and terminated by whitespace, a shell operator, or end-of-span — not
+# by a bare word boundary, which a hyphen also creates (so `gh-commit-push-pr`,
+# `codex-rs/…`, `codex-primary-runtime` are names/paths, not invocations).
 EXTERNAL_TOOL_RE = re.compile(
-    r"(?:^|[|;&]\s*|\$\(\s*|`)(?:sudo\s+)?(" + "|".join(EXTERNAL_TOOLS) + r")\b"
+    r"(?:^|[|;&]\s*|\$\(\s*)(?:sudo\s+)?("
+    + "|".join(EXTERNAL_TOOLS)
+    + r")(?=[\s;|&]|$)"
 )
 HIGH_RISK_SUBHEADINGS = [
     "### Traceability",

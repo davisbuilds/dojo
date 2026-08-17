@@ -308,6 +308,24 @@ def test_behavior_measured_marker_suppresses_external_tool_advisory() -> None:
     )
 
 
+def test_hyphenated_tool_names_are_not_external_tool_invocations() -> None:
+    module = load_module()
+    # Names and paths that merely start with a tool token — a hyphen is a word
+    # boundary but not a command terminator — must not read as invocations.
+    body = plan_body(
+        "- Create: `src/example.py`",
+        implementation_steps=(
+            "1. Wire the `gh-commit-push-pr` skill; read `codex-rs/core/lib.rs`,\n"
+            "   `codex-primary-runtime`, and `codex-tui-clipped.json`."
+        ),
+    )
+
+    assert all(
+        "**Behavior Measured**" not in advisory
+        for advisory in module.collect_advisories(body)
+    )
+
+
 def test_internal_only_task_has_no_external_tool_advisory() -> None:
     module = load_module()
     body = plan_body(
