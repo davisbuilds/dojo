@@ -1,3 +1,7 @@
+## 2.5.0 - 2026-08-16
+
+- High-risk readiness: add the "prove the handoff" obligations (identity is not capture, "idempotent" is not recovery, enforcement cannot activate before its declaration/recovery/operator topology) and seed the critique to attack each. Make high-risk ID enforcement incrementally adoptable — a legacy id-less plan tracing an id-less spec uses named contract surfaces, while a partial-ID plan (or one inventing IDs against an id-less spec) still fails rather than downgrading.
+
 ## 2.4.0 - 2026-08-16
 
 - Advise (non-blocking) when a task invokes a known-external binary (tmux/git/npm/docker/codex/claude/gh) without a Behavior Measured block, and when a Done When bullet is degenerate — an "only X" partition with a single branch, or an "every declared …" assertion over a possibly-empty collection. Add the degeneracy gate ("assert each bullet against a case you believe is false") and the enumeration-is-not-the-invariant / cross-runner-seam guidance. Guard discover_repo_root against a deleted cwd (no longer crashes under Python 3.14).
