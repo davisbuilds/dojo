@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Error Handling Review"
+  short_description: "Review changed code for silent failures and inadequate error"
+  default_prompt: "Use $error-handling-review for this task."

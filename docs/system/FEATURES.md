@@ -22,6 +22,8 @@ jq '.skills | length' skills.json
 |-------|---------|
 | `diagnose` | Disciplined six-phase debugging loop — build a deterministic pass/fail signal, reproduce, hypothesise, instrument, fix, regression-test |
 | `local-review` | Findings-first local reviews on workspace diffs |
+| `error-handling-review` | Specialist lens for silent failures — empty/over-broad catch blocks, log-and-swallow, unjustified fallbacks, silent retry exhaustion |
+| `type-design-review` | Specialist lens rating a new/changed type's encapsulation and invariants; flags illegal states left representable |
 
 ### Content Creation and Design
 

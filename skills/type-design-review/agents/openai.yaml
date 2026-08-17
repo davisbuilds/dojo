@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Type Design Review"
+  short_description: "Review the design of a new or changed type — does it make"
+  default_prompt: "Use $type-design-review for this task."
