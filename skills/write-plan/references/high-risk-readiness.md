@@ -8,7 +8,10 @@ Do not proceed until that spec declares `readiness: ready`.
 ## Map Proof Before Tasks
 
 - Trace every `SC-NN` and `EV-*-NN` from the spec to a task and deterministic
-  proof. No contract ID may disappear or be invented by the plan.
+  proof. No contract ID may disappear or be invented by the plan. When a legacy
+  spec declares no IDs, trace its named contract surfaces instead — but the plan
+  may not invent IDs the spec never declared; a partial-ID plan fails rather than
+  downgrading.
 - Inventory actors and capabilities. State allowed and forbidden authority and
   the effective-runtime proof for both sides.
 - Inventory local, remote, and durable side effects in execution order. For each

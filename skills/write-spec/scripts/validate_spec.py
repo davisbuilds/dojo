@@ -222,24 +222,33 @@ def validate_high_risk(frontmatter: dict[str, str], body: str) -> list[str]:
             errors.append(f"High-risk contract missing required heading: {heading}")
 
     criteria = section_body(body, "## Success Criteria") or ""
-    criterion_ids = SUCCESS_CRITERION_ID_RE.findall(criteria)
-    if not criterion_ids:
-        errors.append("High-risk contract must give success criteria stable SC-NN IDs")
-    for identifier, count in Counter(criterion_ids).items():
-        if count > 1:
-            errors.append(f"High-risk contract has duplicate success criterion ID {identifier}")
-
     scenarios = section_body(body, "## Evaluation Scenarios") or ""
+    criterion_ids = SUCCESS_CRITERION_ID_RE.findall(criteria)
     scenario_ids = SCENARIO_ID_RE.findall(scenarios)
-    for identifier, count in Counter(scenario_ids).items():
-        if count > 1:
-            errors.append(f"High-risk contract has duplicate evaluation scenario ID {identifier}")
-    for label, prefix in SCENARIO_CLASSES.items():
-        if not any(identifier.startswith(prefix) for identifier in scenario_ids):
-            errors.append(
-                f"High-risk contract must include a {label} evaluation scenario "
-                f"with an {prefix}NN ID"
-            )
+
+    # Legacy high-risk contracts predate stable contract IDs; adding
+    # `risk_profile: high` should not force a wholesale ID retrofit before a
+    # narrow amendment can validate. Enforce full ID discipline only once any
+    # contract ID exists — so a partial-ID contract fails rather than silently
+    # downgrading — while a fully id-less high-risk contract may use named
+    # criteria and scenarios. The structural headings above and the readiness
+    # closure below still apply, and the critique owns whether the named
+    # surfaces truly cover each class.
+    if criterion_ids or scenario_ids:
+        if not criterion_ids:
+            errors.append("High-risk contract must give success criteria stable SC-NN IDs")
+        for identifier, count in Counter(criterion_ids).items():
+            if count > 1:
+                errors.append(f"High-risk contract has duplicate success criterion ID {identifier}")
+        for identifier, count in Counter(scenario_ids).items():
+            if count > 1:
+                errors.append(f"High-risk contract has duplicate evaluation scenario ID {identifier}")
+        for label, prefix in SCENARIO_CLASSES.items():
+            if not any(identifier.startswith(prefix) for identifier in scenario_ids):
+                errors.append(
+                    f"High-risk contract must include a {label} evaluation scenario "
+                    f"with an {prefix}NN ID"
+                )
 
     if readiness == "ready":
         review = section_body(body, "## Readiness Review") or ""

@@ -495,12 +495,18 @@ def validate_high_risk(
 
             spec_ids = set(CONTRACT_ID_RE.findall(spec_text))
             plan_ids = set(CONTRACT_ID_RE.findall(body))
-            if not spec_ids:
-                errors.append("High-risk linked spec must define SC-NN and EV-*-NN IDs")
-            for identifier in sorted(spec_ids - plan_ids):
-                errors.append(f"High-risk plan does not cover linked spec ID {identifier}")
-            for identifier in sorted(plan_ids - spec_ids):
-                errors.append(f"High-risk plan references unknown linked spec ID {identifier}")
+            # Legacy high-risk artifacts predate stable contract IDs; do not force
+            # a wholesale retrofit. Require full closure only once IDs exist on
+            # either side, so a partial-ID plan — or one inventing IDs against an
+            # id-less spec — fails instead of silently downgrading. A fully
+            # id-less high-risk plan tracing a fully id-less spec uses named
+            # contract surfaces; all other authority/failure/evidence/readiness
+            # gates below still apply.
+            if spec_ids or plan_ids:
+                for identifier in sorted(spec_ids - plan_ids):
+                    errors.append(f"High-risk plan does not cover linked spec ID {identifier}")
+                for identifier in sorted(plan_ids - spec_ids):
+                    errors.append(f"High-risk plan references unknown linked spec ID {identifier}")
 
     errors.extend(task_dependency_errors(body))
     errors.extend(traceability_task_errors(body, high_risk_section or ""))

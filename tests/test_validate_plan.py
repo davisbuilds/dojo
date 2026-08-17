@@ -752,6 +752,81 @@ def test_high_risk_plan_requires_ready_linked_spec(tmp_path: Path) -> None:
     assert any("linked spec with readiness: ready" in error for error in errors)
 
 
+def write_legacy_high_risk_spec(root: Path, readiness: str = "ready") -> Path:
+    path = root / "docs" / "specs" / "legacy-spec.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        f"---\nrisk_profile: high\nreadiness: {readiness}\n---\n\n"
+        "- Allowed work succeeds.\n"
+        "- Forbidden work leaves no side effect.\n",
+        encoding="utf-8",
+    )
+    return path
+
+
+def legacy_high_risk_plan_body(files: str, dependencies: str = "None") -> str:
+    body = high_risk_plan_body(files, dependencies=dependencies)
+    # Replace stable IDs with named contract surfaces (the legacy adoption path).
+    for old, new in {
+        "SC-01": "session-authority",
+        "EV-NEG-01": "forbidden-path",
+        "EV-REC-01": "recovery-path",
+        "EV-CON-01": "concurrent-path",
+        "EV-LEG-01": "legacy-path",
+    }.items():
+        body = body.replace(old, new)
+    return body
+
+
+def test_legacy_high_risk_plan_with_idless_spec_is_accepted(tmp_path: Path) -> None:
+    module = load_module()
+    write_legacy_high_risk_spec(tmp_path)
+    target = tmp_path / "src" / "example.py"
+    target.parent.mkdir(parents=True)
+    target.write_text("boundary = True\n", encoding="utf-8")
+
+    errors = module.validate_high_risk(
+        {
+            "risk_profile": "high",
+            "readiness": "ready",
+            "spec": "docs/specs/legacy-spec.md",
+        },
+        legacy_high_risk_plan_body(
+            "- Modify: `src/example.py`\n- Test: `tests/test_example.py`"
+        ),
+        tmp_path / "docs" / "plans" / "legacy-plan.md",
+        repo_root=tmp_path,
+    )
+
+    assert errors == []
+
+
+def test_high_risk_plan_inventing_ids_against_idless_spec_fails(tmp_path: Path) -> None:
+    module = load_module()
+    write_legacy_high_risk_spec(tmp_path)
+    target = tmp_path / "src" / "example.py"
+    target.parent.mkdir(parents=True)
+    target.write_text("boundary = True\n", encoding="utf-8")
+
+    # The plan carries IDs the id-less spec never declared: partial adoption
+    # must fail, not silently downgrade to the legacy path.
+    errors = module.validate_high_risk(
+        {
+            "risk_profile": "high",
+            "readiness": "ready",
+            "spec": "docs/specs/legacy-spec.md",
+        },
+        high_risk_plan_body(
+            "- Modify: `src/example.py`\n- Test: `tests/test_example.py`"
+        ),
+        tmp_path / "docs" / "plans" / "legacy-plan.md",
+        repo_root=tmp_path,
+    )
+
+    assert any("references unknown linked spec ID" in error for error in errors)
+    assert not any("must define SC-NN" in error for error in errors)
+
+
 def test_high_risk_plan_rejects_unknown_traceability_task(tmp_path: Path) -> None:
     module = load_module()
     write_high_risk_spec(tmp_path)
