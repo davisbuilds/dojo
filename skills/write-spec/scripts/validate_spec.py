@@ -237,6 +237,13 @@ def validate_high_risk(frontmatter: dict[str, str], body: str) -> list[str]:
     if criterion_ids or scenario_ids:
         if not criterion_ids:
             errors.append("High-risk contract must give success criteria stable SC-NN IDs")
+        elif any(
+            re.match(r"^[-*]\s+\S", line) and not SUCCESS_CRITERION_ID_RE.search(line)
+            for line in criteria.splitlines()
+        ):
+            # Once any ID is present, every criterion bullet must carry one, so a
+            # partially retrofitted contract cannot pass with unnumbered entries.
+            errors.append("High-risk contract has a success criterion without an SC-NN ID")
         for identifier, count in Counter(criterion_ids).items():
             if count > 1:
                 errors.append(f"High-risk contract has duplicate success criterion ID {identifier}")

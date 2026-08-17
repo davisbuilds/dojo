@@ -439,6 +439,23 @@ def modified_file_errors(body: str, repo_root: Path) -> list[str]:
     return errors
 
 
+def has_traceability_rows(traceability: str) -> bool:
+    """Return whether a Traceability table has at least one data row."""
+    for line in traceability.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            continue
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if not any(cells):
+            continue
+        if cells[0] == "Contract ID":  # header
+            continue
+        if all(set(cell) <= {"-", ":"} for cell in cells if cell):  # separator
+            continue
+        return True
+    return False
+
+
 def validate_high_risk(
     frontmatter: dict[str, str],
     body: str,
@@ -507,6 +524,18 @@ def validate_high_risk(
                     errors.append(f"High-risk plan does not cover linked spec ID {identifier}")
                 for identifier in sorted(plan_ids - spec_ids):
                     errors.append(f"High-risk plan references unknown linked spec ID {identifier}")
+            else:
+                # Legacy id-less plan tracing an id-less spec: the absence of
+                # contract IDs is not the absence of obligation. Require named
+                # contract-surface rows in the Traceability table (the critique
+                # judges whether they are the right surfaces; the validator only
+                # ensures rows exist, so an empty table cannot pass as "ready").
+                traceability = section_body(high_risk_section or "", "### Traceability") or ""
+                if not has_traceability_rows(traceability):
+                    errors.append(
+                        "High-risk legacy plan without contract IDs must trace named "
+                        "contract surfaces in the Traceability table"
+                    )
 
     errors.extend(task_dependency_errors(body))
     errors.extend(traceability_task_errors(body, high_risk_section or ""))

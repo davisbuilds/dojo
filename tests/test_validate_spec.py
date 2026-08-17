@@ -282,6 +282,23 @@ def test_partial_id_high_risk_contract_fails_rather_than_downgrading() -> None:
     assert any("evaluation scenario" in error.lower() for error in errors)
 
 
+def test_id_mode_rejects_an_unnumbered_success_criterion() -> None:
+    module = load_module()
+    # SC-01/SC-02 are numbered and all four EV classes are present, but an extra
+    # criterion carries no ID: once ID discipline is active, every criterion must
+    # be numbered, so a partial retrofit must fail.
+    body = contract_body(complete_high_risk_sections()).replace(
+        "- SC-02: Forbidden work leaves no side effect.",
+        "- SC-02: Forbidden work leaves no side effect.\n- An extra criterion with no stable ID.",
+    )
+
+    errors = module.validate_high_risk(
+        {"risk_profile": "high", "readiness": "draft"}, body
+    )
+
+    assert any("without an SC-NN ID" in error for error in errors)
+
+
 def test_legacy_high_risk_contract_still_requires_structural_headings() -> None:
     module = load_module()
     # An id-less high-risk contract is accepted on IDs but not on structure:

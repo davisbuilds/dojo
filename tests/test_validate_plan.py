@@ -801,6 +801,41 @@ def test_legacy_high_risk_plan_with_idless_spec_is_accepted(tmp_path: Path) -> N
     assert errors == []
 
 
+def test_legacy_high_risk_plan_requires_named_traceability_rows(tmp_path: Path) -> None:
+    module = load_module()
+    write_legacy_high_risk_spec(tmp_path)
+    target = tmp_path / "src" / "example.py"
+    target.parent.mkdir(parents=True)
+    target.write_text("boundary = True\n", encoding="utf-8")
+
+    body = legacy_high_risk_plan_body(
+        "- Modify: `src/example.py`\n- Test: `tests/test_example.py`"
+    )
+    # Strip every named-surface row, leaving only the Traceability header: an
+    # id-less plan must still trace obligations, not skip coverage entirely.
+    for surface in (
+        "session-authority",
+        "forbidden-path",
+        "recovery-path",
+        "concurrent-path",
+        "legacy-path",
+    ):
+        body = body.replace(f"| {surface} | Task 0 | `pytest -q` |\n", "")
+
+    errors = module.validate_high_risk(
+        {
+            "risk_profile": "high",
+            "readiness": "ready",
+            "spec": "docs/specs/legacy-spec.md",
+        },
+        body,
+        tmp_path / "docs" / "plans" / "legacy-plan.md",
+        repo_root=tmp_path,
+    )
+
+    assert any("trace named contract surfaces" in error for error in errors)
+
+
 def test_high_risk_plan_inventing_ids_against_idless_spec_fails(tmp_path: Path) -> None:
     module = load_module()
     write_legacy_high_risk_spec(tmp_path)
