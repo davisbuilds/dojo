@@ -64,6 +64,46 @@ def load_health_rows(*, url: str | None, path: str | None) -> list[dict]:
     return rows
 
 
+def _newest(a: str | None, b: str | None) -> str | None:
+    """Return the later of two ISO-8601 timestamps; None loses to a real value.
+
+    AgentMonitor emits UTC `...Z` timestamps, which sort lexically by recency.
+    """
+    present = [t for t in (a, b) if t]
+    return max(present) if present else None
+
+
+def aggregate_rows(rows: list[dict]) -> dict[str, dict]:
+    """Collapse health rows sharing a name into one merged row per skill.
+
+    AgentMonitor keys rows by `(name, version)`, so a skill that changed version
+    mid-window returns several rows. Summing volume before the join keeps the
+    report on the skill's total rather than an arbitrary last-wins row: sum
+    `invocations`/`misfires`/`misfireEligible`, hold `neverFired` only if every
+    row never fired, keep the newest `lastInvokedAt`, and recompute
+    `misfireRate` from the summed totals so it stays consistent with what the
+    report displays.
+    """
+    merged: dict[str, dict] = {}
+    for row in rows:
+        acc = merged.get(row["name"])
+        if acc is None:
+            merged[row["name"]] = dict(row)
+            continue
+        acc["invocations"] += row["invocations"]
+        # never-fired holds only if EVERY version of the skill never fired.
+        acc["neverFired"] = bool(acc.get("neverFired")) and bool(row.get("neverFired"))
+        acc["misfireEligible"] = (acc.get("misfireEligible") or 0) + (row.get("misfireEligible") or 0)
+        acc_mis, row_mis = acc.get("misfires"), row.get("misfires")
+        acc["misfires"] = None if acc_mis is None and row_mis is None else (acc_mis or 0) + (row_mis or 0)
+        acc["lastInvokedAt"] = _newest(acc.get("lastInvokedAt"), row.get("lastInvokedAt"))
+    for acc in merged.values():
+        eligible = acc.get("misfireEligible") or 0
+        misfires = acc.get("misfires")
+        acc["misfireRate"] = (misfires / eligible) if eligible and misfires is not None else None
+    return merged
+
+
 def enrich_report(report: dict, rows: list[dict], *, source: str) -> dict:
     """Fold runtime health into the per-skill report, scoped to dojo skills.
 
@@ -71,9 +111,10 @@ def enrich_report(report: dict, rows: list[dict], *, source: str) -> dict:
     Health rows whose name is not already a dojo report entry are non-dojo and
     ignored. Dojo skills with no matching row are marked unknown
     (`never_fired=None`), distinct from an explicit `never_fired=False`.
-    Mutates and returns `report`.
+    Rows sharing a name (version splits) are aggregated first so volume is the
+    skill's total, not an arbitrary last row. Mutates and returns `report`.
     """
-    rows_by_name = {row["name"]: row for row in rows}
+    rows_by_name = aggregate_rows(rows)
 
     for entry in report["skills"]:
         row = rows_by_name.get(entry["skill"])

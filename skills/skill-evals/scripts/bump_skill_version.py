@@ -141,6 +141,49 @@ def apply_bump(
     return old_version, new_version
 
 
+def _load_manifest_generator(repo_root: Path):
+    """Import the repo's manifest generator, or None if this checkout lacks it."""
+    gen_path = repo_root / "scripts" / "generate_skills_manifest.py"
+    if not gen_path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("generate_skills_manifest", gen_path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def regenerate_manifest(skill_dir: Path) -> Path | None:
+    """Rebuild skills.json (and cascade the catalog) for `skill_dir`'s checkout.
+
+    This script writes SKILL.md directly, so the post-tool-use manifest-regen
+    hook never fires; regenerating here closes the "forgot to regen -> CI --check
+    fails" gap. Returns the manifest path when it regenerates, or None when the
+    skill is not inside a dojo checkout with the generator present (e.g. a global
+    install), so a bump there degrades to a printed reminder rather than failing.
+    """
+    skill_dir = Path(skill_dir).resolve()
+    if skill_dir.parent.name != "skills":
+        return None
+    repo_root = skill_dir.parent.parent
+    generator = _load_manifest_generator(repo_root)
+    if generator is None:
+        return None
+    manifest_path = repo_root / "skills.json"
+    catalog_path = repo_root / "docs" / "catalog" / "index.html"
+    # This is a recognized dojo checkout (skills/ parent + generator present), so
+    # always pass the catalog path: the generator creates it when missing, which
+    # is exactly what CI's `gen_catalog.py --check` step expects. Guarding on
+    # existence would skip a deleted/omitted catalog and still fail that check.
+    generator.generate_manifest(
+        str(repo_root / "skills"),
+        str(manifest_path),
+        catalog_path=str(catalog_path),
+    )
+    return manifest_path
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -156,6 +199,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("-m", "--message", dest="entry", help="Changelog bullet text for the new entry")
     parser.add_argument("--date", help="Override the changelog date (default: today, ISO 8601)")
     parser.add_argument("--dry-run", action="store_true", help="Print the change without writing")
+    parser.add_argument(
+        "--no-regen",
+        action="store_true",
+        help="Skip regenerating skills.json/catalog (e.g. batch bumps that regenerate once at the end)",
+    )
     args = parser.parse_args(argv)
 
     if (args.part is None) == (args.set_version is None):
@@ -176,10 +224,19 @@ def main(argv: list[str] | None = None) -> int:
 
     prefix = "would bump" if args.dry_run else "bumped"
     print(f"{prefix} {args.skill}: {old} -> {new}")
-    if not args.dry_run:
-        # This script writes SKILL.md directly, so the post-tool-use manifest hook
-        # does not fire. Regenerate so skills.json/catalog don't fail CI's --check.
-        print("next: python3 scripts/generate_skills_manifest.py && python3 scripts/gen_catalog.py")
+    if args.dry_run:
+        return 0
+    if args.no_regen:
+        print("next: run scripts/generate_skills_manifest.py once when the batch is done")
+        return 0
+    manifest_path = regenerate_manifest(Path(args.skill))
+    if manifest_path is None:
+        print(
+            "note: not inside a dojo checkout with the manifest generator; "
+            "run scripts/generate_skills_manifest.py where skills.json lives"
+        )
+    else:
+        print(f"regenerated {manifest_path} and the catalog")
     return 0
 
 

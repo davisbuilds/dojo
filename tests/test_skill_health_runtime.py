@@ -100,6 +100,72 @@ def test_enrich_adds_summary_rollups():
     assert s["invoked"] == 2  # write-spec + brainstorming
 
 
+# --- version-split aggregation (last-wins join bug) ---------------------------
+
+def _split_rows():
+    """Two health rows for one skill, as AgentMonitor's (name, version) keying
+    returns when a skill bumps versions mid-window."""
+    return [
+        {
+            "name": "write-spec", "version": "1.1.0", "invocations": 40,
+            "neverFired": False, "lastInvokedAt": "2026-07-01T00:00:00Z",
+            "misfireEligible": 30, "misfires": 3, "misfireRate": 0.1,
+        },
+        {
+            "name": "write-spec", "version": "1.2.0", "invocations": 85,
+            "neverFired": False, "lastInvokedAt": "2026-07-06T18:22:00Z",
+            "misfireEligible": 90, "misfires": 0, "misfireRate": 0.0,
+        },
+    ]
+
+
+def test_enrich_sums_volume_across_version_split_rows():
+    report = _report("write-spec")
+    shr.enrich_report(report, _split_rows(), source="fixture")
+    entry = report["skills"][0]
+    # Last-wins would report only the second row (85 / 90); the total is the skill's.
+    assert entry["invocations"] == 125           # 40 + 85
+    assert entry["misfire_eligible"] == 120       # 30 + 90
+    assert entry["misfires"] == 3                 # 3 + 0
+    assert entry["last_invoked_at"] == "2026-07-06T18:22:00Z"  # newest wins
+    assert entry["misfire_rate"] == pytest.approx(3 / 120)     # recomputed from totals
+    assert entry["never_fired"] is False
+
+
+def test_enrich_never_fired_only_when_all_rows_never_fired():
+    rows = [
+        {"name": "write-plan", "version": "1.0.0", "invocations": 0,
+         "neverFired": True, "lastInvokedAt": None,
+         "misfireEligible": 0, "misfires": None, "misfireRate": None},
+        {"name": "write-plan", "version": "1.1.0", "invocations": 5,
+         "neverFired": False, "lastInvokedAt": "2026-07-05T00:00:00Z",
+         "misfireEligible": 5, "misfires": 1, "misfireRate": 0.2},
+    ]
+    report = _report("write-plan")
+    shr.enrich_report(report, rows, source="fixture")
+    entry = report["skills"][0]
+    assert entry["invocations"] == 5
+    assert entry["never_fired"] is False  # one version fired -> not never-fired
+
+
+def test_enrich_all_never_fired_rows_stay_never_fired():
+    rows = [
+        {"name": "brainstorming", "version": "1.0.0", "invocations": 0,
+         "neverFired": True, "lastInvokedAt": None,
+         "misfireEligible": 0, "misfires": None, "misfireRate": None},
+        {"name": "brainstorming", "version": "0.9.0", "invocations": 0,
+         "neverFired": True, "lastInvokedAt": None,
+         "misfireEligible": 0, "misfires": None, "misfireRate": None},
+    ]
+    report = _report("brainstorming")
+    shr.enrich_report(report, rows, source="fixture")
+    entry = report["skills"][0]
+    assert entry["invocations"] == 0
+    assert entry["never_fired"] is True
+    assert entry["misfires"] is None       # no eligible rows -> stays absent
+    assert entry["misfire_rate"] is None
+
+
 # --- Task 3: ranking + render -------------------------------------------------
 
 def _enriched(*names):

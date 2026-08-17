@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.0 - 2026-08-17
+
+- `bump_skill_version.py` now regenerates `skills.json` and cascades the catalog
+  after a successful non-dry-run bump (behind a `--no-regen` escape hatch for
+  batch bumps), so a bump no longer leaves generated artifacts stale for CI's
+  `--check` to catch. Regeneration no-ops cleanly when the skill is bumped
+  outside a dojo checkout (e.g. a global install).
+
 ## 1.4.1 - 2026-07-31
 
 - Prune retired skills from `assets/trigger-collision-cases-expanded.json`.
