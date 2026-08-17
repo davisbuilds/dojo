@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 
 import pytest
@@ -173,3 +174,70 @@ def test_entry_text_becomes_bullet(tmp_path: Path):
     d = make_skill(tmp_path, "1.2.3")
     m.apply_bump(d, part="patch", date="2026-07-15", entry="Fixed the thing.")
     assert "- Fixed the thing." in (d / "CHANGELOG.md").read_text()
+
+
+# --- manifest/catalog regeneration ----------------------------------------
+
+
+def _fake_checkout(tmp_path: Path, version: str = "1.2.3") -> Path:
+    """A minimal checkout: skills/<skill>, real generators via a scripts/ symlink,
+    and a seeded catalog so the manifest->catalog cascade has a file to refresh."""
+    (tmp_path / "scripts").symlink_to(REPO_ROOT / "scripts")
+    skills = tmp_path / "skills"
+    skills.mkdir()
+    d = skills / "my-skill"
+    d.mkdir()
+    (d / "SKILL.md").write_text(
+        f"---\nname: my-skill\ndescription: Does a thing.\nversion: {version}\n---\n\n# my-skill\n",
+        encoding="utf-8",
+    )
+    catalog = tmp_path / "docs" / "catalog" / "index.html"
+    catalog.parent.mkdir(parents=True)
+    catalog.write_text("<stale/>", encoding="utf-8")
+    return d
+
+
+def test_regenerate_manifest_writes_manifest_and_cascades_catalog(tmp_path: Path):
+    m = load_module()
+    d = _fake_checkout(tmp_path, "1.2.3")
+    m.apply_bump(d, part="patch", date="2026-07-15")  # -> 1.2.4 on disk
+
+    manifest_path = m.regenerate_manifest(d)
+
+    assert manifest_path == tmp_path / "skills.json"
+    data = json.loads(manifest_path.read_text())
+    assert any(s["name"] == "my-skill" and s["version"] == "1.2.4" for s in data["skills"])
+    assert (tmp_path / "docs" / "catalog" / "index.html").read_text() != "<stale/>"
+
+
+def test_regenerate_manifest_noops_outside_a_checkout(tmp_path: Path):
+    m = load_module()
+    d = make_skill(tmp_path, "1.2.3")  # parent is tmp_path, not a skills/ dir
+    assert m.regenerate_manifest(d) is None
+
+
+def test_main_default_invokes_regen(tmp_path: Path, monkeypatch):
+    m = load_module()
+    calls: list[Path] = []
+    monkeypatch.setattr(m, "regenerate_manifest", lambda p: calls.append(Path(p)))
+    d = make_skill(tmp_path, "1.2.3")
+    assert m.main([str(d), "patch", "--date", "2026-07-15"]) == 0
+    assert calls == [d]
+
+
+def test_main_no_regen_skips_cascade(tmp_path: Path, monkeypatch):
+    m = load_module()
+    calls: list[Path] = []
+    monkeypatch.setattr(m, "regenerate_manifest", lambda p: calls.append(Path(p)))
+    d = make_skill(tmp_path, "1.2.3")
+    assert m.main([str(d), "patch", "--date", "2026-07-15", "--no-regen"]) == 0
+    assert calls == []
+
+
+def test_main_dry_run_skips_regen(tmp_path: Path, monkeypatch):
+    m = load_module()
+    calls: list[Path] = []
+    monkeypatch.setattr(m, "regenerate_manifest", lambda p: calls.append(Path(p)))
+    d = make_skill(tmp_path, "1.2.3")
+    assert m.main([str(d), "patch", "--dry-run"]) == 0
+    assert calls == []

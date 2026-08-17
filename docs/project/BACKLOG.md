@@ -230,22 +230,6 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   sections by the M1 fixed order, then surface confident specifics appearing in
   only one report as hallucination candidates.
 
-### skills-health: runtime join is last-wins, undercounts a version-split skill
-- **What**: `skill_health_runtime.enrich_report` indexes health rows as
-  `rows_by_name = {row["name"]: row}`, so if AgentMonitor returns more than one
-  row for a skill (same name, different `version` — the phase-1 `(name, version)`
-  keying), the join silently keeps only the last row. The report then shows one
-  version's `invocations`/`misfire` numbers, not the skill's total.
-- **Why it matters**: Invocation volume is a ranking input; undercounting a
-  version-split skill would mis-rank it (e.g. a heavily-used skill that bumped
-  versions mid-window could look under-used). Not observable today — the live
-  payload has 79 rows / 79 unique names, zero splits — but it becomes wrong as
-  version churn increases.
-- **Next**: When multiple rows share a name, aggregate before ranking — sum
-  `invocations`/`misfires`/`misfireEligible`, `neverFired` only if all rows are
-  never-fired, and surface the newest/installed version for display. Add a
-  fixture with two rows for one dojo skill to lock the behavior.
-
 ### skills-health: many canonical dojo skills aren't installed globally, so they're unmeasurable
 - **What**: As of 2026-07-15, 26 of 57 canonical `skills/` are installed in none
   of the global catalog dirs AgentMonitor scans (`~/.claude/skills`,
@@ -306,18 +290,18 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   shared 184-test run and leaves a dead `main()` plus two ways to invoke one
   file. It preserves the anomaly instead of resolving it.
 
-### bump_skill_version.py could regenerate the manifest itself
-- **What**: `bump_skill_version.py` writes SKILL.md directly (subprocess, not the
-  agent's Write/Edit tool), so the post-tool-use manifest-regen hook never fires
-  and `skills.json`/catalog are left stale. It prints a reminder to run the
-  generators, but the operator can still forget and fail CI's `--check`.
-- **Why it matters**: The helper's whole point is doing the mechanical release
-  edits in one command; a forgotten manifest regen re-introduces the friction it
-  set out to remove.
-- **Next**: Optionally invoke `generate_skills_manifest.py` and `gen_catalog.py`
-  after a successful non-dry-run bump (behind a `--no-regen` escape hatch), or
-  have the stop-hook manifest check auto-heal. Keep it opt-outable so scripted
-  batch bumps can regenerate once at the end.
+### bump_skill_version prepends changelog entries above an H1 title
+- **What**: `_prepend_changelog` writes the new `## <version>` block at byte 0 of
+  `CHANGELOG.md`. For skills whose changelog opens with a `# Changelog` H1 title
+  (e.g. `skill-evals`), the entry lands *above* the title instead of under it.
+- **Why or evidence**: hit 2026-08-17 while bumping `skill-evals` to 1.5.0; had
+  to hand-place the entry rather than use the tool. Most skill changelogs start
+  directly with `## <version>` and are unaffected, so this only bites titled
+  ones — but every bump of a titled changelog reproduces it.
+- **Next**: when `existing` starts with an H1 (`# `, not `## `) line, split it
+  (plus its trailing blank) off and insert the block after it. Add a test with a
+  titled changelog fixture. ~5 lines; deferred only to keep the current branch
+  scoped to the regen + health-join fixes.
 
 ### Shared SemVer helper
 - **What**: SemVer parsing/validation now exists in multiple scripts.
