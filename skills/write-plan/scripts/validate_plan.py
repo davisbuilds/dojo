@@ -45,6 +45,9 @@ ASSUMPTIONS_VERIFIED_SECTION_RE = re.compile(
 TEST_DISCOVERY_VERIFIED_SECTION_RE = re.compile(
     r"^\*\*Test Discovery Verified\*\*(?::[ \t]*.*)?[ \t]*$", re.MULTILINE
 )
+BEHAVIOR_MEASURED_SECTION_RE = re.compile(
+    r"^\*\*Behavior Measured\*\*(?::[ \t]*.*)?[ \t]*$", re.MULTILINE
+)
 DEPENDENCIES_SECTION_RE = re.compile(
     r"^\*\*Dependencies\*\*:?[ \t]*(.*?)(?=^\*\*[^*]+?\*\*|\Z)",
     re.MULTILINE | re.DOTALL,
@@ -62,6 +65,37 @@ WEAK_ACCEPTANCE_PATTERNS = (
         "completion-only wording",
         re.compile(r"\b(?:completes?|prints?)\b", re.IGNORECASE),
     ),
+)
+# Acceptance bullets that read as coverage but can hold while the property is
+# false: a partition assertion with only one branch, or an assertion over a
+# collection that may be empty. Prose-detectable and advisory-only; the
+# not-mechanically-checkable enumeration form lives in seam-selection.md.
+DONE_WHEN_DEGENERACY_PATTERNS = (
+    (
+        re.compile(r"\bonly\b", re.IGNORECASE),
+        'an "only X …" acceptance bullet is unfalsifiable while a single branch '
+        "exists; pair it with an assertion that some non-X does not, confirm the "
+        "pair is distinguishable now, else mark it pending rather than met",
+    ),
+    (
+        re.compile(r"\b(?:every|each)\s+declared\b", re.IGNORECASE),
+        'an assertion over "every declared …" is vacuously true when the '
+        "collection can be empty; state what makes it non-empty",
+    ),
+)
+# Binaries the repository does not own; a step invoking one should carry a
+# **Behavior Measured** block (command + observed output), not just a citation.
+# Kept short and obvious on purpose: a false negative is fine, a false positive
+# that trains people to ignore advisories is not.
+EXTERNAL_TOOLS = ("tmux", "git", "npm", "docker", "codex", "claude", "gh")
+# Match a tool only in command position: at the start of a span or after a shell
+# separator, and terminated by whitespace, a shell operator, or end-of-span — not
+# by a bare word boundary, which a hyphen also creates (so `gh-commit-push-pr`,
+# `codex-rs/…`, `codex-primary-runtime` are names/paths, not invocations).
+EXTERNAL_TOOL_RE = re.compile(
+    r"(?:^|[|;&]\s*|\$\(\s*)(?:sudo\s+)?("
+    + "|".join(EXTERNAL_TOOLS)
+    + r")(?=[\s;|&]|$)"
 )
 HIGH_RISK_SUBHEADINGS = [
     "### Traceability",
@@ -144,18 +178,39 @@ def has_marker_section(task: str, marker_section_re: re.Pattern[str]) -> bool:
     return marker_section_re.search(task) is not None
 
 
+def task_external_tools(task: str) -> list[str]:
+    """Return known-external binaries invoked in a task's command spans."""
+    found: set[str] = set()
+    for span in INLINE_CODE_RE.findall(task):
+        for match in EXTERNAL_TOOL_RE.finditer(span):
+            found.add(match.group(1))
+    return sorted(found)
+
+
 def collect_advisories(body: str) -> list[str]:
     """Return non-blocking grounding nudges for task metadata.
 
-    The signals are deliberately narrow: only explicit entries in a task's
-    ``Files`` block participate. They cannot determine whether a citation or
-    test command is truthful, so callers must never convert these messages into
-    schema failures.
+    The signals are deliberately narrow. The Files-based markers only consider
+    explicit entries in a task's ``Files`` block, and the command-based markers
+    only consider the task's inline code spans. None can determine whether a
+    citation, test command, or tool observation is truthful, so callers must
+    never convert these messages into schema failures.
     """
     advisories: list[str] = []
 
     for task in iter_task_blocks(body):
         first_line = task.splitlines()[0].strip()
+
+        external_tools = task_external_tools(task)
+        if external_tools and not has_marker_section(
+            task, BEHAVIOR_MEASURED_SECTION_RE
+        ):
+            tools = ", ".join(f"`{tool}`" for tool in external_tools)
+            advisories.append(
+                f"{first_line[4:]}: invokes external tool(s) {tools} but has no "
+                "**Behavior Measured** marker"
+            )
+
         files = task_files_block(task)
         if not files:
             continue
@@ -190,6 +245,10 @@ def collect_advisories(body: str) -> list[str]:
             f"({', '.join(weak_signals)}); require a pinned magnitude, floor, "
             "rate, or non-degeneracy bound"
         )
+
+    for pattern, message in DONE_WHEN_DEGENERACY_PATTERNS:
+        if pattern.search(done_when_text):
+            advisories.append(message)
 
     return advisories
 
@@ -309,7 +368,13 @@ def discover_repo_root(path: Path) -> Path:
         proc = None
     if proc is not None and proc.returncode == 0 and proc.stdout.strip():
         return Path(proc.stdout.strip()).resolve()
-    return Path.cwd().resolve()
+    try:
+        return Path.cwd().resolve()
+    except FileNotFoundError:
+        # The caller's cwd was deleted out from under the process (a test that
+        # chdir'd into a since-removed tmp dir is the usual culprit). Fall back
+        # to the artifact's own directory rather than crashing.
+        return start.resolve()
 
 
 def resolve_repo_path(raw: str, repo_root: Path) -> Path | None:

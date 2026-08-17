@@ -279,6 +279,111 @@ def test_done_when_advisory_does_not_scan_later_plan_sections() -> None:
     assert module.collect_advisories(body) == []
 
 
+def test_external_tool_step_without_behavior_measured_is_advisory() -> None:
+    module = load_module()
+    body = plan_body(
+        "- Create: `src/example.py`",
+        implementation_steps="1. Run `tmux new -d -s work` and confirm the pane.",
+    )
+
+    advisories = module.collect_advisories(body)
+
+    assert any(
+        "tmux" in advisory and "**Behavior Measured**" in advisory
+        for advisory in advisories
+    )
+
+
+def test_behavior_measured_marker_suppresses_external_tool_advisory() -> None:
+    module = load_module()
+    body = plan_body(
+        "- Create: `src/example.py`",
+        markers="**Behavior Measured**\n\n- `tmux -V` -> `tmux 3.4`\n\n",
+        implementation_steps="1. Run `tmux new -d -s work` and confirm the pane.",
+    )
+
+    assert all(
+        "**Behavior Measured**" not in advisory
+        for advisory in module.collect_advisories(body)
+    )
+
+
+def test_hyphenated_tool_names_are_not_external_tool_invocations() -> None:
+    module = load_module()
+    # Names and paths that merely start with a tool token — a hyphen is a word
+    # boundary but not a command terminator — must not read as invocations.
+    body = plan_body(
+        "- Create: `src/example.py`",
+        implementation_steps=(
+            "1. Wire the `gh-commit-push-pr` skill; read `codex-rs/core/lib.rs`,\n"
+            "   `codex-primary-runtime`, and `codex-tui-clipped.json`."
+        ),
+    )
+
+    assert all(
+        "**Behavior Measured**" not in advisory
+        for advisory in module.collect_advisories(body)
+    )
+
+
+def test_internal_only_task_has_no_external_tool_advisory() -> None:
+    module = load_module()
+    body = plan_body(
+        "- Create: `src/example.py`",
+        implementation_steps="1. Call the internal helper `render()` and assert output.",
+    )
+
+    assert all(
+        "**Behavior Measured**" not in advisory
+        for advisory in module.collect_advisories(body)
+    )
+
+
+def test_partition_only_done_when_is_advisory() -> None:
+    module = load_module()
+    body = plan_body("- Create: `src/example.py`").replace(
+        "- The example behaves as agreed.",
+        "- Only the legacy caller takes the old path.",
+    )
+
+    advisories = module.collect_advisories(body)
+
+    assert any("single branch" in advisory for advisory in advisories)
+
+
+def test_every_declared_done_when_is_advisory() -> None:
+    module = load_module()
+    body = plan_body("- Create: `src/example.py`").replace(
+        "- The example behaves as agreed.",
+        "- The manifest carries every declared `--runtime-executable`.",
+    )
+
+    advisories = module.collect_advisories(body)
+
+    assert any("vacuously true" in advisory for advisory in advisories)
+
+
+def test_discover_repo_root_survives_deleted_cwd(tmp_path: Path) -> None:
+    module = load_module()
+    plan = tmp_path / "docs" / "plans" / "example-plan.md"
+    plan.parent.mkdir(parents=True)
+    plan.write_text("placeholder", encoding="utf-8")
+
+    deleted = tmp_path / "gone"
+    deleted.mkdir()
+    original = Path.cwd()
+    import os
+
+    os.chdir(deleted)
+    deleted.rmdir()
+    try:
+        root = module.discover_repo_root(plan)
+    finally:
+        os.chdir(original)
+
+    assert root == plan.parent.resolve()
+
+
 def test_missing_plan_still_reports_a_validation_error_without_a_traceback(
     tmp_path: Path,
 ) -> None:

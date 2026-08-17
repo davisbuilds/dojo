@@ -252,67 +252,6 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   legacy no-ID artifact receiving a high-risk amendment, and (3) partial-ID input
   that must fail rather than silently downgrade.
 
-### write-plan/write-spec: acceptance criteria that pass while the property is false
-- **What**: the contract has one degeneracy rule — "do not accept bare
-  existence/sign/completion checks such as `> 0`, 'not empty', or 'completes'"
-  (`skills/write-plan/SKILL.md:179`) — and it is scoped to a *verification run's
-  output magnitude*. It does not reach the `Done When` bullets themselves, and
-  three distinct degenerate forms got past it in a single project:
-  1. **An enumeration satisfiable while the invariant it stands for is violated.**
-     A criterion that lists the cases that must hold is not the property; an
-     implementation can satisfy every listed case and still break it.
-  2. **A partition assertion where only one branch exists yet.** "Only X takes the
-     legacy path" is unfalsifiable while *everything* takes the legacy path. The
-     test passes, is committed as proof, and silently starts meaning something
-     only after a later task creates the other branch.
-  3. **An assertion over a collection that is always empty.** "…and carries every
-     declared `--runtime-executable`" where no spec of that class declares any.
-     Vacuously true, and reads as coverage.
-- **Why or evidence**: all three, tokenmaxxing
-  `docs/plans/2026-08-03-detached-worker-authority-profiles-plan.md`, 2026-07-26 →
-  2026-08-04. Form 1 is recorded by the spec against itself (Revision 4: "Revision
-  3's *enumerated* SC-03 was satisfiable" while the property was violated); forms
-  2 and 3 were caught during execution of Task 4 and are noted inline in the plan.
-  Notably this survived a critique subagent pass that did find four other blocking
-  defects, so it is not covered by "have a critic read it" either.
-- **Next**: add a degeneracy gate to `## Verification Requirements` covering the
-  criteria and not just the output, phrased as the test the author must run
-  against their own bullet: **assert it against a case you believe is false; if it
-  still passes, it is not a criterion.** Concretely — (a) prefer stating the
-  invariant with the enumeration as examples, and ask what satisfies the list
-  while violating the intent; (b) a "only X does A" bullet requires a paired
-  assertion that some non-X does not-A **and** a note that the pair is
-  distinguishable *now*, else it is `pending`, not met; (c) an assertion over a
-  collection must say what makes it non-empty. Related and worth the same bullet:
-  when a task wires two components that share no test runner, the `Done When` must
-  name where the contract is pinned or state plainly that it is not — the
-  test-discovery rule at `SKILL.md:182` asks whether the runner finds the test,
-  never whether anything tests the seam between two runners. Validator support is
-  possible but partial: (b) and (c) are prose-detectable ("only", "every declared")
-  as advisories; (a) is not mechanically checkable and belongs in
-  `references/seam-selection.md`.
-
-### write-plan: no validator signal for a step that depends on an external tool
-- **What**: `write-plan` 2.3.0 added a `**Behavior Measured**` block — required
-  when a step depends on a tool the repo does not own, with a command and its
-  observed output as the artifact rather than a citation — and loosened
-  `Assumptions Verified` to "state the claim and the evidence appropriate to it".
-  The guidance exists; nothing checks it. A plan whose steps invoke `tmux`, `git`,
-  `npm`, a sandbox policy, or a vendor CLI can still carry only in-repo citations
-  and validate clean.
-- **Why or evidence**: the guidance was written because a *correct* citation
-  attached to a false external-behavior claim reads as verified (five such claims
-  in tokenmaxxing, 2026-08-03/04; the tmux one cited `internal/tmux/tmux.go:68`
-  accurately and proved nothing about tmux). A second project hit the staleness
-  form of the same gap on 2026-08-10. Guidance alone did not prevent either — both
-  authors believed they had verified.
-- **Next**: advisory-only check in `validate_plan.py` — a task whose steps name a
-  known-external binary but carry no `Behavior Measured` block gets flagged, in
-  the same non-blocking channel as the existing weak-acceptance advisories. Keep
-  the binary list short and obvious (`tmux`, `git`, `npm`, `docker`, `codex`,
-  `claude`, `gh`) rather than attempting general detection; a false negative is
-  fine, a false positive that trains people to ignore advisories is not.
-
 ### write-plan/test-strategy: high-risk proof can name the right artifact while leaving the property mutable
 - **What**: the high-risk workflow asks for authority maps, evidence lifecycle,
   side-effect windows, recovery, partial rollout, and effective-runtime probes,
@@ -500,27 +439,19 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
 - **Next**: Extend skill install/standardization reports to show source and
   destination versions alongside existing drift information.
 
-### Validator crashes on a deleted cwd; a test leaves one under Python 3.14
-- **What**: `discover_repo_root` (`skills/write-plan/scripts/validate_plan.py`)
-  falls back to `Path.cwd().resolve()` when the target artifact has no Git root.
-  On Python 3.14 that raises `FileNotFoundError` if the process's working
-  directory has been removed, so `validate_high_risk` crashes instead of
-  validating. Separately, running the full `pytest tests/` suite under 3.14
-  leaves the process cwd deleted, so
-  `test_validate_plan.py::test_high_risk_plan_requires_linked_spec_and_structured_addendum`
-  fails — but only in full-suite ordering, never in isolation.
-- **Why or evidence**: reproduced 2026-08-14 on local Python 3.14.6; identical
-  failure on `origin/main`, so it predates the current work and is not caused by
-  it. CI is green because it pins Python 3.12 (`skill-contract-pilot.yml`), where
-  neither the cwd deletion nor the `Path.cwd()` behavior triggers. Two distinct
-  defects: (a) the validator is not robust to a missing cwd — a real user could
-  hit this validating a plan from a directory that was removed out from under the
-  shell; (b) some test in the suite deletes the process cwd without restoring it,
-  which the 3.14 `os.getcwd()` change surfaces. The poisoner was not isolated;
-  it does not reproduce in the pairwise combinations tried.
-- **Next**: guard the fallback (catch `FileNotFoundError` from `Path.cwd()` and
-  return a sentinel/repo-relative default, or require an explicit `repo_root` on
-  that path), then find the test leaving cwd deleted and have it restore or avoid
-  chdir. Add 3.14 to the CI matrix once both are fixed so the regression cannot
-  return silently.
+### Test isolation: a test leaves the process cwd deleted under Python 3.14
+- **What**: some test in `pytest tests/` deletes the process working directory
+  without restoring it; under Python 3.14's `os.getcwd()` a later test that reads
+  cwd then fails only in full-suite ordering, never in isolation. The victim was
+  `test_validate_plan.py::test_high_risk_plan_requires_linked_spec_and_structured_addendum`.
+- **Why or evidence**: reproduced 2026-08-14 on local Python 3.14.6. The
+  `discover_repo_root` crash half of this was fixed 2026-08-16 (it now catches
+  `FileNotFoundError` and degrades to the artifact's directory), so the full
+  suite is green on 3.14 — but the leaky test remains a latent flake generator
+  for any other code that reads cwd. The poisoner was not isolated; it does not
+  reproduce in the pairwise combinations tried.
+- **Next**: find the test that deletes cwd without restoring (bisect via a
+  session-scoped autouse fixture that asserts cwd is intact after each test),
+  fix it to restore or avoid chdir, then add 3.14 to the CI matrix
+  (`skill-contract-pilot.yml` pins 3.12) so the regression cannot return silently.
 - **Revisit when**: moving CI to Python 3.14, or the failure appears in isolation.

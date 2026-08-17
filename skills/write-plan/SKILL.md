@@ -2,7 +2,7 @@
 name: write-plan
 description: 'Sequence the build: turn a settled target (a `write-spec` contract, a ticket, or a clear request) into an execution plan — task breakdown, files, ordered steps, seam selection, and verification commands. Use when WHAT is already decided and you need HOW: the file-level, dependency-ordered steps to implement it. If the target is not yet falsifiable, route back to `write-spec`.'
 skill-type: workflow
-version: 2.3.1
+version: 2.4.0
 ---
 
 # Write Plan
@@ -201,6 +201,19 @@ Granularity target:
 - Do not accept bare existence/sign/completion checks such as `> 0`, "not empty",
   or "completes." Pin the smallest meaningful magnitude and prove a non-degenerate
   run when empty or trivial output could pass.
+- **Assert each `Done When` bullet against a case you believe is false; if it
+  still passes, it is not a criterion** — a bullet that cannot fail describes your
+  instrument, not the system. Watch three degenerate forms: an enumeration that
+  lists cases instead of stating the invariant they stand for; an `only X does A`
+  partition asserted while every case still takes one branch; and an assertion
+  over a collection that can be empty (`every declared …`). The validator flags
+  the last two as advisories; the enumeration form is yours to catch. See
+  `references/seam-selection.md`.
+- When a task depends on a tool the repository does not own, record
+  `**Behavior Measured**` — the command and its observed output — not an in-repo
+  citation. A correct citation attached to a false claim about external behavior
+  still reads as verified; the validator advises when a step invokes a known
+  external binary without this marker.
 - When tests change, prove their discovery before claiming readiness: confirm the
   repository runner includes the new test path, then name a command that runs the
   literal test file (or exact test selector).
