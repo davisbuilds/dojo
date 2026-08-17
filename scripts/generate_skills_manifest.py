@@ -112,12 +112,41 @@ def render_manifest(manifest):
     return json.dumps(manifest, indent=2) + '\n'
 
 
-def generate_manifest(skills_dir, output_path):
-    """Generate skills.json from all SKILL.md files."""
+def refresh_catalog(manifest, catalog_path):
+    """Write the browseable catalog for ``manifest`` (idempotent).
+
+    The catalog is derived entirely from the manifest, so regenerating the
+    manifest without refreshing it is what let ``docs/catalog/index.html`` drift
+    and only fail in CI. Coupling the two here closes that gap for every path
+    that regenerates the manifest by hand.
+    """
+    script_dir = Path(__file__).resolve().parent
+    if str(script_dir) not in sys.path:
+        sys.path.insert(0, str(script_dir))
+    import gen_catalog
+
+    catalog_path = Path(catalog_path)
+    page = gen_catalog.build_page(manifest)
+    if catalog_path.exists() and catalog_path.read_text(encoding='utf-8') == page:
+        return
+    catalog_path.parent.mkdir(parents=True, exist_ok=True)
+    catalog_path.write_text(page, encoding='utf-8')
+    print(f"Refreshed {catalog_path}")
+
+
+def generate_manifest(skills_dir, output_path, catalog_path=None):
+    """Generate skills.json from all SKILL.md files.
+
+    When ``catalog_path`` is given, also refresh the browseable catalog from the
+    just-built manifest so the two never drift. Callers that only want the
+    manifest (including tests) omit it.
+    """
     manifest = build_manifest(skills_dir)
     output_path = Path(output_path)
     output_path.write_text(render_manifest(manifest))
     print(f"Generated {output_path} with {len(manifest['skills'])} skills")
+    if catalog_path is not None:
+        refresh_catalog(manifest, catalog_path)
     return manifest
 
 
@@ -146,8 +175,19 @@ if __name__ == '__main__':
     parser.add_argument('skills_dir', nargs='?', default=str(repo_root / 'skills'))
     parser.add_argument('output_file', nargs='?', default=str(repo_root / 'skills.json'))
     parser.add_argument('--check', action='store_true', help='Report stale manifest without writing')
+    parser.add_argument(
+        '--catalog',
+        default=str(repo_root / 'docs' / 'catalog' / 'index.html'),
+        help='Catalog HTML to refresh alongside the manifest (default: docs/catalog/index.html)',
+    )
+    parser.add_argument(
+        '--no-catalog',
+        action='store_true',
+        help='Skip refreshing the browseable catalog',
+    )
     args = parser.parse_args()
 
     if args.check:
         sys.exit(check_manifest(args.skills_dir, args.output_file))
-    generate_manifest(args.skills_dir, args.output_file)
+    catalog_path = None if args.no_catalog else args.catalog
+    generate_manifest(args.skills_dir, args.output_file, catalog_path)
