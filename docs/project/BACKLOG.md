@@ -148,42 +148,21 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   corrected in 2026-07-29 when project scope turned out not to be inherited by
   subdirectories; and every token figure predating 2026-08-02 charged the whole
   instructions block rather than only the skill lines, overstating by ~2 points.
-- **Next**: Task 13 of `docs/plans/2026-07-31-distribution-profiles-plan.md`
-  makes the generator profile-aware and decides `.agent/skills`'s fate. The
-  measurement half is already shipped — `scripts/profiles/` computes the cost of
-  any target against either harness — so the remaining work is the refusal, not
-  the arithmetic.
-- **Revisit when**: Task 13 is implemented, or a `.claude/skills` link is
-  observed on a 200k-window session, which is the only configuration where this
-  currently degrades anything.
-
-### Cross-machine profile drift is silent and can restore superseded skill behavior
-- **What**: on 2026-07-27 the Mac mini's globals were **28 skills content-drifted**
-  against a clean `origin/main` dojo checkout, including a `verify-before-complete`
-  still on v1's broad "about to state work is fixed" wording — the exact text v2's
-  narrow circuit-breaker was written to replace. The mini had been silently running
-  superseded behavior. Remediated via `sync.py --only-existing --apply`; a canonical
-  checkout being current is **not** evidence that installed globals are.
-- **Why it matters**: dojo can prove its repository is internally consistent while the
-  machines actually running the skills differ. The artifact that needs versioning is
-  the *selected distribution profile plus its harness realization*, not the checkout.
-  Nothing currently fails, warns, or reports when they diverge.
-- **Next**: have the mini's weekly health job run a read-only standardizer audit
-  after the scheduled checkout refresh and report canonical commit, installed profile,
-  missing expected skills, content-drift count, and harness CLI versions. Detect and
-  notify; do not auto-rewrite globals as part of a git pull.
-- **Contract**: folded into
-  `docs/specs/2026-07-27-distribution-profiles-spec.md`; the selected profile,
-  canonical revision, target and harness policy identities, content drift, and
-  budget outcome are explicit conformance evidence, while scheduled checks stay
-  audit-only.
-- **Do not reimplement the ignore logic**: `skill_standardizer_lib.py` already handles
-  this correctly via `IGNORE_NAMES` (`.DS_Store`, `__pycache__`, `.git`,
-  `.pytest_cache`) and `IGNORE_FILE_SUFFIXES` (`.pyc`, `.pyo`), applied in the compare,
-  scan, and `_copy_ignore` copytree paths. Verified 2026-07-27: MacBook audit reports 0
-  issues where a naive `diff -rq` reports six `__pycache__`-only false positives, and
-  the mini received 0 `.pyc` files from the sync. Any *new* drift check (e.g. in the
-  mini health job) must reuse this logic rather than rolling its own `diff`.
+- **Next**: the profile-aware generator fix (Task 13 of
+  `docs/plans/2026-07-31-distribution-profiles-plan.md`) is **no longer planned** —
+  Phase 2 (Tasks 11–16) was descoped (`ops` register R43) when the profiles
+  program closed at Phase-1 measurement scope (spec revision 16, 2026-08-15). The
+  behavior is intact: `gen_harness_adapters.py` still links
+  `.claude/skills -> ../skills` (whole-catalog project promotion) and
+  `.agent/skills -> ../skills` (dead output — read by neither harness). Two
+  independent, much smaller fixes remain if pursued: drop `.agent` from
+  `HARNESS_DIRS` to delete the dead link, and gate or remove the wholesale
+  `.claude/skills` link. The measurement half (`scripts/profiles/`) already ships,
+  so any fix is the refusal, not the arithmetic.
+- **Revisit when**: a `.claude/skills` link is observed degrading a 200k-window
+  session — the only configuration where this currently costs anything; the
+  operator's 1M-window sessions stay inside budget. The `.agent/skills`
+  dead-output cleanup can be done anytime as standalone hygiene.
 
 ### dojo has 47 script entrypoints and no front door for the human-run ones
 - **What**: repo-level tooling a person invokes is reachable only by full path
