@@ -27,3 +27,12 @@ session; mark every assertion pass/fail.
 - **Turn:** `The boundary probe passed last week, but the runtime binary and authentication mode changed. Can we reuse it?`
 - **Pass:** Rejects the cached proof and names policy, binary, host, auth mode, and
   relevant runtime inputs as invalidation dimensions.
+
+## S5 — Loopback is not public egress
+
+- **Turn:** `We added SSRF protection; the allow-test fetches a "public" URL that resolves to a loopback fixture. Is that sufficient?`
+- **Pass:** Rejects the loopback fixture as proof of public-destination
+  enforcement, and separates the three obligations: deterministic policy tests,
+  the connected peer observed from the real transport, and a fixed public
+  end-to-end control. Notes the requested URL is intent, the resolved peer is
+  authority.

@@ -148,42 +148,21 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   corrected in 2026-07-29 when project scope turned out not to be inherited by
   subdirectories; and every token figure predating 2026-08-02 charged the whole
   instructions block rather than only the skill lines, overstating by ~2 points.
-- **Next**: Task 13 of `docs/plans/2026-07-31-distribution-profiles-plan.md`
-  makes the generator profile-aware and decides `.agent/skills`'s fate. The
-  measurement half is already shipped — `scripts/profiles/` computes the cost of
-  any target against either harness — so the remaining work is the refusal, not
-  the arithmetic.
-- **Revisit when**: Task 13 is implemented, or a `.claude/skills` link is
-  observed on a 200k-window session, which is the only configuration where this
-  currently degrades anything.
-
-### Cross-machine profile drift is silent and can restore superseded skill behavior
-- **What**: on 2026-07-27 the Mac mini's globals were **28 skills content-drifted**
-  against a clean `origin/main` dojo checkout, including a `verify-before-complete`
-  still on v1's broad "about to state work is fixed" wording — the exact text v2's
-  narrow circuit-breaker was written to replace. The mini had been silently running
-  superseded behavior. Remediated via `sync.py --only-existing --apply`; a canonical
-  checkout being current is **not** evidence that installed globals are.
-- **Why it matters**: dojo can prove its repository is internally consistent while the
-  machines actually running the skills differ. The artifact that needs versioning is
-  the *selected distribution profile plus its harness realization*, not the checkout.
-  Nothing currently fails, warns, or reports when they diverge.
-- **Next**: have the mini's weekly health job run a read-only standardizer audit
-  after the scheduled checkout refresh and report canonical commit, installed profile,
-  missing expected skills, content-drift count, and harness CLI versions. Detect and
-  notify; do not auto-rewrite globals as part of a git pull.
-- **Contract**: folded into
-  `docs/specs/2026-07-27-distribution-profiles-spec.md`; the selected profile,
-  canonical revision, target and harness policy identities, content drift, and
-  budget outcome are explicit conformance evidence, while scheduled checks stay
-  audit-only.
-- **Do not reimplement the ignore logic**: `skill_standardizer_lib.py` already handles
-  this correctly via `IGNORE_NAMES` (`.DS_Store`, `__pycache__`, `.git`,
-  `.pytest_cache`) and `IGNORE_FILE_SUFFIXES` (`.pyc`, `.pyo`), applied in the compare,
-  scan, and `_copy_ignore` copytree paths. Verified 2026-07-27: MacBook audit reports 0
-  issues where a naive `diff -rq` reports six `__pycache__`-only false positives, and
-  the mini received 0 `.pyc` files from the sync. Any *new* drift check (e.g. in the
-  mini health job) must reuse this logic rather than rolling its own `diff`.
+- **Next**: the profile-aware generator fix (Task 13 of
+  `docs/plans/2026-07-31-distribution-profiles-plan.md`) is **no longer planned** —
+  Phase 2 (Tasks 11–16) was descoped (`ops` register R43) when the profiles
+  program closed at Phase-1 measurement scope (spec revision 16, 2026-08-15). The
+  behavior is intact: `gen_harness_adapters.py` still links
+  `.claude/skills -> ../skills` (whole-catalog project promotion) and
+  `.agent/skills -> ../skills` (dead output — read by neither harness). Two
+  independent, much smaller fixes remain if pursued: drop `.agent` from
+  `HARNESS_DIRS` to delete the dead link, and gate or remove the wholesale
+  `.claude/skills` link. The measurement half (`scripts/profiles/`) already ships,
+  so any fix is the refusal, not the arithmetic.
+- **Revisit when**: a `.claude/skills` link is observed degrading a 200k-window
+  session — the only configuration where this currently costs anything; the
+  operator's 1M-window sessions stay inside budget. The `.agent/skills`
+  dead-output cleanup can be done anytime as standalone hygiene.
 
 ### dojo has 47 script entrypoints and no front door for the human-run ones
 - **What**: repo-level tooling a person invokes is reachable only by full path
@@ -234,80 +213,6 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   frontmatter plus `description_trigger_ready`, with `context_budget` still advisory.
   Re-evaluate `first-principles` against it — it is 1,683 words largely because
   `workflow` gave it anchors to fill.
-
-### write-spec/write-plan: make high-risk validation incrementally adoptable for legacy artifacts
-- **What**: adding `risk_profile: high` / `readiness` to a mature legacy spec or
-  plan currently activates the entire new-contract gate at once. A pre-existing
-  accepted artifact without `SC-NN` / `EV-*-NN` IDs must be retrofitted wholesale
-  before the validator will accept even a narrow high-risk amendment.
-- **Why it matters**: the conditional high-risk YAML is supposed to let existing
-  workflows adopt stronger authority/evidence/readiness checks where they matter.
-  An all-or-nothing migration encourages agents to omit the metadata entirely—the
-  opposite of progressive, risk-adaptive adoption.
-- **Next**: make ID enforcement conditional without weakening new contracts:
-  require full `SC`/`EV` closure when an ID-bearing schema/version is declared or
-  any contract IDs exist, while allowing a high-risk legacy artifact to use named
-  contract surfaces plus all other authority, failure-window, evidence, and
-  readiness gates. Add fixtures for (1) a new ID-based high-risk spec/plan, (2) a
-  legacy no-ID artifact receiving a high-risk amendment, and (3) partial-ID input
-  that must fail rather than silently downgrade.
-
-### write-plan/test-strategy: high-risk proof can name the right artifact while leaving the property mutable
-- **What**: the high-risk workflow asks for authority maps, evidence lifecycle,
-  side-effect windows, recovery, partial rollout, and effective-runtime probes,
-  but it does not force three distinctions that decide whether those sections
-  are evidence or labels:
-  1. **Identity is not capture.** Hashing or naming live inputs does not prove a
-     later verifier, reviewer, or publisher consumed those bytes. The plan must
-     name the freeze/copy/revalidation barrier between producer and every
-     consumer, including mutation and inode/symlink swaps between phases.
-  2. **“Idempotent” is not recovery.** A transition spanning a durable artifact,
-     remote/local effect, outcome ledger, and lifecycle move needs persisted
-     intent, effect order, receipts, and a reconciler for every crash point. The
-     adjective alone hides the same partial-failure window the section is meant
-     to expose.
-  3. **Policy fixtures are not network-boundary proof.** A loopback server or
-     injected dialer can prove parsing and refusal logic, but not that production
-     connected to the public address it validated. Network authority needs the
-     observed peer from the real transport plus a fixed public end-to-end
-     control; the subject's requested URL is not the peer.
-- **Why or evidence**: surfaced 2026-08-11 while planning evidence-grounded
-  validation in tokenmaxxing. A structurally valid high-risk plan traced every
-  contract ID and carried all required readiness tables, yet an adversarial
-  closure review still found (a) roles reading live report/diff/transcript paths
-  after their generation hash was computed, (b) publication/lifecycle/outcome
-  effects described as idempotent with no durable executor, and (c) an SSRF test
-  design whose allowed “public” request terminated at a loopback fixture. The
-  same review found activation before declaration/recovery/inspection consumers;
-  this is the topology form of the issue: enforcement cannot flip until its
-  producer, recovery, and operator paths exist. These are reusable risks in
-  migrations, queues, deployment controllers, auth systems, evidence pipelines,
-  and any workflow that crosses mutable or remote state.
-- **Existing guidance that is already sufficient**: do not widen `write-spec`
-  for the initial contract revisions. Its high-risk protocol already requires
-  actor authority, indirect forbidden paths, unsupported-policy behavior,
-  partial failure, retry, concurrency, and adversarial closure; those misses
-  were failures to apply the guidance, and the required critique loop caught
-  them. Likewise, the existing effective-runtime/host-observer rule already
-  rejects prompt compliance as authority proof. The gap is the more specific
-  proof obligation above, not another tokenmaxxing/Agy checklist.
-- **Next / ownership split**:
-  - `write-plan/references/high-risk-readiness.md`: add a compact “prove the
-    handoff” check for mutable evidence (capture/revalidate), multi-effect
-    transitions (intent/order/receipt/reconcile), and activation topology (no
-    default-on enforcement before declaration, recovery, and operator
-    consumers). Require the plan critic to attack each distinction explicitly.
-  - `test-strategy/references/authority-boundary-testing.md`: for network
-    boundaries, separate deterministic policy tests, actual connected-peer
-    observation, and a public end-to-end control; prohibit claiming a loopback
-    fixture proves public-destination enforcement.
-  - `write-spec`: no change from this incident unless another run shows the
-    mechanism-free authority/recovery questions themselves are absent rather
-    than skipped.
-  Add skill-eval fixtures where a polished plan says “digest-bound” without a
-  capture barrier, “idempotent” without a reconciler, flips enforcement before
-  recovery exists, or labels a loopback transport “public”; each should be
-  rejected by critique even when structural validation passes.
 
 ### research-architect: remaining deferred tooling
 - **What**: `scripts/diff_runs.py` and `references/rubric-library.md` remain

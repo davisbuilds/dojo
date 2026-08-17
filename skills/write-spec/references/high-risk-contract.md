@@ -25,6 +25,18 @@ outcomes, and proof scenarios, never files or implementation order.
 The scenarios name outcomes and actors, not test files, shell mechanics, or the
 implementation seam. `write-plan` chooses those.
 
+## Incremental Adoption for Legacy Contracts
+
+A mature contract that predates stable IDs may adopt `risk_profile: high` without
+retrofitting every criterion and scenario at once. When the artifact carries no
+`SC-NN` or `EV-*-NN` IDs, the validator accepts named success criteria and named
+scenario coverage; every other gate — the required headings, authority-and-safety
+content, and readiness closure — still applies. This is a migration affordance,
+not a lower bar: prefer full IDs for new contracts, and once *any* ID appears the
+full class discipline is enforced, so a partial retrofit fails rather than
+downgrading. The critique still judges whether the named surfaces actually cover
+each authority, negative, recovery, concurrency, and legacy class.
+
 ## Readiness Review
 
 Keep `readiness: draft` while running:
