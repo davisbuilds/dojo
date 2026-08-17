@@ -29,8 +29,14 @@ invent a project's helper names; cite the ones actually present.
 
 - **Catch specific exceptions.** `except Exception:` (or bare `except:`) is a
   code smell; name the expected exceptions and let the rest propagate.
-- **Preserve the chain.** Re-raise with `raise NewError(...) from exc` so the
-  original traceback survives; `raise NewError(...)` alone erases the cause.
+- **Make the cause explicit.** Re-raising inside an `except` preserves the
+  original traceback either way (Python sets `__context__` automatically and
+  prints "During handling of the above exception..."). `raise NewError(...) from
+  exc` additionally sets `__cause__`, stating the link deliberately rather than
+  incidentally — prefer it for clarity, but do **not** flag a plain re-raise as
+  losing the traceback. A real finding here is `raise NewError(...)` with the
+  original swallowed (not re-raised at all), or `raise ... from None` that
+  suppresses the context on purpose without justification.
 - **Log with context, then decide.** Use the `logging` module (`logger.exception`
   inside an `except` captures the traceback); do not `logging.error(str(e))`,
   which drops the stack.

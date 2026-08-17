@@ -70,9 +70,16 @@ Is it actually impossible to construct or mutate into an invalid instance?
   `__post_init__` so an invalid instance cannot be built.
 - **Enums** for closed sets instead of string constants.
 - `typing.NewType` for primitive obsession (`UserId = NewType('UserId', int)`).
-- Keep fields private (`_field`) and expose invariant-preserving properties;
-  avoid handing back mutable internal `list`/`dict` references (return a copy or
-  an immutable view).
+- Enforce, don't just signal. A leading underscore (`_field`) is a *convention*
+  only — it stays externally writable (`obj._field = value`), so a property that
+  guards the invariant can be bypassed directly. For real enforcement prefer
+  immutability (`frozen=True`), or expose read-only properties with **no** setter
+  and validate every mutation through methods; treat a mutable dataclass whose
+  invariant rests on `_underscore` discipline as an enforcement gap, not
+  encapsulation. Double-underscore name-mangling (`__field`) raises the bar
+  slightly but is still reachable via `_Class__field`.
+- Avoid handing back mutable internal `list`/`dict` references (return a copy or
+  an immutable view), or a caller mutates the type's state behind its back.
 
 ### General
 The best invariant is the one the type system enforces at compile time; the next
