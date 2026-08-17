@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -9,10 +11,19 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = REPO_ROOT / "scripts" / "generate_skills_manifest.py"
+CATALOG_SCRIPT_PATH = REPO_ROOT / "scripts" / "gen_catalog.py"
 
 
 def load_manifest_module():
     spec = importlib.util.spec_from_file_location("generate_skills_manifest", SCRIPT_PATH)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_catalog_module():
+    spec = importlib.util.spec_from_file_location("gen_catalog", CATALOG_SCRIPT_PATH)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
@@ -191,6 +202,83 @@ def test_check_manifest_reports_missing_output(tmp_path: Path, capsys: pytest.Ca
 
     captured = capsys.readouterr()
     assert "does not exist" in captured.err
+
+
+def test_generate_manifest_skips_catalog_without_a_path(tmp_path: Path) -> None:
+    module = load_manifest_module()
+    skills_root = tmp_path / "skills"
+    skills_root.mkdir()
+    write_skill(skills_root, "alpha", "name: alpha\ndescription: First skill\nversion: 1.0.0\n")
+    catalog_path = tmp_path / "catalog.html"
+
+    module.generate_manifest(skills_root, tmp_path / "skills.json")
+
+    assert not catalog_path.exists()
+
+
+def test_generate_manifest_refreshes_catalog_when_path_given(tmp_path: Path) -> None:
+    module = load_manifest_module()
+    catalog_module = load_catalog_module()
+    skills_root = tmp_path / "skills"
+    skills_root.mkdir()
+    write_skill(skills_root, "alpha", "name: alpha\ndescription: First skill\nversion: 1.0.0\n")
+    catalog_path = tmp_path / "catalog.html"
+
+    manifest = module.generate_manifest(
+        skills_root, tmp_path / "skills.json", catalog_path=catalog_path
+    )
+
+    assert catalog_path.read_text(encoding="utf-8") == catalog_module.build_page(manifest)
+
+
+def test_manifest_cli_refreshes_catalog_alongside_manifest(tmp_path: Path) -> None:
+    skills_root = tmp_path / "skills"
+    skills_root.mkdir()
+    write_skill(skills_root, "alpha", "name: alpha\ndescription: First skill\nversion: 1.0.0\n")
+    manifest_out = tmp_path / "skills.json"
+    catalog_out = tmp_path / "catalog.html"
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT_PATH),
+            str(skills_root),
+            str(manifest_out),
+            "--catalog",
+            str(catalog_out),
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    manifest = json.loads(manifest_out.read_text(encoding="utf-8"))
+    assert catalog_out.read_text(encoding="utf-8") == load_catalog_module().build_page(manifest)
+
+
+def test_manifest_cli_no_catalog_flag_skips_refresh(tmp_path: Path) -> None:
+    skills_root = tmp_path / "skills"
+    skills_root.mkdir()
+    write_skill(skills_root, "alpha", "name: alpha\ndescription: First skill\nversion: 1.0.0\n")
+    manifest_out = tmp_path / "skills.json"
+    catalog_out = tmp_path / "catalog.html"
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT_PATH),
+            str(skills_root),
+            str(manifest_out),
+            "--catalog",
+            str(catalog_out),
+            "--no-catalog",
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    assert not catalog_out.exists()
 
 
 def test_generate_manifest_exits_when_skills_directory_is_missing(

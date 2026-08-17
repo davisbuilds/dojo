@@ -41,13 +41,9 @@ if [[ ! -f "$GENERATOR" ]]; then
   exit 0
 fi
 
-# Regenerate silently — errors are non-blocking
+# Regenerate silently — errors are non-blocking. The manifest generator also
+# refreshes the browseable catalog (docs/catalog/index.html) from the same
+# manifest, so it never drifts and needs no separate call here.
 python3 "$GENERATOR" >/dev/null 2>&1
-
-# Regenerate the browseable catalog from the refreshed manifest (non-blocking)
-CATALOG="$REPO_ROOT/scripts/gen_catalog.py"
-if [[ -f "$CATALOG" ]]; then
-  python3 "$CATALOG" >/dev/null 2>&1
-fi
 
 exit 0

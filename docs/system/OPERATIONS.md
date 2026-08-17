@@ -97,11 +97,13 @@ python skills/skill-creator/scripts/generate_openai_yaml.py <path/to/skill-folde
 ### Regenerate manifest
 
 ```bash
-python scripts/generate_skills_manifest.py          # write
-python scripts/generate_skills_manifest.py --check  # verify no drift (CI)
+python scripts/generate_skills_manifest.py          # write manifest + refresh catalog
+python scripts/generate_skills_manifest.py --check  # verify manifest drift (CI)
 ```
 
 The top-level `skills.json` `version` is the manifest schema version. Each skill entry also includes the per-skill release `version` declared in SKILL.md frontmatter.
+
+The write path also refreshes the browseable catalog (`docs/catalog/index.html`), which is derived entirely from `skills.json`, so the two never drift after a manual regen. Pass `--no-catalog` to skip it, or `--catalog <path>` to target a different file; `gen_catalog.py --check` remains the catalog's own CI drift gate.
 
 ### Check skill release versions
 
