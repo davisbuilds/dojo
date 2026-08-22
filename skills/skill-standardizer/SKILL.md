@@ -2,7 +2,7 @@
 name: skill-standardizer
 description: Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.
 skill-type: workflow
-version: 1.3.1
+version: 1.3.2
 ---
 
 # Skill Standardizer
