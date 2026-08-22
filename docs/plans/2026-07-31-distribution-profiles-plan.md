@@ -33,9 +33,10 @@ Delivered as the two phases the spec's Handoff mandates:
 - **Phase 2 — apply** (Tasks 11–16). SC-07, SC-08, SC-13, migration under SC-09,
   and the EV-REC and EV-CON scenarios. **Descoped 2026-08-14 (spec revision 15) —
   not built, not owed.** Remediation proved to be a rare, small, by-hand action
-  (R38, R41); the staged applicator's locking/concurrency/recovery machinery is
-  disproportionate to it, and governance is carried by Phase 1 measurement plus
-  ops-side monitoring. Tasks 11–16 remain below as the plan an applicator would
+  (the six-skill global cut and the CLI version-skew fix); the staged
+  applicator's locking/concurrency/recovery machinery is disproportionate to
+  it, and governance is carried by Phase 1 measurement plus deployment-specific
+  monitoring. Tasks 11–16 remain below as the plan an applicator would
   follow if one is ever built.
 
 Acceptance closes at Phase 1. Every Phase 1 `Done When` traces to a spec success
@@ -43,13 +44,14 @@ criterion or evaluation scenario; the Traceability table below is exhaustive in
 both directions. Phase 2 tasks are retained for reference and are not gating.
 
 **Closed at shipped scope 2026-08-15 (spec revision 16).** Tasks 0–5A and 9
-shipped and are the deliverable, together with the weekly `mini-health` drift
+shipped and are the deliverable, together with recurring machine-side drift
 checks and `docs/project/GLOBAL-SKILL-MEMBERSHIP.md`. Within Phase 1, **Tasks
 6–8 are descoped, not delivered**: Task 8 (`dojo profiles verify --all`) because
 a single entrypoint would only wrap a measurement the audit repeatedly proved
-could be wrong; Task 7 (cross-machine comparison) because `ops` register R42
-ships it; Task 6 (routing-coverage fixtures) because it is test polish. Task 10's
-standing position lives in `GLOBAL-SKILL-MEMBERSHIP.md`. Recorded as `ops` R44.
+could be wrong; Task 7 (cross-machine comparison) because scheduling, transport,
+and host reachability are deployment integrations while Task 5 already emits
+portable evidence; Task 6 (routing-coverage fixtures) because it is test polish.
+Task 10's standing position lives in `GLOBAL-SKILL-MEMBERSHIP.md`.
 
 ## Scope
 
@@ -90,9 +92,8 @@ standing position lives in `GLOBAL-SKILL-MEMBERSHIP.md`. Recorded as `ops` R44.
   reproducible). Adjudicating it is an *output* of phase 1 (Task 10), never an
   input. No task's `Done When` quotes a percentage of budget as an expected
   value; they assert relations the verifier computes at verify time.
-- **Measure the listing, not the filesystem.** This error has recurred four times
-  in this program (ops `audits/dojo-skill-catalog-audit-2026-07-31.md`,
-  "Verification addendum", C-1 and C-3). The filesystem scan supplies *candidate*
+- **Measure the listing, not the filesystem.** Prior measurements repeatedly got
+  this wrong. The filesystem scan supplies *candidate*
   membership; the harness model decides which candidates are actually listed and
   at what cost. `~/.claude/plugins/cache/openai-templates` ships 20 skills that
   appear in no live listing and cost nothing — the model must exclude them, and
@@ -233,8 +234,8 @@ the state a profile would govern:
    is `skill_standardizer_lib.py:649`, `if enforce_mirror and not only_existing:`
    — it proposes creating every canonical skill missing from each `global-*`
    root. `--only-existing` (line 100) is intersection-only and *structurally
-   cannot change membership*; `--enforce-mirror` (line 85) can, and did on
-   2026-07-31 (ops register R18). Documented as a runbook in
+   cannot change membership*; `--enforce-mirror` (line 85) can change
+   membership. Documented as a runbook in
    `skills/skill-standardizer/SKILL.md:156-169` and
    `skills/skill-standardizer/commands/standardize-skills.md:29-32`.
 3. **`skills/skill-installer/scripts/install-skill-from-github.py`** —
@@ -1335,8 +1336,8 @@ Task 0, Task 4, Task 5
    control experiment — google-drive disabled in config, all five skills still
    listed.
 7. Commit `codex-tui-clipped.json` as a fixture, **derived from what the parser
-   consumes** and redacted per R30: root table plus entry lines only, home
-   pseudonymised byte-length-identically, no other project's skills.
+   consumes** and redacted for a public repository: root table plus entry lines
+   only, home pseudonymised byte-length-identically, no other project's skills.
 8. **Derive the limit by saturation.** Add `observed_limit_tokens` to a Codex
    policy, computed as the total (entry cost + alias table) of a render known to
    be clipped. Require **two** saturating renders with different entry counts
@@ -1573,12 +1574,11 @@ Task 5
 
 - Run: `.venv/bin/python -m pytest tests/test_profiles_compare.py -q`
 - Expect: all pass.
-- Run (live, read-only): generate evidence on this host, copy the mini's evidence
-  file in over `scp`, then
-  `.venv/bin/python scripts/profiles/compare.py macbook.json mini.json`
+- Run (live, read-only): generate evidence independently on two targets, transfer
+  one file through deployment-approved transport, then
+  `.venv/bin/python scripts/profiles/compare.py host-a.json host-b.json`
 - Expect: `agreement: true` on the 31 canonical names and content identities,
-  with `microsoft-foundry` listed under explicit differences only if the two
-  hosts' foreign sets differ (they currently do not).
+  with any foreign-entry differences reported explicitly rather than as drift.
 
 **Test Discovery Verified**
 
@@ -1831,8 +1831,8 @@ Task 8
    `global-codex` targets and against the `full` composition.
 2. Reproduce both historical estimators in a one-off analysis: the one that
    scored name + description only, and the one that included the
-   `(file: {path})` suffix. The ops audit addendum already identifies the ~8%
-   gap between them as the path term; confirm or refute that as the sole cause.
+   `(file: {path})` suffix. The working hypothesis is that the ~8% gap came from
+   the path term; confirm or refute that as the sole cause.
 3. Write the measurement note: the verifier's figure, the two prior figures, the
    identified cause of the divergence, and which prior pass was wrong and why.
    State every figure as a dated measurement with its estimator named.
@@ -1869,9 +1869,10 @@ mutation authority. —**
 
 > **Phase 2 (Tasks 11–16) descoped 2026-08-14 (spec revision 15).** Not built,
 > not owed. The applicator automates a rare, small remediation that has been
-> handled by hand (R38, R41); its locking/concurrency/recovery machinery is
-> disproportionate to that, and `ops` register D6 (cross-machine drift) is
-> discharged by ops-side checks rather than by a profiles applicator. The tasks
+> handled by hand (the six-skill global cut and the CLI version-skew fix); its
+> locking/concurrency/recovery machinery is disproportionate to that, and
+> cross-target drift is handled by deployment-specific checks rather than by a
+> profiles applicator. The tasks
 > below are kept as the plan an applicator would follow if one is ever built —
 > reference only, not gating acceptance.
 
@@ -2434,12 +2435,13 @@ Task 12, Task 13, Task 14
 
 ---
 
-### Task 16: Documentation and register closure
+### Task 16: Documentation and program closure
 
 **Objective**
 
 Bring the doc set in line with shipped behavior, per this repo's "keep docs
-current" agreement, and close the ops register entries phase 1 unblocked.
+current" agreement, and document the Phase 1 closure in public project
+references.
 
 **Files**
 
@@ -2480,9 +2482,9 @@ Task 15
 5. Move both completed BACKLOG entries into `ROADMAP.md`'s timeline per the
    repo's backlog-hygiene convention (backlog is future-only), leaving BACKLOG
    entries only for anything genuinely deferred.
-6. Note in the handoff report — not in a repo file — that ops register D6 is
-   unblocked by phase 1 and R20 can be closed; the register lives in a separate
-   repo and this plan does not modify it.
+6. Record in the handoff that Phase 1 supplies portable evidence for
+   deployment-specific drift monitors; no external repository changes are part
+   of this plan.
 
 **Verification**
 
@@ -2668,7 +2670,7 @@ Every SC-01…SC-13 and every EV scenario in the spec, in both directions.
 | `profiles/policies/codex.yaml` | Maintainer, from vendor source at `f57467275c` | Task 3 | "The limit is `window*2/100` **tokens**, estimator `ceil(bytes/4)`" | Budget evaluation, evidence, applicator refusal | Stale on fingerprint or vendor revision change |
 | `profiles/policies/claude-code.yaml` | Maintainer, from bundle v2.1.220 constants | Task 3 | "The limit is `context_tokens*4*fraction` **characters**, no token conversion, for this model" | Budget evaluation, evidence, applicator refusal | Stale on bundle version, settings-key, **or model** change |
 | `profiles/*.yaml` | Canonical maintainer | Task 1 | "This is the reviewed intended membership" | Resolver, verifier, applicator, all three guarded entrypoints | Any edit changes profile identity and invalidates prior evidence |
-| `evidence` JSON | `dojo profiles verify` | Tasks 5, 8 | "This target conforms / drifts, at this cost against this limit" | Task 7 comparison, ops register D6 drift monitor | Invalid on change to definitions, canonical content, target state, harness version, or policy |
+| `evidence` JSON | `dojo profiles verify` | Tasks 5, 8 | "This target conforms / drifts, at this cost against this limit" | Task 7 comparison, deployment-specific drift monitors | Invalid on change to definitions, canonical content, target state, harness version, or policy |
 | `<target>/.dojo-profiles/realization.json` | Applicator | Task 12 | "This target holds this realization identity" | `gen_harness_adapters.py`, `sync.py`, installer guards; idempotence check | Invalid when observed state diverges from the recorded identity |
 | Predecessor manifest + copy | Applicator | Task 12 | "This is the exact prior realization" | `restore` | Retained until a later successful commit supersedes it |
 
@@ -2906,8 +2908,8 @@ staged-applicator decision survived unchanged.*
 
 1. Execute in this session, task by task — Task 0 first; it is a stop gate.
 2. Review the plan with a critique subagent (or `verify-before-complete` inline
-   if subagents are unavailable), seeded with this plan, the spec, and the ops
-   harness-decision register.
+   if subagents are unavailable), seeded with this plan, the spec, and the
+   public standing membership record.
 3. Open a separate execution session, or refine this plan first.
 
 **Before execution begins**, settle the single contract question recorded under

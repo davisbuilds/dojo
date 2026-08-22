@@ -336,6 +336,7 @@ it, so they are watched there instead:
 python3 scripts/profiles/drift_check.py            # report against the baseline
 python3 scripts/profiles/drift_check.py --update   # accept the current state
 python3 scripts/profiles/drift_check.py --json     # machine-readable
+python3 scripts/profiles/drift_check.py --uncontrolled-as-notice  # health mode
 ```
 
 It compares the newest `codex-tui` rollout against a recorded baseline (default
@@ -345,6 +346,14 @@ underivable ceiling, saturation starting or stopping, changes to the listed and
 uncontrolled entry **multisets**, and charged demand moving under unchanged
 membership. Exit `0` clean, `1` cannot evaluate, `2` drift, `3` blind too long,
 `4` saturated.
+
+The default remains strict. `--uncontrolled-as-notice` exits `0` with
+`state: notice` only when the same-build, non-saturated transition is entirely
+vendor/account membership churn and the controlled catalog, surface, ceiling,
+and saturation state are unchanged. Exact findings remain in the report;
+build, controlled membership, ceiling, and saturation changes remain failures.
+This mode is intended for machine-health wrappers, where packaging churn is
+observable without declaring the workstation unhealthy.
 
 It **fails closed**: no rollout, an unparseable one, a missing baseline, or
 degraded origin classification all report *cannot evaluate*, never clean — a
@@ -382,9 +391,10 @@ It runs in two places, because neither alone is enough:
   reported once and then accepted, so a Codex upgrade does not nag every session.
   Saturation is deliberately exempt from that debounce — the clipped listing it
   describes is the one the session is about to run with.
-- **Scheduled** from the `ops` weekly `mini-health.sh` job, which is the surface
-  that can tell "quiet this week" from "never" and so carries
-  `--max-blind-days`.
+- **Scheduled** from a deployment's recurring machine-health wrapper, which can
+  tell "quiet this week" from "never" and so carries `--max-blind-days`. Such a
+  wrapper can also opt into `--uncontrolled-as-notice`; the interactive hook
+  stays strict.
 
 Baselines are stored per working directory because a listing is not a property of
 the machine alone: Codex loads a project's own `.agents/skills` on top of the
@@ -406,12 +416,13 @@ is knowable from that listing alone, so a missing baseline reports saturation
 would be the same silence by another door, because the scheduled wrapper treats
 it as a pass.
 
-The `ops` weekly `mini-health.sh` job runs it with `--update`, so a change is
+A recurring health wrapper should run it with `--update`, so a change is
 reported once and then accepted as the new normal; without that, one Codex
-upgrade would re-report the same drift every week until someone silenced the
-job. Saturation is deliberately outside that debounce — `--update` settles what
-to compare against next time, and says nothing about whether the sample was
-healthy.
+upgrade would re-report the same drift every cycle until someone silenced the
+job. Notice mode changes only the severity of uncontrolled packaging churn, not
+the saved evidence. Saturation is deliberately outside that debounce —
+`--update` settles what to compare against next time, and says nothing about
+whether the sample was healthy.
 
 ## Hook Configuration
 

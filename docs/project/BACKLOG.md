@@ -99,7 +99,7 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
     and measurably disjoint. That argues for the catalog, not a memory.
   - **Stale local branches after remote deletion**, and the `pulldevmain` blocked
     -checkout case (a repo left on a feature branch silently stops receiving
-    updates — observed 2026-07-27 for `pmalpha`).
+    updates — observed 2026-07-27 in an active consumer repository).
 - **Why it matters**: these are exactly the "safe to do, easy to get wrong, rarely
   done" operations that earn a skill. The failure mode is not a bad commit, it is
   a silently closed PR or a repo that quietly stops syncing.
@@ -138,8 +138,8 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   instructions block rather than only the skill lines, overstating by ~2 points.
 - **Next**: the profile-aware generator fix (Task 13 of
   `docs/plans/2026-07-31-distribution-profiles-plan.md`) is **no longer planned** —
-  Phase 2 (Tasks 11–16) was descoped (`ops` register R43) when the profiles
-  program closed at Phase-1 measurement scope (spec revision 16, 2026-08-15). The
+  Phase 2 (Tasks 11–16) was descoped when the profiles program closed at Phase-1
+  measurement scope (spec revision 16, 2026-08-15). The
   behavior is intact: `gen_harness_adapters.py` still links
   `.claude/skills -> ../skills` (whole-catalog project promotion) and
   `.agent/skills -> ../skills` (dead output — read by neither harness). Two

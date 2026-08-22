@@ -27,7 +27,8 @@ Design rules carried from the rest of this package:
 - **A ceiling belongs to one build.** Samples are never pooled across builds, and
   a build change is itself reportable drift.
 
-Exit: 0 no drift, 1 cannot evaluate, 2 drift detected, 3 blind too long
+Exit: 0 no drift (or an opted-in uncontrolled-membership notice),
+1 cannot evaluate, 2 drift detected, 3 blind too long
 (with --max-blind-days: the check has not managed to evaluate in that many
 days, so it is reporting healthy while watching nothing), 4 saturated (the
 listing is clipping right now, whether or not anything changed).
@@ -55,7 +56,7 @@ from profiles import rollout_codex as rc  # noqa: E402
 
 # Machine-local by default and deliberately outside the repository: a baseline
 # records absolute paths and installed membership for one machine, and this
-# repository is public (R30).
+# repository is public.
 DEFAULT_BASELINE = Path.home() / ".agents" / ".dojo-profile-baseline.json"
 
 EXIT_CLEAN = 0
@@ -264,6 +265,41 @@ def compare(previous: Baseline, current: Baseline) -> list[str]:
     return findings
 
 
+def _only_uncontrolled_membership_changed(previous: Baseline,
+                                          current: Baseline) -> bool:
+    """Whether the transition is packaging churn outside local control.
+
+    Health monitors may treat this one transition as a notice. The normal drift
+    command stays strict, and any build, surface, ceiling, saturation, or
+    controlled-membership change remains drift. Charged demand may accompany
+    the uncontrolled membership delta; the observation cannot attribute it
+    more narrowly.
+    """
+    if (previous.harness_build != current.harness_build
+            or previous.surface != current.surface
+            or previous.ceiling != current.ceiling
+            or previous.saturated != current.saturated
+            or previous.saturated or current.saturated):
+        return False
+
+    before = Counter(previous.entry_ids)
+    after = Counter(current.entry_ids)
+    removed = list((before - after).elements())
+    added = list((after - before).elements())
+    if not removed and not added:
+        return False
+
+    uncontrolled = set(previous.uncontrolled_ids) | set(current.uncontrolled_ids)
+    if any(entry_id not in uncontrolled for entry_id in removed + added):
+        return False
+
+    controlled_before = Counter(
+        entry_id for entry_id in previous.entry_ids if entry_id not in uncontrolled)
+    controlled_after = Counter(
+        entry_id for entry_id in current.entry_ids if entry_id not in uncontrolled)
+    return controlled_before == controlled_after
+
+
 def _saturation_findings(obs: rc.RolloutObservation, current: Baseline) -> list[str]:
     """The standing condition, stated with the number that makes it concrete."""
     if not current.saturated:
@@ -280,7 +316,8 @@ def _saturation_findings(obs: rc.RolloutObservation, current: Baseline) -> list[
 
 
 def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
-        as_json: bool = False, max_blind_days: int | None = None) -> int:
+        as_json: bool = False, max_blind_days: int | None = None,
+        uncontrolled_as_notice: bool = False) -> int:
     errors: list[tuple[Path, str]] = []
     observations = rc.observations(
         cwd=cwd, surface=rc.SURFACE_TUI, errors=errors, limit=1)
@@ -370,6 +407,10 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
         store[observed_cwd] = current
         _write(baseline_path, store)
 
+    if findings and uncontrolled_as_notice and \
+            _only_uncontrolled_membership_changed(previous, current):
+        return outcome("notice", findings, EXIT_CLEAN)
+
     if findings:
         return outcome("drift", findings, EXIT_DRIFT)
 
@@ -421,9 +462,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-blind-days", type=int, default=None,
                         help="escalate to exit 3 when the check has been unable "
                              "to evaluate for longer than this")
+    parser.add_argument(
+        "--uncontrolled-as-notice", action="store_true",
+        help="exit 0 while still reporting a transition limited to vendor or "
+             "account-synced membership; build, saturation, ceiling, and "
+             "controlled drift remain failures")
     args = parser.parse_args(argv)
     return run(args.baseline, cwd=args.cwd, update=args.update,
-           as_json=args.as_json, max_blind_days=args.max_blind_days)
+           as_json=args.as_json, max_blind_days=args.max_blind_days,
+           uncontrolled_as_notice=args.uncontrolled_as_notice)
 
 
 if __name__ == "__main__":

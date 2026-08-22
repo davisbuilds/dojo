@@ -449,9 +449,9 @@ def build_audit_report(
             # against the current canonical name, versus author the file. They
             # were reported identically, under a message that is simply untrue
             # of the first: there is no directory to be missing anything. The
-            # case that prompted it was a project-scoped
-            # `habits-ai/.claude/skills/compact-session` pointing at a skill
-            # that exists in neither canonical nor any global root.
+            # case that prompted it was a project-scoped `compact-session`
+            # link pointing at a skill that exists in neither canonical nor
+            # any global root.
             entry_path = inv.root.path / name
             dangling = entry_path.is_symlink() and not entry_path.exists()
             add_issue(

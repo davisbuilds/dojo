@@ -892,26 +892,26 @@ budget checks, not an unresolved behavioral decision.
   CLI is dropped.** Operator decision, `status: complete`. What ships is the
   deliverable: the read-only measurement stack under `scripts/profiles/`
   (probes, definitions, resolution, budget policy, rollout-authoritative
-  observation, byte-identical evidence), the Phase-1 CI gate, the weekly
-  `mini-health` drift checks, and the standing membership decision in
+  observation, byte-identical evidence), the Phase-1 CI gate, recurring
+  machine-side drift checks, and the standing membership decision in
   `docs/project/GLOBAL-SKILL-MEMBERSHIP.md`. Three Phase-1 tasks are **descoped,
   not delivered**: Task 8 (`dojo profiles verify --all`) because a single
   entrypoint would only wrap a measurement the audit repeatedly proved could be
   wrong — it solves no measurement-correctness problem, which was the whole
-  difficulty; Task 7 (cross-machine comparison) because `ops` register R42
-  delivers it as declared, fail-closed SSH checks; Task 6 (routing-coverage
-  fixtures) because it is test polish, not a governance capability. Task 10's
-  standing position is carried by `GLOBAL-SKILL-MEMBERSHIP.md` plus the register.
-  Recorded as `ops` R44. This is the program's formal close, not an assertion
-  that every original task landed.
+  difficulty; Task 7 (cross-target comparison) because scheduling, transport,
+  and host reachability are deployment integrations while Task 5 already emits
+  portable evidence for comparison; Task 6 (routing-coverage fixtures) because
+  it is test polish, not a governance capability. Task 10's standing position
+  is carried by `GLOBAL-SKILL-MEMBERSHIP.md`. This is the program's formal
+  close, not an assertion that every original task landed.
 
 - **2026-08-14 (revision 15). Phase 2 (apply) descoped; acceptance closes at
-  Phase 1.** Operator decision. The two remediations the program ran — R38's
-  six-skill machine-global cut and R41's codex-cli version-skew fix — were
+  Phase 1.** Operator decision. The two remediations the program ran — the
+  six-skill machine-global cut and the Codex CLI version-skew fix — were
   performed by hand, rarely, cheaply, and correctly. Governance of the ~26-skill
-  machine-global catalog is now carried by Phase 1's measurement plus the weekly
-  `mini-health` drift checks (installed-versus-canonical, listing stability),
-  the declared cross-machine manifests (toolchain, project-skill wiring), and a
+  machine-global catalog is now carried by Phase 1's measurement plus recurring
+  drift checks (installed-versus-canonical, listing stability), declared
+  cross-target manifests (toolchain, project-skill wiring), and a
   manual `sync.py --apply` after each merge. Against that realized problem size
   the staged applicator — realization identity, per-target locking, concurrency,
   partial-failure recovery (Tasks 11–16) — is disproportionate high-risk
@@ -919,8 +919,8 @@ budget checks, not an unresolved behavioral decision.
   SC-13, the migration half of SC-09, and the EV-REC/EV-CON scenarios move out
   of scope: retained as the contract an applicator *would* owe, no longer gating
   acceptance. This is a scope reduction, recorded as one. It also settles the
-  Phase-1-supplies-the-referent argument below: `ops` register D6 is discharged
-  by the ops-side cross-machine checks, not by a profiles applicator.
+  Phase-1-supplies-the-referent argument below: deployment-specific drift
+  monitors can consume Phase 1's declarations without a profiles applicator.
 
 - **2026-08-06 (revision 14).** **The local control is inert, and the recovered
   budget did not stay recovered.** Two controlled results.
@@ -1322,11 +1322,11 @@ because it did not exist. Phase 2 would automate an action a maintainer performs
 rarely, and is where the whole partial-failure and concurrency apparatus lives.
 
 **Acceptance closes at Phase 1 (revision 15).** The two remediations this program
-actually ran — R38's six-skill cut and R41's version-skew fix — were done by
+actually ran — the six-skill cut and the CLI version-skew fix — were done by
 hand, infrequently, cheaply, and correctly, against a machine-global catalog of
-~26 skills that is now governed by phase 1's measurement plus the weekly
-`mini-health` drift checks (installed-versus-canonical, listing stability),
-declared cross-machine manifests (toolchain, project-skill wiring), and a manual
+~26 skills that is now governed by phase 1's measurement plus recurring drift
+checks (installed-versus-canonical, listing stability), declared cross-target
+manifests (toolchain, project-skill wiring), and a manual
 `sync.py --apply` after each merge. Against that realized problem size, the
 staged applicator with its realization-identity, locking, concurrency, and
 recovery machinery is disproportionate — high-risk mutation code standing in for
@@ -1335,6 +1335,6 @@ half of SC-09, and the EV-REC/EV-CON scenarios are therefore **out of scope**:
 they define what an applicator *would* owe if one is ever built, and no longer
 gate acceptance. This is a scope reduction, recorded as one.
 
-Phase 1 also supplies the missing referent for cross-machine drift monitoring
-(`ops` register D6): a drift monitor needs a declaration of intended membership
-to compare against, and no such declaration exists until profiles do.
+Phase 1 also supplies the missing referent for cross-target drift monitoring: a
+drift monitor needs a declaration of intended membership to compare against,
+and no such declaration exists until profiles do.
