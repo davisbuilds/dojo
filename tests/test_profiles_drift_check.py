@@ -412,6 +412,37 @@ def test_a_stale_but_readable_session_still_counts_as_blind(tmp_path, capsys, mo
     assert "70d" in capsys.readouterr().out
 
 
+def test_blindness_outranks_uncontrolled_notice_and_prevents_update(
+        tmp_path, capsys, monkeypatch):
+    """Vendor churn cannot make an old observation current or healthy."""
+    import profiles.drift_check as dc
+
+    obs = rc.read_rollout(FOK45)
+    current = Baseline.from_observation(obs)
+    connector = "connector:github:yeet"
+    previous = dataclasses.replace(
+        current,
+        entry_ids=sorted(current.entry_ids + [connector]),
+        uncontrolled_ids=sorted(current.uncontrolled_ids + [connector]),
+    )
+    path = tmp_path / "baseline.json"
+    path.write_text(json.dumps({obs.meta.cwd: dataclasses.asdict(previous)}))
+    before = path.read_text()
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [obs])
+    monkeypatch.setattr(dc, "_observation_age_days", lambda o: 70)
+
+    assert dc.run(
+        path,
+        update=True,
+        max_blind_days=30,
+        uncontrolled_as_notice=True,
+    ) == dc.EXIT_BLIND
+    out = capsys.readouterr().out
+    assert "state: blind" in out
+    assert "70d" in out
+    assert path.read_text() == before, "a stale sample must not be accepted by --update"
+
+
 def test_degraded_classification_can_also_be_blind(tmp_path, capsys, monkeypatch):
     """The other bypass: the alarm returned before the threshold was consulted.
 

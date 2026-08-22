@@ -403,28 +403,37 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
                         "run with --update to record one"], EXIT_CANNOT_EVALUATE)
 
     findings = compare(previous, current)
+    notice_eligible = bool(
+        findings
+        and uncontrolled_as_notice
+        and _only_uncontrolled_membership_changed(previous, current)
+    )
+
+    # Actionable drift still outranks staleness, but a notice is explicitly the
+    # non-actionable branch. It cannot make an old sample current or healthy,
+    # and --update must not accept that stale sample into the baseline.
+    if stale and (not findings or notice_eligible):
+        relation = (
+            "It differs only in uncontrolled membership"
+            if notice_eligible
+            else "It still matches the baseline"
+        )
+        _emit(as_json, "blind",
+              [f"the newest {rc.SURFACE_TUI} session is {age}d old, past the "
+               f"{max_blind_days}d threshold. {relation}, but nothing new has "
+               "been observed: this machine is not being watched."],
+              current)
+        return EXIT_BLIND
+
     if update:
         store[observed_cwd] = current
         _write(baseline_path, store)
 
-    if findings and uncontrolled_as_notice and \
-            _only_uncontrolled_membership_changed(previous, current):
+    if notice_eligible:
         return outcome("notice", findings, EXIT_CLEAN)
 
     if findings:
         return outcome("drift", findings, EXIT_DRIFT)
-
-    # Nothing changed -- but "nothing changed" from a sample months old is the
-    # monitor reporting healthy while receiving nothing new. Drift outranks this:
-    # a stale sample that *differs* is the more actionable finding, and is
-    # returned above.
-    if stale:
-        _emit(as_json, "blind",
-              [f"the newest {rc.SURFACE_TUI} session is {age}d old, past the "
-               f"{max_blind_days}d threshold. It still matches the baseline, but "
-               "nothing new has been observed: this machine is not being watched."],
-              current)
-        return EXIT_BLIND
 
     return outcome("clean", findings, EXIT_CLEAN)
 
