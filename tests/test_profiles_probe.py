@@ -557,7 +557,7 @@ def test_utilization_never_mixes_tokens_against_a_character_limit(dojo):
         dojo.utilization(8_000, "furlongs")
 
 
-def test_fixtures_carry_no_real_machine_identity():
+def test_fixtures_carry_no_private_workspace_context():
     """This repository is public; captures are not.
 
     Probe fixtures are verbatim harness output and therefore carry absolute
@@ -568,21 +568,31 @@ def test_fixtures_carry_no_real_machine_identity():
 
     Capture a new fixture and this test fails until it is redacted.
     """
-    leaked = []
+    leaked: list[str] = []
     for path in sorted(FIXTURES.iterdir()):
         text = path.read_text()
-        for needle in ("dg-mac-mini", "claude-501"):
-            if needle in text:
-                leaked.append(f"{path.name}: {needle}")
-    assert not leaked, f"machine identity in public fixtures: {leaked}"
+        homes = set(re.findall(r"/Users/([A-Za-z0-9._-]+)", text))
+        for home in sorted(homes - {"example-dev"}):
+            leaked.append(f"{path.name}: /Users/{home}")
+        emails = set(
+            re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text)
+        )
+        for email in sorted(emails):
+            if not re.fullmatch(r"[^@]+@example\.(?:com|org|net)", email, re.IGNORECASE):
+                leaked.append(f"{path.name}: email-shaped identity")
+    assert not leaked, f"private workspace context in public fixtures: {leaked}"
 
 
-def test_no_fixture_captures_another_project():
-    """Captures from unrelated repositories publish their contents.
-
-    A `viral`-rooted capture was committed here and used by nothing; it listed
-    six skill names and full descriptions belonging to a private project. Only
-    captures rooted in this repository, or in a synthetic directory, belong.
-    """
-    for path in sorted(FIXTURES.iterdir()):
-        assert "viral" not in path.name
+def test_fixture_inventory_is_reviewed():
+    """A new capture cannot silently publish another repository's contents."""
+    expected = {
+        "claude-debug-dojo-1m-under-budget-2026-08-02.txt",
+        "claude-debug-dojo-2026-08-02.txt",
+        "claude-request-dojo-2026-08-02.json",
+        "codex-prompt-input-dojo-2026-08-02.json",
+        "codex-prompt-input-truncating-2026-08-02.json",
+        "codex-tui-clipped-110.jsonl",
+        "codex-tui-clipped-56.jsonl",
+        "codex-tui-healthy-45.jsonl",
+    }
+    assert {path.name for path in FIXTURES.iterdir()} == expected

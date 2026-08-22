@@ -9,9 +9,9 @@ This was live in fourteen skills, including the two whose whole point is a
 verification step: `write-plan` and `write-spec` told the agent to run
 `skills/write-plan/scripts/validate_plan.py docs/plans/<file>.md`, so every plan
 written outside dojo had its validator fail or be improvised around. It looked
-fine from inside dojo, which is the one place it works, and it survived in
-`habits-ai` for a different reason — that repository happened to keep a
-same-named local skills directory carrying the scripts, so the wrong path
+fine from inside dojo, which is the one place it works, and it survived in one
+consumer repository for a different reason — that repository happened to keep
+a same-named local skills directory carrying the scripts, so the wrong path
 resolved by accident.
 
 The spec's "use relative paths from the skill root" rule (`spec/agent-skills-spec.md`)
