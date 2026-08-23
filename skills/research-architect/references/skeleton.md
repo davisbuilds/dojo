@@ -94,7 +94,10 @@ get uniform shallowness. -->
 > as such. Do not invent specifics to appear complete: "unverified / not
 > public" is always a better answer than a fabricated one. Where this prompt
 > gives a number without naming a retrievable source, do not go looking for a
-> source that matches it — report it as unsourced and move on.
+> source that matches it — report it as unsourced and move on. Before using a
+> benchmark, dataset, or study as evidence for a major claim, state what it
+> measures and on what population. Treat adjacent-domain evidence as unsupported
+> unless the inference is explicitly limited to what transfers.
 
 ### A5 — Required frame check
 
@@ -135,6 +138,9 @@ check." -->
 > {{FALLBACKS}} instead — never silently substitute low-grade sources (SEO
 > listicles, content farms) for inaccessible high-grade ones. An unreachable
 > but valuable source class belongs under research gaps, not implied coverage.
+> If a source names a dataset, appendix, or download you cannot ingest, label it
+> "not ingested" and do not characterize its contents, size, structure, or
+> metadata.
 >
 > The named seeds and source classes are a starting floor, **not a ceiling**.
 > Expand into any reachable source class that meets the evidence standard,
@@ -219,7 +225,10 @@ prose into targets. Every rubric item must be checkable from the report text
 plus its citations. Examples of good items: "every quantitative claim carries a
 date and an evidence grade"; "each recommended approach names at least one
 failed or negative example"; "every repo claim cites a file path or is marked
-'not inspected'". -->
+'not inspected'". A fallback such as "or marked not found" is checkable only if
+it requires naming where the executor looked; without that cost, the item cannot
+discriminate and should be cut. Prefer rubric enforcement over a duplicate
+do-not when both encode the same requirement. -->
 
 ### A10 — Self-report
 
@@ -355,6 +364,10 @@ Fit/gap. The invariant is artifact-level traceability, not software vocabulary. 
 > sections, so reports align section-for-section. Confident specifics that
 > appear in only one model's report will be treated as hallucination candidates
 > and checked against primary sources.
+
+<!-- For multi-run prompts, include exact section-order compliance plus summary
+and self-report presence as an A9 rubric item. In the 2026-08-22 three-run merge,
+only one report preserved the full structural contract. -->
 
 ### M2 — Bibliography retention
 

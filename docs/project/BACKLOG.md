@@ -204,19 +204,19 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
 
 ### research-architect: remaining deferred tooling
 - **What**: `scripts/diff_runs.py` and `references/rubric-library.md` remain
-  deliberately deferred. (`scripts/score_report.py`, the third of the original
-  trio, shipped in 2.2.0 once two real runs justified it.)
-- **Why it matters**: Across two runs there is exactly one confirmed
-  discriminating rubric item (the per-tactic evidence floor, 2026-07-12).
-  Building a rubric library on one data point would encode guesses — the mistake
-  the deferral exists to avoid. `diff_runs.py` only pays off on multi-run plans
-  and depends on M1 section alignment holding in practice.
-- **Next**: Seed `rubric-library.md` once 2–3 more runs identify rubric items
-  that actually discriminate (items that always pass are dead weight and belong
-  in the postmortem, not the library). Build `diff_runs.py` on top of
-  `score_report.py`'s claim/citation extraction rather than duplicating it: align
-  sections by the M1 fixed order, then surface confident specifics appearing in
-  only one report as hallucination candidates.
+  deliberately deferred. (`scripts/score_report.py` shipped in 2.2.0 and gained
+  citation-coverage/applicability scoring in 2.3.0 after the third live run.)
+- **Why it matters**: Across three runs there are now two confirmed
+  discriminating rubric patterns: the per-tactic evidence floor (2026-07-12)
+  and complete benchmark metadata or an unusable verdict (2026-08-22). That is
+  still thin for a reusable library. The third run also proved manual cross-run
+  diffing valuable, but only one of three reports preserved M1's exact section
+  structure and two exports had opaque claim-to-URL linkage.
+- **Next**: Seed `rubric-library.md` after one more cross-domain run identifies
+  a reusable discriminating item. Build `diff_runs.py` only after another
+  multi-run exercise establishes a tolerant alignment strategy for missing,
+  added, and reordered sections; reuse `score_report.py`'s normalized citation
+  coverage instead of assuming every export carries direct URLs.
 
 ### skills-health: many canonical dojo skills aren't installed globally, so they're unmeasurable
 - **What**: As of 2026-07-15, 26 of 57 canonical `skills/` are installed in none

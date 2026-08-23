@@ -4,6 +4,15 @@ Observed behavior of specific executors, appended at stage 10. Read at stages
 2–4 to calibrate prompts and at stage 3 to seed scout expectations. Date every
 entry — access and behavior drift.
 
+## Index
+
+- [Claude Code terminal harness](#claude-code-terminal-harness-webfetchwebsearch--as-of-2026-07-12)
+- [Sonnet terminal executor](#sonnet-subagent-as-pipelineresearch-executor--as-of-2026-07-12)
+- [Gemini Deep Research](#gemini-deep-research-web--as-of-2026-07-12-one-full-run--verification)
+- [Claude Opus 5 web DR](#claude-opus-5-as-external-web-dr-executor--as-of-2026-08-22)
+- [GPT-5.6-sol web DR](#gpt-56-sol-as-external-web-dr-executor--as-of-2026-08-22)
+- [Gemini Flash 3.7 web DR](#gemini-flash-37-as-external-web-dr-executor--as-of-2026-08-22)
+
 ## Claude Code terminal harness (WebFetch/WebSearch) — as of 2026-07-12
 
 - X/Twitter: 402 on direct fetch. Reddit: hard-blocked on both `www` and
@@ -66,3 +75,42 @@ entry — access and behavior drift.
   base64 image data at the end of the export; strip before downstream
   processing. Citation markers are superscript numbers that survive export as
   bare digits mid-sentence.
+
+## Claude Opus 5 as external web DR executor — as of 2026-08-22
+
+- **Best primary sourcing and A10 candor of the three-run comparison.** It
+  admitted search-budget exhaustion and an unopenable dataset rather than
+  claiming full compliance.
+- **Strongest on operational specifics:** quota-exhaustion behavior, dated
+  incident history, and vendor-conceded negatives.
+- **Observed failures:** artifact-metadata date drift; selective enumeration
+  favoring its own vendor; and Recommendations/Caveats appended beyond a fixed
+  section contract. Restate structural compliance in the rubric for merge runs.
+- Export carried no retrievable claim-to-URL mapping, so the citation worksheet
+  must classify it as opaque and require manual mapping or a better export.
+
+## GPT-5.6-sol as external web DR executor — as of 2026-08-22
+
+- **Most methodologically skeptical of the three.** It downgraded the strongest
+  benchmark with six stated reasons, caught a model mismatch in the compaction
+  probe, and refused unsupported comparative rankings.
+- Parses an attached brief into an extracted-requirements table, providing a
+  useful compliance signal. Numeric confidence was calibrated, and it volunteered
+  the desk-research-only limitation.
+- **Observed failures:** artifact-metadata drift, verbosity, missing top-level
+  sections, and opaque `citeturn...` markers after export. Obtain a link-preserving
+  export or map citations manually before scoring.
+
+## Gemini Flash 3.7 as external web DR executor — as of 2026-08-22
+
+- **Highest surface polish, lowest reliability in this comparison.** All three
+  refuted claims were its: an inverted compaction result, doubled task count, and
+  a real benchmark imported from an unrelated domain with the magnitude changed.
+- Confidence was anti-correlated with accuracy: it rated the most-wrong section
+  High and omitted A10(c).
+- Structural/export failures extended the 2026-07-12 profile: invalid requested
+  summary shape, appended Works cited list, bare-digit markers, and a broken
+  base64 image reference.
+- **Routing:** do not use this executor alone for verification-heavy questions.
+  It can serve as an adjudicative run only when Stage 8 independently verifies
+  every claim used downstream.

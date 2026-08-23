@@ -1,3 +1,23 @@
+## 2.3.0 - 2026-08-23
+
+Acts on the 2026-08-22 coding-harnesses postmortem (three-run web DR merge).
+
+- **A4 checks domain and population fit** before a benchmark, dataset, or study
+  supports a major claim; real sources imported from adjacent domains no longer
+  pass merely because they exist.
+- **A6 forbids characterizing un-ingested artifacts**, including contents,
+  size, structure, and metadata. Two executors invented contradictory specifics
+  about the same ZIP after admitting they could not open it.
+- **A9 rejects costless rubric escape hatches**, and M1 merge runs put exact
+  section order plus summary/self-report presence into the shipped rubric.
+- **Stage 8 separates source support from applicability** and treats self-
+  reported confidence as candor evidence rather than correctness evidence.
+- **`score_report.py` classifies citation coverage** as direct, resolvable,
+  opaque, or absent; resolves numbered bibliographies; refuses false hit rates
+  on blind exports; and reports support, domain-fit, and usable-citation rates.
+- Add dated profiles for Claude Opus 5, GPT-5.6-sol, and Gemini Flash 3.7 as
+  external web DR executors.
+
 ## 2.2.2 - 2026-08-14
 
 - Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout
