@@ -37,7 +37,7 @@ MARKDOWN_LINK_RE = re.compile(r"\[(?P<text>[^\]]*)\]\((?P<url>https?://[^\s)]+)\
 BARE_URL_RE = re.compile(r"\bhttps?://[^\s<>\]]+")
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=[A-Z(\[])")
 OPAQUE_CITATION_RE = re.compile(r"(?:cite|filecite)[^]+")
-NUMERIC_CITATION_RE = re.compile(r"(?<=[A-Za-z)\]])(?P<number>\d{1,3})(?=[.,;:]|\s|$)")
+BRACKETED_CITATION_RE = re.compile(r"\[(?P<number>\d{1,3})\]")
 HEADING_RE = re.compile(r"^\s*#{1,6}\s+(?P<title>.+?)\s*$", re.MULTILINE)
 NUMBERED_REFERENCE_RE = re.compile(r"^\s*(?:>\s*)?(?P<number>\d+)\.\s+(?P<body>.+)$")
 
@@ -96,8 +96,10 @@ def numbered_reference_urls(text: str, start: int) -> dict[str, str]:
 def extract_citations(text: str) -> list[dict]:
     """Resolvable claim citations in document order, as C1..Cn.
 
-    Direct links are read from the report body. Numeric markers are resolved
-    through a numbered bibliography when the export preserves that mapping.
+    Direct links are read from the report body. Explicit ``[n]`` markers are
+    resolved through a numbered bibliography when the export preserves that
+    mapping. Bare suffix digits are deliberately excluded because identifiers
+    such as ``OAuth2`` are indistinguishable from stripped footnote markup.
     Opaque provider markers stay out of the result and are reported separately
     by ``citation_coverage``.
     """
@@ -117,7 +119,7 @@ def extract_citations(text: str) -> list[dict]:
         found.append((match.start(), match.group(0).rstrip(").,;"), "", "direct"))
 
     reference_urls = numbered_reference_urls(text, boundary)
-    for match in NUMERIC_CITATION_RE.finditer(body):
+    for match in BRACKETED_CITATION_RE.finditer(body):
         if any(start <= match.start() < end for start, end in linked_spans):
             continue
         number = match.group("number")
@@ -145,7 +147,7 @@ def citation_coverage(text: str, citations: list[dict], checks: list[dict]) -> d
     opaque_markers = len(OPAQUE_CITATION_RE.findall(body))
     references = numbered_reference_urls(text, boundary)
     numeric_markers = (
-        [m.group("number") for m in NUMERIC_CITATION_RE.finditer(body)]
+        [m.group("number") for m in BRACKETED_CITATION_RE.finditer(body)]
         if boundary < len(text) else []
     )
     unresolved_numeric = [number for number in numeric_markers if number not in references]

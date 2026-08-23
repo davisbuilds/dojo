@@ -13,8 +13,9 @@ Acts on the 2026-08-22 coding-harnesses postmortem (three-run web DR merge).
 - **Stage 8 separates source support from applicability** and treats self-
   reported confidence as candor evidence rather than correctness evidence.
 - **`score_report.py` classifies citation coverage** as direct, resolvable,
-  opaque, or absent; resolves numbered bibliographies; refuses false hit rates
-  on blind exports; and reports support, domain-fit, and usable-citation rates.
+  opaque, or absent; resolves explicit `[n]` bibliography markers; refuses
+  false hit rates on blind exports; and reports support, domain-fit, and
+  usable-citation rates.
 - Add dated profiles for Claude Opus 5, GPT-5.6-sol, and Gemini Flash 3.7 as
   external web DR executors.
 

@@ -109,8 +109,8 @@ entry — access and behavior drift.
 - Confidence was anti-correlated with accuracy: it rated the most-wrong section
   High and omitted A10(c).
 - Structural/export failures extended the 2026-07-12 profile: invalid requested
-  summary shape, appended Works cited list, bare-digit markers, and a broken
-  base64 image reference.
+  summary shape, appended Works cited list, ambiguous bare-digit markers, and a
+  broken base64 image reference.
 - **Routing:** do not use this executor alone for verification-heavy questions.
   It can serve as an adjudicative run only when Stage 8 independently verifies
   every claim used downstream.

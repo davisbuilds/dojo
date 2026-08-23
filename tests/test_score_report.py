@@ -74,7 +74,7 @@ def test_direct_links_report_direct_citation_coverage():
 
 NUMERIC_FOOTNOTE_REPORT = """# Findings
 
-The verifier cut the measured cost by 4.5x in the evaluated workload28.
+The verifier cut the measured cost by 4.5x in the evaluated workload[28].
 
 ## Works cited
 
@@ -92,7 +92,7 @@ def test_numbered_bibliography_links_are_resolved_back_to_inline_claims():
 
 PARTIAL_NUMERIC_FOOTNOTE_REPORT = """# Findings
 
-The attached brief supplied the framing1. The verifier cut measured cost by 4.5x28.
+The attached brief supplied the framing[1]. The verifier cut measured cost by 4.5x[28].
 
 ## Works cited
 
@@ -106,6 +106,23 @@ def test_resolvable_numeric_citations_remain_scoreable_when_some_markers_are_opa
     assert worksheet["citation_coverage"]["status"] == "resolvable"
     assert worksheet["citation_coverage"]["unresolved_numeric_markers"] == 1
     assert len(worksheet["checks"]) == 1
+
+
+AMBIGUOUS_IDENTIFIER_REPORT = """# Findings
+
+OAuth2 improves compatibility. ModelX2 improved the measured result.
+
+## References
+
+> 2. Unrelated source — [paper](https://example.com/unrelated)
+"""
+
+
+def test_identifier_suffixes_are_not_treated_as_numeric_citations():
+    worksheet = score_report.build_worksheet(AMBIGUOUS_IDENTIFIER_REPORT)
+    assert worksheet["citation_coverage"]["status"] == "opaque"
+    assert worksheet["citations"] == []
+    assert worksheet["checks"] == []
 
 
 OPAQUE_CITATION_REPORT = """# Findings

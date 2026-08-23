@@ -121,9 +121,11 @@ run's friction log for detail.
   source rule to artifact contents and metadata. Acted on in A6.
 - **The citation worksheet itself needed a positive-control check.** On the raw
   exports, it found zero claim/citation pairs in the Claude and OpenAI reports;
-  Gemini's numbered references required bibliography resolution. An empty sample
-  from an opaque export is not evidence of clean citations. Acted on in
-  `score_report.py` with direct/resolvable/opaque/absent coverage classification.
+  Gemini's numbered references looked resolvable, but its bare suffix digits
+  were also indistinguishable from identifiers such as `OAuth2`. An empty or
+  ambiguous sample is not evidence of clean citations. Acted on in
+  `score_report.py` with explicit `[n]` resolution and
+  direct/resolvable/opaque/absent coverage classification.
 - **M1 caught the highest-severity claim on first pass.** The cross-domain
   benchmark appeared in exactly one report. Treating one-report confident
   specifics as hallucination candidates is now 3-for-3 as the highest-yield
