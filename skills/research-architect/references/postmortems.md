@@ -4,6 +4,12 @@ Dated, durable lessons about the skeleton and pipeline, appended at stage 10 of
 real runs. Read during stages 2–5 of new runs. Keep entries short; link the
 run's friction log for detail.
 
+## Index
+
+- [2026-08-22 — coding-harnesses](#2026-08-22--coding-harnesses-3-run-web-dr-merge-opus-5-gpt-56-sol-gemini-flash-37)
+- [2026-07-23 — predmarket-alpha](#2026-07-23--predmarket-alpha-mixed-profile-terminal--web-dr-verification-mid-run)
+- [2026-07-12 — social-playbooks](#2026-07-12--social-playbooks-first-live-run-mixed-profile-terminal--gemini-dr)
+
 ## 2026-07-12 — social-playbooks (first live run; mixed profile, terminal + Gemini DR)
 
 - **Frame-check must be unconditional.** The original A5/A8 wording ("only if
@@ -100,3 +106,46 @@ run's friction log for detail.
   "no edge / arbitraged away." On-chain ground truth and inspected working code
   were correctly co-top here, which saved it. See BACKLOG: A6/V-block needs an
   explicit edge-relevance × recency axis distinct from reliability.
+
+## 2026-08-22 — coding-harnesses (3-run web DR merge: Opus 5, GPT-5.6-sol, Gemini Flash 3.7)
+
+- **Cross-domain citation misapplication is distinct from fabrication.** One
+  report used BankerVerifierBench's real RewardKit/Gandalf results as coding-
+  harness economics even though the benchmark evaluates agent-as-judge graders
+  on investment-banking deliverables; it also changed the headline magnitude.
+  Existence and lineage checks both passed. Detection required asking what the
+  source measures and on what population. Acted on in A4 and Stage 8.
+- **A named-but-unopenable artifact attracts fabricated detail.** Two reports
+  admitted they could not ingest the same benchmark ZIP, then confidently gave
+  contradictory file counts, row counts, and update dates. Extend the unreachable-
+  source rule to artifact contents and metadata. Acted on in A6.
+- **The citation worksheet itself needed a positive-control check.** On the raw
+  exports, it found zero claim/citation pairs in the Claude and OpenAI reports;
+  Gemini's numbered references looked resolvable, but its bare suffix digits
+  were also indistinguishable from identifiers such as `OAuth2`. An empty or
+  ambiguous sample is not evidence of clean citations. Acted on in
+  `score_report.py` with explicit `[n]` resolution and
+  direct/resolvable/opaque/absent coverage classification.
+- **M1 caught the highest-severity claim on first pass.** The cross-domain
+  benchmark appeared in exactly one report. Treating one-report confident
+  specifics as hallucination candidates is now 3-for-3 as the highest-yield
+  verification step.
+- **The third run's marginal value was adjudicative, not additive.** Runs two and
+  three added little coverage but resolved which earlier claim to believe. Keep
+  this as a budgeting heuristic for verification-heavy work, not a mandatory run
+  count.
+- **Watch for incumbent-flattering selectivity when executor and subject share a
+  vendor.** The Claude executor named only two of four compaction-probe retainers,
+  making its own tool look more unique. Recount exhaustive primary-source lists
+  during Stage 8 when vendor alignment can influence selection.
+- **Self-reported confidence was anti-correlated with accuracy in the weakest
+  run.** Gemini rated its most-wrong section High and omitted A10(c). Confidence
+  is not verification; missing A10(c) is itself a structural failure.
+- **Section-contract drift degraded merge alignment in two of three runs.** One
+  report added sections; another omitted required top-level sections, and Gemini's
+  summary was not valid in the requested interchange shape. For merge runs, put
+  exact structure and summary/self-report presence into A9, not only A8/M1.
+- **Rubric discrimination:** benchmark metadata (model/version/date/attempt
+  policy or unusable) caught the weakest run. The status-tag item was nearly
+  unfailable because "no recent source found" carried no search-evidence cost;
+  the Stage-5 red-team predicted this. Costless escape hatches are dead weight.
