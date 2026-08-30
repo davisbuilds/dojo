@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Bump a skill's SemVer version and prepend a CHANGELOG heading.
+"""Bump a skill's SemVer version and add a CHANGELOG heading.
 
 Updates the top-level `version` field in a skill's SKILL.md frontmatter and
-prepends a matching `## <version> - <date>` heading to its CHANGELOG.md
-(created if absent), so the release-version check in check_skill_versions.py
+adds a matching `## <version> - <date>` heading to its CHANGELOG.md (created if
+absent), placing it below an optional H1 title, so the release-version check in
+check_skill_versions.py
 passes without hand-editing two files.
 
 Examples:
@@ -98,6 +99,12 @@ def _prepend_changelog(changelog: Path, version: str, date: str, entry: str | No
     ):
         raise BumpError(f"{changelog} already has a heading for {version}")
     block = _changelog_block(version, date, entry)
+    title, separator, entries = existing.partition("\n")
+    if title.startswith("# "):
+        prefix = title + separator
+        entries = entries.lstrip("\n")
+        changelog.write_text(prefix + "\n" + block + ("\n" + entries if entries else ""), encoding="utf-8")
+        return
     changelog.write_text(block + ("\n" + existing if existing.strip() else ""), encoding="utf-8")
 
 
