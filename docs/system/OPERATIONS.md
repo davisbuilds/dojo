@@ -119,7 +119,7 @@ Not release-relevant (changing these alone needs no bump): `CHANGELOG.md`, the g
 
 ### Bump a skill version
 
-Performs the two-file edit the version check requires — updates the `version` field in SKILL.md frontmatter and prepends a matching `## <version> - <date>` heading (and bullet) to `CHANGELOG.md`, creating it if absent — and then, on a successful non-dry-run bump, **regenerates `skills.json` and refreshes `docs/catalog/index.html`** so a bump never leaves generated artifacts stale for CI's `--check` steps:
+Performs the two-file edit the version check requires — updates the `version` field in SKILL.md frontmatter and adds a matching `## <version> - <date>` heading (and bullet) to `CHANGELOG.md`, creating it if absent. When a changelog begins with an H1 title, the new entry follows that title; otherwise it is prepended. On a successful non-dry-run bump, it also **regenerates `skills.json` and refreshes `docs/catalog/index.html`** so a bump never leaves generated artifacts stale for CI's `--check` steps:
 
 ```bash
 python3 skills/skill-evals/scripts/bump_skill_version.py skills/<name> patch   # or minor / major

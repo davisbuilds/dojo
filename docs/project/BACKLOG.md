@@ -278,19 +278,6 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   shared 184-test run and leaves a dead `main()` plus two ways to invoke one
   file. It preserves the anomaly instead of resolving it.
 
-### bump_skill_version prepends changelog entries above an H1 title
-- **What**: `_prepend_changelog` writes the new `## <version>` block at byte 0 of
-  `CHANGELOG.md`. For skills whose changelog opens with a `# Changelog` H1 title
-  (e.g. `skill-evals`), the entry lands *above* the title instead of under it.
-- **Why or evidence**: hit 2026-08-17 while bumping `skill-evals` to 1.5.0; had
-  to hand-place the entry rather than use the tool. Most skill changelogs start
-  directly with `## <version>` and are unaffected, so this only bites titled
-  ones — but every bump of a titled changelog reproduces it.
-- **Next**: when `existing` starts with an H1 (`# `, not `## `) line, split it
-  (plus its trailing blank) off and insert the block after it. Add a test with a
-  titled changelog fixture. ~5 lines; deferred only to keep the current branch
-  scoped to the regen + health-join fixes.
-
 ### Shared SemVer helper
 - **What**: SemVer parsing/validation now exists in multiple scripts.
 - **Why it matters**: The duplication is small, but future changes to prerelease

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.1 - 2026-08-30
+
+- Insert new entries below a changelog H1 title.
+
 ## 1.5.0 - 2026-08-17
 
 - `bump_skill_version.py` now regenerates `skills.json` and cascades the catalog
