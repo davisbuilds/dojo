@@ -94,6 +94,22 @@ def test_prepends_above_existing_entries(tmp_path: Path):
     assert "First release." in text  # old entry retained
 
 
+def test_inserts_entry_below_changelog_title(tmp_path: Path):
+    m = load_module()
+    existing = "# Changelog\n\n## 1.2.3 - 2026-01-01\n\n- First release.\n"
+    d = make_skill(tmp_path, "1.2.3", changelog=existing)
+
+    m.apply_bump(d, part="patch", date="2026-07-15")
+
+    assert (d / "CHANGELOG.md").read_text() == (
+        "# Changelog\n\n"
+        "## 1.2.4 - 2026-07-15\n\n"
+        "- Release 1.2.4.\n\n"
+        "## 1.2.3 - 2026-01-01\n\n"
+        "- First release.\n"
+    )
+
+
 def test_refuses_duplicate_changelog_heading(tmp_path: Path):
     m = load_module()
     existing = "## 1.2.4 - 2026-06-01\n\n- Already here.\n"

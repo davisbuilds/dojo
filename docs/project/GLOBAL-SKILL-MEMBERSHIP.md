@@ -35,8 +35,8 @@ Codex renders a skill listing into every session with a hard token ceiling and
 clips descriptions to fit — mid-word, unmarked. Trimming descriptions cannot
 reach the ceiling because most of the listing is not dojo's to trim. Membership
 is the only remaining lever. See
-`docs/specs/2026-07-27-distribution-profiles-spec.md` for the contract and
-`ops/docs/harness-decision-register.md` R34–R37 for how this was established.
+`docs/specs/2026-07-27-distribution-profiles-spec.md` for the contract and this
+record's dated measurements below for how the standing choice was established.
 
 ## The budget (build 0.146.0, measured 2026-08-12)
 
@@ -140,7 +140,8 @@ the canonical source is dojo.
 
 ## Verified position after the cuts (2026-08-12, build 0.146.0)
 
-Measured from a live `codex-tui` rollout in `~/Dev/podsave` — the same directory
+Measured from a live `codex-tui` rollout in a neutral non-dojo directory — the
+same directory
 as the pre-cut baseline, so the only variable is the removals.
 
 | | Before (08-06) | After (08-12) |
@@ -231,7 +232,7 @@ Current attribution: dojo 2,547 (53%), connectors 1,102 (23%), Codex bundled 607
 - **The two image skills** — `gpt-imagen` (81) and `gemini-imagen` (66) total 147
   tokens for four consultations, **while Codex bundles its own `imagegen`** at
   `~/.codex/skills/.system/imagegen`. Declaring them equivalent was deliberately
-  withheld (register R33) because dojo's pins `gpt-image-2` and exposes masking
+  withheld because dojo's pins `gpt-image-2` and exposes masking
   and batch that the bundled description does not claim — a wrong equivalence
   silently removes a selected skill. That reasoning governs *declaration*; it
   does not settle whether a Codex session needs two dojo image skills beside a

@@ -1,3 +1,7 @@
+## 1.3.2 - 2026-08-22
+
+- Generalize dangling-link provenance so public source does not depend on a private consumer repository.
+
 ## 1.3.1 - 2026-08-14
 
 - Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout

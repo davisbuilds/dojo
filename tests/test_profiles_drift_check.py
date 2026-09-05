@@ -219,6 +219,69 @@ def test_entry_set_changes_are_compared_as_sets_not_counts(base56):
     assert any("renamed" in f for f in findings), "the report must name what arrived"
 
 
+def test_health_mode_accepts_only_uncontrolled_membership_drift_as_notice(
+        tmp_path, capsys, monkeypatch):
+    """Connector packaging can change without making the workstation unhealthy.
+
+    The strict default must still report drift. Health-mode may downgrade only
+    the same-build, non-saturating transition whose entire membership delta is
+    outside local control, while retaining the exact finding in its report.
+    """
+    import profiles.drift_check as dc
+
+    obs = rc.read_rollout(FOK45)
+    current = Baseline.from_observation(obs)
+    removed = "connector:github:yeet"
+    previous = dataclasses.replace(
+        current,
+        entry_ids=sorted(current.entry_ids + [removed]),
+        uncontrolled_ids=sorted(current.uncontrolled_ids + [removed]),
+        charged_tokens=current.charged_tokens + 100,
+    )
+    path = tmp_path / "baseline.json"
+    path.write_text(json.dumps({obs.meta.cwd: dataclasses.asdict(previous)}))
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [obs])
+
+    assert dc.run(path) == EXIT_DRIFT, "the drift check stays strict by default"
+    capsys.readouterr()
+
+    assert dc.run(path, update=True, uncontrolled_as_notice=True) == EXIT_CLEAN
+    out = capsys.readouterr().out
+    assert "state: notice" in out
+    assert removed in out, "notice mode must retain the exact vendor delta"
+    assert Baseline(**json.loads(path.read_text())[obs.meta.cwd]) == current, \
+        "notice mode must accept the observed state just like ordinary update"
+
+
+def test_health_mode_does_not_hide_controlled_or_build_drift(
+        tmp_path, capsys, monkeypatch):
+    """A notice path that swallows local or build drift is worse than the noise."""
+    import profiles.drift_check as dc
+
+    obs = rc.read_rollout(FOK45)
+    current = Baseline.from_observation(obs)
+    path = tmp_path / "baseline.json"
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [obs])
+
+    controlled = "dojo-managed:write-plan-shadow"
+    previous = dataclasses.replace(
+        current, entry_ids=sorted(current.entry_ids + [controlled]))
+    path.write_text(json.dumps({obs.meta.cwd: dataclasses.asdict(previous)}))
+    assert dc.run(path, uncontrolled_as_notice=True) == EXIT_DRIFT
+    assert controlled in capsys.readouterr().out
+
+    connector = "connector:github:yeet"
+    previous = dataclasses.replace(
+        current,
+        harness_build="0.146.0/gpt-5.6-terra",
+        entry_ids=sorted(current.entry_ids + [connector]),
+        uncontrolled_ids=sorted(current.uncontrolled_ids + [connector]),
+    )
+    path.write_text(json.dumps({obs.meta.cwd: dataclasses.asdict(previous)}))
+    assert dc.run(path, uncontrolled_as_notice=True) == EXIT_DRIFT
+    assert "harness build changed" in capsys.readouterr().out
+
+
 # --------------------------------------------------------------------------
 # Fails closed
 # --------------------------------------------------------------------------
@@ -347,6 +410,37 @@ def test_a_stale_but_readable_session_still_counts_as_blind(tmp_path, capsys, mo
     assert dc.run(path, max_blind_days=30) == dc.EXIT_BLIND, \
         "a stale sample that compares clean must not report clean"
     assert "70d" in capsys.readouterr().out
+
+
+def test_blindness_outranks_uncontrolled_notice_and_prevents_update(
+        tmp_path, capsys, monkeypatch):
+    """Vendor churn cannot make an old observation current or healthy."""
+    import profiles.drift_check as dc
+
+    obs = rc.read_rollout(FOK45)
+    current = Baseline.from_observation(obs)
+    connector = "connector:github:yeet"
+    previous = dataclasses.replace(
+        current,
+        entry_ids=sorted(current.entry_ids + [connector]),
+        uncontrolled_ids=sorted(current.uncontrolled_ids + [connector]),
+    )
+    path = tmp_path / "baseline.json"
+    path.write_text(json.dumps({obs.meta.cwd: dataclasses.asdict(previous)}))
+    before = path.read_text()
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [obs])
+    monkeypatch.setattr(dc, "_observation_age_days", lambda o: 70)
+
+    assert dc.run(
+        path,
+        update=True,
+        max_blind_days=30,
+        uncontrolled_as_notice=True,
+    ) == dc.EXIT_BLIND
+    out = capsys.readouterr().out
+    assert "state: blind" in out
+    assert "70d" in out
+    assert path.read_text() == before, "a stale sample must not be accepted by --update"
 
 
 def test_degraded_classification_can_also_be_blind(tmp_path, capsys, monkeypatch):

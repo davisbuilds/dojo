@@ -99,7 +99,7 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
     and measurably disjoint. That argues for the catalog, not a memory.
   - **Stale local branches after remote deletion**, and the `pulldevmain` blocked
     -checkout case (a repo left on a feature branch silently stops receiving
-    updates — observed 2026-07-27 for `pmalpha`).
+    updates — observed 2026-07-27 in an active consumer repository).
 - **Why it matters**: these are exactly the "safe to do, easy to get wrong, rarely
   done" operations that earn a skill. The failure mode is not a bad commit, it is
   a silently closed PR or a repo that quietly stops syncing.
@@ -138,8 +138,8 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   instructions block rather than only the skill lines, overstating by ~2 points.
 - **Next**: the profile-aware generator fix (Task 13 of
   `docs/plans/2026-07-31-distribution-profiles-plan.md`) is **no longer planned** —
-  Phase 2 (Tasks 11–16) was descoped (`ops` register R43) when the profiles
-  program closed at Phase-1 measurement scope (spec revision 16, 2026-08-15). The
+  Phase 2 (Tasks 11–16) was descoped when the profiles program closed at Phase-1
+  measurement scope (spec revision 16, 2026-08-15). The
   behavior is intact: `gen_harness_adapters.py` still links
   `.claude/skills -> ../skills` (whole-catalog project promotion) and
   `.agent/skills -> ../skills` (dead output — read by neither harness). Two
@@ -204,19 +204,19 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
 
 ### research-architect: remaining deferred tooling
 - **What**: `scripts/diff_runs.py` and `references/rubric-library.md` remain
-  deliberately deferred. (`scripts/score_report.py`, the third of the original
-  trio, shipped in 2.2.0 once two real runs justified it.)
-- **Why it matters**: Across two runs there is exactly one confirmed
-  discriminating rubric item (the per-tactic evidence floor, 2026-07-12).
-  Building a rubric library on one data point would encode guesses — the mistake
-  the deferral exists to avoid. `diff_runs.py` only pays off on multi-run plans
-  and depends on M1 section alignment holding in practice.
-- **Next**: Seed `rubric-library.md` once 2–3 more runs identify rubric items
-  that actually discriminate (items that always pass are dead weight and belong
-  in the postmortem, not the library). Build `diff_runs.py` on top of
-  `score_report.py`'s claim/citation extraction rather than duplicating it: align
-  sections by the M1 fixed order, then surface confident specifics appearing in
-  only one report as hallucination candidates.
+  deliberately deferred. (`scripts/score_report.py` shipped in 2.2.0 and gained
+  citation-coverage/applicability scoring in 2.3.0 after the third live run.)
+- **Why it matters**: Across three runs there are now two confirmed
+  discriminating rubric patterns: the per-tactic evidence floor (2026-07-12)
+  and complete benchmark metadata or an unusable verdict (2026-08-22). That is
+  still thin for a reusable library. The third run also proved manual cross-run
+  diffing valuable, but only one of three reports preserved M1's exact section
+  structure and two exports had opaque claim-to-URL linkage.
+- **Next**: Seed `rubric-library.md` after one more cross-domain run identifies
+  a reusable discriminating item. Build `diff_runs.py` only after another
+  multi-run exercise establishes a tolerant alignment strategy for missing,
+  added, and reordered sections; reuse `score_report.py`'s normalized citation
+  coverage instead of assuming every export carries direct URLs.
 
 ### skills-health: many canonical dojo skills aren't installed globally, so they're unmeasurable
 - **What**: As of 2026-07-15, 26 of 57 canonical `skills/` are installed in none
@@ -277,19 +277,6 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   `AssertionError`), but it moves the `os.chdir`/`os.environ` leak into the
   shared 184-test run and leaves a dead `main()` plus two ways to invoke one
   file. It preserves the anomaly instead of resolving it.
-
-### bump_skill_version prepends changelog entries above an H1 title
-- **What**: `_prepend_changelog` writes the new `## <version>` block at byte 0 of
-  `CHANGELOG.md`. For skills whose changelog opens with a `# Changelog` H1 title
-  (e.g. `skill-evals`), the entry lands *above* the title instead of under it.
-- **Why or evidence**: hit 2026-08-17 while bumping `skill-evals` to 1.5.0; had
-  to hand-place the entry rather than use the tool. Most skill changelogs start
-  directly with `## <version>` and are unaffected, so this only bites titled
-  ones — but every bump of a titled changelog reproduces it.
-- **Next**: when `existing` starts with an H1 (`# `, not `## `) line, split it
-  (plus its trailing blank) off and insert the block after it. Add a test with a
-  titled changelog fixture. ~5 lines; deferred only to keep the current branch
-  scoped to the regen + health-join fixes.
 
 ### Shared SemVer helper
 - **What**: SemVer parsing/validation now exists in multiple scripts.

@@ -2,7 +2,7 @@
 name: research-architect
 description: Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or brief; commission or plan a multi-source or multi-model research run; run research through external deep-research products (Claude/OpenAI/Gemini DR); or verify and score a research report that something else produced. Triggers on "research prompt", "research brief", "commission research", "plan a research run", "verify this report", "research architect". For a direct low-stakes lookup where the user just wants the answer, use deep-research instead.
 skill-type: workflow
-version: 2.2.2
+version: 2.3.0
 triggers:
   - research prompt
   - research brief
@@ -198,15 +198,18 @@ nothing extra, pre-loads the cross-run diff, and can amend a still-pending
 node's prompt while amending is still cheap. Only step 3 genuinely needs all
 reports in hand.
 
-1. **Structural pass (deterministic):** required sections present; summary
-   block present; sample citations and fetch each — is the URL live, and does
-   the page actually support the claim it's attached to? Record hit rate.
+1. **Structural pass (deterministic):** required sections present in exact
+   order; parseable summary and complete A10 self-report (a–c) present; sample
+   citations and fetch each — is the URL live, does it support the exact claim,
+   and does its domain/population fit the report's use? Record support,
+   applicability, and usable-citation rates.
    `scripts/score_report.py` does the mechanical half:
 
    ```bash
    python3 <skill-dir>/scripts/score_report.py worksheet report.md > 08-worksheet.json
    # each sampled check is one claim/citation pair: fetch its url, then fill
-   # "verdicts" with supported / partial / unsupported / unreachable
+   # "verdicts" (supported/partial/unsupported/unreachable) and
+   # "applicability" (fit/adjacent/mismatch)
    python3 <skill-dir>/scripts/score_report.py score 08-worksheet.json
    ```
 
@@ -214,12 +217,17 @@ reports in hand.
    three citations is three things to fetch, and one citation refuting it must
    not be hidden by another supporting it.
 
+   If `citation_coverage.status` is `opaque` or `absent`, do not report a hit
+   rate. Obtain an export with retrievable links or map the citations manually;
+   an empty sample from a blind instrument is not a clean result.
+
    The sample is **weighted toward quantitative and source-attribution
    claims**: across every executor profiled so far, mutated numbers and
    mischaracterized findings are the dominant failure mode, and a uniform
    sample under-tests exactly where reports break. The script never fetches —
    deciding whether a page supports its claim is the judgment this stage
    exists for, and a "URL resolves" hit rate would be worse than none.
+   Treat self-reported confidence as evidence of candor, never correctness.
 2. **Rubric pass (judgment):** spawn a fresh critique subagent — one that has
    not seen the drafting stages — to score the report against the shipped
    rubric, item by item, with evidence quotes. Pass/fail per item, not vibes.
@@ -244,8 +252,9 @@ the final synthesis and this stage is skipped.
 
 From the report's self-report (block A10 for external reports; the packet's
 `self_report` field for local `deep-research` runs) plus verification results,
-record: which instructions were followed, ignored, or misread; citation hit
-rate; which rubric items discriminated (items that always pass are dead
+record: which instructions were followed, ignored, or misread; citation support,
+applicability, and usable-citation rates; which rubric items
+discriminated (items that always pass are dead
 weight). Then append durable lessons to two shared files:
 
 - `references/postmortems.md` — dated lessons about the *skeleton and process*
@@ -290,8 +299,9 @@ the report.
   `docs/research/` in the repo the research serves).
 - The primary deliverables: one assembled, linted prompt per executor
   (`04-prompt-<executor>.md`), and after execution a verification verdict
-  (`08-verification.md`) with citation hit rate and per-rubric-item scores; a
-  multi-run plan also produces one decision-ready `09-synthesis.md`.
+  (`08-verification.md`) with citation support, applicability, usable-citation,
+  and per-rubric-item scores; a multi-run plan also produces one decision-ready
+  `09-synthesis.md`.
 - Every report, regardless of executor, ends in the same summary block the
   `deep-research` skill emits (`key_findings` / `citations` /
   `confidence_gaps` / `next_queries`) — the interchange shape stage 8 consumes.
@@ -302,7 +312,7 @@ the report.
   shipping — zero unfilled slots, zero drafting comments, budget respected.
 - Stage 5 ran and deleted (not just added) instructions, or the router
   explicitly waived it as a quick run.
-- Stage 8 verdicts cite evidence: citation hit rate from real fetches,
+- Stage 8 verdicts cite evidence: support/applicability rates from real fetches,
   pass/fail per rubric item with quotes — never vibes.
 - Multi-run stage 9 synthesis contains only stage-8-accepted claims and
   preserves unresolved disagreements.
@@ -323,9 +333,10 @@ the report.
   memory; read at stages 2–5, append at stage 10. Append-only run memory:
   exempt from the repo's skill release-version check, so recording a lesson
   never costs a version bump.
-- `scripts/score_report.py` — stage-8 structural pass: `worksheet` extracts
-  claims and citations and samples what to check; `score` computes the hit rate
-  from your verdicts. Never fetches.
+- `scripts/score_report.py` — stage-8 structural pass: `worksheet` classifies
+  citation coverage, extracts resolvable claim/citation pairs, and samples what
+  to check; `score` computes support, applicability, and usable-citation rates.
+  Never fetches.
 - `evals/golden-questions/` — frozen real-run drafting artifacts used as
   regression seeds. Still deferred until more runs justify them:
   `scripts/diff_runs.py` and `references/rubric-library.md`; until then, diff
