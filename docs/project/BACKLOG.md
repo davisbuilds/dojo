@@ -44,6 +44,14 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   compounded the setup despite settled scope. The user explicitly preferred
   useful risk controls over strict early-project spec/plan ceremony. This is
   observed routing friction, not evidence that stronger agents need no controls.
+- **Additional evidence (2026-09-15)**: installed `diagnose` 1.0.4 makes a fix
+  and fix verification unconditional completion requirements, even when the
+  user's request is investigation-only. Diagnosis can be complete with a
+  reproduced cause and proposed remediation while implementation remains
+  unauthorized. Split those completion contracts; test an investigation-only
+  request followed by a separate authorization to patch, and require no writes
+  before that authorization. The useful invariant is evidence-backed diagnosis,
+  not mandatory mutation.
 - **Next**: define a composition rule: select the primary skill, consult only
   relevant sibling sections, and escalate to a full workflow for an unresolved
   decision or concrete risk trigger, not file count alone. Preserve authority,
