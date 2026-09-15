@@ -30,6 +30,34 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
 
 ## Open
 
+### Bound skill handoff cascades and calibrate ceremony to demonstrated risk
+
+- **What**: allow one primary workflow to consult narrow sibling guidance without
+  recursively activating every sibling's full workflow, artifact template and
+  handoff requirements. Distinguish mandatory safety invariants from optional
+  implementation coaching and output-format preferences.
+- **Why or evidence**: 2026-09-15 LifeLens amon preview work, using installed
+  `api-design` 1.0.0, `write-plan` 2.5.0, `create-cli` 1.0.0 and `test-strategy`
+  1.3.0. A bounded, non-persisting CLI addition triggered API guidance that routes
+  multi-file work into planning and CLI guidance; planning routes coupled work
+  back into specification. Full-file reading and mandatory sibling references
+  compounded the setup despite settled scope. The user explicitly preferred
+  useful risk controls over strict early-project spec/plan ceremony. This is
+  observed routing friction, not evidence that stronger agents need no controls.
+- **Next**: define a composition rule: select the primary skill, consult only
+  relevant sibling sections, and escalate to a full workflow for an unresolved
+  decision or concrete risk trigger, not file count alone. Preserve authority,
+  privacy, migration/recovery and fresh behavioral verification gates. Prefer
+  outcome/evidence requirements over mandatory documents, exact closing phrases
+  and repeated generic advice. Identify conflicts between skill-body advice and
+  harness-level mandatory trigger/read rules; a body-only change cannot override
+  the latter. Keep this a coordinated policy change, not silent agent bypass.
+- **Evaluation**: compare the current stack, a compact invariant-first variant
+  and a minimal-guidance control across routine and high-risk tasks on current
+  models; measure correctness, missed safety boundaries, unnecessary artifacts,
+  context cost and time. Recalibrate on model/tool changes; retain instructions
+  with demonstrated marginal value rather than assuming capability growth.
+
 ### `allowed-tools` permission patterns still hardcode a dojo-relative path
 
 - **What**: command wrappers declare permissions as literal command prefixes —
