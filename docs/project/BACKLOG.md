@@ -52,6 +52,13 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   request followed by a separate authorization to patch, and require no writes
   before that authorization. The useful invariant is evidence-backed diagnosis,
   not mandatory mutation.
+- **Additional evidence (2026-09-16)**: a settled cross-repository accounting
+  change still cascaded through API, spec, plan, test and verification guidance,
+  repeating acceptance and failure-case descriptions across multiple templates.
+  The useful catches came from native-source fixtures, real database replay tests
+  and a production-sized query rehearsal. Evaluate whether an existing accepted
+  contract plus a concise risk/rollout checklist can substitute for duplicate
+  artifacts while retaining those behavioral and authority-boundary gates.
 - **Next**: define a composition rule: select the primary skill, consult only
   relevant sibling sections, and escalate to a full workflow for an unresolved
   decision or concrete risk trigger, not file count alone. Preserve authority,
