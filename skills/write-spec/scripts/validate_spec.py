@@ -20,7 +20,6 @@ FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n?", re.DOTALL)
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 TOPIC_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 TITLE_RE = re.compile(r"^# .+ Spec\s*$", re.MULTILINE)
-HANDOFF_OPTION_RE = re.compile(r"^1\. .+", re.MULTILINE)
 INLINE_CODE_RE = re.compile(r"`[^`]+`")
 
 REQUIRED_HEADINGS = [
@@ -31,7 +30,6 @@ REQUIRED_HEADINGS = [
     "## Scope",
     "## Assumptions And Constraints",
     "## Open Questions",
-    "## Handoff",
 ]
 
 # Plan-shaped content that must NOT appear in a contract -- it belongs in the
@@ -194,9 +192,6 @@ def validate_body(body: str) -> list[str]:
             "Forbidden plan-shaped '### Task N:' block in a contract "
             "(move to a write-plan plan)"
         )
-
-    if not HANDOFF_OPTION_RE.search(body):
-        errors.append("Handoff section must include numbered options starting at '1.'")
 
     return errors
 

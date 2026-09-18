@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Brainstorming"
-  short_description: "Use this when requirements are ambiguous, multiple approaches"
+  short_description: "Clarify what to build from a vague idea or feature request"
   default_prompt: "Use $brainstorming for this task."

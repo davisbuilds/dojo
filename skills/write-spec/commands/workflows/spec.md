@@ -6,79 +6,26 @@ argument-hint: "[feature, ticket, or approved design summary]"
 
 # Spec A Feature Or Change
 
-This command wrapper is a harness add-on for the canonical `write-spec` skill.
-
-Load the `write-spec` skill and follow it exactly. A spec is a **contract** (WHAT
-must be true), not a plan (HOW to build it). This wrapper adds orchestration only.
-
-## Feature Input
-
-<feature_input> #$ARGUMENTS </feature_input>
-
-If `feature_input` is empty, ask the user for the feature, ticket, or approved
-design summary before proceeding.
+This command requests a durable contract using the canonical `write-spec` skill.
+Load it and use the conversation and `#$ARGUMENTS` as input. Ask only for material
+missing decisions; resolve repository facts directly.
 
 ## Flow
 
-### 1. Decision-Readiness Gate
+- Reuse or amend an accepted contract when it already covers the target.
+- State falsifiable outcomes and relevant failure/authority behavior. Resolve
+  blocking contract decisions before calling the target ready.
+- Save the requested artifact at `docs/specs/YYYY-MM-DD-<topic>-spec.md` or update
+  the existing contract. Use `assets/spec-template.md` with resolved author
+  metadata and the canonical risk classification.
+- For `high`, load the high-risk reference/addendum and complete validation,
+  adversarial critique, revision, and closure critique before setting
+  `readiness: ready`. Use a critique subagent when supported and authorized;
+  otherwise critique inline.
+- Run `python3 <skill-dir>/scripts/validate_spec.py docs/specs/<filename>.md`.
+  Fix schema errors and judge advisories against the actual acceptance criteria.
 
-If requirements are unclear, ask whether to switch to `/workflows:brainstorm`
-first. Otherwise, resolve facts available in the project and ask the user only
-questions that change scope, success criteria, safety boundaries, or verification.
-For non-trivial work, apply the proportionate uncertainty lenses in the canonical
-skill. Do not hand off a contract with a blocking open question.
-
-### 2. Draft Contract
-
-Use `skills/write-spec/assets/spec-template.md` as the scaffold. State the
-problem, the falsifiable contract (with at least one verification command),
-success criteria, and evaluation. Keep mechanism out — no files, task breakdowns,
-or implementation steps. Replace `author: <agent>` with the producing agent's
-most specific available model or harness identifier; never leave the placeholder
-unresolved.
-
-Classify `risk_profile` using the canonical gate. For `high`, load
-`references/high-risk-contract.md`, append `assets/high-risk-spec-addendum.md`,
-and keep `readiness: draft` through critique closure. Keep routine specs lean.
-
-### 3. Save Contract
-
-Write the contract to:
-`docs/specs/YYYY-MM-DD-<topic>-spec.md`
-
-If a design summary already exists for the topic
-(`docs/design/YYYY-MM-DD-<topic>-design.md`), reuse that topic slug.
-
-### 4. Validate Contract
-
-Run:
-
-```bash
-python3 <skill-dir>/scripts/validate_spec.py docs/specs/<filename>.md
-```
-
-Fix any validation errors before presenting the contract. The validator fails if
-plan-shaped content (task breakdowns, files, steps) leaked in. For high-risk
-contracts it also fails missing scenario classes, duplicate IDs, or incomplete
-structural readiness evidence. Treat weak-acceptance messages as advisories to
-pin a meaningful magnitude or non-degeneracy bound, not schema failures.
-
-### 5. Handoff
-
-Confirm `Open Questions` is `None` or any retained item is explicitly
-non-blocking before offering planning. Return to the decision-readiness gate when
-an item would change the contract.
-
-For `risk_profile: high`, run adversarial critique, revise blocking findings,
-run closure critique, and set `readiness: ready` only when none remain. Use a
-critique subagent when supported and authorized; otherwise critique inline.
-
-Then offer:
-1. Hand off to `/workflows:plan` (write-plan) to sequence the build.
-2. Review a routine contract with a critique subagent (or
-   `verify-before-complete` inline when subagents are unavailable), seeded with
-   the contract path and originating context. Check falsifiability, mechanism
-   leaks, concrete success criteria, evaluation, and problem grounding.
-3. Refine the contract before sequencing.
-
-Do not implement code in this workflow.
+Report the saved artifact and meaningful readiness limits. Handoff content is
+optional and describes a real next action, not a required menu. Do not start a
+planning workflow merely because the spec is complete. A spec-only request does
+not authorize implementation; continue further work only within existing scope.

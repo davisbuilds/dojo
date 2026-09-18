@@ -48,9 +48,11 @@ python skills/skill-creator/scripts/quick_validate.py <path/to/skill-folder>
 
 ### Validate a spec or plan
 
-The pre-execution pipeline is `brainstorm (docs/design/) → spec (docs/specs/) →
-plan (docs/plans/)`. Specs are mechanism-free contracts; plans are the execution
-breakdown. Each layer has its own schema validator (also wired as on-write hooks):
+Brainstorming, specification, and planning are independently useful workflows,
+not a mandatory pipeline. Reuse accepted tickets, conversations, and documents.
+Save an artifact when requested, project-required, or useful for coordination;
+consultation alone requires no file. Saved specs are mechanism-free contracts
+and saved plans describe execution. Both have validators and on-write hooks:
 
 ```bash
 # Contract schema — rejects plan-shaped content (files/steps/task breakdowns)
@@ -61,6 +63,7 @@ python3 skills/write-plan/scripts/validate_plan.py docs/plans/<file>-plan.md
 ```
 
 Add `--strict-filename` to enforce the `-spec.md` / `-plan.md` suffix (the hooks do).
+Neither validator requires a `Handoff` section or numbered next-step menu.
 Both validators print non-blocking advisories for obvious weak acceptance
 language; the plan validator also advises on grounding and test discovery. These
 messages never change an otherwise valid artifact's exit status. Plan `spec:` and

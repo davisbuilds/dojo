@@ -6,46 +6,24 @@ argument-hint: "[feature idea or problem to explore]"
 
 # Brainstorm A Feature Or Improvement
 
-This command wrapper is a Claude-style add-on for the canonical `brainstorming` skill.
-
-Load the `brainstorming` skill and follow it exactly. This wrapper provides harness-specific orchestration only.
-
-## Feature Description
-
-<feature_description> #$ARGUMENTS </feature_description>
-
-If `feature_description` is empty, ask the user for the feature/problem before proceeding.
+This command invokes the canonical `brainstorming` skill. Load its guidance and
+use the user's request and `#$ARGUMENTS` as context; ask for the missing goal only
+if neither supplies it.
 
 ## Flow
 
-### 1. Assess clarity
+- Ground the discussion in available project context. If the direction is
+  already clear, skip unnecessary questions and continue within existing scope.
+- Ask about material unresolved decisions; group independent questions when
+  useful. Compare meaningful alternatives and explain the recommendation.
+- Summarize the direction and open questions conversationally. Save or update
+  `docs/design/YYYY-MM-DD-<topic>-design.md` only when requested, project-required,
+  or useful for downstream work. Saved summaries use resolved `author:` metadata
+  and the canonical skill's scaffold as appropriate.
+- Consult relevant sibling guidance without inheriting its entire workflow.
+  Recommend a further workflow only when a material unresolved need warrants it.
 
-If requirements are explicit and well-constrained, ask whether to skip brainstorming and proceed directly to planning.
-
-### 2. Clarify intent
-
-- Ask one question at a time.
-- Prefer multiple choice where natural.
-- Cover purpose, users, constraints, success criteria, edge cases.
-
-### 3. Compare approaches
-
-Present 2-3 options with pros/cons and your recommendation.
-
-### 4. Capture summary
-
-Write to `docs/design/YYYY-MM-DD-<topic>-design.md` using the template in
-`skills/brainstorming/SKILL.md`. Replace `author: <agent>` with the producing
-agent's most specific available model or harness identifier; never leave the
-placeholder unresolved.
-
-### 5. Handoff
-
-Ask what to do next:
-1. Hand off to `/workflows:spec` (write-spec) to make the direction a contract
-2. Review the direction with a critique subagent (or `verify-before-complete` inline if subagents are unavailable)
-3. Refine further, or stop here
-
-Apply the conditional coordination rules from `skills/brainstorming/SKILL.md` before handoff. If another specialized skill is a better next step, recommend it with a one-sentence rationale and ask for confirmation.
-
-Never write implementation code in this workflow.
+A discussion-only request ends with discussion. Continue implementation only
+when it is already authorized and the direction is settled. Do not ask permission
+to skip ceremony, require a handoff menu, or turn this command into an automatic
+spec/plan pipeline.

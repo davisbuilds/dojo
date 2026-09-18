@@ -1,43 +1,34 @@
 # Brainstorming Platform Mapping
 
-This file keeps the core `brainstorming` skill model-agnostic and moves platform specifics into an optional add-on.
+Use the canonical skill for scope and composition. These mappings supply optional
+harness syntax, not additional workflows or deliverables.
 
-## Canonical Outputs
+## Saved Summaries
 
-- Design summary path: `docs/design/YYYY-MM-DD-<topic>-design.md`
-- Stage marker in frontmatter: `stage: brainstorm`
-- Author marker in frontmatter: resolve `author: <agent>` to the producing
-  agent's most specific available model or harness identifier
+When a durable summary is useful or requested, use
+`docs/design/YYYY-MM-DD-<topic>-design.md`, `stage: brainstorm`, and a resolved
+`author:` naming the producing agent. Conversation-only work needs no file.
 
-## Spec Handoff Mapping
+## Conditional Coordination
 
-The chosen direction hands off to `write-spec` to become a falsifiable contract
-(`write-plan` then sequences the build).
+Consult relevant guidance without activating a full sibling workflow. If a
+material unresolved decision requires one:
 
-- Generic: "Hand off to spec the contract"
-- Claude workflows: `/workflows:spec` (if available)
-- Skill-driven harnesses: invoke `write-spec` (or equivalent contract skill)
-- Manual fallback: create a contract in `docs/specs/`
+- Contract definition: `write-spec` or `/workflows:spec` when available.
+- Execution dependencies or rollout: `write-plan` or `/workflows:plan`.
+- CLI interface decision: `create-cli`.
+- Architectural trade-off: `first-principles`.
 
-## Questioning/Interaction Mapping
+Use a manual fallback if a needed skill is unavailable. Do not create a spec or
+plan solely because a platform offers that command.
 
-- Generic: ask one question at a time; confirm assumptions explicitly.
-- Claude-specific command wrappers may use tool-native ask/question primitives.
-- Harnesses without ask primitives can use normal conversational turns.
+## Interaction
 
-## Conditional Skill Coordination Mapping
+Use the harness's question tool or ordinary conversation. Ask a single question
+when later questions depend on it; group independent questions when useful.
+Read existing context before asking. Continuing authorized work does not require
+a new approval to switch or skip skills.
 
-Keep coordination intent in the canonical `SKILL.md`; keep platform invocation syntax in wrappers.
+## Command Wrapper
 
-- Planning needed -> invoke planning skill or workflow command.
-- CLI contract design needed -> invoke CLI design skill.
-- UI/UX direction needed -> invoke frontend/design audit skill.
-- Deeper architectural trade-off analysis needed -> invoke systems reasoning skill.
-
-If a named skill is unavailable, use the closest generic fallback and continue.
-
-## Optional Add-ons
-
-- Claude wrapper: `skills/brainstorming/commands/workflows/brainstorm.md`
-
-Do not place platform-specific hard requirements in `SKILL.md` unless they are universally available.
+`commands/workflows/brainstorm.md` maps this skill to the Claude-style command.

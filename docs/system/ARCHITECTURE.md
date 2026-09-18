@@ -100,6 +100,21 @@ placeholders (`my-skill`) are excluded, so it fires only on unambiguous targets.
 artifacts under `docs/plans/`, `docs/specs/`, `docs/design/`, `docs/research/` and
 `replay-results-*.md` are not scanned: they record what was true when written.
 
+### Workflow consultation and artifacts
+
+Skills support the requested task without expanding its scope. Consult relevant
+sibling guidance without recursively activating its workflow or deliverables.
+The composition rule in `rules/skill-authoring.md` is carried in the revised
+brainstorming/spec/plan/API/CLI/diagnosis skills themselves for installation.
+Harness-level loading requirements still apply; the rule governs what work a
+consultation requires, not whether a higher-priority instruction may be skipped.
+
+Brainstorming defaults to conversational synthesis. Specs and plans are saved
+when requested, project-required, or useful for coordination, and reuse accepted
+contracts and fresh evidence. A formal high-risk plan still requires a ready
+high-risk spec. Saved spec/plan validators enforce the substantive schemas and
+conditional risk checks; handoff sections and numbered menus are optional.
+
 ### Pre-execution artifact metadata
 
 New brainstorming design summaries, specs, and plans declare `author:` with the
@@ -110,8 +125,9 @@ unresolved author; legacy artifacts remain valid without retroactive attribution
 
 New `write-spec` and `write-plan` artifacts declare `risk_profile: routine|high`
 and `readiness: draft|ready` separately from delivery `status`. Missing fields on
-legacy artifacts default to routine/draft. Routine artifacts keep the existing
-schema. High-risk artifacts activate progressively disclosed authority, safety,
+legacy artifacts default to routine/draft. Routine artifacts use the documented
+schema with optional handoff content. High-risk artifacts activate progressively
+disclosed authority, safety,
 traceability, evidence-lifecycle, capability-gate, and critique-closure sections;
 the validators enforce their deterministic structure while semantic correctness
 remains an adversarial-review responsibility.
@@ -124,6 +140,11 @@ Two tiers, split by what they test and whether they ship:
 | --- | --- | --- | --- | --- |
 | `evals/` | The skill **as a prompt** — does it trigger on the right inputs, does it behave | `skills/<name>/evals/` | Yes | `run_trigger_evals.py`, `behavioral_evals.py` |
 | `tests/` | The skill **as code** — do its scripts work | `tests/test_<script>.py` | No | `pytest tests/ -q` |
+
+Historical cost comparisons pair captures with source frontmatter pinned to the
+capture-era commit, not current skill descriptions. The fixture records the
+source commit and capture digest so wording revisions cannot silently change
+the historical input.
 
 **Behavior ships; code tests do not.** An installed skill needs its evals — they
 describe the skill itself. It does not need its unit tests: nothing in a global

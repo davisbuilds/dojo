@@ -13,8 +13,10 @@ readiness: draft
 
 ## Goal
 
-One sentence describing what this plan delivers. Link the contract it realizes:
-`docs/specs/YYYY-MM-DD-<topic>-spec.md` (every `Done When` traces to its end-state).
+State the accepted outcome and link its contract or ticket when available. A
+clear conversation can supply the target for routine work; do not create a new
+spec solely for this link. Every `Done When` traces to that accepted outcome.
+High-risk plans link a ready high-risk spec as required by the addendum.
 
 ## Scope
 
@@ -43,9 +45,11 @@ For tasks touching existing or coupled code, trace the ground before prescribing
   an irreducible future uncertainty, not a lookup deferred to execution.
 - For each task that edits existing code, add `**Assumptions Verified**` in that
   task: cite the exact target file/symbol and observed behavior. Label any
-  neighboring precedent as `Research Context`, not target verification.
+  neighboring precedent as `Research Context`, not target verification. Reuse
+  shared evidence with links instead of duplicating it in every task.
 
-Omit only when every task is greenfield/self-contained.
+Use this section for shared grounding; omit it when the task blocks already
+contain the relevant evidence or the work is self-contained.
 
 ## Task Breakdown
 
@@ -88,7 +92,8 @@ Include only when this task creates or changes tests:
 
 - Runner/discovery evidence: `package.json`, `pyproject.toml`, or equivalent
   includes the new test path.
-- Literal proof: `command path/to/new-test` runs the new test or exact selector.
+- Name the command that runs the literal new test or exact selector. Distinguish
+  observed discovery evidence from execution planned after the file exists.
 
 **Done When**
 
@@ -110,7 +115,6 @@ Include only when this task creates or changes tests:
 
 ## Handoff
 
-1. Execute in this session, task by task.
-2. Review the plan with a critique subagent (or `verify-before-complete` inline
-   if subagents are unavailable).
-3. Open a separate execution session, or refine this plan first.
+Optional: omit this section if there is no useful handoff. Otherwise state the
+actual next action, consumer, or execution context, reusing existing authority.
+No numbered menu or additional workflow is required.

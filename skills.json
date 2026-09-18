@@ -34,9 +34,9 @@
     },
     {
       "name": "brainstorming",
-      "description": "Use this when requirements are ambiguous, multiple approaches are plausible, or trade-offs need discussion before planning or implementation. Clarifies WHAT to build through one-question-at-a-time collaboration. Can be skipped when requirements are already explicit and well constrained.",
+      "description": "Clarify what to build from a vague idea or feature request. Use when requirements are unclear, multiple directions need exploration, or material trade-offs need discussion before planning. Reuse settled direction; save a design summary only when requested or useful for downstream work.",
       "path": "skills/brainstorming",
-      "version": "2.0.0"
+      "version": "3.0.0"
     },
     {
       "name": "caveman",
@@ -58,9 +58,9 @@
     },
     {
       "name": "create-cli",
-      "description": "Design command-line interface parameters and UX: arguments, flags, subcommands, help text, output formats, error messages, exit codes, prompts, config/env precedence, and safe/dry-run behavior. Use when you\u2019re designing a CLI spec (before implementation) or refactoring an existing CLI\u2019s surface area for consistency, composability, and discoverability.\n",
+      "description": "Design command-line interface parameters and UX: arguments, flags, subcommands, help text, output formats, error messages, exit codes, prompts, config/env precedence, and safe/dry-run behavior. Use when designing a CLI, refactoring its interface, or resolving a specific CLI UX decision during implementation. Reuse settled conventions without requiring a separate design document.\n",
       "path": "skills/create-cli",
-      "version": "2.0.0"
+      "version": "2.0.1"
     },
     {
       "name": "deep-research",
@@ -319,15 +319,15 @@
     },
     {
       "name": "write-plan",
-      "description": "Sequence the build: turn a settled target (a `write-spec` contract, a ticket, or a clear request) into an execution plan \u2014 task breakdown, files, ordered steps, seam selection, and verification commands. Use when WHAT is already decided and you need HOW: the file-level, dependency-ordered steps to implement it. If the target is not yet falsifiable, route back to `write-spec`.",
+      "description": "Sequence a settled target into a grounded execution plan. Use when dependencies, rollout ordering, or verification gates need explicit planning, or a reusable implementation plan is requested. Accept clear tickets, conversations, and existing contracts; multiple files alone do not require a plan or a new spec.",
       "path": "skills/write-plan",
-      "version": "2.5.0"
+      "version": "3.0.0"
     },
     {
       "name": "write-spec",
-      "description": "Define the target before building: write a falsifiable contract \u2014 problem, end-state, success criteria, evaluation \u2014 that states WHAT must be true, with no files or implementation steps. Use when you need to specify or align on what \"done\" means before sequencing work, or are handed a feature/change and must pin its acceptance criteria. Hand off to `write-plan` for the HOW.",
+      "description": "Define what done means before building: observable outcomes, acceptance criteria, and how to verify them. Use when material target decisions remain unresolved or a durable specification is requested or needed for coordination. Reuse an accepted ticket, conversation, or contract when it already defines the target.",
       "path": "skills/write-spec",
-      "version": "2.2.0"
+      "version": "3.0.0"
     }
   ]
 }

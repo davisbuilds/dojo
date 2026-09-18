@@ -45,9 +45,9 @@ The four design skills above compose into a pipeline: `design-md` (token spec) �
 |-------|---------|
 | `api-design` | Design, review, or consult API, event, interface, and machine-output contracts during implementation |
 | `loop-design` | Design verifiable autonomous loops on top of `/loop` and `/goal`; gate on an oracle, then scaffold a portable loop bundle (`/loop-design`) |
-| `brainstorming` | Clarify WHAT to build and capture the chosen direction (`docs/design/`) |
-| `write-spec` | Pin the falsifiable contract — WHAT must be true, mechanism-free; conditionally add high-risk authority/invariant scenarios and review closure (`docs/specs/`) |
-| `write-plan` | Sequence the build — HOW: tasks, files, seam selection, and verification; conditionally add high-risk traceability, evidence, capability gates, and review closure (`docs/plans/`) |
+| `brainstorming` | Clarify direction through conversation; save a design summary when useful or requested |
+| `write-spec` | Resolve acceptance decisions or write a requested durable contract; reuse settled targets and retain conditional high-risk readiness |
+| `write-plan` | Plan dependencies, rollout, and proof when needed; accept tickets/conversations and retain conditional high-risk traceability and review |
 | `blind-spots` | Find what you don't know about one change — blind spot pass before it's built, or a brief-then-quiz before you merge (never scored, never gating) |
 | `create-cli` | CLI design or focused interface consultation during implementation |
 | `agent-native-architecture` | Build agent-native apps with tool/action parity |

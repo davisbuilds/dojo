@@ -3,11 +3,11 @@ name: create-cli
 description: >
   Design command-line interface parameters and UX: arguments, flags, subcommands,
   help text, output formats, error messages, exit codes, prompts, config/env
-  precedence, and safe/dry-run behavior. Use when you’re designing a CLI spec
-  (before implementation) or refactoring an existing CLI’s surface area for
-  consistency, composability, and discoverability.
+  precedence, and safe/dry-run behavior. Use when designing a CLI, refactoring
+  its interface, or resolving a specific CLI UX decision during implementation.
+  Reuse settled conventions without requiring a separate design document.
 skill-type: workflow
-version: 2.0.0
+version: 2.0.1
 ---
 
 # Create CLI

@@ -1,86 +1,61 @@
 ---
 name: brainstorming
-description: Use this when requirements are ambiguous, multiple approaches are plausible, or trade-offs need discussion before planning or implementation. Clarifies WHAT to build through one-question-at-a-time collaboration. Can be skipped when requirements are already explicit and well constrained.
+description: Clarify what to build from a vague idea or feature request. Use when requirements are unclear, multiple directions need exploration, or material trade-offs need discussion before planning. Reuse settled direction; save a design summary only when requested or useful for downstream work.
 skill-type: workflow
-version: 2.0.0
+version: 3.0.0
 ---
 
 # Brainstorming
 
-This skill clarifies **WHAT** to build before deciding **HOW** to build it.
+Help the user settle the decisions that matter. A useful conversation and concise
+synthesis are sufficient unless a durable design summary has a real consumer.
 
 ## When To Use
 
-Use brainstorming when:
-- The request is vague or open-ended
-- Multiple reasonable interpretations exist
-- Trade-offs have not been discussed
-- Scope and success criteria are unclear
+- A request has materially different interpretations or unresolved trade-offs.
+- The user wants to explore alternatives before choosing a direction.
 
-You can skip brainstorming when:
-- Requirements are already explicit, testable, and well-scoped
-- Scope is narrow and well-defined
-- The user asks for direct implementation with clear constraints
+If the request is already clear, continue the authorized task. Do not ask for
+permission merely to skip brainstorming or switch skills.
 
 ## Boundaries
 
-- If the task is already direction-clear, suggest skipping ahead to `write-spec` (the contract) or execution and ask for confirmation
-- Do not write code, modify files, or invoke implementation skills until the user has approved the design summary (or explicitly chooses to stop brainstorming)
-- Stay on WHAT to build; implementation details belong to planning
+Stay within the requested scope. A discussion-only request does not authorize
+implementation. When the user has authorized implementation, resolve material
+uncertainty and continue once the direction is settled; do not manufacture a
+separate approval gate because this skill was consulted.
 
-## Core Process
+Consult sibling guidance only for the concern that needs it. Reading a sibling
+does not activate its workflow or require its artifacts. Follow higher-priority
+harness loading rules.
 
-### Phase 0: Assess Clarity
+## Workflow
 
-Before asking detailed questions, decide whether brainstorming is needed.
+Ground the discussion in available project context and the user's stated goals.
+Resolve repository lookups yourself. Ask about decisions that materially change
+scope, behavior, constraints, or the meaning of success; do not repeat questions
+already answered. Use one focused question when the answer determines the next
+question; batch independent questions when that is easier for the user.
 
-Signals requirements are already clear:
-- Acceptance criteria are specific
-- Expected behavior is precise
-- Existing implementation pattern is identified
-- Scope and constraints are explicit
+Compare plausible approaches and recommend one with the reasons that matter.
+There is no fixed option count: don't invent alternatives or a formal comparison
+when the direction is clear. Explain meaningful trade-offs and remaining
+uncertainty without prescribing a full implementation plan.
 
-If clear, suggest skipping ahead to `write-spec` (the contract) or implementation and ask for confirmation.
+Summarize the settled direction, constraints, and open decisions. Concrete
+success criteria are welcome if they are already clear; do not defer a useful
+decision solely because another skill names that phase.
 
-### Phase 1: Understand Intent
+## Output
 
-Gather context from the current project quickly (relevant files, docs, and existing patterns), then ask clarifying questions one at a time.
+Default to a concise conversational synthesis. Write or update a design summary
+when requested, required by the project, or useful for coordination, later
+execution, or preserving decisions. Reuse an existing artifact rather than
+creating a duplicate.
 
-Questioning guidelines:
-1. Prefer multiple-choice prompts when natural options exist.
-2. Start broad (goal/users), then narrow (constraints/edge cases).
-3. Validate assumptions explicitly.
-4. Ask for success criteria early.
-
-Topics to cover:
-- Problem and motivation
-- User/persona and usage context
-- Constraints (technical, schedule, dependencies)
-- Success criteria and acceptance shape
-- Edge cases and non-goals
-
-### Phase 2: Explore Approaches
-
-Propose 2-3 concrete approaches.
-
-For each approach include:
-- 2-3 sentence summary
-- Pros
-- Cons
-- Best-fit conditions
-
-Lead with your recommendation and rationale. Prefer the simplest option that satisfies stated needs.
-
-### Phase 3: Capture Design Summary
-
-Write the approved design summary to:
-`docs/design/YYYY-MM-DD-<topic>-design.md`
-
-This is a *feeder*, not a proto-spec: it captures **direction**, and stops short of
-falsifiable acceptance criteria. Those harden into a contract in `write-spec` — do
-not finalize metrics or success thresholds here.
-
-Use this structure:
+For a new saved summary, use `docs/design/YYYY-MM-DD-<topic>-design.md` and the
+following scaffold as useful. Resolve `author` to the producing agent. The body
+sections are suggestions, not a completeness checklist.
 
 ```markdown
 ---
@@ -93,84 +68,43 @@ stage: brainstorm
 # <Topic Title>
 
 ## Problem / Context
-[Who is hurting, what they do today, why this matters now]
-
-## Options Considered
-- [Option]: [trade-offs — pros / cons / best-fit conditions]
+[The user's goal and the decisions needing discussion]
 
 ## Chosen Direction
-[The selected approach and why it beats the alternatives]
+[The approach and why it fits]
+
+## Alternatives Considered
+[Only meaningful alternatives and trade-offs]
 
 ## What Good Looks Like
-[Directional signals of success — not falsifiable metrics; those belong to write-spec]
+[Agreed outcomes, reusing any existing acceptance criteria]
 
 ## Open Questions
-- [Unresolved item]
+[Only unresolved decisions, or None]
 
 ## Constraints
-- [Constraint]
+[Relevant limits and existing authority]
 ```
 
-Replace `<agent>` with the producing agent's most specific available model or
-harness identifier (for example, `author: gpt-5.6-sol`). Attribute the agent
-that writes the document, not the user or a later reviewer, and never leave the
-placeholder unresolved.
-
-### Phase 4: Handoff
-
-Offer explicit next actions:
-1. Hand off to `write-spec` to turn the chosen direction into a falsifiable contract.
-2. **Review the direction with a critique subagent.** If the harness supports
-   subagents (e.g. a Task/agent tool), launch one seeded with the design summary's
-   path **and** the originating goal/context, instructed to critique the *chosen
-   direction* — are the alternatives fairly weighed? is this the simplest option
-   that meets the need? are the open questions actually open (vs. quietly decided)?
-   — and to propose improvements. Apply or discuss before routing to `write-spec`.
-   If subagents are unavailable, run the same critique inline via
-   `verify-before-complete`.
-3. Refine brainstorming further, or stop here for now.
-
-When a handoff is appropriate, use this routing logic:
-- Direction is settled and needs a falsifiable target → `write-spec` (the contract)
-- CLI UX decisions (flags, args, output contracts) → `create-cli`
-- UI/UX direction or visual systems → `frontend-design` or `web-design-guidelines`
-- Deep architectural trade-off analysis → `first-principles`
-
-Explain why in one sentence and ask for confirmation. If the target skill is unavailable, use the closest manual fallback.
-
-## Output
-
-- A design summary document at `docs/design/YYYY-MM-DD-<topic>-design.md`
-- Clear next-step recommendation (spec the contract, refine, or stop)
+Recommend a next step only when it helps. Continue already-authorized work when
+appropriate; otherwise end with the synthesis or the decision needing user input.
+No compulsory handoff menu, critique, or closing phrase.
 
 ## Verification
 
-- Design summary has YAML frontmatter with `stage: brainstorm` and a resolved
-  `author:` value
-- The chosen direction is clear and traceable to the alternatives it beat
-- `What Good Looks Like` is directional (falsifiable criteria are deferred to `write-spec`)
-- At least one approach was evaluated with pros/cons before choosing
-- User explicitly approved the design direction
+The synthesis reflects the user's intent, relevant trade-offs, and unresolved
+questions. Distinguish a recommendation from a user-approved direction. Saved
+summaries preserve the decisions and resolved author metadata; conversation-only
+work needs no file. Implementation authority comes from the user, not the summary.
 
 ## Resources
 
-- `references/platform-mapping.md` — platform-specific handoff and coordination mappings
-- `commands/workflows/brainstorm.md` — slash-command wrapper for harnesses that support it
+- `references/platform-mapping.md` — optional harness invocation details.
+- `commands/workflows/brainstorm.md` — command wrapper for supported harnesses.
 
-## Principles
+## Sibling Skills
 
-- One question per turn
-- Keep outputs concise (about 200-300 words per section when nuanced)
-- YAGNI: avoid speculative complexity
-- Stay on WHAT; implementation details belong to planning
-- Validate alignment incrementally before moving forward
-
-## Sibling skills
-
-Pre-execution pipeline: **brainstorm → spec → plan**
-(`docs/design/` → `docs/specs/` → `docs/plans/`).
-
-- `write-spec` — downstream. Once the direction is settled, hand off to make it a
-  falsifiable contract (the WHAT). `write-plan` then sequences the build (the HOW).
-- `first-principles` — escalate to here when the brainstorm reaches a high-stakes architectural or trade-off decision that needs systems-level reasoning, not just option exploration.
-- `deep-research` — parallel evidence gathering when the brainstorm depends on facts you don't have (library behavior, API contracts, prior art).
+- `write-spec` — when the target needs a durable falsifiable contract.
+- `write-plan` — when dependencies or rollout ordering need an execution plan.
+- `first-principles` — for a material architectural trade-off needing deeper analysis.
+- `deep-research` — when missing external evidence affects the decision.

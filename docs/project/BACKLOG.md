@@ -30,48 +30,37 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
 
 ## Open
 
-### Bound skill handoff cascades and calibrate ceremony to demonstrated risk
+### Evaluate workflow revisions and extend the composition audit
 
-- **What**: allow one primary workflow to consult narrow sibling guidance without
-  recursively activating every sibling's full workflow, artifact template and
-  handoff requirements. Distinguish mandatory safety invariants from optional
-  implementation coaching and output-format preferences.
-- **Why or evidence**: 2026-09-15 LifeLens amon preview work, using installed
-  `api-design` 1.0.0, `write-plan` 2.5.0, `create-cli` 1.0.0 and `test-strategy`
-  1.3.0. A bounded, non-persisting CLI addition triggered API guidance that routes
-  multi-file work into planning and CLI guidance; planning routes coupled work
-  back into specification. Full-file reading and mandatory sibling references
-  compounded the setup despite settled scope. The user explicitly preferred
-  useful risk controls over strict early-project spec/plan ceremony. This is
-  observed routing friction, not evidence that stronger agents need no controls.
-- **Additional evidence (2026-09-15)**: installed `diagnose` 1.0.4 makes a fix
-  and fix verification unconditional completion requirements, even when the
-  user's request is investigation-only. Diagnosis can be complete with a
-  reproduced cause and proposed remediation while implementation remains
-  unauthorized. Split those completion contracts; test an investigation-only
-  request followed by a separate authorization to patch, and require no writes
-  before that authorization. The useful invariant is evidence-backed diagnosis,
-  not mandatory mutation.
-- **Additional evidence (2026-09-16)**: a settled cross-repository accounting
-  change still cascaded through API, spec, plan, test and verification guidance,
-  repeating acceptance and failure-case descriptions across multiple templates.
-  The useful catches came from native-source fixtures, real database replay tests
-  and a production-sized query rehearsal. Evaluate whether an existing accepted
-  contract plus a concise risk/rollout checklist can substitute for duplicate
-  artifacts while retaining those behavioral and authority-boundary gates.
-- **Next**: define a composition rule: select the primary skill, consult only
-  relevant sibling sections, and escalate to a full workflow for an unresolved
-  decision or concrete risk trigger, not file count alone. Preserve authority,
-  privacy, migration/recovery and fresh behavioral verification gates. Prefer
-  outcome/evidence requirements over mandatory documents, exact closing phrases
-  and repeated generic advice. Identify conflicts between skill-body advice and
-  harness-level mandatory trigger/read rules; a body-only change cannot override
-  the latter. Keep this a coordinated policy change, not silent agent bypass.
-- **Evaluation**: compare the current stack, a compact invariant-first variant
-  and a minimal-guidance control across routine and high-risk tasks on current
-  models; measure correctness, missed safety boundaries, unnecessary artifacts,
-  context cost and time. Recalibrate on model/tool changes; retain instructions
-  with demonstrated marginal value rather than assuming capability growth.
+- **What**: measure the marginal value of the compact workflow guidance and audit
+  the remaining catalog for redundant coaching or recursive handoffs.
+- **Why or evidence**: the 2026-09-15/16 incidents recorded in `f6c4852`,
+  `c471546`, and `b05ff54` motivated the shipped first pass (see ROADMAP).
+  Deterministic validation and manual replay cases establish structure and
+  expected behavior, not model-performance improvement. Methodology skills and
+  higher-priority harness loading policies can still add process outside the
+  revised cluster.
+- **Next**: use the separate `ops/experiments/skill-effect-v0` work reported by
+  the user on 2026-09-17 for empirical comparison; keep that experiment owned by
+  ops. Compare current guidance, compact guidance, and minimal added guidance
+  with the same harness/repo controls. Assess outcomes, authority boundaries,
+  unnecessary artifacts/stops, context cost, and time. Prioritize remaining
+  skills from observed friction; do not infer low value from invocation counts.
+- **Revisit when**: the first pass receives real usage feedback, experimental
+  results are available, or model/tool changes warrant recalibration.
+
+### Declared research trigger collides with the execution skill
+
+- **What**: `commission research` ranks `deep-research` above its declared owner
+  `research-architect` in the lexical self-routing check.
+- **Why or evidence**: reproduced 2026-09-17 with
+  `run_trigger_evals.py --from-triggers --skills-root skills` in an untouched
+  pre-split archive of `a657a57`, before the workflow edits: 13/14 assertions pass; the
+  same collision remains after the first pass. This is a lexical routing result,
+  not a demonstrated semantic misfire.
+- **Next**: inspect the research-family trigger boundary when tuning that family;
+  retain both commissioning and direct-execution cases. Do not weaken the fixture
+  or change unrelated descriptions solely to make this task's checks green.
 
 ### `allowed-tools` permission patterns still hardcode a dojo-relative path
 

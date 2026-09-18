@@ -2,7 +2,7 @@
 
 Actionable improvement backlog for the skills catalog. This is a living snapshot, not a release contract.
 
-Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-08-30.
+Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-09-17 for the workflow-composition first pass.
 
 ## In Progress
 
@@ -19,6 +19,7 @@ standing membership record._
 
 | Item | What Changed |
 |------|-------------|
+| Optional planning artifacts (2026-09-17) | `brainstorming`, `write-spec`, and `write-plan` 3.0.0 separate consultation from saved deliverables, reuse accepted tickets/conversations, and remove file-count escalation, automatic pipeline handoffs, fixed closing phrases, and mandatory review menus. Wrappers, templates, platform guidance, and validators agree; optional handoffs retain verification and high-risk readiness checks. CLI validator regressions cover routine/high-risk documents and negative controls; replay cases document expected behavior without claiming model lift. |
 | Scoped workflow consultation (2026-09-17) | `api-design`, `create-cli`, and `diagnose` 2.0.0 preserve requested scope, reuse accepted contracts and evidence, and consult siblings without recursive workflow activation. Diagnosis separates read-only investigation from authorized repair; CLI/API output scales to the task. Authoring guidance records the composition rule; manual replay cases cover bounded CLI/accounting work and diagnosis authority. |
 | Changelog H1-safe version bumping | `skill-evals` 1.5.1. `bump_skill_version.py` now inserts a release entry below an opening H1 title instead of above it, while preserving its prepend behavior for untitled changelogs. A focused regression fixture and the tool's own successful `skill-evals` bump verify the titled path. |
 | Workstation health drift severity | `drift_check.py` stays strict by default but adds an opt-in health mode: same-build, non-saturating membership changes entirely outside local control remain fully reported as `state: notice` with exit `0`. Controlled membership, build, surface, ceiling, blindness, and saturation still fail. Scheduled machine-health consumers can opt into the mode without weakening interactive SessionStart reporting. |
@@ -102,7 +103,7 @@ standing membership record._
 |-------|---------|--------|
 | ~~compound-docs~~ | "STRICT ENFORCEMENT", 7-step mandatory workflow | Done -- rewritten without XML ceremony |
 | verify-before-complete | "Iron Law", "NEVER claim completion" | Keep -- appropriate for its purpose |
-| brainstorming | "MUST use this before any creative work" | Open -- too broad for simple changes |
+| ~~brainstorming~~ | Broad trigger and mandatory artifact/handoff workflow | Done -- 3.0.0 defaults to conversation, reuses settled direction, and makes saved summaries conditional |
 
 **Guidance:** Use "should" over "MUST" for advisory skills; reserve "MUST" for safety-critical behaviors.
 

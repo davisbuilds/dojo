@@ -96,7 +96,7 @@ def test_an_unclassified_listing_is_refused(codex_policy):
 # --------------------------------------------------------------------------
 
 
-def test_computed_demand_agrees_with_the_probes_own_figure(codex_policy):
+def test_computed_demand_agrees_with_the_probes_own_figure(codex_policy, tmp_path):
     """An end-to-end check of the cost model against the harness's own number.
 
     The probe reports what Codex charged for the listing it rendered. Demand is
@@ -107,7 +107,22 @@ def test_computed_demand_agrees_with_the_probes_own_figure(codex_policy):
     overlay members. The gap was 190 tokens and pointed straight at it.
     """
     listing = codex_listing()
-    observation = observe_codex(listing, codex_policy, SKILLS)
+    # Pair the dated capture with independently recovered source frontmatter
+    # from the commit that introduced it, not today's evolving skill catalog.
+    # Deriving this input from listing text would hide truncation/parser bugs.
+    snapshot_path = FIXTURES / "codex-source-frontmatter-2026-08-02.json"
+    snapshot = json.loads(snapshot_path.read_text())
+    capture_digest = hashlib.sha256((FIXTURES / snapshot["capture"]).read_bytes()).hexdigest()
+    assert capture_digest == snapshot["capture_sha256"]
+    source_root = tmp_path / "historical-skills"
+    for name, frontmatter in snapshot["frontmatters"].items():
+        target = source_root / name / "SKILL.md"
+        target.parent.mkdir(parents=True)
+        target.write_text(frontmatter)
+    assert set(snapshot["frontmatters"]) == {
+        entry.name for entry in listing.entries if entry.origin == "dojo-managed"
+    }
+    observation = observe_codex(listing, codex_policy, source_root)
     result = assess(observation.as_budget_entries(), codex_policy, root_lines=observation.root_lines, surface="codex-tui")
 
     assert result.degradations == (), "fixture is degraded; the comparison would not hold"
