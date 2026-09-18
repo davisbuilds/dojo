@@ -35,6 +35,16 @@ See `docs/system/skill-contract-v1.md` for the full checklist.
 
 ## Anti-Patterns
 
+- **Recursive workflow activation.** Consulting a sibling's relevant guidance
+  should not inherit its full process or deliverables. Select additional
+  workflows for a material unresolved decision, dependency, or verification
+  need, not because a task touches several files or domains.
+- **Presentation enforced as correctness.** Require meaningful outcomes and
+  evidence; reserve mandatory artifacts for a real consumer or risk. Reuse an
+  accepted ticket, conversation, or existing document rather than restating it
+  in every skill's template. Diagnosis and repair have different completion
+  contracts when the user authorized only investigation.
+
 - **Negative trigger clauses in descriptions** increase lexical overlap with competing skills (e.g. "Do NOT use for Gemini" adds "gemini" as a matching token). Use distinct vocabulary instead of cross-references.
 - **Instruction-only skills** are not inherently weak -- they become weak when they lack routing cues, I/O contracts, or eval loops.
 - **Overly strict language** ("MUST", "NEVER", "STRICT ENFORCEMENT") in advisory skills creates friction. Reserve strong language for safety-critical behaviors.

@@ -7,109 +7,84 @@ description: >
   (before implementation) or refactoring an existing CLI’s surface area for
   consistency, composability, and discoverability.
 skill-type: workflow
-version: 1.0.0
+version: 2.0.0
 ---
-
-## When To Use
-
-- Designing a new CLI's arguments, flags, subcommands, and help text before implementation
-- Refactoring an existing CLI's surface area for consistency or composability
-- User asks to spec out command-line UX, exit codes, output formats, or config precedence
-
-## Boundaries
-
-- Not for implementing CLI code; this skill produces a design spec, not source files
-- Not for designing REST APIs, GraphQL schemas, or non-CLI interfaces
-- Do not recommend specific parsing libraries unless the user explicitly asks
-- Skip when the user already has a finalized spec and just needs implementation
-
-## Verification
-
-- Deliverable includes a command tree, args/flags table, exit code map, and example invocations
-- Output and error contracts specify stdout vs stderr, TTY detection, and machine-output flags
-- Safety rules (dry-run, confirmations, force) are defined for any destructive operations
-- Spec is language-agnostic unless the user specifies a runtime
 
 # Create CLI
 
-Design CLI surface area (syntax + behavior), human-first, script-friendly.
+Design command-line syntax and behavior for its human and script consumers.
+Use the relevant conventions during authorized implementation as well as when
+producing a CLI design.
 
-## Do This First
+## When To Use
 
-- Read `skills/create-cli/references/cli-guidelines.md` and apply it as the default rubric.
-- Upstream/full guidelines: https://clig.dev/ (propose changes: https://github.com/cli-guidelines/cli-guidelines)
-- Ask only the minimum clarifying questions needed to lock the interface.
+- Designing a CLI's commands, arguments, output, errors, or configuration.
+- Refactoring a CLI interface for consistency or composability.
+- Resolving a specific CLI UX decision during implementation.
 
-## Clarify (fast)
+## Boundaries
 
-Ask, then proceed with best-guess defaults if user is unsure:
+Follow the requested scope. A design-only request produces a design, not code;
+an implementation request does not need a new CLI spec when decisions are
+already settled. Reuse the project's established conventions and accepted
+contract. Consulting this skill does not activate a separate design workflow.
 
-- Command name + one-sentence purpose.
-- Primary user: humans, scripts, or both.
-- Input sources: args vs stdin; files vs URLs; secrets (never via flags).
-- Output contract: human text, `--json`, `--plain`, exit codes.
-- Interactivity: prompts allowed? need `--no-input`? confirmations for destructive ops?
-- Config model: flags/env/config-file; precedence; XDG vs repo-local.
-- Platform/runtime constraints: macOS/Linux/Windows; single binary vs runtime.
+Do not prescribe a language or parsing library unless that choice is in scope.
+Consult sibling guidance only for a material unresolved concern; do not inherit
+its full workflow, artifacts, or handoffs.
 
-## Deliverables (what to output)
+## Workflow
 
-When designing a CLI, produce a compact spec the user can implement:
+Identify the decisions still open: primary consumers, input sources, output
+contract, interactivity, configuration precedence, and platform constraints.
+Resolve facts from the repository; ask only questions that materially change
+the interface. Use established defaults for routine choices.
 
-- Command tree + USAGE synopsis.
-- Args/flags table (types, defaults, required/optional, examples).
-- Subcommand semantics (what each does; idempotence; state changes).
-- Output rules: stdout vs stderr; TTY detection; `--json`/`--plain`; `--quiet`/`--verbose`.
-- Error + exit code map (top failure modes).
-- Safety rules: `--dry-run`, confirmations, `--force`, `--no-input`.
-- Config/env rules + precedence (flags > env > project config > user config > system).
-- Shell completion story (if relevant): install/discoverability; generation command or bundled scripts.
-- 5–10 example invocations (common flows; include piped/stdin examples).
+Consult the relevant sections of `references/cli-guidelines.md` as needed.
+Apply conventions to the affected surface; adding one flag does not call for
+redesigning the command tree or generating examples for unrelated commands.
 
-## Default Conventions (unless user says otherwise)
+## Default Conventions
 
-- `-h/--help` always shows help and ignores other args.
-- `--version` prints version to stdout.
-- Primary data to stdout; diagnostics/errors to stderr.
-- Add `--json` for machine output; consider `--plain` for stable line-based text.
-- Prompts only when stdin is a TTY; `--no-input` disables prompts.
-- Destructive operations: interactive confirmation + non-interactive requires `--force` or explicit `--confirm=...`.
-- Respect `NO_COLOR`, `TERM=dumb`; provide `--no-color`.
-- Handle Ctrl-C: exit fast; bounded cleanup; be crash-only when possible.
+Use these unless the project's existing contract or the user says otherwise:
 
-## Templates (copy into your answer)
+- Primary data goes to stdout; diagnostics and errors go to stderr.
+- Define stable output and exit codes for script consumers. Add `--json` or
+  `--plain` when there is a consumer, not as speculative surface area.
+- Help and version are discoverable without performing the command's effects.
+- Prompt only in an interactive session. `--no-input` must fail clearly when
+  required input is absent rather than wait indefinitely.
+- Destructive commands need an explicit, reviewable target and deliberate
+  authorization through an appropriate preview/confirmation/noninteractive
+  mechanism. Reuse existing authorization; do not invent an extra agent approval
+  step from the CLI's own confirmation rules.
+- Do not expose secrets through flags, logs, or diagnostics.
+- Make config precedence predictable; prefer the existing project convention
+  over introducing another configuration layer.
+- Respect `NO_COLOR`, `TERM=dumb`, and non-TTY output. Keep machine output parseable.
+- Handle interruption with bounded cleanup and honest partial-effect reporting.
 
-### CLI spec skeleton
+## Output
 
-Fill these sections, drop anything irrelevant:
+For a requested full design, cover the command tree, relevant args/flags,
+semantics, output/errors, configuration, safety, and representative invocations.
+Use a compact table or examples where helpful; omit irrelevant sections.
 
-1. **Name**: `mycmd`
-2. **One-liner**: `...`
-3. **USAGE**:
-   - `mycmd [global flags] <subcommand> [args]`
-4. **Subcommands**:
-   - `mycmd init ...`
-   - `mycmd run ...`
-5. **Global flags**:
-   - `-h, --help`
-   - `--version`
-   - `-q, --quiet` / `-v, --verbose` (define exactly)
-   - `--json` / `--plain` (if applicable)
-6. **I/O contract**:
-   - stdout:
-   - stderr:
-7. **Exit codes**:
-   - `0` success
-   - `1` generic failure
-   - `2` invalid usage (parse/validation)
-   - (add command-specific codes only when actually useful)
-8. **Env/config**:
-   - env vars:
-   - config file path + precedence:
-9. **Examples**:
-   - …
+For a narrow consultation or implementation task, report only the decisions
+and evidence needed for that task. No separate spec, fixed example count, or
+handoff menu is required.
 
-## Notes
+## Verification
 
-- Prefer recommending a parsing library (language-specific) only when asked; otherwise keep this skill language-agnostic.
-- If the request is “design parameters”, do not drift into implementation.
+- The affected interface fits existing human and script consumers.
+- Output and errors preserve their promised streams, shapes, and exit behavior.
+- Relevant destructive, noninteractive, and interruption paths have explicit
+  behavior and evidence appropriate to the task.
+- Design examples agree with the contract. Implementation claims are supported
+  by relevant CLI checks, including failure paths where affected.
+
+## Resources
+
+- `references/cli-guidelines.md` — consult by concern: help, arguments, output,
+  configuration, errors, interaction, or distribution.
+- Upstream guidelines: https://clig.dev/.

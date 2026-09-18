@@ -1,7 +1,9 @@
 # Implementation Verification
 
 Use this reference to turn an API design or review into concrete verification.
-Pair with `test-strategy` when writing tests.
+Select only checks relevant to the changed contract and reuse fresh evidence.
+Consult `test-strategy` if the testing approach is unresolved; consultation does
+not require a separate test plan or report.
 
 ## Test Layers
 

@@ -11,7 +11,7 @@
       "name": "api-design",
       "description": "Design and review robust API and interface contracts. Use when creating or changing HTTP endpoints, GraphQL/RPC-style APIs, webhooks, SSE/event streams, exported DTOs/types, service-layer boundaries, CLI JSON/stdout/exit-code contracts, versioning/deprecation plans, or any compatibility-sensitive boundary between consumers and providers.",
       "path": "skills/api-design",
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
     {
       "name": "audit-skill",
@@ -60,7 +60,7 @@
       "name": "create-cli",
       "description": "Design command-line interface parameters and UX: arguments, flags, subcommands, help text, output formats, error messages, exit codes, prompts, config/env precedence, and safe/dry-run behavior. Use when you\u2019re designing a CLI spec (before implementation) or refactoring an existing CLI\u2019s surface area for consistency, composability, and discoverability.\n",
       "path": "skills/create-cli",
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
     {
       "name": "deep-research",
@@ -84,7 +84,7 @@
       "name": "diagnose",
       "description": "Disciplined debugging loop for hard bugs and performance regressions. Use when the user says \"diagnose this\", \"debug this\", \"this is broken/throwing/failing\", reports a bug whose cause is non-obvious, or describes a performance regression. For completion-time evidence checks use verify-before-complete; for new-test methodology use test-strategy; for post-hoc code review use local-review.",
       "path": "skills/diagnose",
-      "version": "1.0.4"
+      "version": "2.0.0"
     },
     {
       "name": "error-handling-review",

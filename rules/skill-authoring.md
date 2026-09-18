@@ -29,6 +29,24 @@ see `docs/system/skill-contract-v1.md` for the full contract.
 - Keep SKILL.md under ~500 lines; push detail into `references/`.
 - Add only what the agent does not already know. Context is shared and finite.
 
+## Scope and composition
+
+- Follow the user's requested scope and existing authorization. Reading a skill
+  does not authorize a repair, publication, or other additional action.
+- Distinguish completing a requested workflow from consulting guidance during
+  another task. A sibling reference supplies relevant advice; it does not
+  recursively activate that sibling's workflow, deliverables, or handoffs.
+- Escalate for an unresolved material decision, dependency, or verification
+  problem, not file count or domain overlap. Reuse accepted decisions and fresh
+  evidence instead of requiring duplicate artifacts.
+- Require evidence for consequential claims; make sequence, templates, report
+  formats, and conversational checkpoints optional unless a concrete consumer
+  or risk requires them. Preserve authority, privacy, compatibility, recovery,
+  and applicable behavioral verification requirements.
+- State these boundaries in installed skills as well as authoring guidance.
+  Follow higher-priority harness loading rules; do not suggest that a skill body
+  can override them. Consultation need not expand the user's deliverable.
+
 ## Before you finish
 
 - Run the strict contract: `validate_skill_contract.py --skills-root skills --strict`.
