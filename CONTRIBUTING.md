@@ -25,6 +25,12 @@ Use descriptive prefixes:
 
 Standing always-follow conventions live in [`rules/`](rules/) — see [`rules/skill-authoring.md`](rules/skill-authoring.md) and [`rules/doc-hygiene.md`](rules/doc-hygiene.md).
 
+For skill design, start with [best practices](docs/system/SKILL-BEST-PRACTICES.md)
+and the [vision](docs/project/VISION.md). Explain what the skill adds beyond the
+agent's existing context and why any mandatory process is needed. Removing or
+narrowing obsolete guidance is a useful contribution; a new skill or artifact
+is not the default measure of progress.
+
 ## Commit Guidance
 
 - Keep commits logical and atomic while working on the branch.
@@ -35,10 +41,10 @@ Standing always-follow conventions live in [`rules/`](rules/) — see [`rules/sk
 
 - Keep PR scope tight (one objective per PR).
 - Include a short summary and test evidence.
-- Ensure quality checks pass before merge:
-  - `python skills/skill-creator/scripts/quick_validate.py`
-
-Note: This project enforces quality through hooks (pre-tool-use validation, stop-hook git check) rather than a CI pipeline.
+- Run the relevant checks and the strict skill contract before merge:
+  `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.
+  See [Operations](docs/system/OPERATIONS.md) for regression tests, generated-file
+  checks, release metadata, and the full CI workflow. Hooks provide earlier feedback.
 
 ## Local Branch Cleanup
 
@@ -52,7 +58,8 @@ git branch --merged main | grep -v ' main$' | xargs -n 1 git branch -d
 ## Documentation Hygiene
 
 - Do not hardcode volatile counts in docs.
-- Prefer executable source-of-truth references (for example, `python scripts/quick_validate.py`, `README.md`).
+- Prefer executable source-of-truth references such as `skills.json` and the
+  validation commands in `docs/system/OPERATIONS.md`.
 
 ## Related Docs
 

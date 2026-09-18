@@ -1,8 +1,10 @@
 # Skill authoring rules
 
-Always-follow conventions for adding or changing a skill. The deterministic form
-of these is enforced by `skills/skill-evals/scripts/validate_skill_contract.py`;
-see `docs/system/skill-contract-v1.md` for the full contract.
+Standing conventions for adding or changing a skill. Structural requirements
+are enforced by `skills/skill-evals/scripts/validate_skill_contract.py`; the
+design judgments below require review. See `docs/system/skill-contract-v1.md`
+for the structural contract and `docs/system/SKILL-BEST-PRACTICES.md` for the
+authoring and retirement guidance.
 
 ## Frontmatter
 
@@ -28,6 +30,10 @@ see `docs/system/skill-contract-v1.md` for the full contract.
 
 - Keep SKILL.md under ~500 lines; push detail into `references/`.
 - Add only what the agent does not already know. Context is shared and finite.
+- Identify the capability, preference, or consequential failure that justifies
+  an instruction. Prefer narrowing or removing obsolete process over adding
+  exceptions; preserve actual authority and consumer requirements. A shorter
+  file or frequently invoked skill is not by itself evidence of value.
 
 ## Scope and composition
 

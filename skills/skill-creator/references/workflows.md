@@ -2,7 +2,12 @@
 
 ## Sequential Workflows
 
-For complex tasks, break operations into clear, sequential steps. It is often helpful to give the agent an overview of the process towards the beginning of SKILL.md:
+Use an ordered sequence when dependencies or fragile operations require it.
+Complexity alone does not require fixed phases. For flexible work, describe the
+outcome, relevant decision criteria, and evidence, and let the agent choose the
+approach. Consult sibling guidance without inheriting its full workflow.
+
+For a sequence with actual dependencies, give a compact overview:
 
 ```markdown
 Filling a PDF form involves these steps:

@@ -33,6 +33,8 @@ The auto-generated `skills.json` manifest is the runtime source of truth for wha
 
 4. **Description is the trigger**: The `description` field determines when the agent uses the skill. Include both what it does AND specific scenarios/triggers.
 
+5. **Earn the constraint**: Design for capable agents. Add missing capabilities, preferences, or demonstrated safeguards; let generic coaching shrink as it loses value. Consultation does not inherit a sibling's workflow. Follow the authoring and retirement guidance in `docs/system/SKILL-BEST-PRACTICES.md`, grounded in `docs/project/VISION.md`.
+
 ## Testing
 
 - **Pre-push** (matches CI): `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.

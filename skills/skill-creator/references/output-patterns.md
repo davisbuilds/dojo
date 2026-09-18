@@ -6,27 +6,22 @@ Use these patterns when skills need to produce consistent, high-quality output.
 
 Provide templates for output format. Match the level of strictness to your needs.
 
-**For strict requirements (like API responses or data formats):**
+**For a real consumer contract (such as a machine-readable CLI response):**
 
 ```markdown
-## Report structure
+## Output contract
 
-ALWAYS use this exact template structure:
+The existing consumer expects JSON on stdout with these fields:
+- `status`: `ok` or `error`
+- `result`: the value on success, null on failure
+- `error`: null on success, otherwise an object with `code` and `message`
 
-# [Analysis Title]
-
-## Executive summary
-[One-paragraph overview of key findings]
-
-## Key findings
-- Finding 1 with supporting data
-- Finding 2 with supporting data
-- Finding 3 with supporting data
-
-## Recommendations
-1. Specific actionable recommendation
-2. Specific actionable recommendation
+Send diagnostics to stderr so the consumer can parse stdout. Preserve the
+established exit-code mapping and test success and failure with that consumer.
 ```
+
+Use the actual consumer's schema, not this example by default. A narrative
+report does not need fixed headings merely because consistency is desirable.
 
 **For flexible guidance (when adaptation is useful):**
 

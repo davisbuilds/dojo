@@ -233,7 +233,7 @@
       "name": "skill-creator",
       "description": "Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends an AI agent's capabilities with specialized knowledge, workflows, or tool integrations.",
       "path": "skills/skill-creator",
-      "version": "1.0.1",
+      "version": "2.0.0",
       "license": "Complete terms in LICENSE.txt"
     },
     {
@@ -258,7 +258,7 @@
       "name": "template",
       "description": "Skill starter template with commented guidance for every contract section. Use when creating a new skill and you need a scaffold that passes strict contract validation.",
       "path": "skills/template",
-      "version": "1.0.1"
+      "version": "2.0.0"
     },
     {
       "name": "test-strategy",

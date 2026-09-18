@@ -3,7 +3,7 @@ name: skill-creator
 description: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends an AI agent's capabilities with specialized knowledge, workflows, or tool integrations.
 skill-type: workflow
 license: Complete terms in LICENSE.txt
-version: 1.0.1
+version: 2.0.0
 ---
 
 # Skill Creator
@@ -41,9 +41,10 @@ Before completion:
 ## About Skills
 
 Skills are modular, self-contained packages that extend an AI agent's capabilities by providing
-specialized knowledge, workflows, and tools. Think of them as "onboarding guides" for specific
-domains or tasks—they transform a general-purpose agent into a specialized agent
-equipped with procedural knowledge that no model can fully possess.
+specialized knowledge, workflows, and tools. Their value depends on what the agent
+would otherwise lack in its actual model, harness, tools, and repository context.
+General methodology may become redundant; local facts, user preferences, and
+working capabilities can remain useful.
 
 ### What Skills Provide
 
@@ -61,6 +62,26 @@ The context window is a public good. Skills share the context window with everyt
 **Default assumption: the agent is already very smart.** Only add context the agent doesn't already have. Challenge each piece of information: "Does the agent really need this explanation?" and "Does this paragraph justify its token cost?"
 
 Prefer concise examples over verbose explanations.
+
+### Value, Scope, and Revision
+
+Identify the missing capability, preference, or consequential failure this skill
+addresses. Prefer improving an existing tool/reference over a new skill when it
+already meets the need. Generic coaching needs a reason to remain; skill count,
+invocation frequency, and structural validity do not prove useful behavior.
+
+Preserve the user's scope and existing authority. Let a task consult relevant
+sibling guidance without inheriting that sibling's whole workflow, reports, or
+handoffs. Require sequence and format only for real dependencies, risks, or
+consumer contracts. Reuse accepted decisions and evidence. A concrete incident
+can justify a targeted correction without a large experiment; claims of improved
+model outcomes need behavioral evidence.
+
+On substantive revision or relevant model/tool changes, consider shortening,
+narrowing, moving guidance to on-demand references, or retiring it. Update the
+surfaces that encode the changed requirement together, including wrappers,
+templates, checks, and release metadata. These are authoring judgments, not a
+new report or approval workflow.
 
 ### Set Appropriate Degrees of Freedom
 
@@ -154,10 +175,12 @@ A skill should only contain essential files that directly support its functional
 - README.md
 - INSTALLATION_GUIDE.md
 - QUICK_REFERENCE.md
-- CHANGELOG.md
+- Unrequested auxiliary reports
 - etc.
 
-The skill should only contain the information needed for an AI agent to do the job at hand. It should not contain auxiliary context about the process that went into creating it, setup and testing procedures, user-facing documentation, etc. Creating additional documentation files just adds clutter and confusion.
+Keep release metadata required by the owning repository, such as Dojo skill
+versions and changelogs. The skill should otherwise contain the information
+needed for an AI agent to do the job at hand. It should not contain auxiliary context about the process that went into creating it, setup and testing procedures, user-facing documentation, etc. Creating additional documentation files just adds clutter and confusion.
 
 ### Progressive Disclosure Design Principle
 
@@ -253,7 +276,10 @@ Use `skill-type` to declare the structural shape the validator should enforce:
   - Use for best-practice indexes, reference routers, and guideline catalogs.
   - These skills still need clear scope, boundaries, verification, and resource navigation, but they are not forced to invent workflow/output sections that do not match their purpose.
 
-When in doubt, start with `workflow`. Choose `reference` only when the skill is primarily there to route the agent to the right guidance rather than to define a concrete execution procedure.
+Choose the type that matches the purpose. Use `reference` for consultable
+guidance; do not invent a procedure or deliverable merely to satisfy workflow
+anchors. A workflow can also offer scoped consultation without activating its
+full procedure.
 
 **Important guidelines:**
 
@@ -271,7 +297,9 @@ Skill creation involves these steps:
 5. Package the skill (run package_skill.py)
 6. Iterate based on real usage
 
-Follow these steps in order, skipping only if there is a clear reason why they are not applicable.
+Use the stages relevant to the request. Reuse established examples and decisions;
+a narrow revision does not require restarting discovery, scaffolding, or
+packaging. Package only when distribution is requested.
 
 ### Skill Naming
 
@@ -401,7 +429,9 @@ When the skill supports multiple modes, frameworks, or output shapes, keep the s
 
 ### Step 5: Packaging a Skill
 
-Once development of the skill is complete, it must be packaged into a distributable .skill file that gets shared with the user. The packaging process automatically validates the skill first to ensure it meets all requirements:
+When a distributable `.skill` file is requested, package the completed skill.
+Ordinary source revisions need validation and repository release metadata, not
+an extra archive. Packaging validates the skill before creating the archive:
 
 ```bash
 scripts/package_skill.py <path/to/skill-folder>
