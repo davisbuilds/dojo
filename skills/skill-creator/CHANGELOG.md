@@ -1,3 +1,7 @@
+## 2.0.0 - 2026-09-18
+
+- Design for capable agents and revisitable marginal value; scope authoring stages and packaging to the request, with consumer-driven output examples.
+
 ## 1.0.1
 
 - Add the required `version: 1.0.0` field to `init_skill.py`'s `SKILL_TEMPLATE`.

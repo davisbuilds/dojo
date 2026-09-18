@@ -69,11 +69,10 @@ Omit the thresholds for mechanical or system specs.
 
 If a retained question is genuinely non-blocking, explain why it cannot change
 this contract. Otherwise resolve it with the user or move the future choice to
-Out of Scope before handing off to `write-plan`.
+Out of Scope before relying on the contract for dependent work.
 
 ## Handoff
 
-1. Hand off to `write-plan` to sequence the build against this contract.
-2. Review the contract with a critique subagent (or `verify-before-complete`
-   inline if subagents are unavailable).
-3. Refine the contract before sequencing.
+Optional: omit this section if there is no useful handoff. Otherwise state the
+actual next action, consumer, or execution context, reusing existing authority.
+No numbered menu or additional workflow is required.

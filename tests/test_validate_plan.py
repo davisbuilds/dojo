@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = REPO_ROOT / "skills" / "write-plan" / "scripts" / "validate_plan.py"
@@ -884,3 +886,35 @@ def test_high_risk_plan_rejects_unknown_traceability_task(tmp_path: Path) -> Non
     )
 
     assert any("traceability references unknown Task 9" in error for error in errors)
+
+
+@pytest.mark.parametrize("handoff", ["", "## Handoff\n\nExecution is already authorized.\n"])
+@pytest.mark.parametrize("risk_profile", ["routine", "high"])
+def test_plan_cli_accepts_optional_handoff_without_weakening_evidence(
+    tmp_path: Path, handoff: str, risk_profile: str
+) -> None:
+    if risk_profile == "high":
+        write_high_risk_spec(tmp_path)
+        path = write_complete_high_risk_plan(tmp_path)
+    else:
+        path = write_plan(tmp_path, "- Create: `src/example.py`")
+    content = path.read_text(encoding="utf-8").split("## Handoff")[0] + handoff
+    # A numbered implementation step must not accidentally satisfy a menu check.
+    content = content.replace("1. Make the agreed change.", "- Make the agreed change.")
+
+    def run(text: str) -> subprocess.CompletedProcess[str]:
+        path.write_text(text, encoding="utf-8")
+        return subprocess.run(
+            [sys.executable, str(SCRIPT_PATH), str(path), "--repo-root", str(tmp_path)],
+            capture_output=True, text=True,
+        )
+
+    valid = run(content)
+    assert valid.returncode == 0, valid.stdout + valid.stderr
+    missing_proof = run(content.replace("**Verification**", "**Notes**"))
+    assert missing_proof.returncode == 1
+    assert "missing required marker **Verification**" in missing_proof.stdout
+    if risk_profile == "high":
+        blocked = run(content.replace("Blocking findings: none", "Blocking findings: HR-01"))
+        assert blocked.returncode == 1
+        assert "blocking findings remain" in blocked.stdout

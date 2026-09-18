@@ -4,6 +4,11 @@ A plan fails when it prescribes a heavy mechanism up front instead of finding th
 thinnest cut that makes the contract's end-state true. This is the discipline that
 prevents it: **trace the ground, pick the seam, verify, then prescribe.**
 
+Consult the relevant sections for an unresolved planning concern. These checks
+support grounding; they do not require a new plan artifact during another task.
+For saved plans, shared observations can be recorded once and linked from each
+affected task.
+
 ## The Checklist
 
 For any task touching existing or coupled code:
@@ -19,9 +24,9 @@ For any task touching existing or coupled code:
    sources, alternate CLI branches, upstream/downstream stages, error paths, and
    ported implementations. Give each path a `Done When` or an explicit
    out-of-scope note.
-4. **Compare against the obvious-but-heavy option.** The first mechanism that comes
-   to mind (a new subsystem, a broad refactor, a new dependency) is usually not the
-   thinnest seam. Justify why the chosen seam is smaller and still sufficient.
+4. **Compare meaningful alternatives.** When a proposed subsystem, refactor, or
+   dependency competes with an existing seam, check whether the smaller change
+   satisfies the target. Do not invent a rejected alternative for routine work.
 5. **Record `Assumptions Verified`.** Per existing-code task, write down what you
    confirmed in the exact file and symbol being cut: `file:line`, the observed
    behavior, the invariant you are relying on. Check the cited line before
@@ -62,7 +67,10 @@ any cross-file precedent as research context.
 When a task adds or changes tests, confirm two distinct facts before prescribing:
 
 1. The runner's configuration discovers the proposed test path.
-2. A literal command runs that test file or exact selector.
+2. The plan names a command for the literal test file or exact selector.
+
+Run it when the file exists; otherwise distinguish observed runner configuration
+from execution planned after implementation. Never claim a future test was run.
 
 The full suite is still the regression gate; neither fact follows automatically
 from the other.

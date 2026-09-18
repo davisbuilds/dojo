@@ -4,12 +4,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_authoring_surfaces_include_agent_attribution_placeholder() -> None:
+def test_saved_artifact_scaffolds_include_agent_attribution_placeholder() -> None:
     relative_paths = [
         "skills/brainstorming/SKILL.md",
-        "skills/write-spec/SKILL.md",
         "skills/write-spec/assets/spec-template.md",
-        "skills/write-plan/SKILL.md",
         "skills/write-plan/assets/plan-template.md",
     ]
 

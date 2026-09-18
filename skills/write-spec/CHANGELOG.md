@@ -1,3 +1,7 @@
+## 3.0.0 - 2026-09-17
+
+- Reuse accepted targets during consultation; make saved-contract handoffs optional while preserving acceptance and high-risk readiness checks.
+
 ## 2.2.0 - 2026-08-16
 
 - Make high-risk ID enforcement incrementally adoptable: a legacy contract adopting `risk_profile: high` may use named success criteria and scenarios when it declares no SC-NN / EV-*-NN IDs; structural headings and readiness closure still apply, and once any ID exists the full class discipline is enforced so a partial retrofit fails rather than downgrading (including every success criterion carrying an SC-NN ID, not just one).

@@ -591,6 +591,8 @@ def test_fixture_inventory_is_reviewed():
         "claude-request-dojo-2026-08-02.json",
         "codex-prompt-input-dojo-2026-08-02.json",
         "codex-prompt-input-truncating-2026-08-02.json",
+        # Verbatim frontmatter from this repository's capture-era commit.
+        "codex-source-frontmatter-2026-08-02.json",
         "codex-tui-clipped-110.jsonl",
         "codex-tui-clipped-56.jsonl",
         "codex-tui-healthy-45.jsonl",

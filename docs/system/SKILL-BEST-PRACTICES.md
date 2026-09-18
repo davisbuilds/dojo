@@ -1,8 +1,85 @@
 # Skill Best Practices
 
-Research-backed guidance for skill authoring and evaluation. Based on 2025-2026 vendor docs, arXiv literature, and internal experience. Extracted from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md).
+Authoring and maintenance guidance for Dojo. The design stance below expresses
+project policy from [VISION.md](../project/VISION.md) and observed workflow
+friction; it is not a claim that model training has eliminated particular
+failure modes. The research notes and source list retain the background from the
+[earlier skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md).
 
-## Key Principles
+## Design for Capable Agents
+
+Start with the agent's actual baseline: model, tools, harness instructions,
+repository guidance, and accepted task context. A skill should supply a missing
+capability or improve a consequential decision. It should not require the agent
+to demonstrate generic competence through a prescribed ritual.
+
+Distinguish the content you are adding:
+
+| Content | Authoring default |
+| --- | --- |
+| Specialized knowledge, tool usage, schemas, local conventions | Keep what the agent needs; locate details near the capability and disclose them on demand. |
+| User preferences and authority boundaries | State them explicitly, scoped to where they apply. Greater intelligence does not supply missing preferences or permission. |
+| Safeguards for consequential failures | Preserve the protected outcome and appropriate evidence; use a fixed sequence only when order matters. |
+| Generic reasoning or methodology | Remove, compress, or make advisory unless a specific failure or behavioral evidence justifies it. |
+| Presentation and artifacts | Require a format only for a real consumer or explicit request; otherwise offer an adaptable example. |
+
+An instruction should justify the freedom it removes. Prefer an observable
+outcome and evidence requirement over a mandated reasoning sequence, option
+count, hypothesis quota, exact closing phrase, or repeated acceptance template.
+Changing MUST to should is insufficient if the surrounding workflow still
+requires the same unnecessary work.
+
+## Scope, Composition, and Artifacts
+
+Use the smallest process sufficient to resolve the actual uncertainty and
+substantiate the result. Match depth to dependencies, reversibility, blast radius,
+and the consequence of error. File count or a familiar domain keyword is not
+an escalation criterion by itself.
+
+Keep the user's task primary. Consulting a sibling supplies relevant guidance
+without recursively activating its deliverables and handoffs. Preserve existing
+authorization and higher-priority harness loading rules. A skill body cannot
+waive those rules; it can avoid expanding the work after consultation.
+
+Reuse accepted tickets, conversations, contracts, and fresh proof. Publish a
+separate artifact when requested, required by the project, or useful for a
+specific consumer such as a later executor or reviewer. Formal spec/plan schemas
+still apply when those artifacts are produced, including their high-risk gates.
+
+For example, a settled CLI addition can consult output-contract guidance while
+being implemented. An investigation-only request can finish with a supported
+cause and proposed remedy. Neither requires a new document pipeline or an
+unauthorized fix. A migration with unresolved recovery behavior still requires
+that decision and its proof before the dependent action.
+
+## Review and Retirement
+
+During authoring or substantive revision, identify what the guidance adds and
+which failure, preference, or consumer justifies its constraints. This is a
+review lens, not a new mandatory report or metadata schema.
+
+Revisit guidance after recurring friction, relevant model/tool changes, or new
+behavioral evidence. Options include deleting generic coaching, turning process
+into a reference, narrowing the trigger or distribution scope, consolidating
+redundant guidance, and retiring the skill. Moving the same mandatory reading
+into references does not remove its cost.
+
+Use proportional evidence. Clear scope conflicts and duplicate requirements can
+be repaired from source and concrete incidents. Larger claims about improved
+outcomes need comparisons with a baseline that keeps the same harness/repo
+controls. Include routine work, consequential failure cases, and requests where
+the skill should add no process. Observe correctness, missed boundaries,
+unnecessary artifacts/stops, cost, and time; separate script/schema tests,
+lexical routing checks, and live behavioral results. Consultation counts and
+shorter prompts are not proof of marginal value.
+
+Update all surfaces that encode a changed requirement: description, body,
+wrapper, references/templates, validators/tests, and generated metadata as
+applicable. Update release metadata and standing docs. Avoid solving every
+incident by adding another universal rule. Aim for useful behavior as capability
+changes, not permanent adherence to today's workflow.
+
+## Research Background
 
 1. **Progressive disclosure + narrow scope are converging norms**
    OpenAI and Anthropic both formalize metadata-first loading with on-demand resource expansion, and both stress single-purpose, composable skills over broad "do-everything" bundles [1][6][9].
@@ -24,11 +101,12 @@ Research-backed guidance for skill authoring and evaluation. Based on 2025-2026 
 
 ## Design Contract
 
-Every SKILL.md should include (enforced by `skill-contract-v1.md`):
+Every SKILL.md needs these design elements. The validator checks structural
+anchors; it cannot establish the quality of the decisions or behavior:
 
 - **Single responsibility** -- one clear purpose
-- **Trigger boundary** -- description says when to use AND when not to
-- **I/O contract** -- what the skill produces
+- **Trigger boundary** -- a precise description and explicit scope/non-goals
+- **I/O contract** -- what the task receives; consultation may simply improve the existing output
 - **Verification** -- how to check the skill worked correctly
 
 See `docs/system/skill-contract-v1.md` for the full checklist.
@@ -37,7 +115,7 @@ See `docs/system/skill-contract-v1.md` for the full checklist.
 
 - **Negative trigger clauses in descriptions** increase lexical overlap with competing skills (e.g. "Do NOT use for Gemini" adds "gemini" as a matching token). Use distinct vocabulary instead of cross-references.
 - **Instruction-only skills** are not inherently weak -- they become weak when they lack routing cues, I/O contracts, or eval loops.
-- **Overly strict language** ("MUST", "NEVER", "STRICT ENFORCEMENT") in advisory skills creates friction. Reserve strong language for safety-critical behaviors.
+- **Overly strict language** in advisory guidance creates friction. Reserve mandates for actual authority, safety, compatibility, or consumer requirements; explain the condition that makes them necessary.
 - **Repository-relative paths in runnable commands.** A command a skill tells the agent to run — `bash skills/<name>/scripts/x.sh`, `python3 skills/<name>/scripts/x.py`, or an operand like `--config skills/<name>/rules/` — resolves against the **user's** working directory, not dojo. Skills are installed globally and load from whatever repository the session is in, so a `skills/<name>/...` path is simply not there and the command fails everywhere except a dojo checkout (where it works, which is what hides the bug). Anchor every runnable path to **`<skill-dir>/...`** — the agent substitutes the directory it loaded the skill from — and anchor *operands* too, not just the executable: `bash <skill-dir>/scripts/scan.sh --config <skill-dir>/rules/`. This is distinct from a **file reference** in prose (`see references/REFERENCE.md`), which is correctly relative to the skill root because a reader already knows where the skill is. `tests/test_skill_script_paths.py` enforces this across the catalog; `skill-evals`/`skill-creator` are exempt because they are dojo's own gates, meant to run from a dojo checkout.
 
 ## Trigger Collision Guidance

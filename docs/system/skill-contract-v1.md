@@ -22,6 +22,18 @@ Current repo state:
 - New and updated skills should continue to declare `skill-type`.
 - For robustness, untyped skills still default to `workflow` behavior if one appears in the future.
 
+## Scope of the contract
+
+These checks validate skill packaging and structural anchors; they do not prove
+behavioral quality. A workflow/output anchor does not require a fixed phase
+sequence, durable document, handoff menu, or repeated approval. The output can
+be an answer, an authorized code change, or relevant guidance integrated into the
+current task. Follow the scope/composition rules in `rules/skill-authoring.md`.
+
+Saved spec and plan artifacts have their own schemas. Their substantive and
+high-risk requirements remain applicable when those artifacts are produced;
+`Handoff` sections and numbered option menus are optional.
+
 ## Skill Versions
 
 Every cataloged skill declares a top-level `version` frontmatter field. This is the skill release version, not the `skills.json` manifest schema version.

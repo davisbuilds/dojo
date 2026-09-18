@@ -37,11 +37,13 @@ version: 1.0.0
 
 ## Overview
 
-[TODO: 1-2 sentences explaining what this skill enables]
+[TODO: Explain the capability, preference, or safeguard this adds beyond the agent's existing model, tools, and project context.]
 
 ## Structuring This Skill
 
-[TODO: Choose the structure that best fits this skill's purpose. Common patterns:
+[TODO: Choose the structure that best fits this skill's purpose. Require order
+only for actual dependencies or fragile operations. Consulting sibling guidance
+does not inherit its workflow or deliverables. Common patterns:
 
 **1. Workflow-Based** (best for sequential processes)
 - Works well when there are clear step-by-step procedures

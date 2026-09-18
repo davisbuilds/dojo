@@ -20,7 +20,7 @@ jq '.skills | length' skills.json
 
 | Skill | Purpose |
 |-------|---------|
-| `diagnose` | Disciplined six-phase debugging loop — build a deterministic pass/fail signal, reproduce, hypothesise, instrument, fix, regression-test |
+| `diagnose` | Evidence-backed investigation, with repair and regression verification when authorized |
 | `local-review` | Findings-first local reviews on workspace diffs |
 | `error-handling-review` | Specialist lens for silent failures — empty/over-broad catch blocks, log-and-swallow, unjustified fallbacks, silent retry exhaustion |
 | `type-design-review` | Specialist lens rating a new/changed type's encapsulation and invariants; flags illegal states left representable |
@@ -43,13 +43,13 @@ The four design skills above compose into a pipeline: `design-md` (token spec) �
 
 | Skill | Purpose |
 |-------|---------|
-| `api-design` | Design and review robust API, event, interface, and machine-output contracts |
+| `api-design` | Design, review, or consult API, event, interface, and machine-output contracts during implementation |
 | `loop-design` | Design verifiable autonomous loops on top of `/loop` and `/goal`; gate on an oracle, then scaffold a portable loop bundle (`/loop-design`) |
-| `brainstorming` | Clarify WHAT to build and capture the chosen direction (`docs/design/`) |
-| `write-spec` | Pin the falsifiable contract — WHAT must be true, mechanism-free; conditionally add high-risk authority/invariant scenarios and review closure (`docs/specs/`) |
-| `write-plan` | Sequence the build — HOW: tasks, files, seam selection, and verification; conditionally add high-risk traceability, evidence, capability gates, and review closure (`docs/plans/`) |
+| `brainstorming` | Clarify direction through conversation; save a design summary when useful or requested |
+| `write-spec` | Resolve acceptance decisions or write a requested durable contract; reuse settled targets and retain conditional high-risk readiness |
+| `write-plan` | Plan dependencies, rollout, and proof when needed; accept tickets/conversations and retain conditional high-risk traceability and review |
 | `blind-spots` | Find what you don't know about one change — blind spot pass before it's built, or a brief-then-quiz before you merge (never scored, never gating) |
-| `create-cli` | CLI parameter and UX design |
+| `create-cli` | CLI design or focused interface consultation during implementation |
 | `agent-native-architecture` | Build agent-native apps with tool/action parity |
 | `deep-research` | Web-backed research with conditional depth, explainable URL-host evidence filtering, and verified first-party source safeguards |
 | `research-architect` | Engineer deep-research prompts, route execution, independently verify reports, synthesize multi-run results, and compound lessons via postmortems |

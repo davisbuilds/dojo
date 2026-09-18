@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = REPO_ROOT / "skills" / "write-spec" / "scripts" / "validate_spec.py"
@@ -310,3 +312,35 @@ def test_legacy_high_risk_contract_still_requires_structural_headings() -> None:
     )
 
     assert any("Authority And Safety" in error for error in errors)
+
+
+@pytest.mark.parametrize("handoff", ["", "## Handoff\n\nThe accepted contract is ready for its consumer.\n"])
+@pytest.mark.parametrize("risk_profile", ["routine", "high"])
+def test_contract_cli_accepts_optional_handoff_without_weakening_evidence(
+    tmp_path: Path, handoff: str, risk_profile: str
+) -> None:
+    path = tmp_path / "example-spec.md"
+    extra = complete_high_risk_sections() if risk_profile == "high" else ""
+    body = contract_body(extra).split("## Handoff")[0] + handoff
+    content = (
+        "---\ndate: 2026-09-17\nauthor: test-agent\ntopic: example\n"
+        "stage: spec\nstatus: draft\nsource: test\n"
+        f"risk_profile: {risk_profile}\nreadiness: ready\n---\n\n{body}"
+    )
+
+    def run(text: str) -> subprocess.CompletedProcess[str]:
+        path.write_text(text, encoding="utf-8")
+        return subprocess.run(
+            [sys.executable, str(SCRIPT_PATH), str(path), "--strict-filename"],
+            capture_output=True, text=True,
+        )
+
+    valid = run(content)
+    assert valid.returncode == 0, valid.stdout + valid.stderr
+    missing_proof = run(content.replace("`pytest -q`", "an unspecified check"))
+    assert missing_proof.returncode == 1
+    assert "verification command" in missing_proof.stdout
+    if risk_profile == "high":
+        blocked = run(content.replace("Blocking findings: none", "Blocking findings: HR-01"))
+        assert blocked.returncode == 1
+        assert "blocking findings remain" in blocked.stdout

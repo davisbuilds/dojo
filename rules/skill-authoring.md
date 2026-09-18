@@ -1,8 +1,10 @@
 # Skill authoring rules
 
-Always-follow conventions for adding or changing a skill. The deterministic form
-of these is enforced by `skills/skill-evals/scripts/validate_skill_contract.py`;
-see `docs/system/skill-contract-v1.md` for the full contract.
+Standing conventions for adding or changing a skill. Structural requirements
+are enforced by `skills/skill-evals/scripts/validate_skill_contract.py`; the
+design judgments below require review. See `docs/system/skill-contract-v1.md`
+for the structural contract and `docs/system/SKILL-BEST-PRACTICES.md` for the
+authoring and retirement guidance.
 
 ## Frontmatter
 
@@ -28,6 +30,28 @@ see `docs/system/skill-contract-v1.md` for the full contract.
 
 - Keep SKILL.md under ~500 lines; push detail into `references/`.
 - Add only what the agent does not already know. Context is shared and finite.
+- Identify the capability, preference, or consequential failure that justifies
+  an instruction. Prefer narrowing or removing obsolete process over adding
+  exceptions; preserve actual authority and consumer requirements. A shorter
+  file or frequently invoked skill is not by itself evidence of value.
+
+## Scope and composition
+
+- Follow the user's requested scope and existing authorization. Reading a skill
+  does not authorize a repair, publication, or other additional action.
+- Distinguish completing a requested workflow from consulting guidance during
+  another task. A sibling reference supplies relevant advice; it does not
+  recursively activate that sibling's workflow, deliverables, or handoffs.
+- Escalate for an unresolved material decision, dependency, or verification
+  problem, not file count or domain overlap. Reuse accepted decisions and fresh
+  evidence instead of requiring duplicate artifacts.
+- Require evidence for consequential claims; make sequence, templates, report
+  formats, and conversational checkpoints optional unless a concrete consumer
+  or risk requires them. Preserve authority, privacy, compatibility, recovery,
+  and applicable behavioral verification requirements.
+- State these boundaries in installed skills as well as authoring guidance.
+  Follow higher-priority harness loading rules; do not suggest that a skill body
+  can override them. Consultation need not expand the user's deliverable.
 
 ## Before you finish
 

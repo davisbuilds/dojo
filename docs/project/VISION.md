@@ -1,68 +1,97 @@
 # Vision
 
-This document defines the long-term direction for Dojo as an agent-skills system.
-It is not a release plan. It is the decision framework we use when tradeoffs are unclear.
+Dojo makes reusable agent capabilities portable, reliable, and easy to evolve.
+This is a decision framework, not a release plan.
 
 ## Why This Exists
 
-Dojo should make specialized agent behavior portable, reliable, and easy to evolve without locking users into a single model vendor or harness.
+A skill earns its place by adding something useful to a capable agent: specialized
+knowledge, working tools, local conventions, user preferences, or safeguards for
+failures that matter. The relevant baseline is the agent with its actual tools,
+harness instructions, and repository context, not an unassisted model.
+
+As models and harnesses improve, the useful content of a skill can change.
+Dojo should make it easy to shorten, narrow, relocate, or retire guidance that
+no longer helps. A smaller catalog can be progress. Capability growth is a
+reason to revisit instructions, not proof that a particular safeguard is obsolete.
 
 ## Guiding Principles
 
-1. **Context Is Sacred**
-   Context window is finite and shared. We optimize for signal density, progressive disclosure, and minimal cognitive load.
-2. **Agent Agnosticism by Default**
-   Skills should work across agent runtimes whenever possible. Platform-specific metadata is optional add-on, not the core contract.
-3. **Extensibility Over Forking**
-   Prefer composable skill structure (`commands/`, `scripts/`, `references/`, `assets/`) and clear interfaces so contributors extend behavior without cloning entire systems.
-4. **Determinism for Fragile Workflows**
-   High-risk operations should be script-backed, validated, and repeatable. Free-form instructions are for flexible tasks, not safety-critical paths.
-5. **Progressive Disclosure**
-   Load only what is needed when it is needed: metadata first, then skill body, then references/assets on demand.
-6. **Policy as Code**
-   Quality and safety requirements belong in hooks, validators, and machine-readable manifests, not only in prose docs.
-7. **Fast Feedback, Honest State**
-   The system should surface invalid structure, drift, and unsafe changes early, and block completion when repository state is inconsistent.
-8. **Human-Readable and Machine-Operable**
-   Every major artifact should be understandable to humans and consumable by automation.
+1. **Add value beyond the baseline.** Spend context on information, capabilities,
+   and preferences the agent would otherwise lack. Generic methodology needs
+   a specific reason to remain.
+2. **Preserve room for judgment.** State the desired outcome, constraints, and
+   relevant evidence. Prescribe a sequence only when order protects a real
+   dependency, consumer contract, or fragile operation.
+3. **Preserve user intent and authority.** Consultation must not expand the task,
+   imply new permissions, or require redundant approval. Investigation, design,
+   and implementation have different completion conditions.
+4. **Compose without cascading.** Let a primary task consult narrow guidance
+   without inheriting every sibling's workflow and deliverables. Escalate for
+   unresolved decisions or concrete risk, not file count or domain overlap.
+5. **Make artifacts serve consumers.** Save decisions when requested, required by
+   the project, or useful for coordination and later execution. Reuse accepted
+   contracts and fresh evidence. Thinking carefully does not require publishing
+   a document for every stage.
+6. **Protect meaningful invariants.** Preserve authority, privacy, compatibility,
+   recovery, and evidence for consequential claims. Use scripts and validators
+   for enforceable properties; distinguish structural checks from proof that
+   behavior is correct. Presentation preferences are not safety invariants.
+7. **Keep discovery and context economical.** Use precise triggers, appropriate
+   distribution scope, and progressive disclosure. Account for attention,
+   unnecessary stops, and maintenance as well as tokens.
+8. **Stay portable and honest.** Keep model-specific assumptions and platform
+   details explicit and revisitable. Distinguish observed results, design
+   expectations, and unknowns; do not promise equal effectiveness on every model.
 
-## Future State (Target)
+## Future State
 
-In the future, Dojo is the default way teams define and operate reusable agent capabilities:
+Dojo is a maintained set of useful capabilities whose scope can change with the
+agents using them:
 
-- A stable, vendor-neutral skill contract is implemented across multiple harnesses.
-- Skills are versioned, testable, and safely distributable with explicit compatibility and changelogs.
-- Installation, updates, and drift detection are one-command workflows for local and shared registries.
-- Security posture is measurable (validation, static analysis, trust scoring) before installation or execution.
-- Teams can discover, evaluate, and compose skills quickly without sacrificing governance.
-- Documentation, manifests, and hooks stay in sync automatically.
+- Skills are discoverable, versioned, and safely distributable across harnesses.
+- Tools and specialized references remain available without prescribing an
+  entire methodology for every task.
+- Workflow depth follows uncertainty, dependencies, reversibility, and the
+  consequence of error. Formal contracts and plans remain available when needed.
+- Authoring, validation, and distribution agree about what a skill requires.
+- Feedback supports both adding useful capability and removing obsolete process.
 
 ## Decision Rubric
 
-When choosing between alternatives, prefer the option that:
+When adding or revising guidance, ask:
 
-1. Preserves context efficiency.
-2. Increases cross-agent portability.
-3. Reduces hidden complexity and one-off glue.
-4. Improves verifiability (tests, checks, deterministic scripts).
-5. Keeps contributor onboarding and extension simple.
+- What decision or outcome does this improve over the agent's existing context?
+- What would be lost if the instruction were removed or made advisory?
+- Does a constraint protect an actual boundary or merely enforce a preferred style?
+- Can an existing tool, reference, repository rule, or accepted artifact do the job?
+- What evidence would justify keeping, narrowing, or retiring it later?
+
+Use judgment proportional to the change. Repair an obvious scope conflict
+without commissioning an experiment. Claims that a skill improves model outcomes
+need behavioral evidence appropriate to that claim. Invocation frequency,
+structural validity, and shorter text alone do not establish value.
 
 ## Non-Goals
 
-- Building a single-agent optimization layer that cannot transfer to other runtimes.
-- Maximizing feature count at the expense of clarity, trust, or maintainability.
-- Relying on manual process where enforceable automation is practical.
+- Maximizing the number of skills, instructions, or generated artifacts.
+- Teaching generic competence by default or freezing today's reasoning process
+  into tomorrow's agents.
+- Trading away safety or user preferences because a model appears more capable.
+- Building a new approval or evaluation bureaucracy for every small revision.
 
 ## Success Indicators
 
-- New skills are added with minimal custom scaffolding and pass validation immediately.
-- Skill behavior remains consistent across supported agent harnesses.
-- Repo hooks prevent malformed skills, stale manifests, and invalid plan artifacts from landing.
-- Contributors can understand and modify the system without reverse engineering implicit conventions.
-- Teams treat Dojo artifacts as durable infrastructure, not one-off prompt files.
+Tasks produce useful, verified outcomes with fewer unnecessary interruptions and
+duplicate artifacts. Required boundaries remain intact. Contributors can explain
+what each skill adds, and can remove outdated guidance without fighting templates
+or validators. Catalog and harness changes are reflected honestly in evidence
+and documentation.
 
 ## Relationship to Other Docs
 
-- [ROADMAP.md](./ROADMAP.md) describes current priorities and sequencing.
-- [ARCHITECTURE.md](../system/ARCHITECTURE.md) describes the operating model and technical structure.
-- [GIT_HISTORY_POLICY.md](./GIT_HISTORY_POLICY.md) defines history hygiene and collaboration constraints.
+- [SKILL-BEST-PRACTICES.md](../system/SKILL-BEST-PRACTICES.md) translates this direction into authoring and maintenance guidance.
+- [ROADMAP.md](./ROADMAP.md) records shipped changes and current work.
+- [BACKLOG.md](./BACKLOG.md) tracks unresolved friction and follow-ups.
+- [ARCHITECTURE.md](../system/ARCHITECTURE.md) describes the operating model.
+- [GIT_HISTORY_POLICY.md](./GIT_HISTORY_POLICY.md) defines history hygiene.

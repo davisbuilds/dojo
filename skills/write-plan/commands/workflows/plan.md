@@ -6,84 +6,29 @@ argument-hint: "[contract path, ticket, or clear request]"
 
 # Plan The Build
 
-This command wrapper is a harness add-on for the canonical `write-plan` skill.
-
-Load the `write-plan` skill and follow it exactly. A plan is the HOW (task
-breakdown, files, ordered steps), held to a contract's end-state. This wrapper
-adds orchestration only.
-
-## Target Input
-
-<target_input> #$ARGUMENTS </target_input>
-
-If `target_input` is empty, ask for the contract path, ticket, or request before
-proceeding.
+This command requests a durable execution plan using the canonical `write-plan`
+skill. Load it and use the conversation and `#$ARGUMENTS` as input. A clear ticket,
+conversation, or existing contract can establish the target.
 
 ## Flow
 
-### 1. Contract Gate
+- Resolve material scope/acceptance decisions before prescribing dependent
+  work. Do not require another spec solely because work is non-trivial or coupled.
+- Trace the relevant source and seam; reuse existing decisions and evidence.
+  Sequence actual dependencies and relevant verification using the canonical
+  skill's grounding guidance.
+- Save the requested plan at `docs/plans/YYYY-MM-DD-<topic>-plan.md` or update
+  the existing plan. Use `assets/plan-template.md`, resolved author metadata,
+  and the canonical risk classification.
+- For `high`, link a ready high-risk spec, consult the high-risk reference and
+  addendum, preserve traceability/authority/recovery/empirical gates, and complete
+  validation and critique closure before setting `readiness: ready`. Reuse the
+  existing high-risk contract; do not downgrade it to avoid these requirements.
+- Run `python3 <skill-dir>/scripts/validate_plan.py docs/plans/<filename>.md`.
+  The validator resolves paths from the target plan's Git root; use `--repo-root`
+  for relocated artifacts. Fix schema errors and assess advisories on their merits.
 
-If a `docs/specs/<topic>-spec.md` contract exists, plan against it and reuse its
-topic slug. Confirm it has no unresolved question that changes scope, success
-criteria, or verification; route those back to `/workflows:spec`. If no contract
-exists and the work is non-trivial or touches coupled code, ask whether to switch
-to `/workflows:spec` first.
-
-If the spec is high-risk, require `readiness: ready` before planning.
-
-### 2. Map Before You Cut
-
-For tasks touching existing/coupled code, trace the data/call path, pick the
-thinnest seam that satisfies the contract, map every adjacent path that must
-preserve the same property, and record `Assumptions Verified` in each
-existing-code task against its exact target file/symbol. Resolve current lookups
-before steps; risks are only irreducible future uncertainty.
-
-### 3. Draft Plan
-
-Use `skills/write-plan/assets/plan-template.md` as the scaffold. Each `Done When`
-must trace to the contract's end-state. Replace `author: <agent>` with the
-producing agent's most specific available model or harness identifier; never
-leave the placeholder unresolved.
-
-Classify `risk_profile` using the canonical gate. For `high`, add the linked spec
-to frontmatter, load `references/high-risk-readiness.md`, append
-`assets/high-risk-plan-addendum.md`, and keep `readiness: draft` through critique
-closure. Keep routine plans lean.
-
-### 4. Save Plan
-
-Write the plan to:
-`docs/plans/YYYY-MM-DD-<topic>-plan.md`
-
-### 5. Validate Plan
-
-Run:
-
-```bash
-python3 <skill-dir>/scripts/validate_plan.py docs/plans/<filename>.md
-```
-
-The validator discovers the target plan's Git root for repository-relative
-paths. Pass `--repo-root <path>` for relocated artifacts; outside Git, invoke it
-from the target repository root or pass the option explicitly.
-
-Fix any validation errors before presenting the plan.
-Treat grounding, test-discovery, and weak-acceptance messages as advisories: they
-are prompts to improve the plan, not schema failures. High-risk structure,
-linked-spec coverage, task references, modified-file existence, and readiness
-closure are hard gates.
-
-### 6. Handoff
-
-For `risk_profile: high`, run adversarial critique, revise blocking findings,
-run closure critique, and set `readiness: ready` only when none remain. Use a
-critique subagent when supported and authorized; otherwise critique inline.
-
-Then offer:
-1. Execute in this session, task by task.
-2. Review a routine plan with a critique subagent (or `verify-before-complete`
-   inline when subagents are unavailable), seeded with the plan path, spec, and
-   originating context. Check seam choice, exact target grounding, verified
-   steps, irreducible risks, and test discovery.
-3. Open a separate execution session, or refine the plan first.
+Report the plan and meaningful readiness limits. A handoff section is optional;
+there is no compulsory review menu or exact closing phrase. A plan-only request
+ends with the plan. Continue implementation when already authorized, without
+asking again merely because planning is complete.

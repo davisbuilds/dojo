@@ -2,7 +2,7 @@
 
 Actionable improvement backlog for the skills catalog. This is a living snapshot, not a release contract.
 
-Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-08-30.
+Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-09-17 for the workflow-composition first pass.
 
 ## In Progress
 
@@ -19,6 +19,9 @@ standing membership record._
 
 | Item | What Changed |
 |------|-------------|
+| Design for capable agents (2026-09-18) | Vision and best practices now make marginal value, room for judgment, proportional evidence, scope-preserving composition, and revision/retirement explicit authoring principles. AGENTS, contributor guidance, and standing rules point to that policy. `skill-creator` and `template` 2.0.0 align authoring defaults, scaffolds, and examples: no mandatory phase count or unrequested packaging, and strict formats need a real consumer. Structural checks remain distinct from evidence of model benefit. |
+| Optional planning artifacts (2026-09-17) | `brainstorming`, `write-spec`, and `write-plan` 3.0.0 separate consultation from saved deliverables, reuse accepted tickets/conversations, and remove file-count escalation, automatic pipeline handoffs, fixed closing phrases, and mandatory review menus. Wrappers, templates, platform guidance, and validators agree; optional handoffs retain verification and high-risk readiness checks. CLI validator regressions cover routine/high-risk documents and negative controls; replay cases document expected behavior without claiming model lift. |
+| Scoped workflow consultation (2026-09-17) | `api-design`, `create-cli`, and `diagnose` 2.0.0 preserve requested scope, reuse accepted contracts and evidence, and consult siblings without recursive workflow activation. Diagnosis separates read-only investigation from authorized repair; CLI/API output scales to the task. Authoring guidance records the composition rule; manual replay cases cover bounded CLI/accounting work and diagnosis authority. |
 | Changelog H1-safe version bumping | `skill-evals` 1.5.1. `bump_skill_version.py` now inserts a release entry below an opening H1 title instead of above it, while preserving its prepend behavior for untitled changelogs. A focused regression fixture and the tool's own successful `skill-evals` bump verify the titled path. |
 | Workstation health drift severity | `drift_check.py` stays strict by default but adds an opt-in health mode: same-build, non-saturating membership changes entirely outside local control remain fully reported as `state: notice` with exit `0`. Controlled membership, build, surface, ceiling, blindness, and saturation still fail. Scheduled machine-health consumers can opt into the mode without weakening interactive SessionStart reporting. |
 | Review specialists ported from pr-review-toolkit | Two agent-agnostic review lenses that no dojo skill covered, converted from the `pr-review-toolkit@claude-plugins-official` Claude subagents. **`error-handling-review`** (1.0.0) hunts silent failures — empty/over-broad catch blocks, log-and-swallow, unjustified fallbacks, optional-chaining that hides faults, silent retry exhaustion — with a five-question interrogation and hidden-failure pattern catalog (`references/`), findings-first with a hidden-errors list per catch; the source agent's hardcoded Sentry/`logError`/`constants/errorIds.ts` conventions were rewritten to repo-declared conventions plus concrete TypeScript (Next.js/Supabase) and Python shapes. **`type-design-review`** (1.0.0) rates a new/changed type on encapsulation, invariant expression, usefulness, and enforcement (1–10 each), flags anti-patterns (anemic models, exposed mutable internals, doc-only invariants), and gives language tools for making illegal states unrepresentable. Both are deliberately-invoked specialist lenses with per-skill `evals/trigger-cases.json` routing fixtures (precision/recall 1.0 against `local-review`/`secure-code`/`api-design`), cross-referenced from `local-review`'s siblings. Plugin kept enabled for now; retiring it is a slimmed BACKLOG follow-up. |
@@ -101,7 +104,7 @@ standing membership record._
 |-------|---------|--------|
 | ~~compound-docs~~ | "STRICT ENFORCEMENT", 7-step mandatory workflow | Done -- rewritten without XML ceremony |
 | verify-before-complete | "Iron Law", "NEVER claim completion" | Keep -- appropriate for its purpose |
-| brainstorming | "MUST use this before any creative work" | Open -- too broad for simple changes |
+| ~~brainstorming~~ | Broad trigger and mandatory artifact/handoff workflow | Done -- 3.0.0 defaults to conversation, reuses settled direction, and makes saved summaries conditional |
 
 **Guidance:** Use "should" over "MUST" for advisory skills; reserve "MUST" for safety-critical behaviors.
 

@@ -1,3 +1,7 @@
+## 2.0.0 - 2026-09-17
+
+- Separate investigation and repair authority; allow evidence-led diagnosis without fixed phases, hypothesis counts, or required artifacts.
+
 ## 1.0.4 - 2026-08-14
 
 - Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout

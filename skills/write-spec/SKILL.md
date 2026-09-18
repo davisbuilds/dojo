@@ -1,96 +1,62 @@
 ---
 name: write-spec
-description: 'Define the target before building: write a falsifiable contract — problem, end-state, success criteria, evaluation — that states WHAT must be true, with no files or implementation steps. Use when you need to specify or align on what "done" means before sequencing work, or are handed a feature/change and must pin its acceptance criteria. Hand off to `write-plan` for the HOW.'
+description: 'Define what done means before building: observable outcomes, acceptance criteria, and how to verify them. Use when material target decisions remain unresolved or a durable specification is requested or needed for coordination. Reuse an accepted ticket, conversation, or contract when it already defines the target.'
 skill-type: workflow
-version: 2.2.0
+version: 3.0.0
 ---
 
 # Write Spec
 
-A spec is a **contract**, not a plan. It states the target — the mechanism-free
-end-state a change must satisfy — so a zero-context engineer (or a later
-`write-plan` pass) can choose *how* to build it and prove *when* it is done.
-
-The contract adopts the four pieces of a product spec, translated to the
-engineering register: **problem, bet, success criteria, evaluation**. The "bet"
-is not a KPI — it is a **deterministic verification command** that makes the
-end-state falsifiable.
+Define what must be true and how to check it. Use a durable specification when
+it helps consumers agree on or retain that contract. Thinking through acceptance
+does not by itself require publishing a spec file.
 
 ## When To Use
 
-Use this skill when:
-- you need to pin what "done" means before sequencing any work
-- you are handed a feature, ticket, or change and must fix its acceptance criteria
-- a brainstorm settled on a direction and it now needs a falsifiable target
+- Material scope, behavior, or acceptance decisions remain unresolved.
+- The user requests a specification, or coordination needs a durable contract.
 
-Skip this skill when:
-- WHAT is already falsifiable and you just need the build sequence → `write-plan`
-- the change is a tiny mechanical edit
-- requirements are still ambiguous → `brainstorming` first
+An accepted ticket, conversation, or existing document can already supply the
+contract. If it is clear and sufficient, reuse it and continue the authorized
+task. Neither multi-file work nor consulting this skill requires a new spec.
 
-## The Contract Discipline
+## Boundaries
 
-State **what must be true**, never **how to build it**.
+Follow the requested scope. Specification-only work does not authorize code
+changes. During an implementation request, resolve the missing decisions without
+inheriting a document pipeline or additional permission checkpoints.
 
-- No file paths, task breakdowns, or ordered implementation steps — those belong
-  to `write-plan`. (The validator rejects them; this is structural, not advice.)
-- Every contract must be **falsifiable**: name the observable behavior and the
-  deterministic command/check that proves it.
-- Pin a meaningful magnitude, floor, rate, or non-degeneracy bound when trivial
-  output could technically pass. Mere existence, positive sign, non-emptiness,
-  or completion is not an acceptance gate.
-- Keep mechanism out so the plan is free to pick the thinnest seam that satisfies
-  the contract.
+Consult relevant sibling sections without activating their whole workflows.
+Escalate for an unresolved material decision or evidence gap, not domain overlap.
+Follow higher-priority harness loading rules.
 
-## Start Behavior
+## Workflow
 
-Start with:
-`I'm using the write-spec skill to write the contract.`
+1. **Resolve current uncertainty.** Read relevant source, docs, and behavior.
+   Ask the user only about choices that change the contract and cannot be
+   inferred from existing intent. Separate blocking decisions from irreducible
+   future uncertainty; record the latter's signal and containment. Use
+   `references/uncertainty-triage.md` when that distinction is difficult.
+2. **State the outcome and proof.** Tie acceptance to observable behavior and
+   checks that can fail for the defect in question. Pin a meaningful floor or
+   non-degenerate case when empty/trivial output could pass. An existing check
+   can be reused; a second template does not add evidence.
+3. **Check relevant failure modes.** Consider affected consumers, old or malformed
+   inputs, permissions, partial failure, and recovery proportionately. For
+   behavior-preserving work, define the reference behavior on ties, duplicates,
+   empty inputs, and other result-deciding edges; probe assumptions against
+   representative data and include those edges in differential checks.
+4. **Capture only what needs persistence.** Amend an existing contract or create
+   the requested artifact. Resolve contract-changing questions before planning
+   or implementation; identify remaining non-blocking uncertainty honestly.
 
-If key context is missing, ask focused questions before writing:
-- who is hurting and what they do today (the problem)
-- the observable end-state that defines success
-- how it will be verified (the falsifiable check)
-- hard constraints and non-goals
+## Output
 
-## Decision Readiness
-
-Before drafting, reduce preventable uncertainty without pretending every unknown
-can be discovered:
-
-1. **Resolve what is answerable now.** Read the relevant project, docs, and
-   existing behavior; use research when facts are missing. Do not ask the user
-   to answer a repository lookup the agent can perform.
-2. **Work with the user on contract decisions.** Ask focused questions when an
-   answer changes observable behavior, scope, success criteria, safety
-   boundaries, or the verification claim. Resolve as many as possible before
-   writing the contract.
-3. **Stress-test proportionately.** For non-trivial or risky work, consider
-   other consumers, bad/empty/old input, trust boundaries, dependency failure,
-   and detection/containment. This is a lens, not an exhaustive checklist. Route
-   high-stakes trade-offs to `first-principles` and missing evidence to
-   `deep-research`.
-4. **Classify what remains.** A blocking decision changes the current contract
-   and must close before `write-plan`. An irreducible future uncertainty that
-   does not change the contract belongs in Assumptions And Constraints with its
-   signal and containment. A future choice belongs in Out of Scope, not Open
-   Questions. Write `None` when all current-contract decisions are settled.
-
-See `references/uncertainty-triage.md` for compact prompts and examples. The
-spec records decisions and bounded uncertainty, not a transcript of every
-question asked.
-
-## Behavior-Preserving Contracts
-
-When acceptance depends on equivalence to an existing implementation, make that
-implementation a real oracle before relying on it:
-
-1. Define its behavior on ties, duplicates, empty inputs, and other result-deciding
-   edges instead of treating accidental behavior as a contract.
-2. Probe structural assumptions such as uniqueness, ordering, and schema against
-   representative real data before pinning them.
-3. Require differential fixtures that include those edge inputs, not only the
-   happy path.
+For consultation, integrate decisions and acceptance evidence into the current
+task. No separate file is required. For a durable spec, use the contract schema
+below and link existing decisions/evidence rather than restating them at length.
+A formal spec states WHAT; implementation files and ordered tasks belong in an
+execution plan when one is needed.
 
 <!-- INCLUDE: risk-profile-gate -->
 <!-- AUTO-GENERATED from skills/_fragments/risk-profile-gate.md — do not edit -->
@@ -110,170 +76,77 @@ For `high`, load this skill's high-risk reference and addendum; do not add those
 sections to routine work. Reclassify when repository evidence reveals a trigger.
 <!-- /INCLUDE: risk-profile-gate -->
 
-## Output Path
+This gate classifies a new or revised spec artifact; it does not require one
+merely because guidance was consulted. Regardless of artifact choice, unresolved
+authority, privacy, migration/recovery, or verification concerns must be resolved
+before the dependent action. Do not downgrade an existing high-risk contract to
+avoid its readiness requirements.
 
-Save the contract to:
-`docs/specs/YYYY-MM-DD-<topic>-spec.md`
+## Saved Contract Schema
 
-If a design summary exists at `docs/design/YYYY-MM-DD-<topic>-design.md`, reuse its
-topic slug.
+Use `assets/spec-template.md` for a new artifact at
+`docs/specs/YYYY-MM-DD-<topic>-spec.md`, or update the existing contract. Reuse the
+topic slug of a related design summary when available.
 
-## Output Contract
+Required frontmatter: `date`, resolved `author`, `topic`, `stage: spec`,
+`status`, `source`, `risk_profile`, and `readiness`. New artifacts start with
+`status: draft`; update delivery status as work lands. `readiness` describes
+whether the contract is ready for use, separately from implementation status.
+Legacy artifacts keep their supported schema.
 
-Every spec must include YAML frontmatter and the required sections below.
+Required sections:
 
-### Required Frontmatter
+- `# <Title> Spec`
+- `## Problem` — the need and relevant context.
+- `## Contract` — observable end-state and at least one concrete verification
+  command/check in an inline code span.
+- `## Success Criteria` — the behaviors that establish success.
+- `## Evaluation` — proof appropriate to those criteria. Product/experiment
+  thresholds belong here only when the work is actually a measurable bet.
+- `## Scope` — included and excluded outcomes.
+- `## Assumptions And Constraints` — relevant limits and bounded uncertainty.
+- `## Open Questions` — None, or explicitly non-blocking with the reason.
 
-```yaml
----
-date: YYYY-MM-DD
-author: <agent>
-topic: <kebab-case-topic>
-stage: spec
-status: draft
-source: conversation
-risk_profile: routine
-readiness: draft
----
-```
+`## Handoff` is optional. If useful, state the actual next action or consumer;
+there is no required menu. Do not add task breakdowns, file lists, or ordered
+implementation steps to a formal contract.
 
-Replace `<agent>` with the producing agent's most specific available model or
-harness identifier (for example, `author: gpt-5.6-sol`). Attribute the agent
-that writes the contract, not the user or a later reviewer, and never leave the
-placeholder unresolved. Legacy specs without `author` remain valid.
+For `high`, load `references/high-risk-contract.md` and
+`assets/high-risk-spec-addendum.md`: retain authority/safety outcomes, stable
+criterion/scenario IDs, and negative/recovery/concurrency/legacy scenarios.
+Keep `readiness: draft` through validation, adversarial critique, revision, and
+closure critique. Set it to `ready` only after blocking findings are closed.
+Use a critique subagent when supported and authorized; otherwise critique inline.
 
-`status:` is born `draft` and follows the lifecycle `draft → in-progress →
-complete` (terminal synonyms: `shipped`, `implemented`, `superseded`). Update it
-honestly as the work lands so a reader — or any lifecycle tooling — can tell a
-live contract from a finished one.
+## Verification
 
-### Required Sections
-
-1. `# <Title> Spec`
-2. `## Problem` — who is hurting, what they do today, why now.
-3. `## Contract` — the falsifiable end-state: "when this ships, *[observable
-   behavior]* holds, verified by *[deterministic command/check]*." Name at least
-   one verification command (an inline `` `code` `` span). This is the translated
-   bet: the metric is a command, not a KPI.
-4. `## Success Criteria` — concrete behaviors visible when it works.
-5. `## Evaluation` — how it is measured. Add kill/scale/graduate thresholds
-   **only when the work is an actual product or experiment bet** (gate with a
-   one-line "if this is a measurable bet…"); omit them for mechanical/system specs.
-6. `## Scope` — in/out of scope (still mechanism-free: name outcomes, not files).
-7. `## Assumptions And Constraints`
-8. `## Open Questions` — `None` when ready to plan. Any retained question must
-   be non-blocking and state why it cannot change the current contract.
-9. `## Handoff` — route to `write-plan` for the HOW.
-
-Use `assets/spec-template.md` as the default scaffold.
-
-For `risk_profile: high`, also use `assets/high-risk-spec-addendum.md` and follow
-`references/high-risk-contract.md`. High-risk contracts add stable success
-criterion and evaluation-scenario IDs, observable authority/safety outcomes, and
-a readiness review while remaining mechanism-free.
-
-## Verification Requirements
-
-- The `## Contract` must name at least one concrete verification command or check.
-- Prefer deterministic checks (a command with an observable pass/fail signal) over
-  prose assertions.
-- Reject gameable checks such as bare `> 0`, "not empty", or "completes and
-  prints." Pin the smallest meaningful magnitude and require non-degenerate input
-  and output when an empty or trivial run could pass.
-- Confirm the stated check can prove the contract's outcome. Test-file placement
-  and runner discovery are plan-level details; `write-plan` verifies those when
-  tests change.
-- Do not claim the contract is ready until the end-state is falsifiable.
-- For high-risk contracts, do not set `readiness: ready` or announce completion
-  until deterministic validation passes, adversarial critique findings are
-  revised, and a closure critique confirms no blocking finding remains.
-
-If available, apply the mindset from `verify-before-complete` when checking final
-contract quality.
-
-## Conditional Coordination
-
-Route to another skill only when needed:
-- requirements unclear: use `brainstorming`
-- architectural trade-off dominates risk: use `first-principles`
-- evidence/prior art needed for the contract: use `deep-research`
-- ready to sequence the build with no contract-affecting question open: hand off
-  to `write-plan`
-
-If a named skill is unavailable, continue with manual fallback in this skill.
-
-## Spec Validation
-
-After writing a contract, run:
+For a saved spec, run:
 
 ```bash
 python3 <skill-dir>/scripts/validate_spec.py docs/specs/<filename>.md
 ```
 
-Fix all reported issues before handoff. The validator fails the contract if any
-plan-shaped content (task breakdowns, file lists, implementation steps) leaked
-in. For high-risk contracts it also enforces the conditional addendum, stable ID
-classes, and structural review closure. Decision readiness and semantic safety
-remain human/agent reasoning gates, not brittle prose heuristics. Obvious weak
-acceptance phrases (`> 0`, "not empty", completion-only wording) produce
-advisories without changing an otherwise valid contract's exit status.
+Fix schema errors. Weak-acceptance advisories are prompts for judgment, not
+schema failures. Validation proves structure, not that the proposed check proves
+the outcome or the authority/recovery model is sound.
 
-## Handoff
-
-End with:
-`Contract complete and saved to docs/specs/<filename>.md.`
-
-Use that completion line immediately for routine contracts after validation. For
-high-risk contracts, keep `readiness: draft` through deterministic validation,
-adversarial critique, revision, and closure critique; use the completion line
-only after `readiness: ready` validates.
-
-Before offering a plan handoff, confirm that `Open Questions` is `None` or that
-any retained item is explicitly non-blocking. Return to decision readiness if it
-would change scope, success criteria, or verification.
-
-For high-risk contracts, run the required critic described in
-`references/high-risk-contract.md` before handoff. Use a critique subagent when
-the harness supports and authorizes one; otherwise run the same critique inline.
-For routine contracts, critique remains optional and is offered explicitly
-below.
-
-Then offer:
-1. Hand off to `write-plan` to sequence the build against this contract.
-2. **Review the contract with a critique subagent.** If the harness supports
-   subagents (e.g. a Task/agent tool), launch one seeded with the spec's path
-   **and** the originating goal/context, instructed to critique the *contract* —
-   is the end-state falsifiable? did any mechanism (files/steps) leak in? are
-   success criteria concrete? is the evaluation gate right? is the problem real? —
-   and to propose concrete improvements. Apply or discuss before handing off. If
-   subagents are unavailable, run the same critique inline via
-   `verify-before-complete`.
-3. Refine the contract before sequencing.
-
-## Command Wrapper
-
-If command files are supported, use `commands/workflows/spec.md` as the canonical
-`/workflows:spec` wrapper.
+Before calling the target ready, confirm acceptance is falsifiable and no open
+decision changes scope, success criteria, or verification. High-risk artifacts
+also require the review closure described above. Report only supported readiness
+and relevant remaining questions; no exact completion phrase is required.
 
 ## Resources
 
-- `references/uncertainty-triage.md` — classify uncertainty, work through
-  proportionate unknown-unknown lenses, and keep contracts ready for planning.
-- `references/high-risk-contract.md` — conditional authority, invariant,
-  scenario-ID, and critique-closure protocol.
-- `assets/high-risk-spec-addendum.md` — conditional scaffold for high-risk
-  contracts; do not copy it into routine specs.
+- `assets/spec-template.md` — saved contract scaffold.
+- `references/uncertainty-triage.md` — unresolved-decision guidance.
+- `references/high-risk-contract.md` and `assets/high-risk-spec-addendum.md` —
+  conditional safety, traceability, and review protocol.
+- `commands/workflows/spec.md` — explicit specification command wrapper.
 
-## Sibling skills
+## Sibling Skills
 
-Pre-execution pipeline: **brainstorm → spec → plan**
-(`docs/design/` → `docs/specs/` → `docs/plans/`).
-
-- `brainstorming` — upstream. Clarifies WHAT + chosen direction; come here to make
-  that direction a falsifiable contract.
-- `write-plan` — downstream. Sequences the build (tasks, files, steps) against
-  this contract. Hand off once the target is falsifiable.
-- `first-principles` — upstream for high-stakes contracts that hinge on a
-  non-obvious architectural decision.
-- `deep-research` — parallel. Use when the contract needs evidence (library
-  behavior, prior art, current docs).
+- `brainstorming` — explore genuinely unsettled direction.
+- `write-plan` — sequence dependencies or rollout when an execution plan is needed;
+  a complete contract does not automatically require a planning workflow.
+- `first-principles` — resolve material architectural trade-offs.
+- `deep-research` — gather missing external evidence.

@@ -30,6 +30,38 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
 
 ## Open
 
+### Evaluate workflow revisions and extend the composition audit
+
+- **What**: measure the marginal value of the compact workflow guidance and audit
+  the remaining catalog for redundant coaching or recursive handoffs.
+- **Why or evidence**: the 2026-09-15/16 incidents recorded in `f6c4852`,
+  `c471546`, and `b05ff54` motivated the shipped first pass (see ROADMAP).
+  Deterministic validation and manual replay cases establish structure and
+  expected behavior, not model-performance improvement. Methodology skills and
+  higher-priority harness loading policies can still add process outside the
+  revised cluster.
+- **Next**: use the separate `ops/experiments/skill-effect-v0` work reported by
+  the user on 2026-09-17 for empirical comparison; keep that experiment owned by
+  ops. Compare current guidance, compact guidance, and minimal added guidance
+  with the same harness/repo controls. Assess outcomes, authority boundaries,
+  unnecessary artifacts/stops, context cost, and time. Prioritize remaining
+  skills from observed friction; do not infer low value from invocation counts.
+- **Revisit when**: the first pass receives real usage feedback, experimental
+  results are available, or model/tool changes warrant recalibration.
+
+### Declared research trigger collides with the execution skill
+
+- **What**: `commission research` ranks `deep-research` above its declared owner
+  `research-architect` in the lexical self-routing check.
+- **Why or evidence**: reproduced 2026-09-17 with
+  `run_trigger_evals.py --from-triggers --skills-root skills` in an untouched
+  pre-split archive of `a657a57`, before the workflow edits: 13/14 assertions pass; the
+  same collision remains after the first pass. This is a lexical routing result,
+  not a demonstrated semantic misfire.
+- **Next**: inspect the research-family trigger boundary when tuning that family;
+  retain both commissioning and direct-execution cases. Do not weaken the fixture
+  or change unrelated descriptions solely to make this task's checks green.
+
 ### `allowed-tools` permission patterns still hardcode a dojo-relative path
 
 - **What**: command wrappers declare permissions as literal command prefixes —
