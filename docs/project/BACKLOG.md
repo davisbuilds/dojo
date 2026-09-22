@@ -46,8 +46,18 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   with the same harness/repo controls. Assess outcomes, authority boundaries,
   unnecessary artifacts/stops, context cost, and time. Prioritize remaining
   skills from observed friction; do not infer low value from invocation counts.
-- **Revisit when**: the first pass receives real usage feedback, experimental
-  results are available, or model/tool changes warrant recalibration.
+- **Next candidates, 2026-09-22**: after the knowledge-capture changes recorded
+  in ROADMAP, review verification/testing ceremony, the clean-worktree publishing
+  stop in `gh-commit-push-pr`, universal CRUD/prompt-only goals in
+  `agent-native-architecture`, and the research family's mandatory stages.
+  These are source-review candidates, not measured model-performance findings.
+- **First-principles direction, 2026-09-22**: the user values this skill and
+  deferred retirement. Consider targeted additions around decision-changing
+  evidence, reversible versus costly-to-reverse choices, and explicit conditions
+  that would change a recommendation; remove generic sequence and automatic
+  pipeline handoffs only as part of an agreed revision. No change selected yet.
+- **Revisit when**: a candidate is selected, real usage exposes more friction,
+  experimental results arrive, or model/tool changes warrant recalibration.
 
 ### Declared research trigger collides with the execution skill
 
@@ -260,7 +270,9 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   nextjs-app-router, repo-hardening, skill-evals, skill-installer, template,
   theme-factory, vercel-composition-patterns, vercel-deploy,
   vercel-preview-logs). **Updated 2026-08-01:** eight of the original 26 were
-  retired rather than installed, so the census is now 17 of 48. The earlier
+  retired rather than installed, giving a then-current census of 17 of 48.
+  This is historical evidence, not current membership; `compound-docs` was
+  retired on 2026-09-22. Recompute before using the census for a decision. The earlier
   "13 of 55" figure was a stale
   point-in-time AgentMonitor snapshot; the catalog has since grown and prior
   syncs used `--only-existing`.

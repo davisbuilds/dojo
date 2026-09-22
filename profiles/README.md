@@ -48,7 +48,7 @@ budget, leaving roughly 4,226 characters against a measured mean of ~313 per doj
 entry — **about 13 skills**, i.e. `core` (8) plus roughly one overlay (measured
 2026-08-02; the verifier recomputes it at verify time and no number here is
 load-bearing). A nine-member overlay is not a richer profile, it is an
-undeployable one. Overlays here run three to four members and each member is
+undeployable one. Overlays here remain small, and each member is
 chosen for capability coherence with the overlay's name.
 
 Every member carries an inline comment saying why it is present, and each file's

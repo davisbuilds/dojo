@@ -99,9 +99,8 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 | `obsidian-canvas` | Obsidian Canvas files for visual canvases |
 | `markdown-converter` | Convert file formats to Markdown |
 | `fetchmd` | Convert webpages or local HTML into clean Markdown for AI workflows |
-| `handoff` | Session summaries for context handoff |
-| `compound-docs` | Capture solved problems as documentation |
-| `session-retro` | Route non-obvious session learnings into existing project reference docs |
+| `handoff` | Portable continuation snapshots for a fresh agent: intent, grounding, state, evidence, and next action |
+| `session-retro` | Preserve consequential learnings in existing canonical project docs without redundant approval or mandatory artifacts |
 
 ### Meta / Skill Management
 

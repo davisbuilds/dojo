@@ -1,116 +1,83 @@
 ---
 name: session-retro
-description: Update existing project reference docs with non-obvious learnings from the current session rather than creating new files. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on "/retro", "update docs with learnings", "save what we learned", or proactively at session end.
+description: Preserve non-obvious session learnings in existing canonical project docs. Use when the user asks for a retro, says "save what we learned" or "update docs with learnings", or completed work leaves an established reference missing a consequential fact. Skip routine session endings with nothing durable to add.
 skill-type: workflow
-version: 1.0.3
+version: 2.0.0
 ---
 
 # Session Retro
 
-Capture non-obvious learnings from this session in the project's existing reference docs. Prefer the single most canonical destination for each learning, and skip updates when the right doc does not already exist.
-
-## What Qualifies
-
-- Environment quirks or workarounds that cost time to discover
-- Non-obvious API behavior, flag combinations, or config requirements
-- Dependency gotchas (version conflicts, install flags, peer deps)
-- Commands that exist but weren't documented
-- New CLI commands or features built this session
-- Build/test/deploy steps that differ from what you'd expect
-
-## What Does NOT Qualify
-
-- Anything already in the project's docs
-- Obvious language/framework behavior
-- One-off typos or syntax errors that were fixed
-- Session-specific context (current task state, temp files)
-- Anything the next agent would figure out in under 30 seconds
-
-## Eligible Targets
-
-Only update docs that already exist. Never create new reference docs during `/retro`.
-
-- Root docs: `AGENTS.md`, `CLAUDE.md`, `README.md`
-- Canonical system docs: `docs/system/OPERATIONS.md`, `docs/system/ARCHITECTURE.md`, `docs/system/FEATURES.md`
-- Canonical project docs: `docs/project/ROADMAP.md`, `docs/project/VISION.md`
-- Other project ref docs only when they are clearly canonical, already present, and a better fit than the files above
-
-## Routing Guide
-
-Choose exactly one primary destination per learning. Avoid duplicate updates across multiple docs unless the user explicitly asks for that.
-
-- **Agent workflow / implementation gotcha / repo-specific shortcut** -> `AGENTS.md` or `CLAUDE.md` (prefer `AGENTS.md`)
-- **Quickstart / primary commands / setup the next developer expects at repo entry** -> `README.md`
-- **Runbooks / CI / cron / env vars / migrations / operational commands** -> `docs/system/OPERATIONS.md`
-- **Service boundaries / invariants / data flow / required code patterns** -> `docs/system/ARCHITECTURE.md`
-- **Shipped capability or catalog-style reference** -> `docs/system/FEATURES.md`
-- **Actual project status or planned work that changed this session** -> `docs/project/ROADMAP.md`
-- **Product direction or policy decisions** -> `docs/project/VISION.md` or the matching existing policy doc
-
-If the best-fit doc is missing, fall back to the closest existing root doc only when the learning still belongs there. Otherwise skip it.
-
-## Process
-
-1. **Inventory existing ref docs** — check which eligible target files actually exist in the current project.
-
-2. **Identify learnings** — from session context, list candidates. Apply the "would this save the next agent 5+ minutes?" filter. Discard the rest.
-
-3. **Route each learning to one canonical doc** using the routing guide above. Prefer the most specific existing doc, not the most convenient one.
-
-4. **Use the smallest safe edit.**
-   - Prefer single-line append-only additions for root docs and gotcha-style notes.
-   - Allow minimal in-place edits for stateful structured docs when append-only would create duplication or stale information.
-   - Match the file's existing format exactly (table row, bullet, numbered item, short paragraph, code block entry).
-
-5. **For gotchas in agent docs**, match numbering, bold-key style, and indentation exactly. The standard format is:
-
-   ```
-   N. **Bold Key**: One-line explanation with specific details.
-   ```
-
-   If no gotchas section exists, add `## Implementation Gotchas` before appending.
-
-6. **For commands, features, roadmap items, or architecture tables**, update only the smallest relevant section. Do not reorganize unrelated content.
-
-7. **Present the diff** — group the preview by file, show exactly what will change, and wait for approval before writing.
-
-## Rules
-
-- **Update only existing docs.** No new `docs/system/*` or `docs/project/*` files during `/retro`.
-- **One learning, one home.** Do not copy the same learning into multiple docs.
-- **Prefer append-only.** Use in-place edits only when a structured ref doc would become misleading or duplicative otherwise.
-- **Keep edits narrow.** Touch the smallest relevant section and avoid rewrites or reorganization.
-- **Never add comments like `// added by agent` or timestamps.** The git log is the audit trail.
-- **Max 5 learnings per session.** If you have more, keep only the highest-signal ones.
-- **Max 3 files per run** unless the user explicitly asks for broader documentation cleanup.
-- **Be specific.** "Use `--legacy-peer-deps` with npm install" not "npm install may need flags."
-- **Skip weak fits.** If no clearly correct existing doc exists, do not force the update.
+Preserve facts that would change how someone works in this project: a verified
+operational trap, an undocumented command, a resolved design constraint, or a
+correction to an existing instruction. Keep the knowledge where its next reader
+will look for it.
 
 ## When To Use
 
-- At the end of a coding session when non-obvious learnings were discovered
-- After solving a tricky problem that cost significant debugging time
-- When new CLI commands, features, architecture constraints, or operational procedures were added and the matching ref doc already exists
-- When triggered by `/retro` or explicit request to capture learnings
+- The user asks to capture learnings or invokes `/retro`.
+- Completed work exposes a consequential gap in an existing project reference.
+
+## Boundaries
+
+- Ordinary success, generic advice, and session history are not durable learnings.
+  No edit is a valid result when the docs already cover what matters.
+- Use existing canonical docs. Do not create a new documentation system, promote
+  a local observation into a global rule, or write harness memory as part of a retro.
+  An explicit request for a new document takes precedence over this default.
+- Preserve the user's scope and authority. A request to update docs authorizes
+  those edits; a request to discuss or preview them does not. Do not add a second
+  approval stop when the edit is already authorized.
+- Keep unfinished task state in a handoff, not in evergreen reference docs.
+
+## Workflow
+
+Read the relevant existing docs and compare them with what the session actually
+established. Distinguish a verified fact from an inference; preserve a material
+uncertainty or dated observation as such rather than making it a permanent rule.
+
+Choose the destination by the fact's owner and audience. Follow the project's
+own documentation map; these are common destinations, not required paths:
+
+| Learning | Usual home |
+| --- | --- |
+| Setup, commands, CI, deployment, environment quirks | Operations/runbook; README for entry-point instructions |
+| System boundaries, data flow, established invariants | Architecture reference |
+| Shipped behavior | Feature reference or roadmap |
+| Deferred work or unresolved decision | Backlog, following its lifecycle rules |
+| Agreed product direction or policy | Vision or the owning policy |
+| A rule needed in most agent sessions | AGENTS.md or the harness equivalent; otherwise prefer a linked reference |
+
+Update the most specific canonical home. Correct or replace stale text instead
+of appending a conflicting note; add cross-links where readers need them without
+copying the same explanation into several files. Match the surrounding format.
+If no existing destination fits, say what was left uncaptured rather than
+forcing it into a root instruction file.
+
+Keep only details that help a future decision or action. Include the concrete
+trigger, consequence, and workaround for a trap; retain dates or versions when
+validity depends on them. Omit secrets and unnecessary private session content.
 
 ## Output
 
-- One to five narrow updates in the project's existing ref docs
-- Each learning is routed to exactly one canonical file
-- Each change follows the target doc's existing formatting conventions
-- A grouped diff preview shown to the user before any file writes
+Make the authorized edits and briefly identify what changed and where. For a
+preview-only request, show the proposed changes without writing. If there is
+nothing worth adding, say so briefly. No required menu, learning count, or file
+quota.
 
 ## Verification
 
-- Every learning passes the "would this save the next agent 5+ minutes?" filter
-- Every target file exists before editing
-- Every learning has a clear canonical home, with no unnecessary duplication
-- Edits are append-only unless a minimal in-place structured update is clearly better
-- The correct section is identified before editing, and untouched sections remain unchanged
+Read the diff for accuracy, scope, and consistency with neighboring guidance.
+Check referenced commands, paths, and links against available evidence; do not
+run a mutating operation merely to document it. Apply the repo's relevant docs
+checks. Do not claim a proposed remedy was verified when it was only discussed.
+
+## Resources
+
+- `commands/retro.md` — `/retro` entrypoint with the same scope and edit authority.
+- `evals/behavioral-scenarios.md` — authored replay cases for scope and continuation;
+  not measured model-performance results.
 
 ## Sibling skills
 
-Four knowledge-capture skills, distinguished by *scope* and *timing*:
-
-- `handoff` — produces a session summary for a fresh instance. Different output: this skill routes facts into existing reference files; that one writes a fresh summary doc.
-- `compound-docs` — write a categorized solution document. Use when the learning is a confirmed end-to-end solution with reproducible code, not a one-line operational fact.
+- `handoff` — preserve the current task for another session or recipient; use it
+  for resumption state rather than durable project guidance.

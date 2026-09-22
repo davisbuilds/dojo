@@ -1,180 +1,101 @@
 ---
 name: handoff
-description: Create session summaries for context preservation and handoff. Use when (1) conversation approaching context limits, (2) user requests session summary, (3) preparing handoff documentation to another agent or fresh instance, (4) archiving work for future reference.
+description: Create a continuation snapshot so a fresh agent can pick up ongoing work with the right intent, grounding, state, and direction. Use when handing off a task, preparing for compaction or a context reset, or requesting a session summary for later resumption. Use the available transfer surface; save a file when the recipient needs one.
 skill-type: workflow
-version: 1.0.2
+version: 2.0.0
 ---
 
 # Handoff
 
-Create summaries that enable a fresh instance to continue work seamlessly with no prior context.
+Preserve the working context a fresh agent needs to resume where this one stops.
+Treat the handoff as portable compaction: carry forward intent, decisions, state,
+and direction without replaying the conversation. Link to maintained artifacts
+for details the recipient can recover, and include essential context it cannot.
 
 ## When To Use
 
-- Conversation is approaching context window limits and work must continue
-- User explicitly requests a session summary or handoff document
-- Preparing to transfer work to another agent instance or a fresh session
-- Archiving a complex session for future reference or resumption
+- The user requests a task handoff or a session summary for later continuation.
+- Ongoing work needs to survive a context boundary or move to another agent.
 
 ## Boundaries
 
-- Not for generating project documentation, READMEs, or changelogs
-- Not for summarizing external documents or articles unrelated to the session
-- Skip when the session is trivial (single question-answer with no ongoing state)
-- Do not include sensitive credentials or secrets in the summary file
+- Not an executive recap or a permanent project reference. The consumer is an
+  agent continuing this work, possibly in another checkout or harness.
+- A summary request alone does not require a repository file. Use the requested
+  channel or the harness's existing handoff surface when it meets the need.
+- Do not expand the task, turn suggestions into accepted decisions, or imply new
+  permission to deploy, merge, send messages, or perform other external actions.
+- Exclude credentials and unnecessary private content, including from quoted
+  commands, logs, and user messages.
+
+## Workflow
+
+Use the current conversation and available artifacts to select what the next
+agent needs. Preserve these details when relevant:
+
+- **Intent and authority:** the desired outcome and completion criteria, constraints,
+  accepted decisions and their consequential rationale, user corrections, authorized
+  next actions, and any decision still awaiting input.
+  Preserve the original objective alongside the latest steering; do not let a
+  recent status question replace the task. For a delegated subtask, state its
+  boundary and expected return to the parent.
+- **Current state:** completed, in-progress, and remaining work; repository and
+  branch; committed versus uncommitted changes; active processes or external jobs
+  whose identifiers are needed to resume safely. Note concurrent ownership or
+  unrelated edits the next agent must preserve.
+- **Evidence:** what was checked, against which revision or artifact, the result,
+  and what remains unverified. Distinguish observed output from another agent's
+  report; a passing check before a later edit does not verify the later state.
+- **Continuation:** the next useful action, blockers, and the paths or references
+  needed to carry it out. Include a failed approach only if it prevents repetition
+  or explains a decision the next executor might otherwise undo. Point to the
+  applicable repo instructions, accepted spec/plan, and relevant source so the
+  next agent can ground itself without restarting the investigation.
+
+Prefer a current snapshot over a chronological transcript. Quote exact wording
+only when it carries a consequential requirement; include code or error excerpts
+only when the source or log will not be available to the recipient. Use paths
+that resolve for that recipient and identify the repository or host when needed.
+
+Check cheap, changeable state such as the current branch and worktree before
+recording it when tools and remaining context permit. Reuse existing verification
+evidence with its scope and freshness; do not rerun an entire suite solely to
+write a summary. Label anything that could
+not be refreshed. Give the recipient a short re-entry direction: read applicable
+repo instructions and the named source/artifacts, then check branch, worktree,
+and active jobs before acting. A snapshot carries context, not proof that live
+state is unchanged.
+
+When a saved artifact is requested or necessary, use the specified destination
+or the project's existing convention. If neither exists, use
+`docs/sessions/HANDOFF_<topic>_<YYYY-MM-DD>.md`. Update an existing same-task
+handoff when appropriate; preserve unrelated content. Do not save a duplicate
+file merely because the skill was consulted.
+
+## Output
+
+A continuation snapshot in the available transfer surface, scaled to the work
+remaining. An existing harness compaction channel may already meet the need.
+Omit irrelevant sections rather than filling them with "None". If saved, report
+the path. No required section count, transcript, or closing menu.
 
 ## Verification
 
-- Summary is written to `docs/sessions/HANDOFF_{SESSION-NAME}_{YYYY-MM-DD}.md`
-- All 9 numbered sections are present (use "None" for inapplicable sections)
-- File paths are absolute and code snippets include language identifiers
-- A fresh agent instance could resume work from the summary without clarifying questions
+- The recipient can identify the next action and any approval or evidence still
+  needed; unknowns are explicit rather than disguised as completed work.
+- Claims agree with available artifacts and distinguish checked facts from reports.
+- References are usable by the recipient, and the summary preserves material user
+  constraints without unnecessary history or sensitive data.
 
-## Core Goal
+## Resources
 
-Answer: "If I were dropped into this conversation cold, what would I need to pick up exactly where we left off?"
-
-## Output File Location
-
-Write the session summary to: `docs/sessions/HANDOFF_{SESSION-NAME}_{YYYY-MM-DD}.md`
-
-**Determining SESSION-NAME automatically:**
-Derive a concise, descriptive name (2-4 words, kebab-case) from the session context:
-
-- Primary feature or component being worked on (e.g., "user-auth", "payment-flow")
-- Main bug or issue addressed (e.g., "websocket-reconnect", "memory-leak")
-- Technology or tool focus (e.g., "pdf-processing", "react-migration")
-- Type of work if mixed topics (e.g., "dashboard-refactor", "api-integration")
-
-Examples:
-
-- Bug fix session → "react-profile-bug"
-- Feature work → "realtime-notifications"
-- Refactoring → "state-management-refactor"
-- Multiple small tasks → "miscellaneous-fixes"
-
-**File creation steps:**
-
-1. Determine the project root directory (where the user is working)
-2. Derive SESSION-NAME from the session context
-3. Get current date in YYYY-MM-DD format
-4. Create `docs/sessions/` directory if it doesn't exist
-5. Write summary to `docs/sessions/HANDOFF_{SESSION-NAME}_{YYYY-MM-DD}.md`
-6. Inform user of the file location
-
-## Summary Structure
-
-Generate summaries with these 9 numbered sections:
-
-### 1. Primary Request and Intent
-
-- User's high-level goals and problem being solved
-- Desired end state and constraints/preferences expressed
-- Focus on intent, not just literal requests
-
-### 2. Key Technical Concepts
-
-- Technologies, frameworks, libraries in use
-- Architectural patterns or conventions
-- Project-specific terminology
-
-### 3. Files and Code Sections
-
-For each modified or relevant file:
-
-- **Full absolute path** - Brief description
-- What was changed and why
-- Key code snippets with language identifiers
-
-```typescript
-// Include enough context to understand the change
-```
-
-### 4. Errors and Fixes
-
-For any bugs encountered:
-
-- **Symptom**: What the user observed
-- **Root Cause**: Why it happened (be specific)
-- **Solution**: What was changed and why it works
-- Include before/after code when relevant
-
-### 5. Problem Solving Approach
-
-- Why was approach X chosen over Y?
-- What alternatives were considered?
-- What assumptions were made?
-
-### 6. User Messages
-
-- Preserve exact user requests in chronological order
-- Quote directly when phrasing matters
-- These are ground truth for understanding intent
-
-### 7. Pending Tasks
-
-List incomplete work with enough detail to resume:
-
-- What specific steps remain?
-- What files need modification?
-- What was the next immediate action?
-
-### 8. Current Work State
-
-- What file was being edited?
-- What line or function was in progress?
-- What was the most recent tool call or action?
-
-### 9. Suggested Next Step
-
-Provide a single concrete action to resume:
-
-- Be specific enough to execute immediately
-- Reference exact file paths and function names
-
-## Critical Requirements
-
-**Prioritize Resumability**
-
-- Future instance should continue without clarifying questions
-- Include enough code context for edits without re-reading entire files
-- Preserve error messages and stack traces verbatim
-
-**Be Precise, Not Verbose**
-
-- Use exact file paths, function names, line numbers
-- Quote code directly rather than paraphrasing
-- Avoid vague descriptions like "updated the file" — say what changed
-
-**Track State, Not Just History**
-
-- Distinguish completed vs. in-progress vs. pending work
-- Note committed vs. uncommitted changes if git available
-- Preserve todo list state if one exists
-
-**Preserve User Voice**
-
-- Keep user's exact phrasing for requirements
-- Note implicit preferences (coding style, communication style)
-- Record any corrections or clarifications provided
-
-## Format Conventions
-
-- Use markdown with clear headers
-- Code blocks with syntax highlighting
-- **Bold** for file paths and key terms
-- `inline code` for function/variable names
-- Write "None" for inapplicable sections rather than omitting them
-
-The summary should feel like watching a fast-forward of the entire session.
-
-## Template
-
-See `assets/summary-template.md` for a blank template to start from.
+- `assets/summary-template.md` — optional starting point for an execution handoff;
+  adapt or omit sections to suit the task.
+- `references/examples.md` — compact and detailed executor handoffs.
+- `evals/behavioral-scenarios.md` — authored replay cases for scope and continuation;
+  not measured model-performance results.
 
 ## Sibling skills
 
-Four knowledge-capture skills, distinguished by *scope* and *timing*:
-
-- `session-retro` — append non-obvious *learnings* into existing project reference docs at session end. Different output: this skill produces a fast-forward summary, that one routes facts into reference files.
-- `compound-docs` — categorize a confirmed *solution* under `docs/solutions/`. Different shape: solution-document, not session-summary.
+- `session-retro` — maintain durable project knowledge in its canonical docs;
+  completing a handoff does not automatically require a retro.

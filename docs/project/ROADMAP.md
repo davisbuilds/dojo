@@ -2,7 +2,7 @@
 
 Actionable improvement backlog for the skills catalog. This is a living snapshot, not a release contract.
 
-Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-09-17 for the workflow-composition first pass.
+Last updated from the [skills analysis](../archive/skill-analysis/skills-analysis-2026-3-07.md) (2026-03-07), with later completed highlights appended as shipped. Last reviewed 2026-09-22 for knowledge-capture simplification.
 
 ## In Progress
 
@@ -19,6 +19,7 @@ standing membership record._
 
 | Item | What Changed |
 |------|-------------|
+| Knowledge capture without mandatory ceremony (2026-09-22) | Retired `compound-docs` and removed it from the knowledge distribution profile. `session-retro` 2.0.0 preserves durable facts in existing canonical docs, corrects stale guidance, and respects already-authorized edits without extra approval, quotas, or menus. `handoff` 2.0.0 is a portable continuation snapshot for a fresh agent, preserving intent, grounding, authority, state, evidence freshness, and next steps; its file destination and template are conditional. Wrappers, examples, and generated metadata agree. `first-principles` remains unchanged by user preference. |
 | Design for capable agents (2026-09-18) | Vision and best practices now make marginal value, room for judgment, proportional evidence, scope-preserving composition, and revision/retirement explicit authoring principles. AGENTS, contributor guidance, and standing rules point to that policy. `skill-creator` and `template` 2.0.0 align authoring defaults, scaffolds, and examples: no mandatory phase count or unrequested packaging, and strict formats need a real consumer. Structural checks remain distinct from evidence of model benefit. |
 | Optional planning artifacts (2026-09-17) | `brainstorming`, `write-spec`, and `write-plan` 3.0.0 separate consultation from saved deliverables, reuse accepted tickets/conversations, and remove file-count escalation, automatic pipeline handoffs, fixed closing phrases, and mandatory review menus. Wrappers, templates, platform guidance, and validators agree; optional handoffs retain verification and high-risk readiness checks. CLI validator regressions cover routine/high-risk documents and negative controls; replay cases document expected behavior without claiming model lift. |
 | Scoped workflow consultation (2026-09-17) | `api-design`, `create-cli`, and `diagnose` 2.0.0 preserve requested scope, reuse accepted contracts and evidence, and consult siblings without recursive workflow activation. Diagnosis separates read-only investigation from authorized repair; CLI/API output scales to the task. Authoring guidance records the composition rule; manual replay cases cover bounded CLI/accounting work and diagnosis authority. |
