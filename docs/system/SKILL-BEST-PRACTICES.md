@@ -52,6 +52,26 @@ cause and proposed remedy. Neither requires a new document pipeline or an
 unauthorized fix. A migration with unresolved recovery behavior still requires
 that decision and its proof before the dependent action.
 
+## Knowledge Capture and Authority
+
+Keep captured material in the home that matches its purpose:
+
+| Material | Role |
+| --- | --- |
+| Handoff | Current task state and direction for continuation |
+| Project reference | Maintained guidance for future work in that project |
+| Run evidence | Dated observations supporting a conclusion |
+| Skill guidance | Reusable instructions maintained at their canonical source |
+
+Saving an observation does not promote it into a standing instruction or grant
+new authority. Retain relevant scope and provenance, distinguish observations
+from inferences, and qualify conclusions drawn from limited runs. Reusable
+lessons enter canonical guidance through intentional authoring; ordinary use
+should not mutate installed skill copies. Correct or supersede outdated guidance
+rather than accumulating conflicting rules. Retain evidence needed for
+reassessment or continuation when cleaning up working artifacts. These are
+ownership and maintenance principles, not a new metadata schema or report quota.
+
 ## Review and Retirement
 
 During authoring or substantive revision, identify what the guidance adds and

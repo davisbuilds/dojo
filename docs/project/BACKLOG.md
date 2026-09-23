@@ -51,6 +51,12 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   stop in `gh-commit-push-pr`, universal CRUD/prompt-only goals in
   `agent-native-architecture`, and the research family's mandatory stages.
   These are source-review candidates, not measured model-performance findings.
+- **Deferred knowledge-capture follow-up, 2026-09-23**: `loop-design`'s progress
+  template and iteration instructions emphasize accumulating log entries. Consider
+  a compact current checkpoint (next action, unresolved failure, latest evidence)
+  alongside the existing history log. This affects generated runtime instructions
+  and needs a separate review and resumption check; do not infer a runtime failure
+  from the template review alone.
 - **Revisit when**: a candidate is selected, real usage exposes more friction,
   experimental results arrive, or model/tool changes warrant recalibration.
 

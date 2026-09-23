@@ -118,7 +118,7 @@ python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
 
 Use `DOJO_VERSION_CHECK_BASE=<ref>` to point the stop hook at a different comparison base when working from a non-main integration branch.
 
-Not release-relevant (changing these alone needs no bump): `CHANGELOG.md`, the generated `agents/openai.yaml` sidecar, `__pycache__`/`.pytest_cache` and `.pyc`/`.pyo` artifacts, and the append-only run-memory files `references/postmortems.md` and `references/executor-profiles.md` — a skill accumulates those as it is *used*, not as it is changed.
+Not release-relevant (changing these alone needs no bump): `CHANGELOG.md`, the generated `agents/openai.yaml` sidecar, `__pycache__`/`.pytest_cache` and `.pyc`/`.pyo` artifacts, and the historical observation files `references/postmortems.md` and `references/executor-profiles.md`. The existing version-check exemption for those two files remains; it does not authorize runtime writes. Research runs keep new observations with their run, and promotion into canonical references is intentional authoring. Changes to workflow instructions still require the normal release bump.
 
 ### Bump a skill version
 

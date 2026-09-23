@@ -1,3 +1,7 @@
+## 3.0.0 - 2026-09-23
+
+- Keep research observations with their run; make canonical promotion intentional, allow no new lesson, and preserve reassessment evidence and continuation context during cleanup.
+
 ## 2.3.0 - 2026-08-23
 
 Acts on the 2026-08-22 coding-harnesses postmortem (three-run web DR merge).

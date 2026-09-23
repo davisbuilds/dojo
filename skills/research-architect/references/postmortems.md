@@ -1,8 +1,10 @@
 # Postmortems — skeleton and process lessons
 
-Dated, durable lessons about the skeleton and pipeline, appended at stage 10 of
-real runs. Read during stages 2–5 of new runs. Keep entries short; link the
-run's friction log for detail.
+Curated historical observations about the skeleton and pipeline. Consult relevant
+entries during stages 2–5; their conclusions reflect the named runs, not timeless
+requirements. New observations belong with their research run. Update this file
+only through intentional canonical authoring, preserving links to supporting
+evidence and qualifying or superseding conclusions when newer evidence warrants it.
 
 ## Index
 
