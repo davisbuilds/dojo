@@ -2,7 +2,7 @@
 
 **Topic:** Social media marketing tactics, cross-platform strategies, and brand building — what practitioners like MrBeast (Jimmy Donaldson), Alex Hormozi, and Lulu Cheng Meservey actually do versus what they say, and how the effective playbook has changed over time.
 
-**Decision informed:** Findings get encoded into the `viral` skill kit — its content skills, rules (e.g. anti-slop, voice-discipline), and platform playbooks. The report's build handoff should map validated tactics to specific skills/rules to create or update. Actors: the repo maintainer (Davis) and the agents that run the kit. Timeframe: near-term; the kit is under active development.
+**Decision informed:** Findings get encoded into the example `content-kit` — its content skills, rules, and platform playbooks. The report's build handoff should map validated tactics to specific skills/rules to create or update. Actors: the target repo maintainer and the agents that run the kit. Timeframe: near-term; the kit is under active development.
 
 **Cost of being wrong:** Encoding survivorship theater into reusable skills poisons every future draft the kit produces, at scale. Staleness: tactic-level evidence should be from the last 12–18 months; fundamentals may be older if durability is itself evidenced.
 
