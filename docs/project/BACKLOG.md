@@ -51,11 +51,6 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   stop in `gh-commit-push-pr`, universal CRUD/prompt-only goals in
   `agent-native-architecture`, and the research family's mandatory stages.
   These are source-review candidates, not measured model-performance findings.
-- **First-principles direction, 2026-09-22**: the user values this skill and
-  deferred retirement. Consider targeted additions around decision-changing
-  evidence, reversible versus costly-to-reverse choices, and explicit conditions
-  that would change a recommendation; remove generic sequence and automatic
-  pipeline handoffs only as part of an agreed revision. No change selected yet.
 - **Revisit when**: a candidate is selected, real usage exposes more friction,
   experimental results arrive, or model/tool changes warrant recalibration.
 
@@ -231,18 +226,19 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   drift — the exact failure this program keeps finding. Four subcommands is a
   tool; fifteen is a project nobody decided to start.
 
-### Contract v1 has no shape for an opinion-only skill
-- **What**: `workflow` skills must carry scope, boundaries, verification, output,
-  execution, and resource-map anchors, CI-enforced under `--strict`. That imposes a
-  ~300-500 word scaffolding floor regardless of how much insight the skill holds, so
-  a skill that should be three sharp paragraphs of opinion cannot pass validation.
-- **Why it matters**: current provider guidance holds that the highest-value skills
-  encode particular opinions and taste rather than procedure. The contract makes that
-  the one shape the catalog cannot express, and rewards padding to reach the anchors.
-- **Next**: add an `opinion` (or `guidance`) `skill-type` requiring only valid
-  frontmatter plus `description_trigger_ready`, with `context_budget` still advisory.
-  Re-evaluate `first-principles` against it — it is 1,683 words largely because
-  `workflow` gave it anchors to fill.
+### Revisit contract anchors if they obstruct a useful short guidance skill
+
+- **What**: `reference` skills still need scope, boundaries, verification, and
+  resource navigation when applicable. A short opinion or taste reference may
+  not need all of those anchors; whether a new type would help remains a
+  hypothesis.
+- **Why or evidence**: the earlier `first-principles` example is obsolete: it is
+  a reference skill and the 2026-09-23 revision fits the existing contract without
+  a prescribed workflow. This item no longer supplies a blocking example for
+  a new type.
+- **Revisit when**: a concrete, useful short skill fails the contract solely for
+  missing an anchor that adds no value. Compare relaxing that check with adding
+  a new type before expanding the schema.
 
 ### research-architect: remaining deferred tooling
 - **What**: `scripts/diff_runs.py` and `references/rubric-library.md` remain

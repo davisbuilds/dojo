@@ -61,7 +61,7 @@ The four design skills above compose into a pipeline: `design-md` (token spec) �
 | Skill | Purpose |
 |-------|---------|
 | `caveman` | Sticky ultra-compressed output mode (~75% token cut) until the user says "stop caveman" |
-| `first-principles` | Systems reasoning for high-stakes decisions — epistemic framework, decision matrix, principle tensions |
+| `first-principles` | Decision-focused systems reasoning — actual constraints, consequential assumptions, reversibility, evidence, and system-wide costs |
 | `test-strategy` | Testing methodology: TDD, real dependencies over mocks, behavior-based tests, and conditional effective authority-boundary probes |
 | `verify-before-complete` | Evidence-based completion gate; require verification before claiming done |
 
