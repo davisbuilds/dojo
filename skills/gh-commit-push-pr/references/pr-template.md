@@ -1,59 +1,17 @@
-# Pull Request Body Template
+# Pull Request Body Fallback
 
-Use this structure when the repo doesn't have its own PR template.
+Read and follow the repository's template when present. Otherwise adapt this
+small example to the final change; no heading or section quota is required.
 
----
+```markdown
+<Concrete problem and resulting behavior; include an example if it clarifies.>
 
-## Minimal (for small, obvious changes)
+Validation: <checks actually run and their result, or relevant CI evidence>
 
-```
-## Summary
-- <one-liner describing what changed and why>
-
-## Test plan
-- [ ] <how to verify>
+<Material limitation or reviewer decision, only if there is one.>
 ```
 
-## Standard (for feature work, bug fixes)
-
-```
-## Summary
-<1-3 sentences: what this PR does and why>
-
-## Changes
-- <bullet per logical change>
-
-## Test plan
-- [ ] <step-by-step verification>
-- [ ] <edge case checked>
-
-## Notes
-<anything reviewers should know: trade-offs, follow-ups, related issues>
-```
-
-## With Issue Reference
-
-```
-## Summary
-Fixes #<number>
-
-<1-2 sentences explaining the approach taken>
-
-## Changes
-- <bullet per logical change>
-
-## Test plan
-- [ ] <repro steps from issue now pass>
-- [ ] <no regressions in related area>
-```
-
----
-
-## Guidelines
-
-- **Title**: Imperative mood, max ~72 chars. Match the commit summary.
-  - Good: "Add user search endpoint", "Fix null pointer on empty cart"
-  - Bad: "Added stuff", "WIP", "changes", "PR for issue 42"
-- **Summary**: Answer "why" before "what". The diff shows what changed; the summary explains the intent.
-- **Test plan**: Concrete steps, not "tested locally". What commands to run, what to check.
-- **Keep it short**: If the PR is small and the title is self-explanatory, the minimal template is fine. Don't pad.
+Keep the title and body about the final implementation. Distinguish completed
+validation from proposed checks. Add an issue reference when relevant and use
+closing syntax only when the issue is resolved. Pass the exact Markdown in a
+file with `--body-file`; avoid shell interpolation of prose or backticks.

@@ -14,7 +14,7 @@ jq '.skills | length' skills.json
 
 | Skill | Purpose |
 |-------|---------|
-| `gh-commit-push-pr` | Commit, push, and open a Pull Request |
+| `gh-commit-push-pr` | Publish intended edits or existing commits to a PR; conditional merge/sync and safe cleanup |
 
 ### Code Review and Quality
 
@@ -62,8 +62,8 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 |-------|---------|
 | `caveman` | Sticky ultra-compressed output mode (~75% token cut) until the user says "stop caveman" |
 | `first-principles` | Decision-focused systems reasoning â€” actual constraints, consequential assumptions, reversibility, evidence, and system-wide costs |
-| `test-strategy` | Testing methodology: TDD, real dependencies over mocks, behavior-based tests, and conditional effective authority-boundary probes |
-| `verify-before-complete` | Evidence-based completion gate; require verification before claiming done |
+| `test-strategy` | Behavioral coverage, dependency fidelity, targeted controls, and conditional effective authority-boundary probes |
+| `verify-before-complete` | Assess consequential completion claims, reuse applicable evidence, and close material proof gaps |
 
 ### Security
 

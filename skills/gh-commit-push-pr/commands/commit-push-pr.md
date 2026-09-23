@@ -1,49 +1,27 @@
 ---
 name: commit-push-pr
-description: Commit local changes, push a branch, and create a GitHub PR with preflight safety checks.
+description: Publish intended changes or existing commits to a GitHub PR, resuming from current repository state.
 argument-hint: "[--base <branch>] [--title <title>] [--draft]"
 allowed-tools: [Read, Bash(gh:*), Bash(git:*), Bash(bash skills/gh-commit-push-pr/scripts/prepare_commit.sh:*)]
 ---
 
 # Commit Push PR Command
 
-Use this wrapper to standardize commit/push/PR creation with safety checks.
+Follow `../SKILL.md` as the canonical workflow. Honor `--base`, `--title`, and
+`--draft` when supplied. Existing commits need no new commit; an existing PR
+should be reused. A clean worktree is not a stopping condition.
 
-## Behavior
-
-1. Run preflight context collection:
-
-```bash
-bash <skill-dir>/scripts/prepare_commit.sh
-```
-
-2. Verify:
-- branch is not detached
-- not committing sensitive files
-- `gh auth status` passes
-- working tree has commit-worthy changes
-3. Create a feature branch if on `main`/`master`.
-4. Stage intended changes and commit with an imperative message.
-5. Push branch to origin.
-6. Check for existing PR for head branch before creating a new one.
-7. Create PR with summary and test plan (`--draft` when requested).
-8. Report branch, commit summary, PR URL, and warnings.
-
-## Rules
-
-- Never force-push as part of this command.
-- Use `--body-file` for PR body content to avoid shell interpolation issues.
-- If no diff exists against base, stop and report instead of creating a PR.
-
-## Example Invocations
+Optionally collect local state after selecting the intended base:
 
 ```bash
-# Standard flow using repo default base branch
-/commit-push-pr
-
-# Create PR against a specific base branch
-/commit-push-pr --base main
-
-# Open a draft PR with an explicit title
-/commit-push-pr --base main --title "Fix login redirect race" --draft
+bash <skill-dir>/scripts/prepare_commit.sh <repo-path> <base-ref>
 ```
+
+The helper is read-only and does not fetch or scan secrets. Inspect intended
+changes and outgoing history, preserve unrelated work, and perform only the
+requested commit/push/PR actions. Check remote state before retrying an ambiguous
+failure. Use `--body-file` and the repository's PR template.
+
+Report the resulting commit/branch or PR URL and material blockers. If merge/sync
+is also requested, use `../references/merge-sync.md`; this command does not grant
+that authorization by itself.

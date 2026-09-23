@@ -40,16 +40,16 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   expected behavior, not model-performance improvement. Methodology skills and
   higher-priority harness loading policies can still add process outside the
   revised cluster.
-- **Next**: use the separate `ops/experiments/skill-effect-v0` work reported by
-  the user on 2026-09-17 for empirical comparison; keep that experiment owned by
-  ops. Compare current guidance, compact guidance, and minimal added guidance
+- **Next**: use the separate skill-effect experiment reported by the user on
+  2026-09-17 for empirical comparison; keep that experiment with its owning
+  project. Compare current guidance, compact guidance, and minimal added guidance
   with the same harness/repo controls. Assess outcomes, authority boundaries,
   unnecessary artifacts/stops, context cost, and time. Prioritize remaining
   skills from observed friction; do not infer low value from invocation counts.
-- **Next candidates, 2026-09-22**: after the knowledge-capture changes recorded
-  in ROADMAP, review verification/testing ceremony, the clean-worktree publishing
-  stop in `gh-commit-push-pr`, universal CRUD/prompt-only goals in
-  `agent-native-architecture`, and the research family's mandatory stages.
+- **Next candidates, 2026-09-23**: after the knowledge-capture, verification/
+  testing, and publishing revisions recorded in ROADMAP, review universal
+  CRUD/prompt-only goals in `agent-native-architecture` and the research family's
+  mandatory stages.
   These are source-review candidates, not measured model-performance findings.
 - **Deferred knowledge-capture follow-up, 2026-09-23**: `loop-design`'s progress
   template and iteration instructions emphasize accumulating log entries. Consider
@@ -118,43 +118,6 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   to specialists (new types → type reviewer, error handling → the failure lens) —
   the sibling cross-references from `local-review` now do this manually, but a
   routing note is cheap to formalize.
-- See also the separate branch-hygiene entry below, which owns the one gap found
-  in the `commit-commands` plugin.
-
-### The gh-* family covers creating work but not cleaning up after it
-- **What**: auditing the `commit-commands@claude-plugins-official` plugin on
-  2026-07-29 (now disabled) surfaced one thing the catalog does not cover. The
-  `gh-*` family is now just `gh-commit-push-pr` — `gh-fix-issue`, `gh-review-pr`,
-  and `gh-triage-issues` were retired 2026-07-31 as unused. What survives is still
-  about *producing* work, and **nothing covers post-merge branch and worktree
-  hygiene.** A repo-wide search for `worktree`, `branch -d`, `[gone]`, or `prune`
-  across every `SKILL.md` returns no relevant hit. Retirement narrowed the family
-  but did not touch this gap.
-- **Specific gaps**:
-  - **Worktree-before-branch ordering.** A branch marked `[gone]` that carries an
-    attached worktree (`+` prefix in `git branch -v`) cannot be deleted until the
-    worktree is removed. Deleting in the wrong order fails confusingly. This was
-    the plugin's `clean_gone` command's only real contribution, in ~10 lines.
-  - **Stacked-PR retarget hazard.** Squash-merging a base PR and deleting its
-    branch **auto-closes the stacked child PR**. The child must be retargeted to
-    `main` first. Already learned the hard way; it lives in an agent memory note,
-    which means Codex cannot see it — the two memory stores are mutually invisible
-    and measurably disjoint. That argues for the catalog, not a memory.
-  - **Stale local branches after remote deletion**, and the `pulldevmain` blocked
-    -checkout case (a repo left on a feature branch silently stops receiving
-    updates — observed 2026-07-27 in an active consumer repository).
-- **Why it matters**: these are exactly the "safe to do, easy to get wrong, rarely
-  done" operations that earn a skill. The failure mode is not a bad commit, it is
-  a silently closed PR or a repo that quietly stops syncing.
-- **Not a gap**: `gh-commit-push-pr` already pre-loads git context with
-  `` !`git ...` `` interpolation in its command wrapper and its Edge Cases table
-  covers no-changes, existing-PR, merge-conflict, binary-file, and
-  sensitive-file cases. The commit/push/PR path itself is well covered and is a
-  strict superset of what the plugin offered — do not reimplement it.
-- **Next**: either a `gh-branch-hygiene` skill or an Edge Cases/cleanup section
-  appended to `gh-commit-push-pr`. Prefer the latter if it stays under a few dozen
-  lines, since the catalog already has routing-collision pressure and this is
-  adjacent to an existing trigger rather than a new intent.
 
 ### Harness adapters can still promote the whole catalog to project scope
 - **What**: `scripts/gen_harness_adapters.py` links `.claude/skills -> ../skills`,

@@ -1,3 +1,7 @@
+## 2.0.0 - 2026-09-23
+
+- Resume publication from worktree, commit, remote, and PR state; repair clean-worktree stops and PR lookup syntax. Simplify the read-only helper, correct secret-history advice, and add conditional merge/sync cleanup without expanding authorization.
+
 ## 1.0.2 - 2026-08-14
 
 - Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout

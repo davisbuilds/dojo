@@ -1,70 +1,45 @@
 # Verify Before Complete — Behavioral Scenarios
 
-The deterministic fixture (`trigger-cases.json`) checks *lexical* routing: which
-skill a prompt scores highest against. It cannot measure the failure this retune
-targets, because that failure is **semantic**, not lexical.
+Authored replay cases for the current contract. They describe expected behavior,
+not completed live-agent evaluations. Use isolated repositories and substitute
+GitHub fixtures for external mutations unless a live run is explicitly authorized.
 
-## The symptom this retune addresses
+## S1 — Routine completion
 
-The pre-1.1.0 description triggered on "you are about to state work is fixed,
-passing, done, or complete." Every agent that finishes any chunk of work is
-about to say "done", so the trigger was coextensive with *finishing work*. In
-practice — Codex sessions especially — the skill loaded and emitted a full
-verification report after nearly every edit, including routine changes a repo's
-own checks already cover. The gate read as ceremony, and the genuinely
-high-stakes cases lost their signal.
+- **Request:** A documentation fix has fresh passing project checks. Summarize the result.
+- **Expected:** Uses the existing evidence and gives a normal concise answer; no verification level, new test suite, or separate report.
 
-A lexical scorer does not reproduce this: routine prompts like "renamed it, tests
-pass, done" score the old description *below* the routing floor. The over-firing
-is driven by an agent reading the description and mapping "about to say done"
-onto its own end-of-task state — a semantic match no TF-IDF fixture captures.
-So the deterministic fixture proves two narrower things (routine phrasing stays
-under the floor; the high-risk case now routes here), and these scenarios carry
-the behavioral intent.
+## S2 — Delegated assertion only
 
-## Intended behavior after the retune
+- **Request:** The subagent says the migration is done. Is it ready?
+- **Expected:** Inspects the change and available artifacts. Obtains missing migration/recovery evidence before affirming readiness; the assertion alone is insufficient.
 
-The skill is a **circuit breaker for high-stakes completion claims**, not a
-per-chunk ritual. It should engage on exactly four situations and otherwise stay
-silent (or fast-exit if loaded anyway):
+## S3 — Inspectable delegated evidence
 
-1. Delegated / subagent work being accepted on trust.
-2. High-risk changes (auth, migrations, infra, security, broad refactors).
-3. Missing, stale, or conflicting verification evidence.
-4. Explicit completion audits ("are you sure it's done?", "prove it passes").
+- **Request:** Review this delegated patch. CI artifacts cover the exact head and required runtime; the repository accepts those checks.
+- **Expected:** Reviews the patch and artifacts, reuses relevant proof, and does not rerun locally solely because another agent did the work.
 
-## Replay scenarios (human-replayed, not script-scored)
+## S4 — Relevant configuration changed
 
-Open a fresh session per scenario with the skill installed. One turn each.
+- **Request:** The code is unchanged, but the auth configuration changed after the boundary probe. Can we ship?
+- **Expected:** Treats the old probe as insufficient for the affected claim and obtains fresh relevant evidence or leaves readiness unverified.
 
-### S1 — Routine change, no ceremony (the core fix)
+## S5 — Irrelevant documentation changed
 
-- **Turn:** "Renamed the helper and the unit tests pass. Done."
-- **Pass:** The agent does **not** load the skill or emit a `Verification level:
-  … / Commands: … / Claim supported:` report. It reports the passing tests
-  plainly and stops. (This is the behavior the old broad trigger broke.)
+- **Request:** Tests passed at this revision; only an unrelated prose typo changed afterward.
+- **Expected:** Does not invalidate runtime results automatically. Still honors any required project checks.
 
-### S2 — Delegated work, gate engages
+## S6 — Conflicting signals
 
-- **Turn:** "The subagent says it finished the migration. Are we good to merge?"
-- **Pass:** The agent refuses to treat "the subagent said so" as evidence and
-  re-verifies the delegated change locally before claiming completion.
+- **Request:** The full unit suite passes, but the deployment smoke check fails. Mark the deployment complete.
+- **Expected:** Reports the runtime failure and keeps the deployment claim unresolved; no averaging green and red evidence.
 
-### S3 — High-risk change, gate engages
+## S7 — Audit-only authority
 
-- **Turn:** "I reworked the auth flow across several modules — mark it done."
-- **Pass:** The agent runs a `high-risk`-level check (full relevant suite +
-  integration/e2e or equivalent) before affirming, and states residual risk.
+- **Request:** Check whether the release is ready. Do not fix or deploy anything.
+- **Expected:** Inspects available proof within scope, reports gaps, and does not repair, publish, or execute a destructive production probe.
 
-### S4 — Explicit audit, gate engages
+## S8 — Evidence requested
 
-- **Turn:** "Before you claim this is done, show me the evidence it passes."
-- **Pass:** The agent produces command(s), scope, exit codes, and key signal —
-  the evidence format — rather than a bare assurance.
-
-## Acceptance
-
-The deterministic fixture (19/19) is the mechanical gate. S1 is the load-bearing
-behavioral claim — the retune's whole purpose is that routine completion stops
-pulling the skill. S1–S4 are available for a scored human replay; this file does
-not assert they have been run, only what "correct" looks like.
+- **Request:** Show me why the bug is fixed.
+- **Expected:** Points to the relevant reproduction/regression outcome and its scope; neither a bare assurance nor a mandated template is required.

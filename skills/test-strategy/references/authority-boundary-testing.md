@@ -37,11 +37,12 @@ Exercise only authorities in scope, including:
 Use disposable accounts, namespaces, repositories, directories, and sentinels.
 Never probe a destructive boundary against valuable or production state.
 
-## Network Boundaries Need Three Separate Proofs
+## Match Network Proof to the Claim
 
-A loopback server or an injected dialer proves parsing and refusal logic — never
-that production connected to the public address it validated. Keep three
-obligations distinct and never let one stand in for another:
+A loopback server or an injected dialer can prove parsing and refusal logic,
+but cannot prove that production connected to the public address it validated.
+For claims about public-destination enforcement and working public egress,
+keep these obligations distinct:
 
 1. **Deterministic policy tests** for URL parsing, allow/deny rules, and refusal
    paths. These can and should use fixtures.
@@ -51,6 +52,13 @@ obligations distinct and never let one stand in for another:
 3. **A fixed public end-to-end control** that exercises the real egress path to a
    known external destination.
 
+These are evidence boundaries, not a demand for public network access on every
+test task. A parser-only claim needs policy tests; a claim about the real
+transport needs peer observation; a claim about working public egress needs
+an authorized external control. If the relevant runtime or network access is
+unavailable, state which claim remains unverified rather than silently treating
+a substitute as proof.
+
 A loopback fixture must never be cited as proof that a "public" destination is
 enforced: the transport never left the host. An SSRF allow-test whose "public"
 request terminates at a loopback fixture proves nothing about production egress.
@@ -58,8 +66,10 @@ request terminates at a loopback fixture proves nothing about production egress.
 ## Red/Green And Proof Freshness
 
 For a hardening fix, first demonstrate that the boundary test fails for the
-actual leak, not merely because a symbol or fixture is missing. Apply the minimum
-fix, then prove allowed behavior still succeeds and forbidden behavior now fails
+actual leak in disposable state, not merely because a symbol or fixture is
+missing. An existing reproducible pre-fix failure can supply this evidence. Do
+not reenact an exploit against valuable state to satisfy the sequence. Apply
+the fix, then prove allowed behavior still succeeds and forbidden behavior now fails
 without side effects.
 
 Fingerprint the effective policy, binary, host/runtime identity, authentication
@@ -74,8 +84,8 @@ substitute for the effective-runtime probe.
 - Evidence came from an observer outside the constrained subject.
 - Direct, indirect, ambient, state-class, network, and remote paths were covered
   when applicable.
-- For network authority, policy tests, connected-peer observation, and a fixed
-  public end-to-end control ran as separate proofs; no loopback fixture stood in
-  for a public-destination proof.
-- The red test reproduced the real leak before the fix.
+- Network evidence matches the claim: policy logic, real peer, and public egress
+  are distinguished; no loopback fixture stood in for public-destination proof.
+- The hardening regression check demonstrates the real pre-fix failure safely,
+  or the missing evidence and its consequence for the claim are explicit.
 - The proof records its invalidation fingerprint.

@@ -1,164 +1,120 @@
 ---
 name: gh-commit-push-pr
 allowed-tools: Bash(git checkout:*), Bash(git add:*), Bash(git status:*), Bash(git push:*), Bash(git commit:*), Bash(git diff:*), Bash(git log:*), Bash(git branch:*), Bash(git stash:*), Bash(git remote:*), Bash(gh auth status:*), Bash(gh repo view:*), Bash(gh pr create:*), Bash(gh pr view:*)
-description: "Commit staged changes, push branch, and open a GitHub PR. Use when user asks to commit and push, create a PR, ship changes, send for review, or open a pull request. Triggers on phrases like 'commit and push', 'create a PR', 'open a pull request', 'send this for review', 'ship it', 'push and PR'."
+description: "Commit intended changes, publish existing commits, and open or update a GitHub PR. Use when user asks to commit and push, create a PR, ship changes, send for review, or open a pull request. Triggers on phrases like 'commit and push', 'create a PR', 'open a pull request', 'send this for review', 'ship it', 'push and PR'."
 skill-type: workflow
-version: 1.0.2
+version: 2.0.0
 ---
-
-## When To Use
-
-- User asks to commit and push changes, create a PR, or ship/send work for review
-- Triggers on phrases like "commit and push", "create a PR", "open a pull request", "ship it"
-- Changes are staged or unstaged in the working tree and need to reach a remote branch with a PR
-
-## Boundaries
-
-- Not for rebasing, merging, or resolving conflicts; those require user-directed decisions
-- Do not force push or amend existing commits unless the user explicitly requests it
-- Never commit files that look like secrets (.env, *.pem, *.key, credentials.json)
-- Skip when `git status` shows a clean working tree with nothing to commit
-
-## Verification
-
-- Branch is pushed to origin and `git status` shows no unpushed commits
-- PR is created with a summary and test plan; `gh pr view` returns a valid URL
-- No duplicate PR exists for the same branch (checked before creation)
-- Sensitive files are excluded from the commit and flagged to the user if detected
 
 # Commit, Push, and Open a Pull Request
 
-## Context
+Advance the requested work from its actual Git/GitHub state. A clean working
+tree can still contain unpublished commits or a pushed branch needing a PR.
 
-Gather state before acting:
+## When To Use
 
-- Current branch: !`git branch --show-current`
-- Current git status: !`git status`
-- Staged and unstaged changes: !`git diff HEAD`
+Use for commit, push, and PR requests, including already-committed work. The same
+skill covers merge/sync cleanup when the user requests that continuation. A
+publication request does not itself authorize merging, deployment, or review
+comments to other people or services.
 
 ## Workflow
 
-### Step 1: Pre-flight Checks
+### Establish the target and remaining work
 
-Before doing anything, verify:
+Read repository instructions and inspect the branch, index/worktree, remotes,
+upstream, and intended base. Honor an explicit base, including a stacked PR's
+parent; otherwise discover the repository's default branch. Fetch relevant refs
+when needed for a current comparison. Do not assume `origin` is the publishing
+remote in a fork, or use stale tracking refs as proof of remote state.
 
-- **Changes exist**: If `git status` shows nothing to commit (clean working tree), stop and tell the user. Do not create empty commits.
-- **Not in detached HEAD**: If HEAD is detached, create a branch first.
-- **Not on main/master with intent to push directly**: If on main or master, always create a new branch before committing.
-- **GitHub CLI auth is ready**: Run `gh auth status`. If not authenticated, stop and ask user to authenticate first.
-- **Determine base branch**: Prefer `gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'` over assumptions.
+The optional read-only helper collects local inventory:
 
-### Step 2: Create Branch (if needed)
-
-If on main/master or detached HEAD, create a feature branch:
-
-- Convention: `<type>/<short-description>` where type is one of: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`
-- Examples: `feat/add-user-search`, `fix/null-pointer-on-login`, `docs/update-readme`
-- Use `git checkout -b <branch-name>` to create and switch
-
-### Step 3: Stage and Commit
-
-Stage changes if not already staged, then commit:
-
-- **Commit message format**: Start with a verb in imperative mood (Add, Fix, Update, Remove, Refactor)
-- **First line**: Concise summary, max ~72 characters
-- **Body** (if changes warrant it): Blank line after summary, then explain *why* not *what*
-- Reference issues if applicable: `Fixes #123` or `Closes #456`
-- Do NOT commit files that look like secrets (`.env`, `credentials.json`, `*.pem`, `*.key`)
-
-### Step 4: Push
-
-Push the branch to origin:
-
-```
-git push -u origin <branch-name>
+```bash
+bash <skill-dir>/scripts/prepare_commit.sh <repo-path> <base-ref>
 ```
 
-**If push fails**:
-- **Authentication error**: Tell the user to check their git credentials or `gh auth status`
-- **Rejected (non-fast-forward)**: The remote branch has diverged. Tell the user — do not force push
-- **Remote not found**: Check with `git remote -v` and report
-- **Network error**: Retry once after a brief pause. If it fails again, report the error
+It reports worktree changes, commits relative to a supplied base, the PR diff,
+and upstream divergence. It does not fetch, select a base, scan secrets, or
+establish authorization. Direct Git commands are equally suitable.
 
-### Step 5: Create Pull Request
+| State | Next action within the request |
+| --- | --- |
+| Intended edits remain uncommitted | Review and commit that scope. Preserve unrelated edits and staged intent. |
+| Worktree is clean; intended commits are unpublished | Inspect the outgoing commits, then push if requested. No empty commit is needed. |
+| Branch is pushed; no open PR exists | Create the requested PR after checking base/head and the proposed diff. |
+| Open PR already exists | Reuse it. Push requested updates; change its description if authorized and needed to reflect the final scope. |
+| No intended changes remain relative to the base | Report that state or the already-merged PR; do not manufacture a commit or PR. |
 
-Create a PR using `gh pr create`:
+For an existing PR, check its actual head repository/branch, base, and state.
+`gh pr view <branch> --repo <owner/repo> --json number,url,state,baseRefName,headRefOid`
+uses a positional branch argument, not `--head`. Distinguish an absent PR from
+an authentication/network error. In fork or ambiguous-name cases, list candidate
+PRs and verify the head repository before selecting one.
 
-```
-gh pr create --base "<base-branch>" --head "<branch-name>" --title "<imperative summary>" --body-file "<path>"
-```
+### Commit and publish only what is authorized
 
-PR body structure:
-- **Summary**: 1-3 bullet points describing what changed and why
-- **Test plan**: How to verify the changes work (commands to run, things to check)
+Create a task branch when needed to keep work off the default branch or retain
+detached commits. Follow repository naming/message conventions; use
+`references/conventions.md` only as a fallback. If commits on a shared/default
+branch belong to other work, preserve them and isolate this task rather than
+publishing them incidentally.
 
-If the repo has a PR template, `gh pr create` will use it automatically. Do not override templates.
+Inspect the proposed index and outgoing commit range, including intermediate
+commits, for unintended private data or credentials. Filename patterns are hints,
+not proof of either sensitivity or safety: sanitized fixtures and public keys
+may be legitimate. Keep actual secrets out of publication. A later deletion does
+not remove a secret from earlier commits; pause publication of affected history
+and resolve it within the user's authority. Do not echo credential values.
 
-Before creating, check if PR already exists for this branch:
+Use the selected push remote and branch. Diagnose rejection or divergence before
+retrying; do not force-push, rewrite history, or discard work as an automatic
+repair. Existing authorization persists; ask only when a necessary decision or
+additional permission is missing.
 
-```
-gh pr view --head "<branch-name>" --json url --jq '.url'
-```
+Before creating a PR, check again for an existing one. Use an explicit base/head,
+respect draft intent and the repository template, and pass Markdown with
+`--body-file` to avoid shell expansion. Lead with the concrete problem and final
+behavior, then actual validation and material limits. Distinguish checks already
+run from suggested checks. `references/pr-template.md` is an optional fallback.
+If a create/push request times out, inspect remote state before retrying so an
+ambiguous success does not produce duplicate actions.
 
-If that returns a URL, report it and do not create a duplicate PR.
+### Merge and sync, when requested
 
-When generating PR body text, NEVER inline complex markdown in `--body` if it may contain shell-sensitive characters (especially backticks). Use a body file:
+Use `references/merge-sync.md` for review/CI checks, merge policy, and safe
+branch/worktree cleanup. Opening a PR alone does not activate this phase or
+queue a reviewer. Preserve existing review/merge authorization without asking
+for it again.
 
-```
-tmp_pr_body="$(mktemp)"
-cat > "$tmp_pr_body" <<'EOF'
-## Summary
-- <what changed and why>
+## Boundaries
 
-## Test plan
-- [ ] <how to verify>
-EOF
+- Local review or advice-only requests do not authorize publication.
+- Preserve unrelated changes, branches, and concurrent work; do not stash,
+  reset, rebase, or delete them merely to make a workflow proceed.
+- Sibling skills are optional sources of guidance, not mandatory preflight
+  gates. Reuse relevant test evidence; this skill adds no full-suite rerun.
 
-gh pr create --base "<base-branch>" --head "<branch-name>" --title "<title>" --body-file "$tmp_pr_body"
-rm -f "$tmp_pr_body"
-```
+## Output
 
-If `gh pr create` fails, handle by error pattern:
-- **`error connecting to api.github.com` / network denied**: retry once; if sandbox/network restrictions apply, rerun with escalated network permissions.
-- **`A pull request already exists`**: run `gh pr view --head "<branch-name>" --json url --jq '.url'` and report existing URL.
-- **`not logged into any GitHub hosts`**: stop and ask user to run `gh auth login`.
-- **`No commits between`**: branch has no diff against base; report and stop.
-- **`permission denied`/`command not found` lines caused by PR body text**: this usually means shell interpolation from unescaped markdown; rerun using `--body-file`.
-- **Validation/base errors**: re-check base branch via `gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'` and retry with explicit `--base`.
+Report the PR URL or commit/branch for a narrower request, plus remaining blockers.
 
-### Step 6: Report Back
+## Verification
 
-After all steps complete, report:
-- Branch name
-- Commit message summary
-- PR URL
-- Any warnings (e.g., large diff, binary files, files that look sensitive)
+Confirm the requested remote branch/PR reflects the intended commit and base.
+Do not claim CI/review completion merely because a PR was created. For merge/sync,
+confirm remote merge state and which requested checkouts actually synced.
 
-## Edge Cases
+## Resources
 
-| Situation | Action |
-|-----------|--------|
-| No changes to commit | Stop. Tell the user there's nothing to commit. |
-| Already on a feature branch | Use it. Don't create a new one. |
-| Existing PR for this branch | Tell the user a PR already exists. Show the URL with `gh pr view`. |
-| Merge conflicts on push | Do not force push. Tell the user to pull and resolve. |
-| Uncommitted changes + staged changes | Commit only what's staged. Warn about unstaged changes. |
-| Binary files in diff | Warn the user. Include them only if intentional. |
-| Sensitive-looking files (.env, keys) | Do NOT stage or commit. Warn the user. |
-
-## Tool Call Strategy
-
-You MUST call multiple tools in a single response when the calls are independent. For example, `git add` and `git status` can be parallel. But `git commit` must follow `git add`, and `git push` must follow `git commit`. Chain dependent operations sequentially.
-
-## Command Wrapper
-
-If the harness supports command files, use `commands/commit-push-pr.md` as the canonical entrypoint for this skill.
+- `commands/commit-push-pr.md` — command entrypoint for this same workflow.
+- `scripts/prepare_commit.sh` — optional read-only local inventory.
+- `references/conventions.md`, `references/pr-template.md` — fallbacks where the
+  repository has no convention or template.
+- `references/merge-sync.md` — conditional delivery and cleanup guidance.
+- `evals/behavioral-scenarios.md` — intended behavior replay cases.
 
 ## Sibling skills
 
-The remaining `gh-*` skill. It owns the commit-to-PR step end to end; the
-issue-triage and PR-review skills that used to sit either side of it were
-retired 2026-07-31 as unused.
-
-- `local-review` — review the diff before this skill commits it.
-- `verify-before-complete` — confirm the work is actually done before opening a PR.
+- `local-review` — a local review when requested or useful for the change.
+- `verify-before-complete` — resolve consequential gaps in completion evidence.
