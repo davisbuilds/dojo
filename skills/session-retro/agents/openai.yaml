@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Session Retro"
-  short_description: "Update existing project reference docs with non-obvious"
+  short_description: "Preserve non-obvious session learnings in existing canonical"
   default_prompt: "Use $session-retro for this task."

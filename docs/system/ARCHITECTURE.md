@@ -60,7 +60,7 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 | `post-tool-use-validate-plan.sh` | PostToolUse (Write/Edit) | Validates `docs/plans/*-plan.md` against the `write-plan` execution schema; resolves target-repository paths, conditionally enforces linked-spec coverage/task/file grounding/readiness, and advises on obvious weak acceptance gates |
 | `stop-hook-git-check.sh` | (unregistered) | Blocks if there are uncommitted changes or untracked files. Script kept in `hooks/` but no longer wired into `.claude/settings.json`. |
 | `stop-hook-skill-structure.sh` | Stop | Validates modified skill directories have valid SKILL.md and release-version bumps |
-| `stop-hook-session-retro.sh` | Stop | Reminds agent to run `/retro` to capture session learnings |
+| `stop-hook-session-retro.sh` | Stop | Non-blocking reminder to capture still-missing consequential knowledge only when authorized; skips already-captured or unnecessary updates |
 
 ## Manifest System
 

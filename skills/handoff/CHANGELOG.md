@@ -1,3 +1,7 @@
+## 2.0.0 - 2026-09-22
+
+- Make handoff a portable continuation snapshot with intent, grounding, evidence, and direction; make files and template sections conditional.
+
 ## 1.0.2 - 2026-08-01
 
 - Tighten the description's opening clause; triggers unchanged.

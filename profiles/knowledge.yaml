@@ -2,15 +2,11 @@
 name: knowledge
 kind: overlay
 description: >-
-  Turning what a session learned into something a later session can find:
-  capture it, then write it where it will be read. `handoff` is deliberately
-  absent — SC-03 already records that `session-retro` covers the adjacent need
-  at 14 observed sessions against `handoff`'s 2, so including it here would
-  reintroduce by the side door what the baseline removed on evidence.
-  `obsidian-bases` and `obsidian-canvas` are excluded as alternate vault file
-  formats rather than an additional capability; `obsidian-markdown` is the one
-  that every vault note goes through.
+  Preserve durable project learnings and write vault notes where later readers
+  can find them. `handoff` remains outside this overlay: it transfers active task
+  state to a fresh agent rather than maintaining durable reference knowledge.
+  `obsidian-bases` and `obsidian-canvas` remain excluded as alternate vault file
+  formats. The retired compound-docs workflow is no longer distributed.
 members:
-  - compound-docs      # session-retro's counterpart: durable, categorized capture of a solved problem for later retrieval
-  - obsidian-markdown  # SC-02 anchor
-  - session-retro      # SC-02 anchor
+  - obsidian-markdown  # SC-02 anchor: vault note format
+  - session-retro      # SC-02 anchor: durable learnings in canonical project docs

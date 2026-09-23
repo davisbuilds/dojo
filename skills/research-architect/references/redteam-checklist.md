@@ -33,8 +33,8 @@ Iterated prompt-critique loops are additive by disposition: every round adds
 hedges and constraints, and long prompts demonstrably drop instructions —
 every instruction competes with every other. Requiring three deletions per
 round is the structural counterweight. If the red-teamer genuinely cannot find
-three, that is a finding worth recording in `postmortems.md` — it has not
-happened yet.
+three, record that observation with this run when useful. It can inform a later
+revision of the mandate; it does not require editing the installed skill.
 
 ## Processing the findings (drafting session)
 

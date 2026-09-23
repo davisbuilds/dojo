@@ -45,18 +45,6 @@
       "version": "1.0.1"
     },
     {
-      "name": "compound-docs",
-      "description": "Capture solved problems as categorized documentation with YAML frontmatter for fast lookup. Use when a solution is confirmed and should be preserved for future retrieval.",
-      "path": "skills/compound-docs",
-      "version": "1.0.1",
-      "allowed-tools": [
-        "Read",
-        "Write",
-        "Bash",
-        "Grep"
-      ]
-    },
-    {
       "name": "create-cli",
       "description": "Design command-line interface parameters and UX: arguments, flags, subcommands, help text, output formats, error messages, exit codes, prompts, config/env precedence, and safe/dry-run behavior. Use when designing a CLI, refactoring its interface, or resolving a specific CLI UX decision during implementation. Reuse settled conventions without requiring a separate design document.\n",
       "path": "skills/create-cli",
@@ -108,7 +96,7 @@
       "name": "first-principles",
       "description": "Systems-level reasoning for high-stakes technical decisions. Use when choosing between architectures, evaluating trade-offs, or planning a non-mechanical refactor. For debugging a specific failure use diagnose; for clarifying an ambiguous WHAT use brainstorming.",
       "path": "skills/first-principles",
-      "version": "2.0.1"
+      "version": "3.0.0"
     },
     {
       "name": "frontend-design",
@@ -138,9 +126,9 @@
     },
     {
       "name": "handoff",
-      "description": "Create session summaries for context preservation and handoff. Use when (1) conversation approaching context limits, (2) user requests session summary, (3) preparing handoff documentation to another agent or fresh instance, (4) archiving work for future reference.",
+      "description": "Create a continuation snapshot so a fresh agent can pick up ongoing work with the right intent, grounding, state, and direction. Use when handing off a task, preparing for compaction or a context reset, or requesting a session summary for later resumption. Use the available transfer surface; save a file when the recipient needs one.",
       "path": "skills/handoff",
-      "version": "1.0.2"
+      "version": "2.0.0"
     },
     {
       "name": "local-review",
@@ -201,7 +189,7 @@
       "name": "research-architect",
       "description": "Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or brief; commission or plan a multi-source or multi-model research run; run research through external deep-research products (Claude/OpenAI/Gemini DR); or verify and score a research report that something else produced. Triggers on \"research prompt\", \"research brief\", \"commission research\", \"plan a research run\", \"verify this report\", \"research architect\". For a direct low-stakes lookup where the user just wants the answer, use deep-research instead.",
       "path": "skills/research-architect",
-      "version": "2.3.0",
+      "version": "3.0.0",
       "triggers": [
         "research prompt",
         "research brief",
@@ -225,9 +213,9 @@
     },
     {
       "name": "session-retro",
-      "description": "Update existing project reference docs with non-obvious learnings from the current session rather than creating new files. Use at session end, after solving tricky problems, or when new CLI commands/features were added. Triggers on \"/retro\", \"update docs with learnings\", \"save what we learned\", or proactively at session end.",
+      "description": "Preserve non-obvious session learnings in existing canonical project docs. Use when the user asks for a retro, says \"save what we learned\" or \"update docs with learnings\", or completed work leaves an established reference missing a consequential fact. Skip routine session endings with nothing durable to add.",
       "path": "skills/session-retro",
-      "version": "1.0.3"
+      "version": "2.0.0"
     },
     {
       "name": "skill-creator",

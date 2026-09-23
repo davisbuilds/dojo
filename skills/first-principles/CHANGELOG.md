@@ -1,3 +1,7 @@
+## 3.0.0 - 2026-09-23
+
+- Focus on consequential assumptions, real constraints, reversibility, investigation value, and system-wide costs; replace prescribed reasoning stages and automatic handoffs with optional decision lenses and a worked example.
+
 ## 2.0.1 - 2026-08-01
 
 - Trim the internal reasoning-step list from the description; triggers and sibling hand-offs unchanged.

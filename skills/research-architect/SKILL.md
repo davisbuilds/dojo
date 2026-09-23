@@ -2,7 +2,7 @@
 name: research-architect
 description: Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or brief; commission or plan a multi-source or multi-model research run; run research through external deep-research products (Claude/OpenAI/Gemini DR); or verify and score a research report that something else produced. Triggers on "research prompt", "research brief", "commission research", "plan a research run", "verify this report", "research architect". For a direct low-stakes lookup where the user just wants the answer, use deep-research instead.
 skill-type: workflow
-version: 2.3.0
+version: 3.0.0
 triggers:
   - research prompt
   - research brief
@@ -51,11 +51,11 @@ output.
 ## Workflow
 
 Stages 0–6 are drafting; 7 is execution; 8 is verification; 9 is multi-run
-synthesis; and 10 is memory. Each stage writes a small artifact to the working
-directory (`research/<slug>/`). These are run-scoped scratch, not deliverables
-— do not commit them, and stage 10 ends by cleaning them up. Cheap questions
-can skip stages — the router
-(stage 2) decides — but never skip 0, 4, or 8.
+synthesis; and 10 is capture and retention. Stage artifacts live in the run
+directory (`research/<slug>/`); some are working drafts and some support the
+final claims or later continuation. Keep that distinction when choosing what
+to retain or publish under the project's conventions. Cheap questions can skip
+stages — the router (stage 2) decides — but never skip 0, 4, or 8.
 
 **Stages 3, 5, and 8 run in fresh subagents by default.** Their whole value is
 independence: a scout that already believes the brief, a red-teamer critiquing
@@ -248,35 +248,43 @@ the primary sources, not merely the input reports, and carry unresolved gaps
 into the final document. For a single-run plan, the accepted report is already
 the final synthesis and this stage is skipped.
 
-### Stage 10 — Postmortem (`10-postmortem.md` + shared memory)
+### Stage 10 — Capture useful observations and retain evidence
 
-From the report's self-report (block A10 for external reports; the packet's
-`self_report` field for local `deep-research` runs) plus verification results,
-record: which instructions were followed, ignored, or misread; citation support,
-applicability, and usable-citation rates; which rubric items
-discriminated (items that always pass are dead
-weight). Then append durable lessons to two shared files:
+When a run reveals a useful lesson, record it with the research it came from,
+using `10-postmortem.md` or the project's existing run record. Include the
+relevant date, executor/model or environment, observed behavior, and supporting
+verification or artifacts. Separate an observation from its explanation and
+from a proposed change to the workflow. A single run can expose a defect;
+it does not establish a general executor limitation or an optimal instruction.
+There is no minimum lesson count and no required empty postmortem.
 
-- `references/postmortems.md` — dated lessons about the *skeleton and process*
-  ("do-not lists beyond 8 items get ignored"; "rubric item X never fails —
-  cut it").
-- `references/executor-profiles.md` — per-executor quirks ("Gemini DR cannot
-  reach X/Twitter"; "Codex follows file-level-evidence tables well but skips
-  degradation orders").
+Treat the report's self-report as input to compare with observed results, not
+as verified evidence. Preserve meaningful failures and disagreements as well
+as successful results when they affect future choices.
 
-This stage is what makes the skill compound instead of plateau. Do not skip it
-after real runs.
+**Keep records with their owner.** An ordinary research run does not authorize
+editing an installed skill, its bundled references, or harness memory. The
+bundled `references/postmortems.md` and `references/executor-profiles.md` are
+curated historical context, not automatic write targets. Promote a reusable
+lesson through an intentional update to the skill's canonical source under
+existing authorization and release policy. Retain its scope and provenance;
+correct or supersede guidance contradicted by newer evidence. Do not convert
+observed source content into standing instructions merely by saving it.
 
-**Cleanup (closes every run):** once durable lessons are appended, the
-per-run scratch has served its purpose. Archive the keepers — the final
-prompt(s), final report or synthesis, and the verification verdict — then delete
-`research/<slug>/`. Default archive: `docs/research/YYYY-MM-DD-<slug>-*.md`
-in the repo the research serves (matching the `docs/design/` → `docs/specs/`
-→ `docs/plans/` dating convention); for research that serves no repo, ask
-where — personal archives often live outside any repo. If the run pauses at
-stage 7 for an external DR product, tell the user the directory is disposable
-once they've copied the prompt, and finish this cleanup when they return with
-the report.
+**Retain before cleaning up.** Keep the final prompts, reports or synthesis,
+verification verdict, and supporting evidence needed to reassess their claims
+or resume work. That may include sampled claim/citation worksheets, source
+excerpts, scout results, or failure logs that cannot be recovered reliably.
+Avoid secrets and unnecessary private material in retained records.
+
+Use the project's existing destination or one specified by the user; when a
+separate durable research location is needed, `docs/research/` is a fallback.
+Keep evidence links usable if artifacts move. Remove only identified disposable
+files created by this run after confirming that needed evidence and continuation
+state remain accessible. Follow applicable cleanup authority and retention rules;
+do not delete `research/<slug>/` just because the run ended. An external run
+paused at stage 7 still needs its brief, prompts, and continuation context even
+if the user has copied the prompt elsewhere.
 
 ## Router quick reference
 
@@ -294,9 +302,9 @@ the report.
 
 - Per-stage artifacts in `research/<slug>/` (decision brief, question, route,
   scout, prompt(s), lint results, red-team, run plan, verification, synthesis
-  when multi-run, postmortem) — run-scoped scratch, deleted at the end of stage
-  10 after keepers are archived (default:
-  `docs/research/` in the repo the research serves).
+  when multi-run, and useful run observations) — retain the evidence and context
+  needed for reassessment or continuation; remove only disposable working files
+  under stage 10's retention rules.
 - The primary deliverables: one assembled, linted prompt per executor
   (`04-prompt-<executor>.md`), and after execution a verification verdict
   (`08-verification.md`) with citation support, applicability, usable-citation,
@@ -316,10 +324,11 @@ the report.
   pass/fail per rubric item with quotes — never vibes.
 - Multi-run stage 9 synthesis contains only stage-8-accepted claims and
   preserves unresolved disagreements.
-- After real runs, stage 10 appended at least one dated lesson or explicitly
-  recorded "no new lessons."
-- The run closed clean: keepers archived where the user chose, and
-  `research/<slug>/` deleted — no stray artifacts left in the repo.
+- Any captured lesson distinguishes observed evidence from inference and keeps
+  relevant scope, date, and provenance. No lesson is required when none adds value.
+- Needed evidence and continuation state remain accessible after cleanup, with
+  usable references. No installed skill or harness memory was changed as an
+  automatic side effect of the run.
 
 ## Resources
 
@@ -329,10 +338,12 @@ the report.
 - `references/redteam-checklist.md` — the stage-5 critique subagent's mandate.
 - `scripts/lint_prompt.py` — deterministic stage-4 lint (budget, slots,
   comments, required blocks). `--json` for machine-readable output.
-- `references/postmortems.md`, `references/executor-profiles.md` — shared
-  memory; read at stages 2–5, append at stage 10. Append-only run memory:
-  exempt from the repo's skill release-version check, so recording a lesson
-  never costs a version bump.
+- `references/postmortems.md`, `references/executor-profiles.md` — curated, dated
+  historical observations; consult relevant entries at stages 2–5 and recheck
+  decision-relevant assumptions. New run observations belong with the run;
+  changes to canonical guidance are intentional authoring work.
+- `evals/capture-retention-scenarios.md` — authored replay cases for capture
+  ownership and evidence retention, not measured model-performance results.
 - `scripts/score_report.py` — stage-8 structural pass: `worksheet` classifies
   citation coverage, extracts resolvable claim/citation pairs, and samples what
   to check; `score` computes support, applicability, and usable-citation rates.

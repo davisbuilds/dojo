@@ -1,30 +1,26 @@
 ---
 name: retro
-description: Capture non-obvious session learnings into existing project reference docs using the session-retro skill.
-argument-hint: "[optional scope hint]"
+description: Preserve non-obvious session learnings in existing canonical project docs.
+argument-hint: "[optional scope hint or preview-only]"
 allowed-tools: [Read, Edit, Write]
 ---
 
 # Retro
 
-Load `session-retro` and apply its process to append high-signal learnings from the current session.
+Use `session-retro` to capture the useful durable facts from this session.
+Respect the scope in `$ARGUMENTS` and the conversation.
 
 ## Behavior
 
-1. Inventory the existing reference docs in the current project:
-   - Root docs: prefer `AGENTS.md`, then `CLAUDE.md`, then `README.md` when they fit the learning.
-   - Canonical docs: use existing `docs/system/*` and `docs/project/*` reference files when they are a better fit.
-2. Propose candidate learnings from the current session, then filter to non-obvious items that save future agents meaningful time.
-3. Route each learning to exactly one canonical doc and avoid duplicate entries across multiple files.
-4. Prefer append-only additions, but allow the smallest in-place structured edit when append-only would duplicate or stale a canonical ref doc.
-5. Present the exact grouped diff and wait for user approval.
-6. After approval, apply only the narrow approved edits, matching existing formatting.
+- Compare candidate learnings with the project's existing documentation.
+- Update the canonical home for each fact, correcting stale guidance and avoiding
+  duplicate explanations. Keep task-resumption state out of evergreen docs.
+- Apply already-authorized documentation edits directly. If the user requests a
+  preview or discussion, present the proposal without writing.
+- Report the changes briefly, or say that no durable update is needed.
 
-## Rules
+## Boundaries
 
-- Update only docs that already exist.
-- One learning, one home.
-- Prefer append-only; use in-place edits only when clearly warranted.
-- Maximum 5 learnings in one run.
-- Maximum 3 files in one run unless the user asks for more.
-- Keep entries concrete and actionable.
+Do not create new docs unless requested, write harness memory, impose a follow-up
+menu, or request approval again for edits the user already authorized. Keep
+uncertain or version-dependent observations qualified, and omit secrets.

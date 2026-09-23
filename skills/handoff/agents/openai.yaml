@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Handoff"
-  short_description: "Create session summaries for context preservation and handoff"
+  short_description: "Create a continuation snapshot so a fresh agent can pick up"
   default_prompt: "Use $handoff for this task."

@@ -1,3 +1,7 @@
+## 2.0.0 - 2026-09-22
+
+- Preserve durable knowledge with scoped, already-authorized edits; remove approval repetition, quotas, and mandatory menus.
+
 ## 1.0.3 - 2026-08-01
 
 - Trim the internal learning-routing mechanic from the description; the do-not-create-new-files boundary and triggers are unchanged.

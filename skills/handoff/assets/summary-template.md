@@ -1,19 +1,21 @@
-# Session Summary
+# Handoff: <task>
 
-## 1. Primary Request and Intent
+<!-- Optional execution-handoff structure. Adapt to the recipient, omit irrelevant
+sections, and remove these hints. This template does not require saving a file. -->
 
-## 2. Key Technical Concepts
+## Intent and constraints
 
-## 3. Files and Code Sections
+<Outcome, accepted decisions, consequential user corrections, authorization.>
 
-## 4. Errors and Fixes
+## Current state
 
-## 5. Problem Solving Approach
+<Done / in progress / remaining; repo, branch, commits, worktree or active jobs
+when needed to continue. Link to artifacts rather than copying available code.>
 
-## 6. User Messages
+## Evidence and uncertainty
 
-## 7. Pending Tasks
+<Checks and results with revision/scope; unverified work, blockers, open decisions.>
 
-## 8. Current Work State
+## Continue here
 
-## 9. Suggested Next Step
+<Next useful action, required inputs or approval, and usable references.>

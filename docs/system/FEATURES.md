@@ -61,7 +61,7 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 | Skill | Purpose |
 |-------|---------|
 | `caveman` | Sticky ultra-compressed output mode (~75% token cut) until the user says "stop caveman" |
-| `first-principles` | Systems reasoning for high-stakes decisions â€” epistemic framework, decision matrix, principle tensions |
+| `first-principles` | Decision-focused systems reasoning â€” actual constraints, consequential assumptions, reversibility, evidence, and system-wide costs |
 | `test-strategy` | Testing methodology: TDD, real dependencies over mocks, behavior-based tests, and conditional effective authority-boundary probes |
 | `verify-before-complete` | Evidence-based completion gate; require verification before claiming done |
 
@@ -99,9 +99,8 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 | `obsidian-canvas` | Obsidian Canvas files for visual canvases |
 | `markdown-converter` | Convert file formats to Markdown |
 | `fetchmd` | Convert webpages or local HTML into clean Markdown for AI workflows |
-| `handoff` | Session summaries for context handoff |
-| `compound-docs` | Capture solved problems as documentation |
-| `session-retro` | Route non-obvious session learnings into existing project reference docs |
+| `handoff` | Portable continuation snapshots for a fresh agent: intent, grounding, state, evidence, and next action |
+| `session-retro` | Preserve consequential learnings in existing canonical project docs without redundant approval or mandatory artifacts |
 
 ### Meta / Skill Management
 

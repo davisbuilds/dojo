@@ -387,4 +387,6 @@ Apply after assembly, before shipping:
 | **Claude Research (web)** | ≤40 instructions. No repo cloning — D3 rows default to "not inspected" unless web-viewable. Strip DAG language; single-run framing. |
 | **OpenAI / Gemini DR (web)** | ≤40 instructions. Known tendency to paraphrase repos at README level — if D3 included, state the "not inspected" rule twice (once in D3, once in the do-not list). Verify source-class access via scout probe in the same product first; X/Twitter usually unreachable, Reddit spotty. |
 
-Record new executor quirks in `executor-profiles.md` as postmortems reveal them.
+Record new executor observations with the research run, including their date,
+context, and evidence. Promote reusable guidance through an intentional update
+to the canonical skill; do not automatically edit its installed references.
