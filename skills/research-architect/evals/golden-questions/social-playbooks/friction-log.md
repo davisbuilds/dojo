@@ -1,7 +1,7 @@
 # Friction Log — research-architect pressure test
 
 Written live during stages 1–4 of a real drafting run (topic: social-media guru
-tactics vs. survivorship theater, feeding the `viral` skill kit). Blunt by design —
+tactics vs. survivorship theater, feeding the `content-kit` skill kit). Blunt by design —
 this feeds the skill's postmortem, not a polished review.
 
 ## Stage 1 — Question engineering
@@ -95,7 +95,7 @@ this feeds the skill's postmortem, not a polished review.
   strict on substance, which is the right trade-off.
 - **D3 in a non-software research topic worked, but needed real adaptation** — the
   block's default table (Concept | Repo/source | File/module | Function/class/config)
-  is clearly software-shaped. It mapped cleanly onto "validated tactic | viral repo |
+  is clearly software-shaped. It mapped cleanly onto "validated tactic | target repo |
   skill/rule file | SKILL.md section | fit/gap" once I made that translation myself,
   but the skeleton gives zero guidance that D3 is reusable this way for a
   build-handoff-shaped (not literally code-shaped) research question. This is

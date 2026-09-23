@@ -5,8 +5,9 @@
 Two-run merge (M-blocks active in both prompts, fixed 12-section order):
 
 1. **Terminal run** — a local executor subagent in this environment, given
-   `04-prompt-terminal.md`. It has what the web run lacks: local `viral` checkout
-   for the artifact-evidence table, and per-URL fetching for corroboration lineage.
+   `04-prompt-terminal.md`. The original run used a local target checkout for
+   the artifact-evidence table and per-URL fetching for corroboration lineage.
+   Reproduction requires a supplied target repository.
 2. **Web DR run** — `04-prompt-web.md` pasted into **Gemini Deep Research**
    (recommended) or OpenAI Deep Research as the alternate.
 

@@ -42,9 +42,12 @@ because the reason it was wrong is the strongest argument this contract makes.**
 | Session root | Listed entries | Charged (tokens) | % of budget | Truncated |
 |---|---|---|---|---|
 | Ordinary global session | 41 | 4,132 | 76% | 0 |
-| `blueprint-finance` | 42 | 4,263 | 78% | 0 |
-| `viral` | 47 | 5,159 | **95%** | 0 |
+| `example-light` | 42 | 4,263 | 78% | 0 |
+| `example-heavy` | 47 | 5,159 | **95%** | 0 |
 | `dojo` itself | 41 | 4,132 | 76% | 0 |
+
+`example-light` and `example-heavy` are anonymized labels for historical local
+measurements. Their source checkouts are not part of this public repository.
 
 Measured 2026-08-02 from `codex debug prompt-input` with Codex's own arithmetic:
 only skill lines are charged, the intro prose and section headers are not, and
@@ -203,7 +206,7 @@ Code — the property that made `dojo` pay twice for 32 skills until its
 `.agents/skills` link was removed, and that will do so again for any target
 that acquires one.
 
-On the `exec` surface Codex truncates nowhere, and `viral` sits at **95%**
+On the `exec` surface Codex truncates nowhere, and `example-heavy` sits at **95%**
 against the 90% ceiling this contract sets. **On the interactive surface Codex
 truncates everywhere** — every description in every observed `codex-tui` session
 since 2026-07-28, unmarked. The two sentences describe the same machine on the
@@ -255,7 +258,7 @@ measurements scores against both, and the answer differs entirely:
 | Session | Skills | Demand (chars) | vs 40,000 (1M) | vs 8,000 (200k) |
 |---|---|---|---|---|
 | Ordinary global session | 45 | 16,535 | 41% | **2.07×** |
-| `viral`-rooted | 51 | 20,220 | 51% | **2.53×** |
+| `example-heavy`-rooted | 51 | 20,220 | 51% | **2.53×** |
 | `dojo`-rooted | 75 | 23,287 | 58% | **2.91×** |
 
 Measured 2026-08-02. **At the window this operator actually runs, Claude Code is
@@ -1043,7 +1046,7 @@ budget checks, not an unresolved behavioral decision.
   urgency rather than confirming it: revision 7 found the measurements were
   1.78× overstated, revision 10 found two of three Codex breaches were ordinary
   defects, and this one finds the remaining harness conformant in practice. What
-  survives is worth stating plainly, because it is now the whole case. `viral`
+  survives is worth stating plainly, because it is now the whole case. `example-heavy`
   sits at 95% on Codex against a 90% ceiling. The Claude Code margin is **one
   model selection wide** — 58% or 291% for the same catalog on the same day,
   with no announcement either way. The figures have moved by a factor of two in
@@ -1064,7 +1067,7 @@ budget checks, not an unresolved behavioral decision.
 - **2026-08-02 (revision 10).** Re-measured, and the Problem's live-breach
   evidence has moved to a different harness. Codex now **truncates nowhere**:
   the ordinary session sits at 76% (was 96%), `dojo` at 76% (was 177% with 94
-  truncated), `viral` at 95% (was 111% with 19 truncated). Two merged changes
+  truncated), `example-heavy` at 95% (was 111% with 19 truncated). Two merged changes
   did it — disabling one unused foreign skill, and dropping `.agents` from the
   adapter generator's harness list so the catalog stops being linked into Codex
   project scope.
@@ -1074,7 +1077,7 @@ budget checks, not an unresolved behavioral decision.
   problems**, and they were fixable without profiles. What survives, and is
   strengthened: none of those fixes was proposed, measured, or is now prevented
   from regressing by anything in this repository, and the figures moved by a
-  factor of two in one day with no distribution decision taken. `viral` is still
+  factor of two in one day with no distribution decision taken. `example-heavy` was still
   non-deployable at 95% against the 90% ceiling.
 
   **Claude Code is where the argument now rests.** It moved by a few percent

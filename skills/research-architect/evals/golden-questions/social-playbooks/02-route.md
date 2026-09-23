@@ -8,19 +8,19 @@ The question has two genuinely different payloads and neither can be dropped:
   the world ("did MrBeast/Hormozi/Meservey actually do X, and does it generalize").
   → include **V1–V5** in full.
 - **Design-heavy** — sub-question 7 and the decision-informed statement ("findings get
-  encoded into the `viral` skill kit... map validated tactics to specific skills/rules")
+  encoded into the `content-kit` skill kit... map validated tactics to specific skills/rules")
   is a build handoff, not just a finding. → include **D1–D5** in full.
 
 I considered dropping D3 (artifact-level evidence) as software-shaped and not
-obviously fitting a marketing-research report, but the `viral` repo is a real,
-public, inspectable artifact (`github.com/davisbuilds/viral`) and rubric item 7
-requires the handoff to name specific existing skill/rule files, not describe them
-generically. D3's table shape — Concept | Repo/source | File/module |
+obviously fitting a marketing-research report. In the original run the terminal
+executor had a local target checkout, so rubric item 7 could require verified
+file-level mappings. A reproduced run must supply an inspectable target or mark
+those mappings unverified. D3's table shape — Concept | Repo/source | File/module |
 Function/class/config | Notes & divergence — maps directly onto: validated tactic |
-`viral` repo | skill or rule file path | specific SKILL.md section/instruction |
+target repo | skill or rule file path | specific SKILL.md section/instruction |
 fit vs. gap. Adapted this way, D3 is the mechanism that keeps the build handoff (D5)
-honest instead of hand-wavy — dropping it would have let the report recommend "update
-hook-engine" without ever citing what hook-engine currently says. Kept.
+honest instead of hand-wavy — dropping it would have let the report recommend
+updating a skill without citing its current instructions. Kept.
 
 D4 (trade-offs & maturity) is justified by the brief's own stated cost-of-being-wrong:
 "encoding survivorship theater into reusable skills poisons every future draft at
@@ -35,8 +35,8 @@ trimming.** This is a genuinely heavy assembly; see friction log.
 
 Terminal agent and one web DR product, per the stage-0 routing input. This is not a
 redundant re-run of the same question — it is functionally a **two-model merge**:
-same core question, same rubric, two different reach profiles (terminal can clone/
-inspect the `viral` repo directly and hit local files; web DR sweeps broader public
+same core question, same rubric, two different reach profiles (the original
+terminal executor could inspect a supplied local target; web DR sweeps broader public
 web surface but cannot touch the filesystem). Stage 8's cross-run diff becomes
 directly usable here: any confident specific naming a MrBeast/Hormozi/Meservey tactic
 that shows up in only one report is a hallucination candidate to check before the

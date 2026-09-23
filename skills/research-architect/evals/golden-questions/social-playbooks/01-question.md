@@ -30,7 +30,7 @@ transferable core shifted since ~2015?
    algorithm/platform windows — explain each practitioner's headline result better
    than the claimed tactic?
 7. Which validated (non-theater, non-confound-explained) tactics map cleanly onto a
-   specific, buildable rule or skill behavior for the `viral` kit, and which are too
+   specific, buildable rule or skill behavior for `content-kit`, and which are too
    context-dependent (require ongoing human judgment, not a rule) to encode?
 
 ## Scope
@@ -109,10 +109,9 @@ platform-generality) would produce a false equivalence the axes are designed to 
 6. A negative-evidence section (churn, backlash, format fatigue, algorithm penalty,
    public walk-backs) appears for each of the three practitioners.
 7. The build handoff maps each validated (non-theater) tactic to a specific named
-   `viral`-kit skill or rule (`hook-engine`, `platform-playbook`, `post-scorer`,
-   `post-writer`, `repurpose`, `voice-context`, `rules/anti-slop`,
-   `rules/output-location`, `rules/social-conventions`, `rules/voice-discipline`) or
-   explicitly proposes a new one — never a generic "consider doing X" recommendation.
+   skill or rule in the supplied `content-kit`, or explicitly proposes a new one.
+   If no target repository is supplied, mark file-level mappings unverified —
+   never invent a path or settle for a generic "consider doing X" recommendation.
 8. For each practitioner's headline result, the report explicitly assesses whether
    capital, timing, or pre-existing position explains the result better than the
    claimed tactic.

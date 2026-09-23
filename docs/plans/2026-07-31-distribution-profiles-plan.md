@@ -188,13 +188,16 @@ Re-measured 2026-08-02, after the
 #53/#54 merges. The two harnesses now disagree sharply, which is the finding.
 
 *Codex*, budget 5,440 tokens — **nothing truncates anywhere**. Ordinary sessions
-41 entries / 4,132 / 76%. `blueprint-finance` 42 / 4,263 / 78%. `dojo` itself
+41 entries / 4,132 / 76%. `example-light` 42 / 4,263 / 78%. `dojo` itself
 41 / 4,132 / 76%, down from 95 entries and 177% once `.agents` left
-`HARNESS_DIRS`. `viral` 47 / 5,159 / **95%** — under the budget, over the 90%
+`HARNESS_DIRS`. `example-heavy` 47 / 5,159 / **95%** — under the budget, over the 90%
 ceiling, therefore non-deployable.
 
+`example-light` and `example-heavy` anonymize historical local project roots;
+the public checkout does not contain their source data.
+
 *Claude Code*, budget 8,000 characters at a 200k window — **still in breach
-everywhere**. Ordinary session 45 skills / 16,535 chars (**2.07×**); `viral` 51
+everywhere**. Ordinary session 45 skills / 16,535 chars (**2.07×**); `example-heavy` 51
 / 20,220 (**2.53×**); `dojo` 75 / 23,287 (**2.91×**), with descriptions removed
 outright from the majority of entries. The same repository fits on a 1M-window
 model with no warning at all — which is why the model is part of policy
@@ -325,7 +328,7 @@ adapter-writing script, then reading each hit:
 > 1. **Only skill lines are charged.** `render.rs` sums `line_cost` over entries;
 >    the intro prose and section headers are not counted. Every prior figure in
 >    this program charged the whole block and overstated by ~2 points. Corrected
->    everywhere: ordinary session **76%** (not 78%), `viral` **95%** (not 97%).
+>    everywhere: ordinary session **76%** (not 78%), `example-heavy` **95%** (not 97%).
 > 2. **The alias roots table is a rounded difference of two whole bodies**, not a
 >    sum of per-line costs — 24 tokens against 65 on the live fixture. Using the
 >    sum shrinks the apparent limit by 41 tokens, enough to misreport a listing
@@ -424,7 +427,7 @@ verify time rather than cached and trusted.
 - Create: `tests/fixtures/profiles/claude-debug-dojo-1m-under-budget-2026-08-02.txt`
 - Create: `tests/fixtures/profiles/claude-request-dojo-2026-08-02.json`
 
-**No fixture may be a capture of another repository.** A `viral`-rooted capture
+**No fixture may be a capture of another repository.** An `example-heavy`-rooted capture
 was taken and then deleted: it was used by no test and published a private
 project's skill names and descriptions into a public repo. Fixtures come from
 this repository or from a synthetic directory, and machine identity is
@@ -512,8 +515,8 @@ None
    `.agents/skills` for Codex.
 6. Store one fixture per shape for hermetic tests. Tests read fixtures; only the
    live verification steps invoke `claude` or `codex`.
-7. Record the **behavioral budget bracket** for Codex: `blueprint-finance`
-   demands ~5,341 without truncating and `viral` ~6,037 while truncating, so the
+7. Record the **behavioral budget bracket** for Codex: `example-light`
+   demands ~5,341 without truncating and `example-heavy` ~6,037 while truncating, so the
    budget lies in (5,341, 6,037) — excluding 5,168 (2% of the 95%-effective
    window) and containing 5,440 (2% of the full window). The verifier still reads
    the window from `codex debug models` at verify time.
@@ -2864,7 +2867,7 @@ staged-applicator decision survived unchanged.*
    model now counts duplicates instead of collapsing them (Task 4).
 5. **The Codex project-scope root is `.agents/skills` only**, not `.claude/skills`
    or `.agent/skills`, which narrows Task 13's cut and identifies the sole cause
-   of dojo's and viral's truncation (Task 4).
+   of dojo's and the example-heavy session's truncation (Task 4).
 6. **`--only-existing` is not membership-neutral.** The deprecated-alias path
    (lines ~455-495, ~895-940) is ungated and `DEPRECATED_SKILL_REPLACEMENTS` is
    live, so it can add and delete members. It gets a guard, and the old

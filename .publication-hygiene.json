@@ -1,0 +1,9 @@
+{
+  "allowed_home_segments": [
+    "example-dev",
+    "x"
+  ],
+  "pinned_files": {
+    "tests/test_evidence_filter.py": "b53009188b1d067247338ec4306dcfee1e6520d32cc3e48a8ad87931e8cf76be"
+  }
+}

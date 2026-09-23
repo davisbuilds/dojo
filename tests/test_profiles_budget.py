@@ -269,7 +269,7 @@ def test_the_ceiling_is_ninety_percent_not_a_hundred(codex_policy):
     """A target can be inside the budget and still non-deployable.
 
     The 10% reserve is the contract's guardrail for estimator variance and
-    harness-added metadata; `viral` sits at 95% on Codex today, under the budget
+    harness-added metadata; a measured example-heavy session sat at 95%, under the budget
     and over the ceiling.
     """
     policy = replace(codex_policy, limit=10_000)

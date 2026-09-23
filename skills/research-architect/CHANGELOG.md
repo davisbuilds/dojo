@@ -1,3 +1,7 @@
+## 3.0.1 - 2026-09-23
+
+- Replace private project references in public research eval fixtures with portable examples.
+
 ## 3.0.0 - 2026-09-23
 
 - Keep research observations with their run; make canonical promotion intentional, allow no new lesson, and preserve reassessment evidence and continuation context during cleanup.
