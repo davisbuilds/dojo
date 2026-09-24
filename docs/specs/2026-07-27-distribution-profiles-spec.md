@@ -357,7 +357,7 @@ catalog as conformant.
   includes `create-cli` and `secure-code`; `research` includes `deep-research`
   and `research-architect`; `design` includes `design-critique` and
   `web-design-guidelines`; `knowledge` includes `obsidian-markdown` and
-  `session-retro`; `shipping` includes `gh-commit-push-pr` and `vercel-deploy`;
+  `session-retro`; `shipping` includes `vercel-deploy` and `vercel-preview-logs`;
   and `skill-authoring` includes `skill-creator` and `skill-standardizer`.
   `full` resolves to every canonical skill at the selected revision. Complete
   overlay membership is explicit profile evidence, not inferred from category
@@ -890,6 +890,14 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-09-24 (revision 17). Retire the GitHub publishing skill.** SC-02's
+  shipping anchors are now `vercel-deploy` and `vercel-preview-logs`, retaining
+  the overlay's deployment and feedback capabilities. The retired
+  `gh-commit-push-pr` is removed from membership; ordinary GitHub operations use
+  existing tools and repository guidance. The loader, tests, and reviewed
+  profile reflect this explicit membership change. The completed program's
+  delivery scope and remaining profile invariants are unchanged.
 
 - **2026-08-15 (revision 16). Contract closed at shipped scope; the `verify --all`
   CLI is dropped.** Operator decision, `status: complete`. What ships is the

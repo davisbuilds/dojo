@@ -10,12 +10,6 @@ Catalog snapshot by category. For canonical runtime inventory, use `skills.json`
 jq '.skills | length' skills.json
 ```
 
-### GitHub Workflows
-
-| Skill | Purpose |
-|-------|---------|
-| `gh-commit-push-pr` | Publish intended edits or existing commits to a PR; conditional merge/sync and safe cleanup |
-
 ### Code Review and Quality
 
 | Skill | Purpose |

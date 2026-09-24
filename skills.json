@@ -112,13 +112,6 @@
       "version": "1.1.0"
     },
     {
-      "name": "gh-commit-push-pr",
-      "description": "Commit intended changes, publish existing commits, and open or update a GitHub PR. Use when user asks to commit and push, create a PR, ship changes, send for review, or open a pull request. Triggers on phrases like 'commit and push', 'create a PR', 'open a pull request', 'send this for review', 'ship it', 'push and PR'.",
-      "path": "skills/gh-commit-push-pr",
-      "version": "2.0.0",
-      "allowed-tools": "Bash(git checkout:*), Bash(git add:*), Bash(git status:*), Bash(git push:*), Bash(git commit:*), Bash(git diff:*), Bash(git log:*), Bash(git branch:*), Bash(git stash:*), Bash(git remote:*), Bash(gh auth status:*), Bash(gh repo view:*), Bash(gh pr create:*), Bash(gh pr view:*)"
-    },
-    {
       "name": "gpt-imagen",
       "description": "Generate or edit images via the OpenAI Image API (`gpt-image-2`). Use when the user asks to generate, edit, inpaint, mask, remove backgrounds, or create product shots, concept art, covers, or batch outputs using OpenAI. Requires `OPENAI_API_KEY`.",
       "path": "skills/gpt-imagen",
@@ -228,7 +221,7 @@
       "name": "skill-evals",
       "description": "Evaluate skill quality and routing reliability with deterministic checks. Use when creating/updating skills, validating trigger behavior (explicit/implicit/contextual/negative), applying SKILL.md contract checklists, or generating cross-skill compliance reports.",
       "path": "skills/skill-evals",
-      "version": "1.5.1"
+      "version": "1.5.2"
     },
     {
       "name": "skill-installer",

@@ -5,7 +5,7 @@
 ## Documentation Map
 
 - `docs/system/ARCHITECTURE.md` — high-level flow, skill structure + frontmatter spec, progressive disclosure tiers, hook pipeline table, manifest + validation pipelines, directory map (including `profiles/` and `scripts/profiles/`).
-- `docs/system/FEATURES.md` — full skill catalog grouped by category (GitHub workflows, code review, design, etc.).
+- `docs/system/FEATURES.md` — full skill catalog grouped by category (code review, design, research, etc.).
 - `docs/system/OPERATIONS.md` — setup, dependency install, all skill-management commands, measuring a session's listing cost against each harness's budget, hook configuration, CI, optional skill dependencies.
 - `docs/system/SKILL-BEST-PRACTICES.md` — research-backed authoring guidance, design contract, anti-patterns, trigger collision guidance.
 - `docs/system/skill-contract-v1.md` — SKILL.md quality contract (skill types, required checks) enforced by CI.

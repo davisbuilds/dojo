@@ -1,5 +1,0 @@
-# AUTO-GENERATED from SKILL.md frontmatter — do not edit
-interface:
-  display_name: "Gh Commit Push Pr"
-  short_description: "Commit intended changes, publish existing commits, and open or"
-  default_prompt: "Use $gh-commit-push-pr for this task."

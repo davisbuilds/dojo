@@ -62,7 +62,7 @@ ANCHORS = {
     "engineering": ("create-cli", "secure-code"),
     "knowledge": ("obsidian-markdown", "session-retro"),
     "research": ("deep-research", "research-architect"),
-    "shipping": ("gh-commit-push-pr", "vercel-deploy"),
+    "shipping": ("vercel-deploy", "vercel-preview-logs"),
     "skill-authoring": ("skill-creator", "skill-standardizer"),
 }
 

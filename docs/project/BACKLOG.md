@@ -47,7 +47,7 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   unnecessary artifacts/stops, context cost, and time. Prioritize remaining
   skills from observed friction; do not infer low value from invocation counts.
 - **Next candidates, 2026-09-23**: after the knowledge-capture, verification/
-  testing, and publishing revisions recorded in ROADMAP, review universal
+  testing revisions and publishing-skill retirement recorded in ROADMAP, review universal
   CRUD/prompt-only goals in `agent-native-architecture` and the research family's
   mandatory stages.
   These are source-review candidates, not measured model-performance findings.
