@@ -1,3 +1,7 @@
+## 2.0.0 - 2026-09-23
+
+- Retain behavioral tests, meaningful red/green evidence, dependency fidelity, and conditional runtime authority probes. Replace blanket mutation/reporting requirements and latency rankings with targeted controls; scope network proof to the claim.
+
 ## 1.3.0 - 2026-08-16
 
 - Add "Network Boundaries Need Three Separate Proofs": separate deterministic policy tests, the connected peer observed from the real transport, and a fixed public end-to-end control; a loopback fixture never proves public-destination enforcement. Adds behavioral scenario S5 and a completion-check bullet.

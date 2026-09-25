@@ -2,7 +2,7 @@
 name: local-review
 description: Perform local code reviews on workspace changes without posting to GitHub. Use for requests like /review, review this diff, audit staged changes, or check branch changes. Produces findings-first reports with severity, file line references, risks, and test gaps.
 skill-type: workflow
-version: 1.1.4
+version: 1.1.5
 ---
 
 # local-review
@@ -132,6 +132,6 @@ If the harness supports command files, use `commands/review.md` as the canonical
 
 One of three review skills (diff / PR / multi-agent).
 
-- `verify-before-complete` — orthogonal gate. Run before claiming a diff is "done"; this skill produces the findings, that one enforces the completion claim.
+- `verify-before-complete` — consult for a consequential gap in completion evidence; a local review does not automatically require another gate or report.
 - `error-handling-review` — deliberately-invoked specialist lens for silent failures, swallowed errors, and unjustified fallbacks. Reach for it when this general pass flags error handling worth a deeper look.
 - `type-design-review` — deliberately-invoked specialist lens rating a new or changed type's invariants and encapsulation. Reach for it when this pass surfaces a new type worth assessing.

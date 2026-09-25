@@ -2,167 +2,110 @@
 name: test-strategy
 description: Guide agents to follow preferred testing methodology — red/green TDD, real dependencies over mocks, behavior-based tests, and effective-runtime authority-boundary probes. Use when writing tests, planning test coverage, deciding between TDD and test-after, correcting excessive mocking, or testing filesystem, credential, process, network, or remote-mutation permissions. Triggers on 'write tests', 'add test coverage', 'how should I test this', 'TDD', 'test strategy', 'test plan', 'test the permission boundary'.
 skill-type: reference
-version: 1.3.0
+version: 2.0.0
 ---
 
 # Test Strategy
 
-Testing methodology that encodes preferred practices for how agents should approach testing decisions.
+Prefer tests that distinguish correct behavior from a plausible regression and
+remain useful when the implementation changes. Follow the project's testing
+conventions and the user's requested scope.
 
 ## When To Use
 
-- Writing tests for new features, bug fixes, or refactors
-- Deciding whether to use TDD or test-after
-- Choosing between real dependencies and mocks
-- Planning what to test and at what granularity
-- Reviewing existing tests for methodology issues
-- Testing software that mediates filesystem, credential, process, network, or
-  remote-mutation authority
+Use when selecting coverage, writing tests, choosing dependency fidelity, or
+testing a privileged boundary. Consultation may resolve one testing decision;
+it need not produce a test plan, new suite, or verification report.
 
-## Core Principles
+## Coverage and Development Order
 
-1. **Test behavior, not implementation.** Assert on outputs and observable side effects. Never assert on internal method calls, private state, or execution order unless order is the contract.
+- Assert observable behavior and contract-relevant side effects. Internal calls
+  or execution order belong in assertions when they are part of the contract.
+- Prefer a focused regression test that fails on the original bug. Check that
+  it reaches the faulty behavior; a missing import or unrelated refusal is not
+  the red signal. For new features and high-risk behavior changes, prefer
+  red/green development where the target is established; honor explicit TDD
+  requirements. Do not invent a failing test merely to demonstrate process.
+- For behavior-preserving refactors, use existing meaningful tests as the
+  baseline. Add characterization or regression coverage where a material gap
+  exists, rather than requiring a new red phase for unchanged behavior.
+- Choose the lowest layer that faithfully exercises the contract. Add an
+  integration or runtime check where wiring or environment can invalidate the
+  lower-level result. Config and UI changes may need configuration, runtime, or
+  visual checks instead of synthetic unit tests.
+- Stop adding tests when the relevant risks are covered. Skip new tests for
+  reversible, low-impact edits with no meaningful behavior to assert.
 
-2. **Real dependencies over mocks.** Use the actual database, filesystem, or service when feasible. Mocks hide integration bugs and make tests brittle to refactoring.
+## Dependency Fidelity
 
-3. **Red/green TDD for high-risk work.** Use the full cycle (failing test → minimal pass → refactor) for big features, major refactors, and large codebase changes. Skip TDD for trivial changes, configuration, or exploratory spikes.
+Prefer real dependencies when they are practical, deterministic, and safe to
+exercise. Use controlled substitutes for costly, unavailable, nondeterministic,
+or destructive dependencies and for otherwise inaccessible failures. Select
+the substitute by which semantics the claim depends on, not a fixed ranking or
+latency threshold: SQLite is not evidence of PostgreSQL-specific behavior.
 
-4. **One assertion per concern.** Each test should verify one behavior. Multiple assertions are fine if they describe the same logical outcome.
+Avoid mocking the behavior under test. When a substitute hides a consequential
+integration assumption, cover it with a relevant contract/integration check or
+state the unverified boundary. No per-mock justification document is required.
+Live services, credentials, and external side effects remain subject to the
+task's actual authorization.
 
-5. **Tests are documentation.** Test names should describe the behavior under test, not the method name. A reader should understand what the system does by reading test names alone.
+## Tests That Pass for the Wrong Reason
 
-## When To TDD
+Pay particular attention when an earlier guard can short-circuit the target,
+the expected value is derived from the implementation, or the assertion depends
+on a detector reporting nothing.
 
-Use red/green TDD when:
-- Building a new feature with clear acceptance criteria
-- Major refactors where existing behavior must be preserved
-- Large codebase changes touching multiple modules
-- Bug fixes (write a test that reproduces the bug first)
-- Any work where the cost of regression is high
-
-Skip TDD when:
-- Exploratory spikes or prototypes (throw-away code)
-- Pure configuration changes (env vars, CI files)
-- Trivial one-line fixes with obvious correctness
-- UI layout changes better verified visually
-
-## Mock Decision Framework
-
-Prefer this hierarchy (top = best):
-
-1. **Real dependency** — actual DB, filesystem, service
-2. **In-memory fake** — SQLite for Postgres, fake SMTP server
-3. **Stub** — returns canned data, no behavior verification
-4. **Mock** — last resort, verifies interaction
-
-Mocks are acceptable when:
-- External API with rate limits, costs, or flakiness (Stripe, OpenAI, etc.)
-- Service requires network access unavailable in CI
-- Dependency is genuinely slow (>5s) and cannot be optimized
-- Testing error/edge cases that are hard to trigger with real dependencies
-
-Mocks are not acceptable when:
-- Mocking the thing you're testing
-- Mocking to avoid writing setup code
-- Mocking stable internal interfaces that rarely change
-- The real dependency runs in <1s and is deterministic
-
-## Test Granularity Guide
-
-| Change Type | Test Layer | Notes |
-|---|---|---|
-| New feature | Integration + key unit tests | Verify the feature works end-to-end, unit test complex logic |
-| Bug fix | Regression test at the layer the bug lives | Reproduce first, then fix |
-| Refactor | Existing tests should still pass | Add tests only if coverage gaps exist |
-| API endpoint | Request-level integration test | Test the HTTP contract, not controller internals |
-| Pure function | Unit test | Fast, isolated, high value |
-| UI component | E2E or visual test | Playwright when available in project tooling |
-| Database migration | Migration test or manual verification | Test both up and down migrations |
+- Use a known positive control for a decision that rests on absence or refusal.
+  For example, show the operation succeeds when the restricting condition is
+  removed. Reuse a suitable existing control; do not duplicate it in every test.
+- When coverage of a consequential fix is uncertain, temporarily remove or
+  perturb the fix in an isolated copy and check that the intended test fails.
+  A passing mutation reveals a gap. Mutation probes are a targeted diagnostic,
+  not a requirement for every changed line; a demonstrated pre-fix failure may
+  already answer the question.
+- Keep the oracle independent enough to catch the defect. Compare against a
+  trusted contract, reference result, or behavior invariant instead of
+  restating the same implementation in the test.
 
 ## Conditional Authority-Boundary Testing
 
-When the system mediates privileged authority, read
-`references/authority-boundary-testing.md`. Prove a two-sided capability matrix:
-allowed operations succeed and forbidden operations fail without prohibited
-side effects. Pair deterministic policy/rendering tests with an isolated
-effective-runtime probe and host-observed before/after evidence. Keep this path
-out of routine test work that does not cross an authority boundary.
-
-## Workflow
-
-1. Identify the change type and select test granularity from the guide above.
-2. Decide whether an authority boundary activates the conditional reference.
-3. Decide TDD vs test-after based on the criteria in "When To TDD."
-4. Choose the dependency approach using the mock decision framework.
-5. Write tests that assert on behavior and observable outcomes.
-6. Name tests to describe what the system does, not how it does it.
-7. Run the full relevant test suite before claiming done.
+When the system mediates filesystem, credential, process, network, or remote
+authority, read `references/authority-boundary-testing.md`. Preserve its key
+obligation: prove allowed operations work and forbidden operations fail without
+prohibited effects in the effective runtime. Configuration tests alone do not
+prove enforcement. Keep these probes out of ordinary tests unrelated to an
+authority boundary.
 
 ## Boundaries
 
-- This skill covers *what* and *how* to test, not *when to claim done* (use `verify-before-complete` for that)
-- Do not generate test scaffolding scripts — agents already know test file mechanics
-- Do not override project-specific test conventions if they exist (check project AGENTS.md/CLAUDE.md first)
-- Do not add tests for code you didn't change unless explicitly asked
+Testing guidance does not authorize implementation changes, live external
+requests, or repairs outside the requested task. A request for a test plan can
+end with recommendations. Preserve required project checks and accepted user
+preferences; do not route every test task into a separate completion workflow.
 
 ## Output
 
-- Tests that follow the methodology above
-- Clear test names describing behavior under test
-- Appropriate use of real dependencies vs mocks based on the decision framework
-- Test granularity matched to the change type
-
-## A Passing Test Is Not Yet Evidence
-
-A test can pass for a reason other than the one in its name. Three shapes:
-
-- **An earlier guard short-circuits it.** The test hits an unrelated precondition
-  or refusal before reaching the check it is named for, so deleting that check
-  entirely still passes.
-- **The setup makes the assertion tautological.** A parameter derived from the
-  value it is compared against, or a fixture built by the code under test.
-- **The detector cannot see a positive case.** An absence asserted on an
-  instrument never shown capable of reporting presence.
-
-Two cheap defences, in order of yield:
-
-1. **Mutation-probe what you just changed**, especially a *fix*. Break the line
-   deliberately and confirm a test fails. New behavior gets covered reliably;
-   corrections get covered from memory, so a fix believed to be covered is
-   exactly where nobody checks. A surviving mutation is untested behavior however
-   the suite reads.
-2. **Assert the control beside the case.** Pair every "this is refused" with "the
-   same input is accepted once the cause is removed", and every "the set is
-   empty" with a case known to be non-empty. Without a control, a detector that
-   always fires and one that never fires look identical.
-
-Prefer a failure you have *seen* over a pass you have reasoned about.
+Deliver the requested tests or testing advice with the relevant results and
+material coverage limits.
 
 ## Verification
 
-- Tests assert on behavior/outputs, not implementation details
-- A changed or corrected line has been mutation-probed, or its absence of
-  coverage is stated
-- Refusal and emptiness assertions carry a control that proves the detector can
-  report the other outcome
-- No unnecessary mocks (each mock has a documented reason from the acceptable list)
-- TDD was used for high-risk changes; test-after was justified for others
-- Test names are readable as behavior descriptions
-- The verification checklist in `references/verification-checklist.md` passes
-- When authority is in scope, allowed and forbidden behavior is proven against
-  the effective runtime with host-observed evidence and a freshness fingerprint
+Run required project checks and the checks needed for the change. Reuse evidence whose code/configuration and environment still apply;
+broaden or repeat execution when new changes, failures, or uncovered risks
+justify it. Restore any temporary mutation and keep probes isolated.
 
 ## Resources
 
-- `references/verification-checklist.md` — post-test self-review checklist
-- `references/authority-boundary-testing.md` — conditional capability matrix,
-  effective-runtime probe, ambient/indirect path, and proof-freshness guidance
+- `references/verification-checklist.md` — optional review questions for uncertain
+  coverage or a test-review request; no mandatory second pass.
+- `references/authority-boundary-testing.md` — conditional runtime proof guidance.
+- `evals/behavioral-scenarios.md` — intended behavior replay cases, not measured
+  live-agent results.
+- `evals/trigger-cases.json` — lexical routing fixtures.
 
 ## Sibling skills
 
-One of four `reference`-typed *Disciplines* — modes that govern *how* the agent operates.
-
-- `verify-before-complete` — completion-claim gate. Common downstream: the tests this methodology produces feed that gate's evidence requirements.
-- `first-principles` — reasoning methodology. Orthogonal axis: that one is for architectural decisions; this one is for testing decisions.
-- `caveman` — output-style mode. Orthogonal.
-- `diagnose` — common upstream caller; the regression test in Phase 5 should follow this skill's methodology.
+- `verify-before-complete` — assessing whether available evidence supports a
+  consequential completion claim.
+- `diagnose` — finding the cause of an unclear test or runtime failure.

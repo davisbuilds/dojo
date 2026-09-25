@@ -193,17 +193,6 @@
       }
     },
     {
-      "id": "gh-commit-push",
-      "type": "implicit",
-      "prompt": "Commit these changes, push the branch, and open a PR for review.",
-      "expected": {
-        "trigger": [
-          "gh-commit-push-pr"
-        ],
-        "avoid": []
-      }
-    },
-    {
       "id": "fetchmd-webpage",
       "type": "implicit",
       "prompt": "Fetch this webpage and convert it to clean markdown for my LLM pipeline.",

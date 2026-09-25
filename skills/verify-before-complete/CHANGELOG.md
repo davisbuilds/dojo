@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.0 - 2026-09-23
+
+- Assess claim-specific evidence, reuse applicable CI/delegated artifacts, and remove mandatory local reruns, risk levels, and report formats. Preserve unresolved-proof and authority boundaries.
+
 ## 2.0.1 - 2026-07-31
 
 - Remove references to skills retired on 2026-07-31 (`gh-fix-issue`,
