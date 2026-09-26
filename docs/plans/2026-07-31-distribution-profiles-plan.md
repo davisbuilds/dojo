@@ -650,7 +650,7 @@ None
    non-`core` members. Anchors: engineering → `create-cli`, `secure-code`;
    research → `deep-research`, `research-architect`; design → `design-critique`,
    `web-design-guidelines`; knowledge → `obsidian-markdown`, `session-retro`;
-   shipping → `gh-commit-push-pr`, `vercel-deploy`; skill-authoring →
+   shipping → `vercel-deploy`, `vercel-preview-logs` (SC-02 revision 17); skill-authoring →
    `skill-creator`, `skill-standardizer`.
 4. Author `full.yaml` with `kind: inspection` and `members: "*"` — a sentinel
    resolved against the manifest at resolve time, so it tracks the catalog and

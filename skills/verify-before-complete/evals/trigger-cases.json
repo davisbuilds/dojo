@@ -1,6 +1,6 @@
 {
-  "description": "Routing fixture for verify-before-complete after the precision retune. Positive cases assert the circuit-breaker situations still route here: delegated/subagent work, high-risk changes (auth/migrations/infra/security/broad refactor), missing or stale evidence, and explicit completion audits. Negative controls assert that routine, low-risk completion phrasing ('renamed it, tests pass, done') no longer routes here — that phrasing is exactly what the old broad description over-caught, firing the skill after nearly every chunk of work.",
-  "notes": "Scored by run_trigger_evals under the ranking model (default). Positive cases: verify-before-complete must be the top-scoring skill. Negative controls use the matches-nothing model (empty trigger): verify-before-complete must stay under the 0.30 floor, i.e. routine completion no longer pulls the skill. These negatives are the red step — they fail against the pre-retune description whose trigger words were the universal 'fixed / passing / done / complete'.",
+  "description": "Lexical routing cases for consequential completion claims and routine negative controls. These do not measure semantic over-invocation, evidence reuse, or agent performance.",
+  "notes": "Run with the ranking model. Positive cases assert the intended winner; empty-trigger controls use the scorer floor. Use behavioral-scenarios.md to assess the runtime contract separately; passing this fixture does not establish that a model avoids unnecessary ceremony.",
   "cases": [
     {
       "id": "explicit-completion-audit",

@@ -1,3 +1,7 @@
+## 1.1.5 - 2026-09-23
+
+- Align the completion-evidence sibling pointer with its conditional scope; no automatic extra gate after a local review.
+
 ## 1.1.4 - 2026-08-17
 
 - Cross-reference the error-handling-review and type-design-review specialist lenses in Sibling skills.

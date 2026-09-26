@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.2 - 2026-09-24
+
+- Remove the retired GitHub publishing skill from the expanded routing fixture.
+
 ## 1.5.1 - 2026-08-30
 
 - Insert new entries below a changelog H1 title.

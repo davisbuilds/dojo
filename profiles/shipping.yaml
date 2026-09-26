@@ -2,11 +2,9 @@
 name: shipping
 kind: overlay
 description: >-
-  Getting a finished change out and finding out whether it landed. The SC-02
-  anchors cover the two outbound actions — open the PR, push the deployment —
-  and both are fire-and-forget without the third member, which is the only
-  skill in the catalog that reads back what the deployment did.
+  Deploy to Vercel and inspect deployment build/runtime logs. Ordinary GitHub
+  publication uses the agent's existing tools and repository guidance; it does
+  not need a catalog skill.
 members:
-  - gh-commit-push-pr    # SC-02 anchor
-  - vercel-deploy        # SC-02 anchor
-  - vercel-preview-logs  # closes the loop: build/runtime logs for the deployment vercel-deploy just created
+  - vercel-deploy        # SC-02 anchor: publish the deployment
+  - vercel-preview-logs  # SC-02 anchor: inspect whether the deployment worked
