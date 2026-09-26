@@ -130,7 +130,6 @@ Slash-style entrypoints for harnesses that support command files. `scripts/gen_h
 - `/review-pr` — GitHub PR review
 - `/fix-issue` — GitHub issue resolution
 - `/triage-issue` — GitHub issue triage
-- `/commit-push-pr` — commit, push, PR flow
 - `/workflows:brainstorm` — brainstorming session (WHAT — chosen direction)
 - `/workflows:spec` — write the falsifiable contract (WHAT must be true)
 - `/workflows:plan` — sequence the build (HOW — task breakdown, files, steps)
