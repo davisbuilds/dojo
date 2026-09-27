@@ -9,7 +9,7 @@
 - `docs/system/OPERATIONS.md` — setup, dependency install, all skill-management commands, measuring a session's listing cost against each harness's budget, hook configuration, CI, optional skill dependencies.
 - `docs/system/SKILL-BEST-PRACTICES.md` — research-backed authoring guidance, design contract, anti-patterns, trigger collision guidance.
 - `docs/system/skill-contract-v1.md` — SKILL.md quality contract (skill types, required checks) enforced by CI.
-- `docs/project/ROADMAP.md` — shipped highlights, improvement backlog, and cross-cutting findings.
+- `docs/project/ROADMAP.md` — selected direction and the context behind current priorities.
 - `docs/project/VISION.md` — long-term direction and guiding principles.
 - `docs/project/BACKLOG.md` — future-only friction points and deferred follow-ups noticed during implementation.
 - `docs/project/GIT_HISTORY_POLICY.md` — branch hygiene and merge strategy (squash disabled; merge-commit or rebase, full per-commit history preserved).
@@ -43,7 +43,7 @@ The auto-generated `skills.json` manifest is the runtime source of truth for wha
 ## Working Agreement
 
 - **Push back before building.** If a request is incoherent or self-contradictory, or a spec/plan is vague or skips key decisions, stop and interview me — ask clarifying questions and confirm intent before writing code or changing files. Don't guess at scope or comply silently. (Clear, well-scoped requests don't need this.)
-- **Keep docs current.** After a significant change, PR, or completed spec/plan, update any now-stale reference docs under `docs/system/` and `docs/project/` (including `docs/project/ROADMAP.md`) so they match shipped behavior. Skip this for trivial changes.
+- **Keep docs current.** Update the owning reference when a change makes a documented contract, boundary, procedure, or direction stale. Reconcile affected backlog entries as work lands; update Roadmap when selected direction changes, not for every shipment.
 - **Commit logically.** Commit completed work in coherent chunks as you proceed. Push only when explicitly asked.
-- **Log durable follow-ups in `BACKLOG.md`.** Note design gaps, tech debt, or better approaches you spot mid-task in `docs/project/BACKLOG.md`; fix simple, quick, or blocking issues inline and call them out. Add an item only for recurring friction, meaningful risk/cost, an unresolved decision, or a concrete trigger. Record **What / Why or evidence / Next or Revisit when**; keep the backlog future-only, use the capability-owning repository as canonical for cross-repo work, date/source volatile claims (or label a hypothesis), and move shipped work to `docs/project/ROADMAP.md`. Review after a significant shipped slice or at least quarterly.
+- **Log durable follow-ups in `BACKLOG.md`.** Note design gaps, tech debt, or better approaches you spot mid-task in `docs/project/BACKLOG.md`; fix simple, quick, or blocking issues inline and call them out. Add an item only for recurring friction, meaningful risk/cost, an unresolved decision, or a concrete trigger. Record **What / Why or evidence / Next or Revisit when**; keep the backlog future-only, use the capability-owning repository as canonical for cross-repo work, date/source volatile claims (or label a hypothesis), and remove resolved work while preserving any unresolved remainder. Agents can execute backlog entries directly; use GitHub Issues when persistent discussion or coordination helps, with one detailed owner and links where useful.
 - **Re-ground after compaction.** A compaction summary loses precise paths, context, and verification state — before continuing, re-read this project's `AGENTS.md`, its reference docs, and recent commits.

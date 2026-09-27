@@ -1,6 +1,6 @@
 # Git History and Branch Hygiene
 
-Last updated: May 6, 2026
+Merge settings verified: September 27, 2026
 
 ## Repository Merge Settings
 
@@ -30,13 +30,25 @@ Merge commits and rebase merges are both allowed; squash merges are disabled.
 
 ## CI Gates
 
-This project uses hooks rather than a CI pipeline. Quality gate before merge:
+GitHub Actions runs regression, strict skill-contract, version, and generated-file
+checks in [the workflow](../../.github/workflows/skill-contract-pilot.yml).
+[Operations](../system/OPERATIONS.md) owns the corresponding local commands.
+Hooks provide earlier feedback; they do not replace CI.
 
-- `python skills/skill-creator/scripts/quick_validate.py`
+## Verify Remote Policy
 
-## Current Limitation
+Merge settings above were queried on the stated date. Repository visibility or an
+old API error does not establish current branch protection. Inspect the current
+settings when changing delivery policy:
 
-`main` branch protection is not enabled because GitHub returned `403` for branch protection APIs on this private repository tier. Until upgraded, enforce checks and review discipline by team convention.
+```bash
+gh api repos/davisbuilds/dojo
+gh api repos/davisbuilds/dojo/branches/main/protection
+gh api repos/davisbuilds/dojo/rules/branches/main
+```
+
+A failed protection query is unresolved evidence, not proof that protections are
+absent. Follow the project checks and review policy regardless.
 
 ## Recommended Ongoing Hygiene
 

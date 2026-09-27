@@ -13,9 +13,9 @@ Standing conventions for changes in this repo.
 
 ## Reference docs
 
-- After a significant change, update the now-stale references under
-  `docs/system/` (`ARCHITECTURE.md`, `FEATURES.md`, `OPERATIONS.md`),
-  `docs/project/ROADMAP.md`, and `README.md`. Skip trivial changes.
+- Update the owning reference when a documented contract, boundary, procedure,
+  or direction changes. Reconcile affected backlog entries as work lands; Roadmap
+  records selected direction, not a running shipment log.
 - Keep one canonical home per fact; link rather than duplicate.
 - Generated artifacts (`skills.json`, `docs/catalog/`, harness sidecars,
   composed SKILL.md blocks) are never hand-edited — change the source and

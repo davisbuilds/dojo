@@ -91,7 +91,7 @@ and documentation.
 ## Relationship to Other Docs
 
 - [SKILL-BEST-PRACTICES.md](../system/SKILL-BEST-PRACTICES.md) translates this direction into authoring and maintenance guidance.
-- [ROADMAP.md](./ROADMAP.md) records shipped changes and current work.
+- [ROADMAP.md](./ROADMAP.md) records selected direction and current priorities.
 - [BACKLOG.md](./BACKLOG.md) tracks unresolved friction and follow-ups.
 - [ARCHITECTURE.md](../system/ARCHITECTURE.md) describes the operating model.
 - [GIT_HISTORY_POLICY.md](./GIT_HISTORY_POLICY.md) defines history hygiene.
