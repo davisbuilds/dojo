@@ -1,32 +1,27 @@
 # Backlog
 
-Living list of future design gaps, tech debt, and better ways to do a thing noticed
-during normal execution. Fix simple, quick, or blocking issues inline; capture only
-durable follow-ups worth revisiting cold. Add an item only when it cannot be fixed inline
-and represents recurring friction, meaningful risk or cost, an unresolved decision, or a
-concrete trigger. This is not a release contract; `docs/project/ROADMAP.md` is the
-higher-bar shipped/in-progress view.
+Future-only gaps and opportunities worth revisiting. Capture recurring friction,
+meaningful risk or cost, unresolved decisions, or concrete revisit triggers.
+Fix simple, quick, or blocking issues inline when within the active task's scope.
 
-This repository is the canonical owner for its follow-ups; cross-repository work belongs
-with the repository that owns the capability, with links from affected repositories only
-when useful. Date and source volatile external or runtime claims, or label them a
-hypothesis.
+## Conventions
 
-Convention: each item has **What** (the friction), **Why or evidence**, and
-optionally **Next** (the smallest action that makes it actionable) or **Revisit
-when** (an intentional external or measurable gate). Default state is omitted; use
-**Revisit when** for gates and `State: blocked — <reason>` only when work is genuinely
-blocked externally.
-
-When an item ships, remove it from this doc and record it as a concise completed
-highlight in `docs/project/ROADMAP.md` instead of keeping a shipped note here.
-This file stays future-only.
-
-Review this file after a significant shipped slice or at least quarterly: confirm each
-item is still open, refresh dated evidence, promote selected work to a plan, convert it
-to a trigger, or move completed decisions and work to the Roadmap or decision history.
-
----
+- **Entry:** state **What** and **Why or evidence**. Add **Next** (a useful first
+  action) or **Revisit when** (a concrete gate) where helpful; no fixed template
+  is required.
+- **Evidence:** date and source volatile claims. Support causal or performance
+  claims with measurements, or label them **hypothesis, unmeasured**.
+- **Delegation:** agents can execute entries directly. Recording a candidate does
+  not expand the active task or select a roadmap priority. Use an issue when
+  persistent discussion or coordination helps; no mandatory graduation step.
+- **Ownership:** keep cross-repository work with the capability-owning repository.
+  If an issue owns the details, retain only a useful linked summary here; avoid
+  parallel checklists. Keep private evidence out of public entries and issues.
+- **Closure:** reconcile affected entries as work lands. Remove resolved concerns,
+  retain unresolved remainders, and preserve durable rationale in its owning
+  reference. Roadmap records selected direction; Git and PRs hold routine shipped
+  history. Revisit the broader list during prioritization or when stale entries
+  impede work.
 
 ## Open
 
@@ -35,7 +30,8 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
 - **What**: measure the marginal value of the compact workflow guidance and audit
   the remaining catalog for redundant coaching or recursive handoffs.
 - **Why or evidence**: the 2026-09-15/16 incidents recorded in `f6c4852`,
-  `c471546`, and `b05ff54` motivated the shipped first pass (see ROADMAP).
+  `c471546`, and `b05ff54` motivated the shipped first pass; the current policy lives in
+  [best practices](../system/SKILL-BEST-PRACTICES.md).
   Deterministic validation and manual replay cases establish structure and
   expected behavior, not model-performance improvement. Methodology skills and
   higher-priority harness loading policies can still add process outside the
@@ -47,7 +43,7 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   unnecessary artifacts/stops, context cost, and time. Prioritize remaining
   skills from observed friction; do not infer low value from invocation counts.
 - **Next candidates, 2026-09-23**: after the knowledge-capture, verification/
-  testing revisions and publishing-skill retirement recorded in ROADMAP, review universal
+  testing revisions and publishing-skill retirement (PR #87), review universal
   CRUD/prompt-only goals in `agent-native-architecture` and the research family's
   mandatory stages.
   These are source-review candidates, not measured model-performance findings.
@@ -102,7 +98,7 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
 ### Disable pr-review-toolkit now that its two specialists are ported
 - **What**: the two specialist lenses that were the only reason
   `pr-review-toolkit@claude-plugins-official` stayed enabled shipped as dojo
-  skills — `error-handling-review` and `type-design-review` (see ROADMAP). The
+  skills — `error-handling-review` and `type-design-review` (see their skill changelogs). The
   plugin's remaining four agents (`code-reviewer`, `code-simplifier`,
   `comment-analyzer`, `pr-test-analyzer`) are baseline knowledge that duplicates
   existing skills, so nothing unique is left. Disabling was deliberately deferred
@@ -180,16 +176,12 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
     are the only ones a CLI would help.
   Noted in passing: dojo ships a `create-cli` skill, an SC-02 anchor of the
   `engineering` overlay, and has no CLI.
-- **Next**: none as a separate effort. `bin/dojo` is already created by Task 8 of
-  `docs/plans/2026-07-31-distribution-profiles-plan.md`, because `dojo profiles
-  verify --all` is a literal contract term in the spec. Building a CLI before then
-  means designing the same executable twice. Widen Task 8 to add
-  `dojo probe codex|claude` — wiring, since the argparse exists — and decide the
-  rest there.
-- **Revisit when**: Task 8 is reached, or the plan is descoped short of it. If the
-  plan stops before Task 8, this becomes a standalone decision rather than a
-  free rider, and the probes are the only part that clearly earns a CLI on their
-  own.
+- **Current decision**: the distribution-profiles program completed without Task 8;
+  its CLI wrapper was descoped because it did not improve measurement correctness.
+  [Operations](../system/OPERATIONS.md) owns the existing probe commands.
+- **Revisit when**: repeated difficulty discovering or invoking the human-facing
+  probes justifies a standalone CLI. Re-evaluate that narrow interface rather than
+  assuming the completed program will create `bin/dojo`.
 - **Keep out deliberately**: generators, validators, and skill-owned scripts. A
   wrapper that hooks and CI bypass creates two paths to one behavior that can
   drift — the exact failure this program keeps finding. Four subcommands is a
@@ -328,3 +320,17 @@ to a trigger, or move completed decisions and work to the Roadmap or decision hi
   fix it to restore or avoid chdir, then add 3.14 to the CI matrix
   (`skill-contract-pilot.yml` pins 3.12) so the regression cannot return silently.
 - **Revisit when**: moving CI to Python 3.14, or the failure appears in isolation.
+
+### Revalidate earlier catalog improvement candidates before selecting work
+
+- **What**: the March 2026 roadmap proposed combining Vercel deploy/preview skills,
+  sharing image-provider plumbing, bundling fetched web guidelines, research caching,
+  example specs, semantic trigger scoring, and broader hook/validator tests. It also
+  flagged overlap in `agent-native-architecture` references.
+- **Why or evidence**: these were source-review suggestions, not evidence that a
+  capability was missing from today's model/harness or that a merger would help.
+  Generic database, documentation, accessibility, profiling, and dependency skill
+  ideas had no demonstrated gap; file or resource counts do not establish value.
+- **Revisit when**: observed user friction or a selected catalog review supplies a
+  current need. Check existing skills, tools, examples, and tests before adopting
+  any candidate; preserve distinct triggers when they serve different tasks.

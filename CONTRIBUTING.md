@@ -1,68 +1,56 @@
 # Contributing
 
-This repository preserves full per-commit history on `main` (squash merging is disabled). Keep your PR commits tidy so what lands reads cleanly.
+## Welcome and scope
 
-## Workflow
+Bug reports, focused fixes, documentation improvements, and supported proposals
+are welcome. Discuss substantial new skills, dependencies, integrations, or public
+interface changes before major implementation.
 
-1. Sync local `main`.
-2. Create a feature branch from `main`.
-3. Make focused changes and commit normally.
-4. Push branch and open a pull request.
-5. Merge with **Create a merge commit** (default) or **Rebase and merge** after quality checks pass; squash is disabled.
-6. Let GitHub auto-delete the merged remote branch.
-7. Prune merged local branches periodically.
+This is a solo-maintained project; contributions do not imply a support or
+response-time commitment.
 
-## Branch Naming
+## Understanding and agent use
 
-Use descriptive prefixes:
+Agent-assisted work is welcome. Submitters should understand the change's purpose,
+important behavior, tradeoffs, and verification limits. Explain what you checked
+and what remains uncertain; no prompt transcript or manual rewrite is required.
 
-- `feat/<name>`
-- `fix/<name>`
-- `chore/<name>`
-- `docs/<name>`
+For skill design, read [best practices](docs/system/SKILL-BEST-PRACTICES.md) and
+the [vision](docs/project/VISION.md). Explain what the skill adds beyond the agent's
+existing context and why mandatory process is needed. Removing or narrowing
+obsolete guidance is a useful contribution.
 
-## Conventions
+## Choosing work
 
-Standing always-follow conventions live in [`rules/`](rules/) — see [`rules/skill-authoring.md`](rules/skill-authoring.md) and [`rules/doc-hygiene.md`](rules/doc-hygiene.md).
+[Roadmap](docs/project/ROADMAP.md) records selected direction;
+[Backlog](docs/project/BACKLOG.md) records unresolved work. Backlog entries can be
+delegated directly to agents or become focused PRs. Use an issue when persistent
+discussion, investigation, or coordination helps; there is no mandatory graduation
+step. An entry or issue alone is not a feature commitment. When an issue owns the
+details, keep only a useful linked summary in the backlog.
 
-For skill design, start with [best practices](docs/system/SKILL-BEST-PRACTICES.md)
-and the [vision](docs/project/VISION.md). Explain what the skill adds beyond the
-agent's existing context and why any mandatory process is needed. Removing or
-narrowing obsolete guidance is a useful contribution; a new skill or artifact
-is not the default measure of progress.
+## Delivering a change
 
-## Commit Guidance
+Work on a focused branch from `main` (or an appropriate parent for stacked work).
+Keep commits coherent. Describe the problem and resulting behavior in the PR,
+with relevant verification and limitations. Merge after applicable checks pass
+and review conversations are resolved.
 
-- Keep commits logical and atomic while working on the branch.
-- Use clear, imperative commit messages.
-- It is fine to have multiple commits in one PR, but they all land on `main` (no squash) — reword or rebase locally so each reads cleanly before merging.
-
-## Pull Request Expectations
-
-- Keep PR scope tight (one objective per PR).
-- Include a short summary and test evidence.
-- Run the relevant checks and the strict skill contract before merge:
-  `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.
-  See [Operations](docs/system/OPERATIONS.md) for regression tests, generated-file
-  checks, release metadata, and the full CI workflow. Hooks provide earlier feedback.
-
-## Local Branch Cleanup
-
-Run periodically:
+Follow [skill authoring](rules/skill-authoring.md), including relevant checks and
+the strict skill contract:
 
 ```bash
-git fetch --prune
-git branch --merged main | grep -v ' main$' | xargs -n 1 git branch -d
+python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
 ```
 
-## Documentation Hygiene
+Use the Conventional Commit prefixes in [doc and commit hygiene](rules/doc-hygiene.md).
+The [Git policy](docs/project/GIT_HISTORY_POLICY.md) preserves per-commit history
+through merge or rebase merges; squash is disabled.
 
-- Do not hardcode volatile counts in docs.
-- Prefer executable source-of-truth references such as `skills.json` and the
-  validation commands in `docs/system/OPERATIONS.md`.
+[Operations](docs/system/OPERATIONS.md) owns setup, regression checks, generated
+files, and release commands. Skills are versioned individually: record consumer
+changes and compatibility implications in the affected skill's changelog and
+follow its version-bump checks. No duplicate catalog-wide changelog is required.
 
-## Related Docs
-
-- Git history and branch hygiene config: `docs/project/GIT_HISTORY_POLICY.md`
-- Agent implementation guidance: `AGENTS.md`
-- Project onboarding: `README.md`
+Update the owning reference when its claims change and reconcile affected backlog
+entries. Roadmap tracks direction; Git and PRs hold routine delivery history.
