@@ -1,49 +1,56 @@
 # Contributing
 
+## Welcome and scope
+
 Bug reports, focused fixes, documentation improvements, and supported proposals
 are welcome. Discuss substantial new skills, dependencies, integrations, or public
-interface changes before investing in implementation. This is a solo-maintained
-project; contributions do not imply a support or response-time commitment.
+interface changes before major implementation.
 
-## Understanding And Scope
+This is a solo-maintained project; contributions do not imply a support or
+response-time commitment.
 
-Agent-assisted work is welcome. Understand the purpose, important behavior, and
-tradeoffs of the change you submit. Explain what you verified and any limitations.
-A prompting diary or a manual rewrite of agent output is not required.
+## Understanding and agent use
 
-For skill design, start with [best practices](docs/system/SKILL-BEST-PRACTICES.md)
-and the [vision](docs/project/VISION.md). Explain what the skill adds beyond the
-agent's existing context and why any mandatory process is needed. Removing or
-narrowing obsolete guidance is a useful contribution.
+Agent-assisted work is welcome. Submitters should understand the change's purpose,
+important behavior, tradeoffs, and verification limits. Explain what you checked
+and what remains uncertain; no prompt transcript or manual rewrite is required.
 
-## Choosing And Discussing Work
+For skill design, read [best practices](docs/system/SKILL-BEST-PRACTICES.md) and
+the [vision](docs/project/VISION.md). Explain what the skill adds beyond the agent's
+existing context and why mandatory process is needed. Removing or narrowing
+obsolete guidance is a useful contribution.
 
-The [Roadmap](docs/project/ROADMAP.md) describes selected direction; the
-[Backlog](docs/project/BACKLOG.md) records unresolved candidates. Backlog tasks can
-be assigned directly to agents. Use an issue for a persistent discussion, external
-participation, investigation, or coordination across PRs; a focused change can go
-straight to a PR. An issue or backlog entry alone is not a feature commitment.
-When an issue owns the details, retain only a short backlog link if useful.
+## Choosing work
 
-## Delivering A Change
+[Roadmap](docs/project/ROADMAP.md) records selected direction;
+[Backlog](docs/project/BACKLOG.md) records unresolved work. Backlog entries can be
+delegated directly to agents or become focused PRs. Use an issue when persistent
+discussion, investigation, or coordination helps; there is no mandatory graduation
+step. An entry or issue alone is not a feature commitment. When an issue owns the
+details, keep only a useful linked summary in the backlog.
 
-Work on a focused branch from `main`. Keep commits coherent and use the
-Conventional Commit prefixes in [doc and commit hygiene](rules/doc-hygiene.md).
-The [Git policy](docs/project/GIT_HISTORY_POLICY.md) preserves per-commit history
-with merge or rebase merges; squash merging is disabled.
+## Delivering a change
 
-Describe the problem and resulting behavior in the PR, with relevant verification
-and unresolved limitations. Follow [skill authoring](rules/skill-authoring.md) and
-run the relevant checks, including the strict skill contract:
+Work on a focused branch from `main` (or an appropriate parent for stacked work).
+Keep commits coherent. Describe the problem and resulting behavior in the PR,
+with relevant verification and limitations. Merge after applicable checks pass
+and review conversations are resolved.
+
+Follow [skill authoring](rules/skill-authoring.md), including relevant checks and
+the strict skill contract:
 
 ```bash
 python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
 ```
 
+Use the Conventional Commit prefixes in [doc and commit hygiene](rules/doc-hygiene.md).
+The [Git policy](docs/project/GIT_HISTORY_POLICY.md) preserves per-commit history
+through merge or rebase merges; squash is disabled.
+
 [Operations](docs/system/OPERATIONS.md) owns setup, regression checks, generated
 files, and release commands. Skills are versioned individually: record consumer
-changes and compatibility implications in the affected skill's changelog and follow
-its version-bump checks. There is no required duplicate catalog-wide changelog.
+changes and compatibility implications in the affected skill's changelog and
+follow its version-bump checks. No duplicate catalog-wide changelog is required.
 
-Update reference docs whose claims changed. Roadmap is not a completion log;
-Git and PRs preserve routine delivery history.
+Update the owning reference when its claims change and reconcile affected backlog
+entries. Roadmap tracks direction; Git and PRs hold routine delivery history.
