@@ -109,7 +109,8 @@ rather than by authoring a file. Three kinds are exempt:
   is not worth a built-in entry.
 
 Add a built-in entry when a directory is permanent and tool-owned; use the flag
-otherwise.
+otherwise. Sync never writes to an exempt name: a canonical skill with the same
+name is reported as `RESERVED_NAME_COLLISION` in that root and left untouched.
 
 ## Standard Workflow
 

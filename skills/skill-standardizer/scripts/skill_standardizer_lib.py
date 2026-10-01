@@ -407,8 +407,25 @@ def build_audit_report(
             return
         issues.append(kwargs)
 
+    # Names another tool owns in a root. A planned write there would move the
+    # tool's directory into backups, so report the collision instead.
+    reserved_by_root = {
+        inv.root.path: KNOWN_NON_SKILL_DIRS.get(inv.root.kind, set()) | (ignore_dirs or set())
+        for inv in inventories
+    }
+
     def add_action(**kwargs: Any) -> None:
         if not skill_in_scope(kwargs.get("skill")):
+            return
+        dest = kwargs.get("dest")
+        if isinstance(dest, Path) and dest.name in reserved_by_root.get(dest.parent, set()):
+            add_issue(
+                severity="warning",
+                code="RESERVED_NAME_COLLISION",
+                skill=kwargs.get("skill"),
+                root=dest.parent,
+                message="Skill name collides with a tool-owned directory; left untouched",
+            )
             return
         actions.append(kwargs)
 

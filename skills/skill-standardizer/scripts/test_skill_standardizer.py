@@ -666,6 +666,37 @@ def test_claude_synced_dir_still_reported_in_the_primary_root() -> None:
         )
 
 
+def test_mirror_never_targets_a_tool_owned_dir() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        skills = _audit_fixture(base)
+        # A canonical skill whose name collides with Claude Code's synced cache.
+        write_skill(skills, "synced")
+        cache = base / ".claude" / "skills" / "synced"
+        write_skill(cache / "bucket-id", "morning")
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=True,
+            codex_agents_dedupe=True,
+        )
+
+        claude_root = (base / ".claude" / "skills").resolve()
+        assert_true(
+            all(Path(a["dest"]).resolve() != claude_root / "synced"
+                for a in report["actions"] if a.get("dest")),
+            f"no action may replace the tool-owned cache: {report['actions']}",
+        )
+        assert_true(
+            any(i["code"] == "RESERVED_NAME_COLLISION" and i["skill"] == "synced"
+                for i in report["issues"]),
+            f"the collision must be reported: {report['issues']}",
+        )
+
+
 def test_ignore_dir_flag_suppresses_custom_dir() -> None:
     with tempfile.TemporaryDirectory() as td:
         base = Path(td)
@@ -1004,6 +1035,7 @@ def main() -> int:
         test_known_non_skill_dir_still_reported_in_other_roots,
         test_claude_synced_skills_dir_ignored_in_claude_root,
         test_claude_synced_dir_still_reported_in_the_primary_root,
+        test_mirror_never_targets_a_tool_owned_dir,
         test_ignore_dir_flag_suppresses_custom_dir,
         test_audit_exit_code_tracks_drift_not_warnings,
         test_audit_exit_code_reports_real_drift,
