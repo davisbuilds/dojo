@@ -618,6 +618,54 @@ def test_known_non_skill_dir_still_reported_in_other_roots() -> None:
         )
 
 
+def test_claude_synced_skills_dir_ignored_in_claude_root() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        skills = _audit_fixture(base)
+        # Claude Code keeps account-synced skills one level down, in bucket dirs.
+        synced = base / ".claude" / "skills" / "synced"
+        write_skill(synced / "bucket-id", "morning")
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=True,
+            codex_agents_dedupe=True,
+        )
+
+        assert_true(
+            "synced" not in _invalid_for(report, (base / ".claude" / "skills").resolve()),
+            f"synced should be ignored in the claude root: {report['roots']}",
+        )
+        assert_true(
+            all(issue.get("skill") != "synced" for issue in report["issues"]),
+            f"synced should raise no issue: {report['issues']}",
+        )
+
+
+def test_claude_synced_dir_still_reported_in_the_primary_root() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        base = Path(td)
+        skills = _audit_fixture(base)
+        (base / ".agents" / "skills" / "synced").mkdir()
+
+        report = build_audit_report(
+            context=resolve_context(str(skills), [], False),
+            local_policy="prefer-global-link",
+            global_policy="prefer-primary-link",
+            keep_local_skills=set(),
+            enforce_mirror=True,
+            codex_agents_dedupe=True,
+        )
+
+        assert_true(
+            "synced" in _invalid_for(report, (base / ".agents" / "skills").resolve()),
+            f"the claude exemption must not leak into the primary root: {report['roots']}",
+        )
+
+
 def test_ignore_dir_flag_suppresses_custom_dir() -> None:
     with tempfile.TemporaryDirectory() as td:
         base = Path(td)
@@ -954,6 +1002,8 @@ def main() -> int:
         test_underscore_dirs_are_not_invalid_in_full_scan,
         test_known_non_skill_dir_ignored_in_owning_root,
         test_known_non_skill_dir_still_reported_in_other_roots,
+        test_claude_synced_skills_dir_ignored_in_claude_root,
+        test_claude_synced_dir_still_reported_in_the_primary_root,
         test_ignore_dir_flag_suppresses_custom_dir,
         test_audit_exit_code_tracks_drift_not_warnings,
         test_audit_exit_code_reports_real_drift,

@@ -24,6 +24,8 @@ IGNORE_FILE_SUFFIXES = {".pyc", ".pyo"}
 # convention. Keyed by root kind so the exemption cannot leak into other roots.
 KNOWN_NON_SKILL_DIRS = {
     "global-codex": {"codex-primary-runtime"},
+    # Claude Code's cache of account-synced skills, held in per-account buckets.
+    "global-claude": {"synced"},
 }
 DEPRECATED_SKILL_REPLACEMENTS = {
     "json-canvas": "obsidian-canvas",
