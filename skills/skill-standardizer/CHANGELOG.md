@@ -1,3 +1,8 @@
+## 1.3.3 - 2026-10-01
+
+- Exempt Claude Code's account-synced skills cache (`synced` in the Claude global root) from invalid-directory reports.
+- Never plan a sync action onto an exempt directory; report `RESERVED_NAME_COLLISION` instead.
+
 ## 1.3.2 - 2026-08-22
 
 - Generalize dangling-link provenance so public source does not depend on a private consumer repository.

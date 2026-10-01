@@ -2,7 +2,7 @@
 name: skill-standardizer
 description: Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.
 skill-type: workflow
-version: 1.3.2
+version: 1.3.3
 ---
 
 # Skill Standardizer
@@ -102,13 +102,15 @@ rather than by authoring a file. Three kinds are exempt:
 - **Known tool-owned dirs** — `KNOWN_NON_SKILL_DIRS` in
   `scripts/skill_standardizer_lib.py`, keyed by root kind so an exemption cannot
   leak into a root it was not meant for. `codex-primary-runtime` in
-  `~/.codex/skills` is exempt this way: Codex owns that path, so it cannot be
-  renamed to the underscore convention.
+  `~/.codex/skills` and `synced` in `~/.claude/skills` (Claude Code's cache of
+  account-synced skills) are exempt this way: their tools own those paths, so
+  they cannot be renamed to the underscore convention.
 - **`--ignore-dir <name>`** — ad-hoc, for a directory you cannot rename and that
   is not worth a built-in entry.
 
 Add a built-in entry when a directory is permanent and tool-owned; use the flag
-otherwise.
+otherwise. Sync never writes to an exempt name: a canonical skill with the same
+name is reported as `RESERVED_NAME_COLLISION` in that root and left untouched.
 
 ## Standard Workflow
 
