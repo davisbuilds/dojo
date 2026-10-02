@@ -53,6 +53,7 @@ This reference defines default policy for `skill-standardizer`.
 
 ## Deprecated Name Mappings
 
+- `agent-native-architecture` -> `agent-native-design`
 - `json-canvas` -> `obsidian-canvas`
 - `imagegen` -> `gpt-imagen`
 

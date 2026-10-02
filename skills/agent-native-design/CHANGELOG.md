@@ -5,6 +5,7 @@
 - Rename `agent-native-architecture` to `agent-native-design`. Update explicit
   invocations and installed copies to the new name; the old entrypoint and
   reference paths are removed rather than shipped as a second skill.
+  Skill Standardizer 1.3.4 migrates existing installations with backups.
 - Distinguish software agents can use, systems that delegate work, and products
   with agents as primary consumers. Apply relevant design lenses within the
   requested task instead of requiring an architecture plan and checklist.

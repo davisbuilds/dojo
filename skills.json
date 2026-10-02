@@ -233,7 +233,7 @@
       "name": "skill-standardizer",
       "description": "Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.",
       "path": "skills/skill-standardizer",
-      "version": "1.3.3"
+      "version": "1.3.4"
     },
     {
       "name": "template",
