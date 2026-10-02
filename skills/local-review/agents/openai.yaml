@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Local Review"
-  short_description: "Perform local code reviews on workspace changes without posting"
+  short_description: "Review code changes for actionable defects without posting to"
   default_prompt: "Use $local-review for this task."

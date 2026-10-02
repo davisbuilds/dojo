@@ -25,6 +25,17 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 
 ## Open
 
+### Isolate standardizer tests from process state
+
+- **What**: several standalone standardizer tests leave cwd and harness-home
+  environment variables pointing into deleted temporary directories.
+- **Why or evidence**: on 2026-10-02, bare `pytest -q` collected these tests and
+  subsequent tests failed at `Path.cwd()`. CI deliberately runs `pytest tests/`
+  and the standardizer script in separate processes; that remains the supported
+  invocation.
+- **Next**: restore cwd and environment per test before unifying test discovery;
+  preserve direct-script execution without adding a runtime pytest dependency.
+
 ### Evaluate workflow revisions and extend the composition audit
 
 - **What**: measure the marginal value of the compact workflow guidance and audit
@@ -96,22 +107,20 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 ### Disable pr-review-toolkit now that its two specialists are ported
 - **What**: the two specialist lenses that were the only reason
   `pr-review-toolkit@claude-plugins-official` stayed enabled shipped as dojo
-  skills — `error-handling-review` and `type-design-review` (see their skill changelogs). The
-  plugin's remaining four agents (`code-reviewer`, `code-simplifier`,
+  references in `local-review` (consolidated from the specialist skills on
+  2026-10-02). The plugin's remaining four agents (`code-reviewer`, `code-simplifier`,
   `comment-analyzer`, `pr-test-analyzer`) are baseline knowledge that duplicates
   existing skills, so nothing unique is left. Disabling was deliberately deferred
   when the port landed.
 - **Why or evidence**: keeping an otherwise-redundant plugin enabled is standing
-  context/maintenance cost the whole audit program exists to cut; the two skills
+  context/maintenance cost the whole audit program exists to cut; the two references
   now cover the unique ground.
 - **Next**: disable the plugin (reversible local/user-scope settings change:
   `"enabledPlugins": {"pr-review-toolkit@claude-plugins-official": false}` in the
   right settings scope, or via `/plugin`), then confirm no workflow depended on
-  its four baseline agents. Before disabling, lift one pattern worth keeping if
-  not already present: the plugin's `review-pr` and `code-review` map diff content
-  to specialists (new types → type reviewer, error handling → the failure lens) —
-  the sibling cross-references from `local-review` now do this manually, but a
-  routing note is cheap to formalize.
+  its four baseline agents. The useful diff-to-specialist routing pattern is
+  already covered by `local-review`'s optional error-handling and type-invariant
+  references; no additional routing workflow is needed.
 
 ### Harness adapters can still promote the whole catalog to project scope
 - **What**: `scripts/gen_harness_adapters.py` links `.claude/skills -> ../skills`,

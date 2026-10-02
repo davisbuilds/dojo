@@ -2,7 +2,7 @@
 name: session-retro
 description: Preserve non-obvious session learnings in existing canonical project docs. Use when the user asks for a retro, says "save what we learned" or "update docs with learnings", or completed work leaves an established reference missing a consequential fact. Skip routine session endings with nothing durable to add.
 skill-type: workflow
-version: 2.0.0
+version: 2.0.1
 ---
 
 # Session Retro
@@ -42,9 +42,9 @@ own documentation map; these are common destinations, not required paths:
 | --- | --- |
 | Setup, commands, CI, deployment, environment quirks | Operations/runbook; README for entry-point instructions |
 | System boundaries, data flow, established invariants | Architecture reference |
-| Shipped behavior | Feature reference or roadmap |
+| Shipped behavior | Owning feature/operations reference; consumer-facing release notes when useful |
 | Deferred work or unresolved decision | Backlog, following its lifecycle rules |
-| Agreed product direction or policy | Vision or the owning policy |
+| Agreed product direction or policy | Vision or the owning policy; Roadmap when selected priorities change |
 | A rule needed in most agent sessions | AGENTS.md or the harness equivalent; otherwise prefer a linked reference |
 
 Update the most specific canonical home. Correct or replace stale text instead

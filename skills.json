@@ -75,12 +75,6 @@
       "version": "2.0.0"
     },
     {
-      "name": "error-handling-review",
-      "description": "Review changed code for silent failures and inadequate error handling \u2014 empty or over-broad catch blocks, errors logged-and-swallowed, unjustified fallbacks, null/optional-chaining that hides failures, and retries that exhaust silently. Use when the user asks to review error handling, check catch/try-except blocks, audit fallback behavior, or hunt for swallowed errors. Not general diff review (local-review) or security scanning (secure-code).",
-      "path": "skills/error-handling-review",
-      "version": "1.0.0"
-    },
-    {
       "name": "fetchmd",
       "description": "Fetch webpages or local HTML and convert to clean, token-efficient markdown. Use when you need to ingest web content for summarization, RAG, research, or any AI workflow that requires readable text from URLs or HTML files.\n",
       "path": "skills/fetchmd",
@@ -125,9 +119,9 @@
     },
     {
       "name": "local-review",
-      "description": "Perform local code reviews on workspace changes without posting to GitHub. Use for requests like /review, review this diff, audit staged changes, or check branch changes. Produces findings-first reports with severity, file line references, risks, and test gaps.",
+      "description": "Review code changes for actionable defects without posting to GitHub. Use for local, staged, branch, or commit reviews, including focused reviews of error handling, fallbacks, types, and invariants. Trace affected callers and contracts; return concise, evidence-backed findings.",
       "path": "skills/local-review",
-      "version": "1.1.5"
+      "version": "2.0.0"
     },
     {
       "name": "loop-design",
@@ -170,7 +164,7 @@
       "name": "playwright",
       "description": "Use when the task requires automating a real browser from the terminal (navigation, form filling, snapshots, screenshots, data extraction, UI-flow debugging) via `playwright-cli` or the bundled wrapper script.",
       "path": "skills/playwright",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "repo-hardening",
@@ -208,13 +202,13 @@
       "name": "session-retro",
       "description": "Preserve non-obvious session learnings in existing canonical project docs. Use when the user asks for a retro, says \"save what we learned\" or \"update docs with learnings\", or completed work leaves an established reference missing a consequential fact. Skip routine session endings with nothing durable to add.",
       "path": "skills/session-retro",
-      "version": "2.0.0"
+      "version": "2.0.1"
     },
     {
       "name": "skill-creator",
       "description": "Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends an AI agent's capabilities with specialized knowledge, workflows, or tool integrations.",
       "path": "skills/skill-creator",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "license": "Complete terms in LICENSE.txt"
     },
     {
@@ -233,7 +227,7 @@
       "name": "skill-standardizer",
       "description": "Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.",
       "path": "skills/skill-standardizer",
-      "version": "1.3.4"
+      "version": "1.3.5"
     },
     {
       "name": "template",
@@ -253,12 +247,6 @@
       "path": "skills/theme-factory",
       "version": "1.0.0",
       "license": "Complete terms in LICENSE.txt"
-    },
-    {
-      "name": "type-design-review",
-      "description": "Review the design of a new or changed type \u2014 does it make illegal states unrepresentable, enforce its invariants at construction, and encapsulate its internals? Rates encapsulation, invariant expression, invariant usefulness, and enforcement. Use when introducing a new type or data model, reviewing the types added in a PR, or refactoring a type for stronger guarantees. Not general diff review (local-review).",
-      "path": "skills/type-design-review",
-      "version": "1.0.0"
     },
     {
       "name": "vercel-composition-patterns",

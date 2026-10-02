@@ -100,14 +100,14 @@ UNTRACKED_FILES=()
 UNTRACKED_COUNT=0
 if [[ "$MODE" == "working" ]]; then
   REVIEW_TARGET="working tree vs HEAD"
-  NAME_STATUS_CMD=(git diff --name-status)
-  NAME_ONLY_CMD=(git diff --name-only --diff-filter=ACMRTUXB)
-  STAT_CMD=(git diff --stat)
-  DIFF_CMD=(git diff --no-color --patch)
+  NAME_STATUS_CMD=(git diff HEAD --name-status)
+  NAME_ONLY_CMD=(git diff HEAD --name-only --diff-filter=ACDMRTUXB)
+  STAT_CMD=(git diff HEAD --stat)
+  DIFF_CMD=(git diff HEAD --no-color --patch)
 elif [[ "$MODE" == "staged" ]]; then
   REVIEW_TARGET="staged changes vs HEAD"
   NAME_STATUS_CMD=(git diff --cached --name-status)
-  NAME_ONLY_CMD=(git diff --cached --name-only --diff-filter=ACMRTUXB)
+  NAME_ONLY_CMD=(git diff --cached --name-only --diff-filter=ACDMRTUXB)
   STAT_CMD=(git diff --cached --stat)
   DIFF_CMD=(git diff --cached --no-color --patch)
 elif [[ "$MODE" == "branch" ]]; then
@@ -128,7 +128,7 @@ elif [[ "$MODE" == "branch" ]]; then
   MERGE_BASE="$(git merge-base "$BASE" "$HEAD_REF")"
   REVIEW_TARGET="$HEAD_REF compared to merge-base($BASE, $HEAD_REF) = $MERGE_BASE"
   NAME_STATUS_CMD=(git diff --name-status "$MERGE_BASE" "$HEAD_REF")
-  NAME_ONLY_CMD=(git diff --name-only --diff-filter=ACMRTUXB "$MERGE_BASE" "$HEAD_REF")
+  NAME_ONLY_CMD=(git diff --name-only --diff-filter=ACDMRTUXB "$MERGE_BASE" "$HEAD_REF")
   STAT_CMD=(git diff --stat "$MERGE_BASE" "$HEAD_REF")
   DIFF_CMD=(git diff --no-color --patch "$MERGE_BASE" "$HEAD_REF")
 else
@@ -194,14 +194,6 @@ printf '%s\n' "${CHANGED_FILES[@]}" | grep -E '(^|/)(test|tests|spec|__tests__)/
 
 section "SENSITIVE OR HIGH-RISK PATHS"
 printf '%s\n' "${CHANGED_FILES[@]}" | grep -E '(^|/)(auth|security|permission|permissions|payment|billing|migration|migrations|schema|infra|deploy|docker|k8s|terraform|secret|secrets|config)(/|$)|\.sql$|schema\.rb$' || echo "(none)"
-
-section "ATTENTION MARKERS IN CHANGED FILES"
-MARKER_RE='[T]ODO|[F]IXME|[H]ACK|[X]XX'
-if command -v rg >/dev/null 2>&1; then
-  rg -n --no-heading -e "$MARKER_RE" "${CHANGED_FILES[@]}" 2>/dev/null || echo "(none)"
-else
-  grep -R -n -E "$MARKER_RE" "${CHANGED_FILES[@]}" 2>/dev/null || echo "(none)"
-fi
 
 section "DIFF"
 DIFF_TMP="$(mktemp)"

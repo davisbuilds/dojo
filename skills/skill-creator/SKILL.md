@@ -3,7 +3,7 @@ name: skill-creator
 description: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends an AI agent's capabilities with specialized knowledge, workflows, or tool integrations.
 skill-type: workflow
 license: Complete terms in LICENSE.txt
-version: 2.0.0
+version: 2.0.1
 ---
 
 # Skill Creator
@@ -416,7 +416,7 @@ Write YAML frontmatter with `name` and `description`:
 - `name`: The skill name
 - `description`: This is the primary triggering mechanism for your skill, and helps the agent understand when to use the skill.
   - Include both what the Skill does and specific triggers/contexts for when to use it.
-  - Include all "when to use" information here - Not in the body. The body is only loaded after triggering, so "When to Use This Skill" sections in the body are not helpful to the agent.
+  - Put selection cues in the description. Retain a concise scope anchor in the body under Dojo's contract; it helps the reader apply the skill after selection without repeating the entire description.
   - Example description for a `docx` skill: "Comprehensive document creation, editing, and analysis with support for tracked changes, comments, formatting preservation, and text extraction. Use when the agent needs to work with professional documents (.docx files) for: (1) Creating new documents, (2) Modifying or editing content, (3) Working with tracked changes, (4) Adding comments, or any other document tasks"
 
 Optional fields are allowed when needed: `skill-type`, `license`, `allowed-tools`, `metadata`, and `compatibility`.

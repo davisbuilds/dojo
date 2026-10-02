@@ -1,3 +1,7 @@
+## 1.3.5 - 2026-10-02
+
+- Migrate both retired specialist review names to local-review with backups; cover consolidation when the replacement is already installed.
+
 ## 1.3.4 - 2026-10-02
 
 - Register `agent-native-architecture` → `agent-native-design` so existing installs migrate with backups, including when either name is selected.

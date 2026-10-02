@@ -1,82 +1,32 @@
 ---
 name: review
-description: Run a local findings-first code review against workspace changes without posting to GitHub.
-argument-hint: "[optional: --mode working|staged|branch --base <ref> --head <ref> --max-diff-lines <n> --deep]"
+description: Review the requested local change for actionable, evidence-backed defects.
+argument-hint: "[--mode working|staged|branch --base <ref> --head <ref> --max-diff-lines <n> --deep]"
 allowed-tools: [Read, Bash(git:*), Bash(rg:*), Bash(bash skills/local-review/scripts/collect_review_context.sh:*)]
 ---
 
 # Local Review Command
 
-Use this command to perform a `/review`-style local code review with no GitHub side effects.
+Use the parent `SKILL.md` for scope, finding criteria, optional specialist lenses,
+and output. This wrapper does not replace a harness's native `/review` command.
 
-## Behavior
-
-1. Parse `$ARGUMENTS` and select mode:
-- Default: `--mode working`
-- If `--mode staged` is passed: review staged diff
-- If `--mode branch` is passed: compare `--head` to merge-base with `--base`
-
-2. Collect deterministic review context:
+Resolve the requested target; an empty argument list means working changes.
+The bundled collector can supply initial context:
 
 ```bash
 bash <skill-dir>/scripts/collect_review_context.sh $ARGUMENTS
 ```
 
-If no arguments are passed:
+With no arguments:
 
 ```bash
 bash <skill-dir>/scripts/collect_review_context.sh --mode working
 ```
 
-The `skills/local-review/...` path is the command-wrapper layout. When invoking
-the helper manually from `SKILL.md`, resolve the script relative to the
-local-review skill directory, not the repository being reviewed.
+Read omitted diff sections and relevant unchanged consumers as needed. `--deep`
+only raises the collector's output budget. Keep findings tied to the requested
+change and reviewed revision, including focused error-handling or type reviews.
 
-3. Review the resulting context and any touched files as needed.
-
-4. Return results in this exact order:
-1. Findings
-2. Open Questions / Assumptions
-3. Change Summary
-4. Residual Risks / Testing Gaps
-
-## Findings Format
-
-Sort by severity: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`.
-
-Each finding must include:
-- `Severity: <level>`
-- `Location: <path:line>`
-- `Issue: <concise problem statement>`
-- `Risk: <why this matters>`
-- `Recommended fix: <specific fix>`
-- `Tests: <missing or required tests>`
-
-If there are no meaningful findings, explicitly say so and still include residual risks and testing gaps.
-
-## Rules
-
-- Never call `gh pr review` or post to GitHub from this command.
-- Prioritize concrete, evidence-backed findings over broad suggestions.
-- Use deep-review scrutiny when the diff is large, risky, or user asks for deep review.
-- `--deep` raises the helper's default diff budget; if output is still
-  truncated, inspect relevant touched files directly before reporting findings.
-
-## Example Invocations
-
-```bash
-# Default working tree review
-/review
-
-# Staged-only review
-/review --mode staged
-
-# Branch review against main
-/review --mode branch --base origin/main
-
-# Branch review for a specific head
-/review --mode branch --base origin/main --head feature/my-branch
-
-# Deep review with a larger diff budget
-/review --mode staged --max-diff-lines 8000 --deep
-```
+Return concise findings under the parent skill's priority convention, followed
+only by material scope/evidence limits. No mandatory extra report sections.
+Do not edit source or post to GitHub as a side effect of review.
