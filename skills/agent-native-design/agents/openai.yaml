@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Agent Native Design"
+  short_description: "Design software for agent consumers and delegated work"
+  default_prompt: "Use $agent-native-design for this task."

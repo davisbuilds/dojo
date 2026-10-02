@@ -184,6 +184,63 @@ def test_invalid_entries_do_not_emit_missing_actions() -> None:
         )
 
 
+def test_agent_native_rename_migrates_existing_installations() -> None:
+    original_cwd = Path.cwd()
+    env_names = ["AGENTS_HOME", "CODEX_HOME", "CLAUDE_HOME"]
+    original_env = {name: os.environ.get(name) for name in env_names}
+    try:
+        for selection in [set(), {"agent-native-architecture"}, {"agent-native-design"}]:
+            with tempfile.TemporaryDirectory() as td:
+                base = Path(td)
+                repo = base / "repo"
+                canonical = repo / "skills"
+                source = write_skill(canonical, "agent-native-design")
+                write_skill(canonical, "unrelated")
+                roots = [base / name / "skills" for name in [".agents", ".codex", ".claude"]]
+                for env_name, root in zip(env_names, roots):
+                    os.environ[env_name] = str(root.parent)
+                    old = write_skill(root, "agent-native-architecture")
+                    (old / "local-note.md").write_text("preserve this old installation")
+                os.chdir(repo)
+
+                def audit():
+                    return build_audit_report(
+                        context=resolve_context(str(canonical), [], False),
+                        local_policy="prefer-global-link",
+                        global_policy="prefer-primary-link",
+                        keep_local_skills=set(), enforce_mirror=False,
+                        codex_agents_dedupe=True, only_existing=True,
+                        selected_skills=selection,
+                    )
+
+                report = audit()
+                replacements = [a for a in report["actions"] if a["action"] == "replace_deprecated_skill"]
+                assert_true(len(replacements) == 3, f"old installs must migrate for selection {selection}: {report}")
+                backup_root = base / "backups"
+                result = apply_actions(report, apply=True, backup_root=str(backup_root))
+                assert_true(not result["errors"], f"migration failed: {result}")
+                for root in roots:
+                    assert_true(not (root / "agent-native-architecture").exists(), "old name survived migration")
+                    assert_true((root / "agent-native-design" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "replacement differs from canonical")
+                    assert_true(not (root / "unrelated").exists(), "migration installed an unrelated skill")
+                saved_notes = list(backup_root.rglob("local-note.md"))
+                assert_true(len(saved_notes) == 3, "old installations were not backed up")
+                assert_true(all(p.read_text() == "preserve this old installation" for p in saved_notes), "backup content changed")
+                # Existing-name migration may first create independent copies;
+                # the ordinary follow-up sync must normalize them and converge.
+                followup = apply_actions(audit(), apply=True, backup_root=str(backup_root))
+                assert_true(not followup["errors"], f"normalization failed: {followup}")
+                assert_true(not audit()["actions"], "migration did not converge")
+                os.chdir(original_cwd)
+    finally:
+        os.chdir(original_cwd)
+        for name, value in original_env.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
+
+
 def test_deprecated_replacement_uses_real_source() -> None:
     with tempfile.TemporaryDirectory() as td:
         base = Path(td)
@@ -1029,6 +1086,7 @@ def test_a_failed_apply_does_not_prune_backup_history() -> None:
 
 def main() -> int:
     tests = [
+        test_agent_native_rename_migrates_existing_installations,
         test_invalid_entries_do_not_emit_missing_actions,
         test_underscore_dirs_are_not_invalid_in_full_scan,
         test_known_non_skill_dir_ignored_in_owning_root,

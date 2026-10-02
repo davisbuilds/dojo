@@ -28,6 +28,7 @@ KNOWN_NON_SKILL_DIRS = {
     "global-claude": {"synced"},
 }
 DEPRECATED_SKILL_REPLACEMENTS = {
+    "agent-native-architecture": "agent-native-design",
     "json-canvas": "obsidian-canvas",
     "imagegen": "gpt-imagen",
 }

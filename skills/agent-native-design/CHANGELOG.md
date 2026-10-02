@@ -1,5 +1,23 @@
 # Changelog
 
+## 3.0.0 - 2026-10-02
+
+- Rename `agent-native-architecture` to `agent-native-design`. Update explicit
+  invocations and installed copies to the new name; the old entrypoint and
+  reference paths are removed rather than shipped as a second skill.
+  Skill Standardizer 1.3.4 migrates existing installations with backups.
+- Distinguish software agents can use, systems that delegate work, and products
+  with agents as primary consumers. Apply relevant design lenses within the
+  requested task instead of requiring an architecture plan and checklist.
+- Replace the five overlapping references with three focused references on
+  agent-facing interfaces, delegated work, and product/human agency.
+- Remove universal UI parity, CRUD completeness, primitive-only tools, and
+  prompt-only development mandates. Preserve meaningful composition and
+  discovery while keeping enforceable invariants in the executing system.
+- Add outcome evidence, honest measurement scope, recoverable execution,
+  cross-agent authority/context boundaries, and control over ongoing work.
+  Keep platform capabilities and product value as questions to establish.
+
 ## 2.0.0 - 2026-07-31
 
 - **Restructure for progressive disclosure.** The skill owned 14 reference files

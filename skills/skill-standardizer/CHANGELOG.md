@@ -1,3 +1,8 @@
+## 1.3.4 - 2026-10-02
+
+- Register `agent-native-architecture` → `agent-native-design` so existing installs migrate with backups, including when either name is selected.
+- Cover migration across all three global roots, preservation of old copies, selection boundaries, and convergence to the normal link policy.
+
 ## 1.3.3 - 2026-10-01
 
 - Exempt Claude Code's account-synced skills cache (`synced` in the Claude global root) from invalid-directory reports.
