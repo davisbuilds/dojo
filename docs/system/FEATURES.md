@@ -44,7 +44,7 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 | `write-plan` | Plan dependencies, rollout, and proof when needed; accept tickets/conversations and retain conditional high-risk traceability and review |
 | `blind-spots` | Find what you don't know about one change â€” blind spot pass before it's built, or a brief-then-quiz before you merge (never scored, never gating) |
 | `create-cli` | CLI design or focused interface consultation during implementation |
-| `agent-native-architecture` | Build agent-native apps with tool/action parity |
+| `agent-native-design` | Design agent-facing interfaces, delegated work, and products for agent consumers |
 | `deep-research` | Web-backed research with conditional depth, explainable URL-host evidence filtering, and verified first-party source safeguards |
 | `research-architect` | Engineer deep-research prompts, route execution, independently verify reports, synthesize multi-run results, and compound lessons via postmortems |
 

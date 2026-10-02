@@ -2,10 +2,10 @@
   "version": 1,
   "skills": [
     {
-      "name": "agent-native-architecture",
-      "description": "Build applications where agents are first-class citizens. Use this skill when designing autonomous agents, creating MCP tools, implementing self-modifying systems, or building apps where features are outcomes achieved by agents operating in a loop.",
-      "path": "skills/agent-native-architecture",
-      "version": "2.0.0"
+      "name": "agent-native-design",
+      "description": "Design software for agent consumers and delegated work. Use when shaping agent-facing capabilities, delegated responsibilities, cross-agent coordination, human control of agent-driven experiences, or products with agents as primary consumers.",
+      "path": "skills/agent-native-design",
+      "version": "3.0.0"
     },
     {
       "name": "api-design",

@@ -42,11 +42,9 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   with the same harness/repo controls. Assess outcomes, authority boundaries,
   unnecessary artifacts/stops, context cost, and time. Prioritize remaining
   skills from observed friction; do not infer low value from invocation counts.
-- **Next candidates, 2026-09-23**: after the knowledge-capture, verification/
-  testing revisions and publishing-skill retirement (PR #87), review universal
-  CRUD/prompt-only goals in `agent-native-architecture` and the research family's
-  mandatory stages.
-  These are source-review candidates, not measured model-performance findings.
+- **Remaining candidate, 2026-10-02**: review the research family's mandatory
+  stages. This is a source-review candidate, not a measured model-performance
+  finding.
 - **Deferred knowledge-capture follow-up, 2026-09-23**: `loop-design`'s progress
   template and iteration instructions emphasize accumulating log entries. Consider
   a compact current checkpoint (next action, unresolved failure, latest evidence)
@@ -325,8 +323,7 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 
 - **What**: the March 2026 roadmap proposed combining Vercel deploy/preview skills,
   sharing image-provider plumbing, bundling fetched web guidelines, research caching,
-  example specs, semantic trigger scoring, and broader hook/validator tests. It also
-  flagged overlap in `agent-native-architecture` references.
+  example specs, semantic trigger scoring, and broader hook/validator tests.
 - **Why or evidence**: these were source-review suggestions, not evidence that a
   capability was missing from today's model/harness or that a merger would help.
   Generic database, documentation, accessibility, profiling, and dependency skill
