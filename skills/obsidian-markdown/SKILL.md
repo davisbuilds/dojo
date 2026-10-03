@@ -2,7 +2,7 @@
 name: obsidian-markdown
 description: Create and edit Obsidian Flavored Markdown with wikilinks, embeds, callouts, properties, and other Obsidian-specific syntax. Use when working with .md files in Obsidian, or when the user mentions wikilinks, callouts, frontmatter, tags, embeds, or Obsidian notes.
 skill-type: reference
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Obsidian Flavored Markdown Skill
@@ -230,6 +230,15 @@ tags:
   - tag1
   - nested/tag2
 ```
+
+### Tags and Properties in an Existing Vault
+
+The syntax above is the easy part; vocabulary drift is the common failure. Before adding tags or properties to a note in an existing vault:
+
+- Read the vault's own agent guidance (`AGENTS.md` or `CLAUDE.md` at the vault root) when present. Its tag vocabulary and property conventions override the examples in this skill.
+- Reuse existing tags. List them with `obsidian tags` when the CLI is enabled, or search frontmatter `tags:` and inline `#tags`. Tags are case-insensitive (`#AI` and `#ai` are one tag), so match the established casing and form rather than adding a plural, synonym, or casing variant.
+- Match sibling notes in the same folder: same property keys, key names, and list style, or no frontmatter where siblings have none. Bases views filter on property values, so an invented key or `type` value silently drops a note from a view.
+- Don't tag what a folder or property already records. Coin a new tag only when nothing existing fits and it will apply to more than one note, and say so in your reply.
 
 ## Escaping Pipes in Tables
 
