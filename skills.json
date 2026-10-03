@@ -146,19 +146,19 @@
       "name": "obsidian-bases",
       "description": "Create and edit Obsidian Bases (.base files) with database-style views, filters, formulas, and summaries. Use when working with .base files, building table/card/dashboard views over a vault, or when the user mentions Bases, filters, or formulas in Obsidian.",
       "path": "skills/obsidian-bases",
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
     {
       "name": "obsidian-canvas",
       "description": "Create and edit Obsidian Canvas files (.canvas) with nodes, edges, groups, and connections. Use when working with .canvas files, creating visual canvases, mind maps, flowcharts, or when the user mentions Canvas files in Obsidian.",
       "path": "skills/obsidian-canvas",
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
     {
       "name": "obsidian-markdown",
       "description": "Create and edit Obsidian Flavored Markdown with wikilinks, embeds, callouts, properties, and other Obsidian-specific syntax. Use when working with .md files in Obsidian, or when the user mentions wikilinks, callouts, frontmatter, tags, embeds, or Obsidian notes.",
       "path": "skills/obsidian-markdown",
-      "version": "1.1.0"
+      "version": "2.0.0"
     },
     {
       "name": "playwright",

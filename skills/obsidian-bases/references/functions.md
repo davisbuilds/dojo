@@ -10,6 +10,7 @@ Complete function catalog for Bases formulas. Load on demand when writing formul
 | `duration()` | `duration(string): duration` | Parse duration string |
 | `now()` | `now(): date` | Current date and time |
 | `today()` | `today(): date` | Current date (time = 00:00:00) |
+| `random()` | `random(): number` | Random number in [0, 1); re-rolls whenever a view loads |
 | `if()` | `if(condition, trueResult, falseResult?)` | Conditional |
 | `min()` | `min(n1, n2, ...): number` | Smallest number |
 | `max()` | `max(n1, n2, ...): number` | Largest number |
