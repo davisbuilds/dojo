@@ -1,75 +1,24 @@
 ---
 name: scan
-description: Run semgrep SAST scan on target files and present severity-grouped findings with remediation guidance.
-argument-hint: "<file-or-directory...> [--config <semgrep-config>]"
-allowed-tools: [Read, Bash(bash skills/secure-code/scripts/scan.sh:*), Bash(python3 skills/secure-code/scripts/parse_findings.py:*), Bash(bash skills/secure-code/scripts/setup.sh:*)]
+description: Collect targeted Semgrep evidence and investigate actionable security findings.
+argument-hint: "[targets] [--config rules]"
 ---
 
-# Scan Command
+# Security scan
 
-Run a semgrep security scan on target files and present findings grouped by severity.
+Use the targets and concern from the request. If scope is absent, the current
+repository is the default. Follow the secure-code investigation and output
+contract; tool matches need source and runtime context.
 
-## Behavior
+Invoke `bash <skill-dir>/scripts/scan.sh` with the chosen targets and repeated
+`--config` arguments as needed. Preserve its JSON output and exit status, then
+use `python3 <skill-dir>/scripts/parse_findings.py <scan-output.json>` to render it.
+Do not let a shell pipeline hide failure or call incomplete evidence clean.
 
-1. Verify semgrep is installed. If not, run setup:
+Prefer existing project rules; `p/default` is a network-backed fallback, not
+comprehensive coverage. If Semgrep is missing, report that limitation and continue
+useful source investigation. Setup is separate from scanning.
 
-```bash
-bash <skill-dir>/scripts/setup.sh
-```
-
-2. Run semgrep on the specified targets:
-
-```bash
-bash <skill-dir>/scripts/scan.sh $ARGUMENTS | python3 <skill-dir>/scripts/parse_findings.py
-```
-
-If no arguments are provided, scan the current working directory:
-
-```bash
-bash <skill-dir>/scripts/scan.sh . | python3 <skill-dir>/scripts/parse_findings.py
-```
-
-3. Present findings in this order:
-   1. **Summary** — Total count by severity
-   2. **Critical/High findings** — Each with rule ID, CWE, file:line, message
-   3. **Medium/Low findings** — Grouped by file
-   4. **Remediation guidance** — For critical/high findings, reference `references/secure-coding-guidelines.md` for the relevant vulnerability class
-
-4. If no findings, report a clean scan.
-
-## Custom Rules
-
-To scan with project-specific rules:
-
-```bash
-/scan <targets> --config <skill-dir>/rules/trifecta/
-```
-
-Or combine with default rules:
-
-```bash
-/scan <targets> --config p/default --config <skill-dir>/rules/trifecta/
-```
-
-## Rules
-
-- Present findings with full context. Do not minimize or dismiss any finding.
-- For critical/high findings, load and reference the relevant section of `references/secure-coding-guidelines.md`.
-- Do not auto-fix. Present the finding and recommended fix, then ask the user before making changes.
-- If semgrep reports errors (e.g., unsupported language, parse errors), include them in the output.
-
-## Example Invocations
-
-```bash
-# Scan a specific file
-/scan src/api/handler.py
-
-# Scan a directory
-/scan src/
-
-# Scan with custom rules
-/scan src/ --config <skill-dir>/rules/trifecta/
-
-# Scan with a specific semgrep registry config
-/scan src/ --config p/python
-```
+Investigate high-value leads, including boundaries a syntax scanner cannot
+establish. Report supported vulnerabilities, unresolved concerns, and material
+coverage limitations; do not promote every rule match into a PR finding.

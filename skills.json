@@ -15,9 +15,9 @@
     },
     {
       "name": "audit-skill",
-      "description": "Security audit for agent skills \u2014 prompt-injection and exfiltration scanning with an A\u2013F trust score. Use when reviewing a skill for security, auditing a skill before installation, checking for prompt injection, or when the user says 'audit skill', 'check skill security', 'trust score', 'is this skill safe'. On-demand via /audit-skill.",
+      "description": "Investigate the security of agent skills before adoption or after suspicious behavior. Use when auditing an untrusted skill, checking instruction or script authority, investigating prompt injection or exfiltration in a skill, or asking whether a skill is safe to install. Supports /audit-skill.",
       "path": "skills/audit-skill",
-      "version": "1.0.4"
+      "version": "2.0.0"
     },
     {
       "name": "blind-spots",
@@ -170,7 +170,7 @@
       "name": "repo-hardening",
       "description": "Audit and harden a software repo against supply-chain and workflow risks. Use when a user asks to audit a repo, harden CI, pin GitHub Actions, freeze installs, reduce bot workflow risk, review lockfile/package-manager discipline, or create repo-local security investigation artifacts. Supports Node, Python, GitHub Actions, GitLab CI, and mixed-stack repos. On-demand via /repo-audit and /repo-harden.",
       "path": "skills/repo-hardening",
-      "version": "1.0.2"
+      "version": "1.0.3"
     },
     {
       "name": "research-architect",
@@ -194,9 +194,9 @@
     },
     {
       "name": "secure-code",
-      "description": "Static analysis security scanning and architectural trifecta detection using semgrep. Use when reviewing code for security vulnerabilities, running SAST scans, checking for the lethal trifecta (private data + untrusted input + external comms co-occurrence), or when the user says 'scan', 'security scan', 'trifecta check', 'check for vulnerabilities', 'SAST', or 'secure this code'. On-demand via /scan and /trifecta-check commands.",
+      "description": "Investigate code security using targeted static analysis, flow tracing, and safe probes. Use when reviewing security vulnerabilities, running SAST or a security scan, investigating authorization or injection risks, or checking agent trust and authority boundaries. Supports /scan and /trifecta-check.",
       "path": "skills/secure-code",
-      "version": "1.0.2"
+      "version": "2.0.0"
     },
     {
       "name": "session-retro",

@@ -1,120 +1,39 @@
-# The Lethal Trifecta
+# Agent authority boundaries
 
-Based on Simon Willison's concept of the "lethal trifecta" — three capabilities that, when co-located in a single component, create a disproportionately dangerous attack surface.
+The [lethal trifecta](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/)
+is a threat-model prompt: an agent can access private data, consume adversarial
+content, and communicate externally. It is not a static signature or a claim
+that ordinary request handling is prompt injection.
 
-## The Three Legs
+Follow an actual delegation path. For example: a fetched document supplies
+instructions, the model treats them as authority, and a tool call sends a private
+record to an attacker-controlled destination. These steps may span repositories,
+services, turns, or agents. Conversely, an application can mention all three
+capabilities without making that path available to an attacker.
 
-1. **Private data access** — Reading from databases, credential stores, environment secrets, PII fields
-2. **Untrusted input processing** — Handling request parameters, form data, webhook payloads, file uploads, deserialized data
-3. **External communication** — Making outbound HTTP requests, sending emails, publishing to queues, dispatching webhooks
+Useful questions, selected for the system:
 
-## Why Co-Occurrence Is Dangerous
+- Which content can the adversary influence, and can it become instructions or
+  tool arguments? Consider retrieved files, tool results, memory, and handoffs.
+- What data and actions can the *executing identity* reach? Check filesystem and
+  process credentials, shared stores, writable service scripts, network routes,
+  and downstream services; a model's declared tool list may understate authority.
+- Which destinations, recipients, tenants, and objects are bound by trusted code?
+  Are authorization and approvals attached to the exact action and inputs, or
+  can the agent change them afterward?
+- Can a low-trust result trigger a more privileged agent or workflow? Does that
+  receiver independently enforce scope and provenance?
+- What observation would distinguish a real denial from an unavailable tool,
+  broken probe, empty result, or a different runtime than production?
 
-Any single leg is normal. Two legs together require careful handling. All three in one file/function create a direct path for:
+Prefer controls that actually constrain the path: scoped identities, constrained
+tool interfaces, destination restrictions, enforceable data boundaries, and human
+approval for consequential actions where appropriate. Prompt instructions and
+reviewer agents may help interpretation; they are not deterministic authorization
+boundaries. Splitting functions or adding a second agent with the same credentials
+does not by itself reduce authority.
 
-- **Data exfiltration via SSRF**: Untrusted input controls a URL → handler reads credentials → outbound request leaks them
-- **Prompt injection escalation**: AI tool receives untrusted input → accesses internal state → calls external API with attacker-controlled payload
-- **SQL injection + notification**: User input → database query → result sent via email/webhook (error-based exfiltration)
-
-The key insight: an attacker only needs to compromise the untrusted-input leg to weaponize the other two.
-
-## Anti-Pattern Example
-
-```python
-# BAD: All three legs in one handler
-@app.route("/api/process-webhook", methods=["POST"])
-def process_webhook():
-    # Leg 2: Untrusted input
-    payload = request.json
-
-    # Leg 1: Private data access
-    user = db.query("SELECT * FROM users WHERE id = %s", (payload["user_id"],))
-    api_key = os.environ["INTERNAL_API_KEY"]
-
-    # Leg 3: External communication
-    requests.post(
-        payload["callback_url"],  # Attacker-controlled destination!
-        json={"user": user, "key": api_key},
-        headers={"Authorization": f"Bearer {api_key}"}
-    )
-    return jsonify({"status": "ok"})
-```
-
-## Remediation Patterns
-
-### 1. Separation of Concerns
-
-Split each leg into its own module with a narrow interface:
-
-```python
-# input_handler.py — Leg 2 only
-def validate_webhook(payload: dict) -> WebhookRequest:
-    """Validate and sanitize untrusted input. No DB access, no outbound calls."""
-    return WebhookRequest(
-        user_id=validate_uuid(payload["user_id"]),
-        action=validate_enum(payload["action"], ALLOWED_ACTIONS),
-    )
-
-# data_layer.py — Leg 1 only
-def get_user_for_notification(user_id: str) -> NotificationPayload:
-    """Read user data. No request parsing, no external calls."""
-    user = db.query("SELECT name, email FROM users WHERE id = %s", (user_id,))
-    return NotificationPayload(name=user.name, email=user.email)
-
-# notifier.py — Leg 3 only (with allowlist)
-ALLOWED_CALLBACK_HOSTS = {"hooks.slack.com", "api.pagerduty.com"}
-
-def send_notification(payload: NotificationPayload, destination: str):
-    """Send to pre-approved destinations only. No input parsing, no DB access."""
-    host = urlparse(destination).hostname
-    if host not in ALLOWED_CALLBACK_HOSTS:
-        raise ValueError(f"Blocked callback host: {host}")
-    requests.post(destination, json=asdict(payload))
-```
-
-### 2. Principle of Least Privilege
-
-- Input handlers should not have database credentials
-- Data access layers should not have outbound network access
-- Notification services should use allowlisted destinations only
-
-### 3. Allowlist-Based External Communication
-
-Never let untrusted input control:
-- Outbound URLs (use allowlists)
-- Email recipients (verify against user records)
-- Queue routing keys (use enums)
-
-### 4. Orchestrator Pattern
-
-If all three operations must happen in sequence, use a thin orchestrator that calls each isolated module:
-
-```python
-@app.route("/api/process-webhook", methods=["POST"])
-def process_webhook():
-    validated = input_handler.validate_webhook(request.json)
-    user_data = data_layer.get_user_for_notification(validated.user_id)
-    notifier.send_notification(user_data, validated.callback_url)
-    return jsonify({"status": "ok"})
-```
-
-The orchestrator itself has no direct data access or external calls — it only coordinates.
-
-## Connection to Real-World Exploits
-
-| Attack Vector | Leg 1 | Leg 2 | Leg 3 |
-|---|---|---|---|
-| SSRF + credential theft | Internal API keys | Attacker URL in request | Outbound HTTP to attacker |
-| SQLi + exfiltration | Database query results | Malicious SQL in input | Error sent to webhook |
-| Prompt injection + tool use | RAG context / DB access | User prompt with injection | AI calls external API |
-| XXE + data leak | Internal file read | Malicious XML payload | DNS/HTTP exfiltration |
-
-## Guidance for Refactoring
-
-When the trifecta audit flags a file:
-
-1. **Identify each leg** — Mark which lines correspond to which leg
-2. **Extract the most dangerous combination** — Usually leg 2 + leg 3 (input → external call)
-3. **Create module boundaries** — Each leg gets its own file/class with a typed interface
-4. **Add allowlists** — Any external destination must be pre-approved
-5. **Test separation** — Verify that no single module can access all three capabilities
+Probe with synthetic data and controlled destinations when authorized. Report the
+boundary tested and remaining uncertainty; do not require real exfiltration to
+substantiate a credible path. Improving observability can aid investigation but
+does not itself prevent the action.

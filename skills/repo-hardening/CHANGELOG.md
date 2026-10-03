@@ -1,3 +1,7 @@
+## 1.0.3 - 2026-10-03
+
+- Update the secure-code route for scoped security investigation without a mandatory second audit.
+
 ## 1.0.2 - 2026-08-14
 
 - Anchor runnable script commands to <skill-dir>, including inline-code commands, so they resolve outside a dojo checkout

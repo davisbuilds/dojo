@@ -1,69 +1,33 @@
-# Skill Security Threat Model
+# Skills and delegated authority
 
-## Attack Surfaces
+A skill is instructions and possibly executable resources distributed into an
+agent's context. Loading it can influence decisions; it does not necessarily
+change OS permissions. Its effective reach depends on the harness, executing
+identity, installed tools, inherited credentials, and the user's delegated task.
 
-### 1. Instruction Layer (SKILL.md, commands/, references/)
+Follow relevant paths rather than scoring file properties:
 
-Markdown files loaded into the agent's context window. Attackers embed prompt injection, encoding tricks, or exfiltration instructions that execute when the agent processes the skill.
+- **Instruction influence:** entry-point prose, examples, remote references,
+  command wrappers, or tool output redirect the agent beyond the task or attempt
+  to override trusted constraints. Markdown formatting does not confer trust.
+- **Execution and supply chain:** helpers, package hooks, downloaded code, native
+  binaries, and dependencies run with the invoking identity. A source-only skill
+  can still fetch an executable; a binary is an inspection limitation, not proof
+  of malice.
+- **Data and effects:** scripts or induced tool calls read sensitive information,
+  select recipients, mutate unrelated projects, or forward credentials. Intent,
+  destination control, and user authorization distinguish useful capabilities
+  from violations.
+- **Persistence and later authority:** hooks, shared settings, memories, startup
+  files, and writable service scripts can affect future sessions or more
+  privileged processes. Check the downstream consumer, not just the write itself.
 
-**Risk**: Direct influence over agent behavior. The agent trusts skill instructions as part of its operating context.
+A safe-use recommendation is conditional on the inspected revision and environment.
+Declared `allowed-tools` may be ignored, interpreted differently, or supplemented
+by harness defaults. A reviewer agent sharing the same data and credentials is
+not a new security boundary. Unknowns about execution permissions remain unknown
+until the relevant interface/configuration or a safe controlled probe resolves them.
 
-### 2. Code Layer (scripts/)
-
-Executable code invoked by the agent via allowed tools. Malicious scripts can access the filesystem, network, environment variables, and other system resources.
-
-**Risk**: Full system access within the agent's permission boundary. Code runs with the user's privileges.
-
-### 3. Structural Layer (frontmatter, file layout, allowed-tools)
-
-Metadata that determines what the agent is permitted to do when the skill is active. Overly broad tool permissions or suspicious file types expand the attack surface.
-
-**Risk**: Grants capabilities the skill doesn't need, enabling lateral movement.
-
-## Privilege Model
-
-Activating a skill grants:
-
-1. **Context injection** — SKILL.md body loaded into the conversation
-2. **Tool access** — Tools listed in `allowed-tools` (frontmatter or command wrappers) become available
-3. **Script execution** — Agent can run scripts/ via Bash tool calls
-4. **Reference loading** — Agent can read references/ for additional context
-
-A malicious skill exploits this trust chain: injection in instructions directs the agent to use granted tools to execute malicious scripts.
-
-## Attack Taxonomy
-
-### Prompt Injection
-- **Role hijacking**: Override the agent's identity or safety constraints
-- **Instruction override**: "Ignore previous instructions" variants
-- **Goal manipulation**: Redirect the agent toward attacker objectives
-
-### Tool Poisoning
-- **Overly broad permissions**: `Bash(*)` grants unrestricted shell access
-- **Implicit escalation**: Scripts that call tools not listed in allowed-tools
-- **Dependency confusion**: Runtime `pip install` of attacker-controlled packages
-
-### Data Exfiltration
-- **Direct**: curl/wget/fetch to external URLs with local data
-- **Indirect**: Agent instructed to include sensitive data in outputs
-- **Staging**: Write data to world-readable locations for later retrieval
-
-### Safety Bypass
-- **Jailbreak patterns**: DAN mode, developer mode, unrestricted mode
-- **Protection disabling**: Skip hooks, disable validation, --no-verify
-- **Config tampering**: Modify .claude/settings, CLAUDE.md
-
-### Supply Chain
-- **Runtime installation**: pip/npm install at execution time
-- **Binary inclusion**: Compiled files (.pyc, .so, .exe) in skill package
-- **External fetch**: Download and execute code from URLs
-
-## Trust Score Weight Rationale
-
-| Layer | Weight | Rationale |
-|-------|--------|-----------|
-| Structural (L1) | 25% | Metadata issues are preconditions, not direct exploits |
-| Instructions (L2) | 35% | Prompt injection directly compromises agent behavior |
-| Code (L3) | 40% | Executable code has the highest blast radius |
-
-When a skill has no scripts/, Layer 3's weight redistributes proportionally to Layers 1 and 2, since the code attack surface is absent.
+Static checks can locate suspicious syntax and inventory blind spots. They cannot
+establish author intent, exhaustive dependency safety, effective containment, or
+absence of a path assembled across multiple files, tools, and agents.
