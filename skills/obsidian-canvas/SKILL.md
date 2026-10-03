@@ -66,7 +66,6 @@ Colors: presets `"1"`–`"6"` (red, orange, yellow, green, cyan, purple — apps
 
 ## References
 
-- `references/examples.md` — complete worked canvases (mind map, project board, research canvas, flowchart)
 - [JSON Canvas 1.0 spec](https://jsoncanvas.org/spec/1.0/)
 - Adapted from [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) (MIT).
 

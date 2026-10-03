@@ -47,7 +47,7 @@ views:
 
 - **No filter means the whole vault.** There is no `from`; an unfiltered base includes every file, attachments included. Scope with `file.inFolder()`, `file.hasTag()`, a property test, and `file.ext == "md"` when only notes should appear.
 - **Filter on the vault's real values.** Property names and values must match the frontmatter exactly (`type == "book"` misses notes typed `Book` or `books`), and tags are tested with `file.hasTag("x")`, not `tags == "x"`.
-- **Property namespaces.** Bare names are note properties (`author` = `note.author`); `file.*` is file metadata; formulas are referenced as `formula.name`. Display names never work in expressions.
+- **Property namespaces.** Bare names are note properties (`author` = `note.author`); `file.*` is file metadata (fields table in `references/functions.md`); formulas are referenced as `formula.name`. Display names never work in expressions. For a note, `file.name` compares equal to the name without `.md`.
 - **Quoting.** Expressions are YAML strings: wrap in single quotes when they contain double-quoted literals (`'status == "done"'`). Text literals need their own quotes.
 - **Date math.** `today()`/`now()` plus or minus a duration string works (`file.mtime > now() - "7d"`; units `y M w d h m s`). Subtracting two dates gives a Duration, which supports neither `.round()` nor division into days; read a numeric field first: `(date(due) - today()).days.round()`. Scale durations explicitly with the duration on the left: `duration("1d") * 2`.
 - **Links.** Wikilinks in frontmatter are Link objects: compare with `author == this` or `list.contains(link("Name"))`, not string equality.
@@ -57,7 +57,7 @@ views:
 
 Default summary names: `Average`, `Min`, `Max`, `Sum`, `Range`, `Median`, `Stddev` (numbers); `Earliest`, `Latest`, `Range` (dates); `Checked`, `Unchecked` (booleans); `Empty`, `Filled`, `Unique` (any).
 
-Full function catalog by type (global, string, number, date, duration fields, list, link, file, object, regex): `references/functions.md`.
+Full function catalog by type (global, string, number, date, duration fields, list, link, file fields and functions, object, regex): `references/functions.md`.
 
 ## Embedding
 
@@ -71,8 +71,8 @@ Full function catalog by type (global, string, number, date, duration fields, li
 ## Verification
 
 - The file parses as YAML, and every `formula.x` in `order`, `properties`, and `summaries` is defined.
-- Useful when the Obsidian CLI is available (`obsidian version` succeeds): `obsidian base:query path=<file.base> view="<name>" format=json` runs the real evaluator. Formula errors come back as `Error: ...` cell values rather than a failed command, so a clean exit alone doesn't mean the base works.
-- Without the CLI, spot-check filters by reading the frontmatter of a note that should match and one that shouldn't.
+- If the Obsidian CLI responds (`obsidian version`), run the real evaluator: `obsidian base:query path=<file.base> view="<name>" format=json` (or `format=paths` for just the row set). Valid YAML doesn't mean the base evaluates: formula errors come back as `Error: ...` cell values, not a failed command, so search the output for them.
+- If it doesn't, spot-check filters against the frontmatter of a note that should match and one that shouldn't, and say the base wasn't evaluated in-app.
 
 ## References
 

@@ -22,6 +22,7 @@ A new or edited note should look like its neighbors. The sources, roughly in ord
 - **Vault guidance.** An `AGENTS.md`/`CLAUDE.md` at the vault root overrides this skill's examples, especially tag vocabulary and property conventions. Read it before adding tags or properties.
 - **Vault settings** in `.obsidian/`, when the task touches them: `app.json` sets link style (`useMarkdownLinks: true` means Markdown links with URL-encoded paths instead of `[[Note Name]]`), link paths (`newLinkFormat`: shortest, relative, or absolute), and where attachments go (`attachmentFolderPath`); `daily-notes.json` and `templates.json` set those folders and formats.
 - **Sibling notes** in the same folder: their frontmatter keys, key names, value vocabulary (`type`, `status`), and list style — or no frontmatter where they have none. Bases views filter on property values, so an invented key or value silently drops a note from a view.
+- **Let the app resolve settings when it can.** With the Obsidian CLI, `obsidian daily:path` returns today's daily-note path with the app's folder and date-format defaults applied (`daily-notes.json` omits unchanged defaults, so reading it can mislead), `daily:append content=...` writes to it, and `property:set name=<key> value=<v> type=<text|list|number|checkbox|date|datetime>` writes a property with an explicit type instead of leaving the type to inference.
 - **Existing tags.** `obsidian tags counts sort=count` lists them; otherwise search `tags:` and inline `#tags`. Tags are case-insensitive (`#AI` and `#ai` are one tag), so reuse the established form rather than adding a casing, plural, or synonym variant, and skip tags that only restate the folder or a property. A new tag earns its place when nothing fits and it will apply to more than one note; mention new tags and property keys in the reply, since they change the vault's shared vocabulary.
 
 ## Properties
@@ -62,13 +63,14 @@ A linkable paragraph. ^block-id
 
 - Block IDs: letters, numbers, and dashes only. For a list, quote, or table, put `^block-id` on its own line after the block, separated by a blank line.
 - Shortest-form wikilinks (`[[Name]]`) resolve by unique file name, so they survive a folder move but break on rename; path-form links break on either. Rename or move with `obsidian rename`/`obsidian move` (which honor the vault's "Automatically update internal links" setting), or update inbound links yourself.
+- `[[##heading]]` and `[[^^block]]` are editor search triggers that autocomplete turns into a real link. Written literally into a file, `[[^^x]]` is an unresolved link and `[[##x]]` silently becomes a link to a missing heading in the same note, which `obsidian unresolved` does not report.
 - Inside tables, escape the pipe: `[[Note\|Display]]`, `![[image.png\|200]]`.
 
 ## Embeds and Callouts
 
-Embeds are wikilinks with `!`; sizes and pages go after the target: `![[image.png|300]]` (width) or `|640x480`, `![[doc.pdf#page=3]]`, external `![alt|300](https://...)`. A fenced `query` block embeds live search results.
+Embeds are wikilinks with `!`; sizes and pages go after the target: `![[image.png|300]]` (width) or `|640x480`, `![[doc.pdf#page=3]]` (also `#height=400`), external `![alt|300](https://...)`. A fenced `query` block embeds live search results.
 
-Callouts: `> [!type] Optional title`; add `-` after the type to collapse by default or `+` to start expanded but foldable; nest with `> >`. Types (aliases): `note`, `abstract` (`summary`, `tldr`), `info`, `todo`, `tip` (`hint`, `important`), `success` (`check`, `done`), `question` (`help`, `faq`), `warning` (`caution`, `attention`), `failure` (`fail`, `missing`), `danger` (`error`), `bug`, `example`, `quote` (`cite`). Unknown types render as `note`.
+Callouts: `> [!type] Optional title`; add `-` after the type to collapse by default or `+` to start expanded but foldable; nest with `> >`. Types (aliases): `note`, `abstract` (`summary`, `tldr`), `info`, `todo`, `tip` (`hint`, `important`), `success` (`check`, `done`), `question` (`help`, `faq`), `warning` (`caution`, `attention`), `failure` (`fail`, `missing`), `danger` (`error`), `bug`, `example`, `quote` (`cite`). Unknown types render as `note`; a custom type needs a CSS snippet in `.obsidian/snippets/` targeting `.callout[data-callout="name"]` (set `--callout-color: r, g, b` and `--callout-icon: lucide-<icon>`), and the snippet does nothing until enabled (Appearance settings or `obsidian snippet:enable name=<file>`).
 
 `==highlight==`; `%%hidden comment%%`, or `%%` lines around a hidden block.
 
@@ -83,7 +85,7 @@ Callouts: `> [!type] Optional title`; add `-` after the type to collapse by defa
 
 - Frontmatter parses as YAML; wikilinks in it are quoted; list properties are lists.
 - Tags and property keys either already exist in the vault or are named in the reply as new.
-- Useful when the Obsidian CLI is available (`obsidian version` succeeds; it needs the app running and the CLI enabled under Settings → General → Advanced): `obsidian unresolved verbose` to catch broken links, and `obsidian properties file=<name>` / `obsidian tags file=<name>` to see what Obsidian actually indexed. Without it, confirm link targets exist by file name.
+- If the Obsidian CLI responds (`obsidian version`; it needs the app running and the CLI enabled under Settings → General → Advanced), check against the app: `obsidian unresolved verbose` for broken links, `obsidian properties file=<name>` and `obsidian tags file=<name>` for what Obsidian actually indexed. If it doesn't, confirm link targets exist by file name and say the note wasn't checked in-app.
 - Edits landed where intended. Notes written on mobile often contain non-breaking spaces and curly quotes, which make exact-string replacements silently miss.
 
 ## References

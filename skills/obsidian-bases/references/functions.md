@@ -144,6 +144,24 @@ When subtracting two dates, the result is a **Duration** type (not a number). Du
 | `unique()` | `list.unique(): list` | Remove duplicates |
 | `isEmpty()` | `list.isEmpty(): boolean` | No elements |
 
+## File Fields
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `file.name` | String | For notes, compares equal to the name without `.md` (observed, Obsidian 1.13.7) |
+| `file.basename` | String | Name without extension; works though the help page no longer lists it (observed, 1.13.7) |
+| `file.path` | String | Vault-relative path |
+| `file.folder` | String | Parent folder path |
+| `file.ext` | String | Extension; `file.ext == "md"` limits a base to notes |
+| `file.size` | Number | Bytes |
+| `file.ctime`, `file.mtime` | Date | Created / modified |
+| `file.tags` | List | Inline and frontmatter tags; renders with `#`, but `contains()` and `hasTag()` match with or without it |
+| `file.links` | List | Internal links, including frontmatter links |
+| `file.embeds` | List | Embeds in the note |
+| `file.backlinks` | List | Slow and not refreshed as the vault changes; prefer `file.links` from the other side |
+| `file.properties` | Object | All frontmatter; not refreshed as the vault changes |
+| `file.file` | File | File object, only for functions that take one |
+
 ## File Functions
 
 | Function | Signature | Description |
