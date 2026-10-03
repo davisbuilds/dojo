@@ -78,31 +78,20 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   retain both commissioning and direct-execution cases. Do not weaken the fixture
   or change unrelated descriptions solely to make this task's checks green.
 
-### `allowed-tools` permission patterns still hardcode a dojo-relative path
+### Remaining command permission patterns hardcode dojo-relative paths
 
-- **What**: command wrappers declare permissions as literal command prefixes —
-  `allowed-tools: [Bash(bash skills/secure-code/scripts/scan.sh:*), ...]` in
-  `secure-code/commands/scan.md` and similarly in the other wrappers that ship
-  scripts. The bodies now use `<skill-dir>/scripts/...` so the command resolves
-  in whatever repository the session is in, but the permission pattern was left
-  alone.
-- **Why or evidence**: found 2026-08-14 while fixing the runnable paths. The
-  frontmatter is a **matcher**, not an instruction the agent substitutes, so
-  rewriting it to `<skill-dir>` would not make it match — it would only stop it
-  matching in dojo too. The command an agent actually runs after substitution is
-  an absolute path under whichever root the skill was loaded from
-  (`~/.agents/skills/secure-code/scripts/scan.sh`), which the current pattern
-  does not match either. Net effect: outside dojo these commands prompt for
-  permission every time rather than being pre-approved.
-- **Now**: bodies are correct and the commands work; only the pre-approval is
-  lost. Not guessed at, because a plausible-looking permission pattern that
-  silently fails to match is worse than an honest prompt.
-- **Next**: establish what Claude Code's `allowed-tools` matcher actually
-  supports — whether a leading wildcard (`Bash(bash *secure-code/scripts/scan.sh:*)`)
-  matches an absolute path — from the vendor's own documentation or a probe,
-  rather than by pattern-guessing. Then apply it across the wrappers that ship
-  scripts, and extend `tests/test_skill_script_paths.py` to cover frontmatter.
-- **Revisit when**: doing it, or if a wrapper starts prompting unexpectedly.
+- **What**: `local-review`, `deep-research`, `repo-hardening`, and `loop-design`
+  command wrappers still declare literal `Bash(... skills/<name>/...)` prefixes.
+  Their runnable bodies use installed absolute paths, which these matchers do not
+  cover. Observed in source on 2026-10-03; effective behavior is harness-dependent.
+- **Why or evidence**: fixing the instruction path does not fix permission matcher
+  semantics. The security rewrite removed these ineffective declarations from
+  `secure-code` and `audit-skill`; those wrappers now inherit harness permissions
+  without adding a broad shell allowlist.
+- **Next**: when revising the remaining wrappers, decide whether ordinary harness
+  permissions suffice. If pre-approval adds value, verify a portable matcher with
+  vendor documentation or a real positive/negative probe before applying it.
+  Do not guess at wildcard semantics or broaden authority just to avoid prompts.
 
 ### Disable pr-review-toolkit now that its two specialists are ported
 - **What**: the two specialist lenses that were the only reason

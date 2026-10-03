@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Secure Code"
-  short_description: "Static analysis security scanning and architectural trifecta"
+  short_description: "Investigate code security using targeted static analysis, flow"
   default_prompt: "Use $secure-code for this task."

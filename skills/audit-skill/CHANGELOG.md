@@ -1,3 +1,10 @@
+## 2.0.0 - 2026-10-03
+
+- Replace weighted trust grades and automatic pass/fail with contextual skill investigation and schema-v2 static evidence (inventory, coverage, errors, indicators).
+- Make Semgrep opt-in; surface missing tools and failed/partial scans. Remove the scoring and structural-audit entry points and the trifecta detector integration.
+- Inspect fenced instructions without treating keywords as vulnerabilities; omit source excerpts from indicators and record unreadable/binary/link gaps without executing targets.
+- Repair and narrow bundled rules, remove prose autofixes and unsupported claims, and add positive/negative fixtures and orchestration regressions.
+
 ## 1.0.4 - 2026-08-14
 
 - Anchor runnable script commands to <skill-dir> so they resolve outside a dojo checkout
