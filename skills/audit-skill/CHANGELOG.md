@@ -1,5 +1,7 @@
 ## 2.0.0 - 2026-10-03
 
+- Terminate the scanner process group on audit timeout or interruption, including nested workers; add a real-process regression for the orphaned-scanner failure.
+
 - Replace weighted trust grades and automatic pass/fail with contextual skill investigation and schema-v2 static evidence (inventory, coverage, errors, indicators).
 - Make Semgrep opt-in; surface missing tools and failed/partial scans. Remove the scoring and structural-audit entry points and the trifecta detector integration.
 - Inspect fenced instructions without treating keywords as vulnerabilities; omit source excerpts from indicators and record unreadable/binary/link gaps without executing targets.

@@ -6,7 +6,7 @@ description: >-
   authority, investigating prompt injection or exfiltration in a skill, or asking
   whether a skill is safe to install. Supports /audit-skill.
 skill-type: workflow
-compatibility: "Static helper requires python3 and PyYAML. Optional --semgrep requires an installed Semgrep CLI and the sibling secure-code skill."
+compatibility: "Static helper requires python3 and PyYAML. Optional --semgrep requires POSIX process groups, an installed Semgrep CLI, and the sibling secure-code skill."
 version: 2.0.0
 ---
 
@@ -40,7 +40,9 @@ python3 <skill-dir>/scripts/audit_skill.py /path/to/candidate --json
 ```
 
 Resolve `<skill-dir>` to this installed skill's directory. Add `--semgrep` to run
-the installed scanner with bundled local rules. It does not execute candidate
+the installed scanner with bundled local rules. Its 120-second deadline covers
+the wrapper and scanner process group; timeout or interruption terminates that
+group, including scanner workers. It does not execute candidate
 scripts or install dependencies. `--quick` skips code checks; `--layer 1|2|3`
 selects frontmatter interpretation, Markdown indicators, or code indicators.
 Omissions remain visible, and these selectors do not constitute a complete audit.

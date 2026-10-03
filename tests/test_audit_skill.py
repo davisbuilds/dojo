@@ -1,6 +1,9 @@
 """Static skill evidence is not a trust certificate, and must not execute targets."""
 import importlib.util
 import json
+import os
+import signal
+import time
 from pathlib import Path
 import subprocess
 import shutil
@@ -103,7 +106,7 @@ def test_requested_scan_errors_cannot_disappear(tmp_path, monkeypatch):
     mod = module()
     monkeypatch.setattr(mod.shutil, 'which', lambda _: '/example/semgrep')
     packet = {'results': [], 'errors': [{'message': 'parse failure'}], '_scan': {'status': 'partial'}}
-    monkeypatch.setattr(mod.subprocess, 'run', lambda *a, **kw: subprocess.CompletedProcess(a, 2, json.dumps(packet), ''))
+    monkeypatch.setattr(mod, 'run_scan', lambda *a, **kw: subprocess.CompletedProcess(a, 2, json.dumps(packet), ''))
     result = mod.run_audit(str(root), semgrep=True)
     assert result['status'] == 'partial'
     assert result['coverage']['semgrep']['errors'] == packet['errors']
@@ -124,3 +127,46 @@ def test_invalid_declaration_types_stay_serializable(tmp_path, field):
     result = module().run_audit(str(root))
     json.dumps(result)
     assert any(x['category'] == 'frontmatter' for x in result['indicators'])
+
+
+def test_scan_timeout_stops_scanner_and_its_child(tmp_path, monkeypatch):
+    # Real nested processes reproduce the orphan, without running untrusted code.
+    mod = module()
+    pid_file = tmp_path / 'scanner-pids.json'
+    engine = tmp_path / 'semgrep'
+    engine.write_text(
+        '#!/usr/bin/env python3\nimport json, os, signal, subprocess, sys, time\n'
+        'from pathlib import Path\n'
+        'signal.signal(signal.SIGTERM, signal.SIG_IGN)\n'
+        'child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])\n'
+        f'Path({str(pid_file)!r}).write_text(json.dumps([os.getpid(), child.pid]))\n'
+        'time.sleep(60)\n')
+    engine.chmod(0o755)
+    monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
+    target = tmp_path / 'target.py'
+    target.write_text('pass\n')
+
+    def running(pid):
+        probe = subprocess.run(['ps', '-p', str(pid), '-o', 'stat='], capture_output=True, text=True)
+        assert probe.returncode in (0, 1), probe.stderr
+        return bool(probe.stdout.strip()) and not probe.stdout.strip().startswith('Z')
+
+    assert running(os.getpid())  # Positive control for the process detector.
+    pids = []
+    try:
+        with pytest.raises(subprocess.TimeoutExpired):
+            mod.run_scan(['bash', str(ROOT / 'skills/secure-code/scripts/scan.sh'), str(target)], timeout=1)
+        assert pid_file.exists(), 'Scanner never started; timeout did not exercise nested cleanup'
+        pids = json.loads(pid_file.read_text())
+        deadline = time.monotonic() + 2
+        while any(running(pid) for pid in pids) and time.monotonic() < deadline:
+            time.sleep(0.05)
+        assert not any(running(pid) for pid in pids), 'Scanner or its child survived the audit timeout'
+    finally:
+        if pid_file.exists():
+            pids = json.loads(pid_file.read_text())
+        for pid in pids:
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass

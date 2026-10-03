@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import signal
 import stat
 import subprocess
 import sys
@@ -100,6 +101,24 @@ def code_indicators(texts):
     return indicators
 
 
+def run_scan(command, timeout=120):
+    """Bound the wrapper and its scanner descendants as one POSIX process group."""
+    with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                          text=True, start_new_session=True) as process:
+        try:
+            stdout, stderr = process.communicate(timeout=timeout)
+        except BaseException:
+            # Killing just scan.py leaves Semgrep (and its core workers) alive.
+            # SIGKILL also handles a hung descendant that ignores SIGTERM.
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            process.communicate()
+            raise
+        return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+
+
 def run_audit(skill_path, quick=False, layers=None, semgrep=False):
     try:
         path = Path(skill_path).resolve()
@@ -156,8 +175,8 @@ def run_audit(skill_path, quick=False, layers=None, semgrep=False):
                 coverage['semgrep'] = {'status': 'empty', 'files': []}
             else:
                 try:
-                    proc = subprocess.run(['bash', str(wrapper), '--config', str(AUDIT_RULES), '--',
-                                           *[str(path / rel) for rel in code]], capture_output=True, text=True, timeout=120)
+                    proc = run_scan(['bash', str(wrapper), '--config', str(AUDIT_RULES), '--',
+                                     *[str(path / rel) for rel in code]])
                     packet = json.loads(proc.stdout)
                     evidence = packet.get('_scan', {})
                     state = evidence.get('status', 'invalid')
