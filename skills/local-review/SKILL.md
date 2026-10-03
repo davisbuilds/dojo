@@ -49,7 +49,8 @@ bash <skill-dir>/scripts/collect_review_context.sh --mode branch --base origin/m
 ```
 
 Working mode includes tracked changes relative to HEAD and untracked files;
-staged mode reads the index. Branch mode compares the selected head with its
+before the first commit it compares against the empty tree. Staged mode reads
+the index. Branch mode compares the selected head with its
 merge-base, defaulting to `origin/main` with a reported local-main fallback.
 For a specific commit, inspect its actual parent comparison with Git. Resolve
 ambiguous merge-commit targets rather than guessing which parent the user means.

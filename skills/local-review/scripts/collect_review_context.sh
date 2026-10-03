@@ -99,11 +99,16 @@ REVIEW_TARGET=""
 UNTRACKED_FILES=()
 UNTRACKED_COUNT=0
 if [[ "$MODE" == "working" ]]; then
+  WORKING_BASE="HEAD"
   REVIEW_TARGET="working tree vs HEAD"
-  NAME_STATUS_CMD=(git diff HEAD --name-status)
-  NAME_ONLY_CMD=(git diff HEAD --name-only --diff-filter=ACDMRTUXB)
-  STAT_CMD=(git diff HEAD --stat)
-  DIFF_CMD=(git diff HEAD --no-color --patch)
+  if ! ref_exists HEAD; then
+    WORKING_BASE="$(git hash-object -t tree /dev/null)"
+    REVIEW_TARGET="working tree vs empty tree (unborn HEAD)"
+  fi
+  NAME_STATUS_CMD=(git diff "$WORKING_BASE" --name-status)
+  NAME_ONLY_CMD=(git diff "$WORKING_BASE" --name-only --diff-filter=ACDMRTUXB)
+  STAT_CMD=(git diff "$WORKING_BASE" --stat)
+  DIFF_CMD=(git diff "$WORKING_BASE" --no-color --patch)
 elif [[ "$MODE" == "staged" ]]; then
   REVIEW_TARGET="staged changes vs HEAD"
   NAME_STATUS_CMD=(git diff --cached --name-status)
@@ -141,7 +146,7 @@ section "REVIEW TARGET"
 printf 'Mode: %s\n' "$MODE"
 printf 'Target: %s\n' "$REVIEW_TARGET"
 printf 'Repo: %s\n' "$(basename "$(git rev-parse --show-toplevel)")"
-printf 'Branch: %s\n' "$(git rev-parse --abbrev-ref HEAD)"
+printf 'Branch: %s\n' "$(git symbolic-ref --quiet --short HEAD || git rev-parse --short HEAD)"
 printf 'Deep: %s\n' "$([[ "$DEEP" == "1" ]] && echo true || echo false)"
 printf 'Max diff lines: %s\n' "$MAX_DIFF_LINES"
 if [[ -n "$BASE_NOTE" ]]; then
@@ -149,7 +154,7 @@ if [[ -n "$BASE_NOTE" ]]; then
 fi
 
 section "CHANGED FILES"
-"${NAME_STATUS_CMD[@]}" || true
+"${NAME_STATUS_CMD[@]}"
 if [[ "$MODE" == "working" ]]; then
   while IFS= read -r untracked_path; do
     if [[ -n "$untracked_path" ]]; then
@@ -166,12 +171,13 @@ fi
 
 CHANGED_FILES=()
 CHANGED_COUNT=0
+CHANGED_NAMES="$("${NAME_ONLY_CMD[@]}")"
 while IFS= read -r file_path; do
   if [[ -n "$file_path" ]]; then
     CHANGED_FILES+=("$file_path")
     CHANGED_COUNT=$((CHANGED_COUNT + 1))
   fi
-done < <("${NAME_ONLY_CMD[@]}" || true)
+done <<< "$CHANGED_NAMES"
 if [[ "$MODE" == "working" && "$UNTRACKED_COUNT" -gt 0 ]]; then
   CHANGED_FILES+=("${UNTRACKED_FILES[@]}")
   CHANGED_COUNT=$((CHANGED_COUNT + UNTRACKED_COUNT))
@@ -184,7 +190,7 @@ if [[ "$CHANGED_COUNT" -eq 0 ]]; then
 fi
 
 section "DIFF STAT"
-"${STAT_CMD[@]}" || true
+"${STAT_CMD[@]}"
 if [[ "$MODE" == "working" && "$UNTRACKED_COUNT" -gt 0 ]]; then
   printf '\nUntracked files: %s\n' "$UNTRACKED_COUNT"
 fi
@@ -197,7 +203,8 @@ printf '%s\n' "${CHANGED_FILES[@]}" | grep -E '(^|/)(auth|security|permission|pe
 
 section "DIFF"
 DIFF_TMP="$(mktemp)"
-"${DIFF_CMD[@]}" > "$DIFF_TMP" || true
+trap 'rm -f "$DIFF_TMP"' EXIT
+"${DIFF_CMD[@]}" > "$DIFF_TMP"
 if [[ "$MODE" == "working" && "$UNTRACKED_COUNT" -gt 0 ]]; then
   for untracked_path in "${UNTRACKED_FILES[@]}"; do
     if [[ -f "$untracked_path" ]]; then

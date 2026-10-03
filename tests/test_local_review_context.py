@@ -65,3 +65,20 @@ def test_branch_deletion_uses_merge_base_and_ignores_working_files(tmp_path):
     output = collect(repo, 'branch')
     assert '-original' in output
     assert 'untracked_working_value' not in output
+
+
+def test_unborn_head_reviews_initial_index_and_working_contents(tmp_path):
+    git(tmp_path, 'init', '-b', 'main')
+    assert 'No changes detected' in collect(tmp_path, 'working')
+    (tmp_path / 'initial.txt').write_text('initial_staged_value\n')
+    git(tmp_path, 'add', 'initial.txt')
+    assert '+initial_staged_value' in collect(tmp_path, 'working')
+    (tmp_path / 'initial.txt').write_text('initial_working_value\n')
+    (tmp_path / 'untracked.txt').write_text('initial_untracked_value\n')
+    working = collect(tmp_path, 'working')
+    assert '+initial_working_value' in working
+    assert '+initial_untracked_value' in working
+    staged = collect(tmp_path, 'staged')
+    assert '+initial_staged_value' in staged
+    assert 'initial_working_value' not in staged
+    assert 'initial_untracked_value' not in staged

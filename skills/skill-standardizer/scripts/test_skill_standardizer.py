@@ -185,6 +185,18 @@ def test_invalid_entries_do_not_emit_missing_actions() -> None:
 
 
 def test_review_lenses_consolidate_into_existing_local_review() -> None:
+    check_review_lens_consolidation("all")
+
+
+def test_review_lenses_consolidate_without_local_review() -> None:
+    check_review_lens_consolidation("none")
+
+
+def test_review_lenses_consolidate_with_only_primary_local_review() -> None:
+    check_review_lens_consolidation("primary")
+
+
+def check_review_lens_consolidation(existing_roots: str) -> None:
     original_cwd = Path.cwd()
     env_names = ["AGENTS_HOME", "CODEX_HOME", "CLAUDE_HOME"]
     original_env = {name: os.environ.get(name) for name in env_names}
@@ -197,8 +209,9 @@ def test_review_lenses_consolidate_into_existing_local_review() -> None:
             roots = [base / name / "skills" for name in [".agents", ".codex", ".claude"]]
             for env_name, root in zip(env_names, roots):
                 os.environ[env_name] = str(root.parent)
-                existing = write_skill(root, "local-review")
-                (existing / "SKILL.md").write_text((existing / "SKILL.md").read_text().replace("1.0.0", "0.9.0"))
+                if existing_roots == "all" or (existing_roots == "primary" and root == roots[0]):
+                    existing = write_skill(root, "local-review")
+                    (existing / "SKILL.md").write_text((existing / "SKILL.md").read_text().replace("1.0.0", "0.9.0"))
                 for old_name in ["error-handling-review", "type-design-review"]:
                     old = write_skill(root, old_name)
                     (old / "local-note.md").write_text(old_name)
@@ -220,6 +233,10 @@ def test_review_lenses_consolidate_into_existing_local_review() -> None:
             for _ in range(2):
                 result = apply_actions(audit(), apply=True, backup_root=str(backup_root))
                 assert_true(not result["errors"], f"migration failed: {result}")
+                for root in roots:
+                    assert_true((root / "local-review" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "replacement missing or stale after apply")
+                    for old_name in ["error-handling-review", "type-design-review"]:
+                        assert_true(not (root / old_name).exists(), "old lens survived a successful apply")
             for root in roots:
                 assert_true((root / "local-review" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "replacement differs from canonical")
                 for old_name in ["error-handling-review", "type-design-review"]:
@@ -1138,6 +1155,8 @@ def test_a_failed_apply_does_not_prune_backup_history() -> None:
 
 def main() -> int:
     tests = [
+        test_review_lenses_consolidate_without_local_review,
+        test_review_lenses_consolidate_with_only_primary_local_review,
         test_review_lenses_consolidate_into_existing_local_review,
         test_agent_native_rename_migrates_existing_installations,
         test_invalid_entries_do_not_emit_missing_actions,

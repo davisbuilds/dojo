@@ -1074,7 +1074,14 @@ def build_audit_report(
         else:
             key = ("write", str(action["dest"]))
         if key in seen_keys:
-            continue
+            if action["action"] != "replace_deprecated_skill":
+                continue
+            # One replacement write may serve several deprecated names. Keep
+            # each source's cleanup even when its destination write is shared.
+            action = {**action, "action": "remove_deprecated_skill"}
+            key = ("remove_deprecated_skill", str(action["deprecated_dest"]))
+            if key in seen_keys:
+                continue
         seen_keys.add(key)
         deduped_actions.append(action)
 
@@ -1237,7 +1244,7 @@ def _action_priority(action: dict[str, Any]) -> tuple[int, str]:
     if action_type == "replace_deprecated_skill" and not action.get("link"):
         return (1, str(action["dest"]))
     if action_type == "remove_deprecated_skill":
-        return (2, str(action["deprecated_dest"]))
+        return (5, str(action["deprecated_dest"]))  # after replacement copies/links
     if action_type == "relink_to_global":
         return (3, str(action["dest"]))
     if action_type == "replace_deprecated_skill" and action.get("link"):
