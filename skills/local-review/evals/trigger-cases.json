@@ -1,0 +1,70 @@
+{
+  "description": "Lexical routing probes for the consolidated review entrypoint; not behavioral performance evidence.",
+  "cases": [
+    {
+      "id": "general-review",
+      "type": "implicit",
+      "prompt": "Review this branch diff for actionable bugs.",
+      "expected": {
+        "trigger": [
+          "local-review"
+        ],
+        "avoid": [
+          "api-design"
+        ]
+      }
+    },
+    {
+      "id": "failure-review",
+      "type": "implicit",
+      "prompt": "Review error handling in this diff for swallowed errors, fallbacks and silent retry failures.",
+      "expected": {
+        "trigger": [
+          "local-review"
+        ],
+        "avoid": [
+          "secure-code"
+        ]
+      }
+    },
+    {
+      "id": "type-review",
+      "type": "implicit",
+      "prompt": "Review the types and invariants changed in this commit for reachable invalid states.",
+      "expected": {
+        "trigger": [
+          "local-review"
+        ],
+        "avoid": [
+          "api-design"
+        ]
+      }
+    },
+    {
+      "id": "api-design",
+      "type": "implicit",
+      "prompt": "Design the HTTP API request and response schema, status codes and pagination.",
+      "expected": {
+        "trigger": [
+          "api-design"
+        ],
+        "avoid": [
+          "local-review"
+        ]
+      }
+    },
+    {
+      "id": "security-scan",
+      "type": "implicit",
+      "prompt": "Run a semgrep security scan for vulnerabilities.",
+      "expected": {
+        "trigger": [
+          "secure-code"
+        ],
+        "avoid": [
+          "local-review"
+        ]
+      }
+    }
+  ]
+}

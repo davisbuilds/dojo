@@ -1,3 +1,8 @@
+## 1.3.5 - 2026-10-02
+
+- Migrate both retired specialist review names to local-review with backups; cover consolidation when the replacement is already installed.
+- Preserve every deprecated-name cleanup when multiple aliases share one replacement write; migrate both review lenses in one apply even when local-review is absent.
+
 ## 1.3.4 - 2026-10-02
 
 - Register `agent-native-architecture` → `agent-native-design` so existing installs migrate with backups, including when either name is selected.

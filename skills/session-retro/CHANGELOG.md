@@ -1,3 +1,7 @@
+## 2.0.1 - 2026-10-02
+
+- Keep shipped behavior out of Roadmap; route selected direction and consumer release history to their owning documents.
+
 ## 2.0.0 - 2026-09-22
 
 - Preserve durable knowledge with scoped, already-authorized edits; remove approval repetition, quotas, and mandatory menus.

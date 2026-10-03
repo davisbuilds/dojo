@@ -2,7 +2,7 @@
 name: skill-standardizer
 description: Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.
 skill-type: workflow
-version: 1.3.4
+version: 1.3.5
 ---
 
 # Skill Standardizer
@@ -64,6 +64,8 @@ Preferred global precedence:
 Deprecated skill names can be mapped to canonical replacements.
 
 Current built-in mapping:
+- `error-handling-review` -> `local-review`
+- `type-design-review` -> `local-review`
 - `agent-native-architecture` -> `agent-native-design`
 - `json-canvas` -> `obsidian-canvas`
 - `imagegen` -> `gpt-imagen`

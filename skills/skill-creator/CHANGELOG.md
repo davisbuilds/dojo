@@ -1,3 +1,7 @@
+## 2.0.1 - 2026-10-02
+
+- Align description guidance with the required body scope anchor instead of telling authors to omit it.
+
 ## 2.0.0 - 2026-09-18
 
 - Design for capable agents and revisitable marginal value; scope authoring stages and packaging to the request, with consumer-driven output examples.

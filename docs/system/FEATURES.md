@@ -15,9 +15,7 @@ jq '.skills | length' skills.json
 | Skill | Purpose |
 |-------|---------|
 | `diagnose` | Evidence-backed investigation, with repair and regression verification when authorized |
-| `local-review` | Findings-first local reviews on workspace diffs |
-| `error-handling-review` | Specialist lens for silent failures — empty/over-broad catch blocks, log-and-swallow, unjustified fallbacks, silent retry exhaustion |
-| `type-design-review` | Specialist lens rating a new/changed type's encapsulation and invariants; flags illegal states left representable |
+| `local-review` | Actionable defect review with optional error-handling and type-invariant lenses |
 
 ### Content Creation and Design
 
