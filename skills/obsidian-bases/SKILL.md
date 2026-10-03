@@ -46,7 +46,7 @@ views:
 ## What Usually Goes Wrong
 
 - **No filter means the whole vault.** There is no `from`; an unfiltered base includes every file, attachments included. Scope with `file.inFolder()`, `file.hasTag()`, a property test, and `file.ext == "md"` when only notes should appear.
-- **Filter on the vault's real values.** Read a few target notes first. Property names and values must match the frontmatter exactly (`type == "book"` misses notes typed `Book` or `books`), and tags are tested with `file.hasTag("x")`, not `tags == "x"`.
+- **Filter on the vault's real values.** Property names and values must match the frontmatter exactly (`type == "book"` misses notes typed `Book` or `books`), and tags are tested with `file.hasTag("x")`, not `tags == "x"`.
 - **Property namespaces.** Bare names are note properties (`author` = `note.author`); `file.*` is file metadata; formulas are referenced as `formula.name`. Display names never work in expressions.
 - **Quoting.** Expressions are YAML strings: wrap in single quotes when they contain double-quoted literals (`'status == "done"'`). Text literals need their own quotes.
 - **Date math.** `today()`/`now()` plus or minus a duration string works (`file.mtime > now() - "7d"`; units `y M w d h m s`). Subtracting two dates gives a Duration, which supports neither `.round()` nor division into days; read a numeric field first: `(date(due) - today()).days.round()`. Scale durations explicitly with the duration on the left: `duration("1d") * 2`.
@@ -67,12 +67,11 @@ Full function catalog by type (global, string, number, date, duration fields, li
 
 - Not for `.md` note syntax (`obsidian-markdown`) or `.canvas` files (`obsidian-canvas`)
 - Not for Dataview or other query plugins; Bases has its own expression language
-- Don't reference properties or values the vault doesn't have; invent nothing to make a filter "work"
 
 ## Verification
 
 - The file parses as YAML, and every `formula.x` in `order`, `properties`, and `summaries` is defined.
-- With the Obsidian CLI available (probe `obsidian version`): `obsidian base:query path=<file.base> view="<name>" format=json` runs the real evaluator. Check the row set is what was intended, and search the output for `Error:` — formula errors come back as cell values, not as a failed command.
+- Useful when the Obsidian CLI is available (`obsidian version` succeeds): `obsidian base:query path=<file.base> view="<name>" format=json` runs the real evaluator. Formula errors come back as `Error: ...` cell values rather than a failed command, so a clean exit alone doesn't mean the base works.
 - Without the CLI, spot-check filters by reading the frontmatter of a note that should match and one that shouldn't.
 
 ## References

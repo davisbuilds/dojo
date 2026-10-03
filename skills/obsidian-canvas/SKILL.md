@@ -45,11 +45,11 @@ Colors: presets `"1"`–`"6"` (red, orange, yellow, green, cyan, purple — apps
 
 ## Pitfalls
 
-- **Newlines in `text`:** a real JSON escape `\n`, never `\\n`, which renders as literal backslash-n. Generate the file with a JSON serializer rather than string concatenation and this takes care of itself.
-- **IDs:** unique across nodes *and* edges; Obsidian uses 16 lowercase hex characters. Every `fromNode`/`toNode` must name an existing node.
+- **Newlines in `text`:** a real JSON escape `\n`, never `\\n`, which renders as literal backslash-n. Writing the file with a JSON serializer rather than string concatenation avoids this.
+- **IDs:** any string unique across nodes *and* edges; Obsidian itself generates 16 lowercase hex characters. Every `fromNode`/`toNode` must name an existing node.
 - **Group membership is geometric.** There is no parent field; a node belongs to a group when its rectangle lies inside the group's. Size groups to enclose their children with 20–50 px padding.
 - **File nodes** use the vault-relative path with extension (`Folder/Note.md`), not a wikilink. Renaming the note outside Obsidian breaks the node.
-- **Layout:** leave 50–100 px between nodes, snap to multiples of 10 or 20, and size text nodes to their content (roughly 300–450 px wide for a short paragraph) so text isn't clipped.
+- **Text nodes don't auto-size**, so content that overflows is clipped; size them to their text (roughly 300–450 px wide for a short paragraph). Readable defaults otherwise: 50–100 px between nodes, coordinates on a 10 or 20 px grid.
 
 ## Boundaries
 
