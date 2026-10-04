@@ -179,7 +179,7 @@ python3 <skill-dir>/scripts/sync.py \
   --apply
 ```
 
-`--skill` is repeatable. In selected-skill mode, audits and sync plans hide unrelated invalid directories and unrelated canonical skills. Deprecated aliases remain in scope when either the alias or replacement is selected.
+`--skill` is repeatable. In selected-skill mode, audits and sync plans hide unrelated invalid directories and unrelated canonical skills. Deprecated aliases remain in scope when the replacement or any alias that resolves to it is selected.
 
 ## Intersection Mode
 

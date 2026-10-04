@@ -396,12 +396,19 @@ def build_audit_report(
     actions: list[dict[str, Any]] = []
     invalid_by_root: dict[Path, set[str]] = {}
 
+    def resolve_replacement(name: str) -> str:
+        seen = {name}
+        while name in DEPRECATED_SKILL_REPLACEMENTS:
+            name = DEPRECATED_SKILL_REPLACEMENTS[name]
+            if name in seen:
+                break
+            seen.add(name)
+        return name
+
     def skills_are_related(selected: str, discovered: str) -> bool:
-        if selected == discovered:
-            return True
-        if DEPRECATED_SKILL_REPLACEMENTS.get(discovered) == selected:
-            return True
-        return DEPRECATED_SKILL_REPLACEMENTS.get(selected) == discovered
+        # One unit: a replacement and every deprecated name that resolves to it,
+        # so selecting any alias keeps its sibling aliases in scope.
+        return resolve_replacement(selected) == resolve_replacement(discovered)
 
     def skill_in_scope(skill: str | None) -> bool:
         if not selected_skills or skill is None:

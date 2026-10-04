@@ -254,6 +254,13 @@ def check_review_lens_consolidation(existing_roots: str) -> None:
 
 
 def test_obsidian_format_skills_consolidate_into_obsidian() -> None:
+    # Selecting the replacement or any one deprecated alias must keep every
+    # alias that resolves to the same replacement in scope.
+    for selection in [{"obsidian"}, {"obsidian-canvas"}, {"json-canvas"}]:
+        check_obsidian_consolidation(selection)
+
+
+def check_obsidian_consolidation(selection: set[str]) -> None:
     original_cwd = Path.cwd()
     env_names = ["AGENTS_HOME", "CODEX_HOME", "CLAUDE_HOME"]
     original_env = {name: os.environ.get(name) for name in env_names}
@@ -278,12 +285,12 @@ def test_obsidian_format_skills_consolidate_into_obsidian() -> None:
                     local_policy="prefer-global-link", global_policy="prefer-primary-link",
                     keep_local_skills=set(), enforce_mirror=False,
                     codex_agents_dedupe=True, only_existing=True,
-                    selected_skills={"obsidian"},
+                    selected_skills=selection,
                 )
 
             report = audit()
             migrations = [a for a in report["actions"] if a["action"] in {"replace_deprecated_skill", "remove_deprecated_skill"}]
-            assert_true(len(migrations) == len(old_names) * len(roots), f"every old Obsidian skill must migrate in every root: {migrations}")
+            assert_true(len(migrations) == len(old_names) * len(roots), f"every old Obsidian skill must migrate in every root for selection {selection}: {migrations}")
             backup_root = base / "backups"
             for _ in range(2):
                 result = apply_actions(audit(), apply=True, backup_root=str(backup_root))
@@ -291,7 +298,7 @@ def test_obsidian_format_skills_consolidate_into_obsidian() -> None:
             for root in roots:
                 assert_true((root / "obsidian" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "consolidated skill missing or differs from canonical")
                 for old_name in old_names:
-                    assert_true(not (root / old_name).exists(), f"{old_name} survived consolidation")
+                    assert_true(not (root / old_name).exists(), f"{old_name} survived consolidation for selection {selection}")
             assert_true(len(list(backup_root.rglob("local-note.md"))) == len(old_names) * len(roots), "old installations were not backed up")
             assert_true(not audit()["actions"], "consolidation did not converge")
             os.chdir(original_cwd)
