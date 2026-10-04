@@ -1,20 +1,9 @@
 #!/usr/bin/env python3
-"""Layer 2: Instruction audit for agent skills — prompt injection,
-encoding tricks, exfiltration, and overreach detection."""
+"""Lexical indicators for contextual investigation, including quoted examples."""
 
 import re
-import sys
 import math
 from pathlib import Path
-from typing import Callable
-
-# --- Code block stripping ---
-
-
-def strip_code_blocks(text: str) -> str:
-    """Remove fenced code blocks to avoid false positives on documented patterns."""
-    return re.sub(r"```[\s\S]*?```", "", text)
-
 
 # --- Pattern categories ---
 
@@ -79,7 +68,7 @@ EXFILTRATION_PATTERNS = [
     # Send/post/upload near URL patterns
     (r"\b(send|post|upload|exfiltrate)\s+(to|data)\b.*https?://", "exfiltration-url"),
     (r"https?://.*\b(send|post|upload|exfiltrate)\b", "exfiltration-url"),
-    # curl/wget/fetch in prose (outside code blocks, caught after stripping)
+    # curl/wget/fetch in prose or code examples
     (r"\bcurl\b.*https?://", "exfiltration-command"),
     (r"\bwget\b.*https?://", "exfiltration-command"),
     (r"\bfetch\(\s*['\"]https?://", "exfiltration-command"),
@@ -109,65 +98,31 @@ OVERREACH_PATTERNS = [
 ]
 
 
-def collect_markdown_files(skill_path: Path) -> list[tuple[Path, str]]:
-    """Gather all markdown files to audit: SKILL.md, commands/*.md, references/*.md."""
-    files = []
-    skill_md = skill_path / "SKILL.md"
-    if skill_md.exists():
-        files.append(skill_md)
-
-    for subdir in ("commands", "references"):
-        d = skill_path / subdir
-        if d.exists():
-            files.extend(sorted(d.rglob("*.md")))
-
-    result = []
-    for f in files:
-        try:
-            content = f.read_text(encoding="utf-8", errors="replace")
-            result.append((f, content))
-        except OSError:
-            pass
-    return result
-
-
 def _scan_patterns(
     text: str,
     patterns: list[tuple[str, str]],
-    finding_prefix: str,
-    severity: str,
     category: str,
     file_rel: str,
-    line_filter: Callable[[str], bool] | None = None,
 ) -> list[dict]:
-    """Scan stripped text against a pattern list, returning findings."""
+    """Scan source text against a pattern list, returning findings."""
     findings = []
     lines = text.split("\n")
     seen = set()
 
     for pattern, subcategory in patterns:
-        try:
-            regex = re.compile(pattern, re.IGNORECASE)
-        except re.error:
-            continue
+        regex = re.compile(pattern, re.IGNORECASE)
         for i, line in enumerate(lines, 1):
             if regex.search(line):
-                if line_filter and not line_filter(line):
-                    continue
                 key = (file_rel, i, subcategory)
                 if key in seen:
                     continue
                 seen.add(key)
                 findings.append(
                     {
-                        "id": finding_prefix,
-                        "severity": severity,
-                        "layer": 2,
                         "category": category,
-                        "message": f"{subcategory}: {line.strip()[:120]}",
+                        "message": f"Pattern: {subcategory}; inspect source context.",
                         "file": file_rel,
                         "line": i,
-                        "remediation": f"Review and remove or justify this {category} pattern.",
                     }
                 )
     return findings
@@ -223,27 +178,20 @@ def _base64_findings(skill_path: Path, files: list[tuple[Path, str]]) -> list[di
 
                 entropy = _shannon_entropy(blob)
                 if has_decode_hint:
-                    sev = "HIGH"
                     mode = "decode-context"
                 elif ("+" in blob or "=" in blob) and len(blob) >= 80 and entropy >= 2.4:
-                    sev = "HIGH"
                     mode = "high-entropy"
                 elif len(blob) >= 140 and entropy >= 3.0:
-                    sev = "LOW"
                     mode = "ambiguous"
                 else:
                     continue
 
                 findings.append(
                     {
-                        "id": "INSTR-010",
-                        "severity": sev,
-                        "layer": 2,
                         "category": "encoding-trick",
-                        "message": f"base64-blob ({mode}): {line.strip()[:120]}",
+                        "message": f"Possible base64 blob ({mode}); inspect source context.",
                         "file": rel,
                         "line": i,
-                        "remediation": "Review and remove or justify this encoding-trick pattern.",
                     }
                 )
     return findings
@@ -255,14 +203,12 @@ def prompt_injection_scan(
     """Scan for prompt injection patterns in markdown files."""
     findings = []
     for fpath, content in files:
-        stripped = strip_code_blocks(content)
+        # Fences do not neutralize instructions; preserve source locations.
         rel = str(fpath.relative_to(skill_path))
         findings.extend(
             _scan_patterns(
-                stripped,
+                content,
                 PROMPT_INJECTION_PATTERNS,
-                "INSTR-001",
-                "CRITICAL",
                 "prompt-injection",
                 rel,
             )
@@ -280,8 +226,6 @@ def encoding_scan(skill_path: Path, files: list[tuple[Path, str]]) -> list[dict]
             _scan_patterns(
                 content,  # Don't strip code blocks — encoding tricks can hide anywhere
                 ENCODING_PATTERNS,
-                "INSTR-010",
-                "HIGH",
                 "encoding-trick",
                 rel,
             )
@@ -295,14 +239,12 @@ def exfiltration_scan(
     """Scan for data exfiltration patterns."""
     findings = []
     for fpath, content in files:
-        stripped = strip_code_blocks(content)
+        # Fences do not neutralize instructions; preserve source locations.
         rel = str(fpath.relative_to(skill_path))
         findings.extend(
             _scan_patterns(
-                stripped,
+                content,
                 EXFILTRATION_PATTERNS,
-                "INSTR-020",
-                "HIGH",
                 "exfiltration",
                 rel,
             )
@@ -314,17 +256,15 @@ def overreach_scan(skill_path: Path, files: list[tuple[Path, str]]) -> list[dict
     """Scan for overreach patterns — config modification, sensitive paths."""
     findings = []
     for fpath, content in files:
-        stripped = strip_code_blocks(content)
+        # Fences do not neutralize instructions; preserve source locations.
         rel = str(fpath.relative_to(skill_path))
         file_findings = _scan_patterns(
-            stripped,
+            content,
             OVERREACH_PATTERNS,
-            "INSTR-030",
-            "HIGH",
             "overreach",
             rel,
         )
-        lines = stripped.split("\n")
+        lines = content.split("\n")
         for f in file_findings:
             ln = f.get("line")
             if not ln or ln < 1 or ln > len(lines):
@@ -333,34 +273,7 @@ def overreach_scan(skill_path: Path, files: list[tuple[Path, str]]) -> list[dict
 
             line_text = lines[ln - 1]
             if PROTECTIVE_GUIDANCE_RE.search(line_text):
-                f["severity"] = "LOW"
                 f["category"] = "overreach-protective-guidance"
-                f["message"] = f"protective-guidance mention: {line_text.strip()[:120]}"
-                f["remediation"] = (
-                    "Informational guidance only. Ensure wording remains prohibitive and not actionable bypass instructions."
-                )
+                f["message"] = "Protective-guidance mention; inspect source context."
             findings.append(f)
     return findings
-
-
-def run_instruction_audit(skill_path: str) -> list[dict]:
-    """Run all instruction-level checks and return findings."""
-    path = Path(skill_path)
-    files = collect_markdown_files(path)
-    findings = []
-    findings.extend(prompt_injection_scan(path, files))
-    findings.extend(encoding_scan(path, files))
-    findings.extend(exfiltration_scan(path, files))
-    findings.extend(overreach_scan(path, files))
-    return findings
-
-
-if __name__ == "__main__":
-    import json
-
-    if len(sys.argv) != 2:
-        print("Usage: instruction_audit.py <skill-directory>", file=sys.stderr)
-        sys.exit(1)
-    results = run_instruction_audit(sys.argv[1])
-    json.dump(results, sys.stdout, indent=2)
-    print()

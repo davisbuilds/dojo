@@ -8,7 +8,7 @@ description: >-
   and mixed-stack repos. On-demand via /repo-audit and /repo-harden.
 skill-type: workflow
 compatibility: "Requires python3. Uses only Python standard library. Writes artifacts into the target repo under .repo-hardening by default."
-version: 1.0.2
+version: 1.0.3
 ---
 
 # Repo Hardening
@@ -144,5 +144,5 @@ When updating the repo-local artifacts:
 
 Two security skills, distinguished by *scope*.
 
-- `secure-code` — semgrep-based static scan of *application code* for vulnerabilities (injection, auth, secrets). This skill is broader (supply-chain, CI/CD, repo posture); pair them on high-stakes audits.
+- `secure-code` — investigate application vulnerabilities and agent authority boundaries, using targeted scan evidence where useful. Consult for a concrete security question; repository posture work does not automatically require a second audit.
 - `audit-skill` — security audit specifically for *agent skills* (prompt injection, exfiltration). Different artifact; use that one before installing third-party skills.
