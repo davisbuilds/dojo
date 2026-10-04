@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Obsidian"
+  short_description: "Work in an Obsidian vault — notes with wikilinks, properties"
+  default_prompt: "Use $obsidian for this task."

@@ -70,7 +70,7 @@ SC02_ANCHORS = {
     "engineering": {"create-cli", "secure-code"},
     "research": {"deep-research", "research-architect"},
     "design": {"design-critique", "web-design-guidelines"},
-    "knowledge": {"obsidian-markdown", "session-retro"},
+    "knowledge": {"obsidian", "session-retro"},
     "shipping": {"vercel-deploy", "vercel-preview-logs"},
     "skill-authoring": {"skill-creator", "skill-standardizer"},
 }

@@ -1,3 +1,8 @@
+## 1.3.6 - 2026-10-03
+
+- Map obsidian-markdown, obsidian-bases, obsidian-canvas, and json-canvas to the consolidated obsidian skill.
+- Selected mode treats every deprecated name that resolves to the same replacement as one unit, so selecting one alias keeps its sibling aliases' cleanup in scope.
+
 ## 1.3.5 - 2026-10-02
 
 - Migrate both retired specialist review names to local-review with backups; cover consolidation when the replacement is already installed.

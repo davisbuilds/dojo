@@ -1,0 +1,35 @@
+{
+  "description": "Lexical routing probes for the consolidated Obsidian entrypoint; not behavioral performance evidence.",
+  "cases": [
+    {
+      "id": "vault-note",
+      "type": "implicit",
+      "prompt": "Add frontmatter properties and tags to this Obsidian note and link it to two related notes with wikilinks.",
+      "expected": {"trigger": ["obsidian"], "avoid": ["session-retro"]}
+    },
+    {
+      "id": "bases-view",
+      "type": "implicit",
+      "prompt": "Build an Obsidian Bases view that filters book notes by rating and groups them by author.",
+      "expected": {"trigger": ["obsidian"], "avoid": ["dataviz"]}
+    },
+    {
+      "id": "canvas-map",
+      "type": "implicit",
+      "prompt": "Create an Obsidian canvas that lays out these project notes as connected nodes.",
+      "expected": {"trigger": ["obsidian"], "avoid": ["frontend-design"]}
+    },
+    {
+      "id": "cli-backlinks",
+      "type": "implicit",
+      "prompt": "Use the obsidian CLI to list unresolved links and backlinks for this note.",
+      "expected": {"trigger": ["obsidian"], "avoid": ["create-cli"]}
+    },
+    {
+      "id": "plain-readme",
+      "type": "negative",
+      "prompt": "Tighten the wording in this repository's README and fix the table formatting.",
+      "expected": {"trigger": [], "avoid": ["obsidian"]}
+    }
+  ]
+}

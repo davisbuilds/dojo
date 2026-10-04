@@ -56,7 +56,10 @@ This reference defines default policy for `skill-standardizer`.
 - `error-handling-review` -> `local-review`
 - `type-design-review` -> `local-review`
 - `agent-native-architecture` -> `agent-native-design`
-- `json-canvas` -> `obsidian-canvas`
+- `json-canvas` -> `obsidian`
+- `obsidian-markdown` -> `obsidian`
+- `obsidian-bases` -> `obsidian`
+- `obsidian-canvas` -> `obsidian`
 - `imagegen` -> `gpt-imagen`
 
 Treat the canonical replacement as the source of truth for future audits and sync operations.
@@ -69,7 +72,7 @@ When enabled, canonical sync only targets skills already present in the destinat
 
 Use `--skill <name>` to restrict audit and sync planning to one skill; repeat the flag for a small set. This is the right mode when a newly authored canonical skill should be installed into global harness roots without widening the global catalog to every canonical skill.
 
-Selected mode still treats deprecated aliases and replacements as one unit. For example, selecting `obsidian-canvas` also keeps `json-canvas` cleanup in scope.
+Selected mode still treats a replacement and every deprecated name that resolves to it as one unit. For example, selecting `obsidian`, `obsidian-canvas`, or `json-canvas` keeps cleanup of all four former Obsidian names in scope.
 
 Combine `--skill` with `--enforce-mirror` to install a selected canonical skill into globals. Combine it with `--only-existing` when the selected skill should only be repaired where it already exists.
 

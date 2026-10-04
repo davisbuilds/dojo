@@ -5,8 +5,8 @@ description: >-
   Preserve durable project learnings and write vault notes where later readers
   can find them. `handoff` remains outside this overlay: it transfers active task
   state to a fresh agent rather than maintaining durable reference knowledge.
-  `obsidian-bases` and `obsidian-canvas` remain excluded as alternate vault file
-  formats. The retired compound-docs workflow is no longer distributed.
+  `obsidian` covers vault notes, Bases, Canvas, and the Obsidian CLI (SC-02
+  revision 18). The retired compound-docs workflow is no longer distributed.
 members:
-  - obsidian-markdown  # SC-02 anchor: vault note format
+  - obsidian           # SC-02 anchor: vault notes and the Obsidian app
   - session-retro      # SC-02 anchor: durable learnings in canonical project docs

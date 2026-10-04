@@ -46,10 +46,10 @@ def claude_1m():
     return load_policy(POLICIES / "claude-code-1m.yaml")
 
 
-def codex_listing(name="codex-prompt-input-dojo-2026-08-02.json", cwd=REPO_ROOT):
+def codex_listing(name="codex-prompt-input-dojo-2026-08-02.json", cwd=REPO_ROOT, skills_root=SKILLS):
     payload = json.loads((FIXTURES / name).read_text())
     listing = probe_codex.parse_block(probe_codex.extract_block(payload))
-    return probe_codex.classify(listing, SKILLS, None, cwd)
+    return probe_codex.classify(listing, skills_root, None, cwd)
 
 
 # --------------------------------------------------------------------------
@@ -106,7 +106,6 @@ def test_computed_demand_agrees_with_the_probes_own_figure(codex_policy, tmp_pat
     characters for the five skills using a folded YAML scalar, four of which are
     overlay members. The gap was 190 tokens and pointed straight at it.
     """
-    listing = codex_listing()
     # Pair the dated capture with independently recovered source frontmatter
     # from the commit that introduced it, not today's evolving skill catalog.
     # Deriving this input from listing text would hide truncation/parser bugs.
@@ -119,6 +118,9 @@ def test_computed_demand_agrees_with_the_probes_own_figure(codex_policy, tmp_pat
         target = source_root / name / "SKILL.md"
         target.parent.mkdir(parents=True)
         target.write_text(frontmatter)
+    # Origins are classified against that same dated catalog: classifying
+    # against today's would relabel since-retired or renamed skills as foreign.
+    listing = codex_listing(skills_root=source_root)
     assert set(snapshot["frontmatters"]) == {
         entry.name for entry in listing.entries if entry.origin == "dojo-managed"
     }
