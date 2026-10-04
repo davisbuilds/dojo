@@ -111,45 +111,6 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   already covered by `local-review`'s optional error-handling and type-invariant
   references; no additional routing workflow is needed.
 
-### Harness adapters can still promote the whole catalog to project scope
-- **What**: `scripts/gen_harness_adapters.py` links `.claude/skills -> ../skills`,
-  making every cataloged skill project-scope in whatever directory holds the
-  adapter. Nothing prevents a refresh from restoring that link, and nothing
-  reports the cost when it does.
-- **Why or evidence (re-measured 2026-08-03; three earlier figures here were
-  wrong and are recorded below because the pattern is the finding)**:
-  - Codex-facing `.agents` was dropped from `HARNESS_DIRS` in PR #54, which took
-    a dojo-rooted Codex session from **177% of budget with 94 truncated
-    descriptions to 76% with none**. The generator now also retires a
-    pre-existing link, so the fix reaches machines that ran the old version.
-  - `.claude/skills` **survives and is still a live cause**: a dojo-rooted Claude
-    Code session lists 75 skills against 45 in an ordinary one. At the 1M window
-    the operator actually uses that is 58% of 40,000 characters — inside the
-    ceiling. At 200k it is 2.91×.
-  - `.agent/skills` is read by **neither** harness. It is dead output.
-- **Superseded claims, kept so the corrections are not re-made**: the original
-  "3.4× the ~1% budget" does not reproduce (2.07× ordinary, 2.91× in dojo); the
-  "~1% budget" is no longer unverified but a confirmed vendor constant
-  (`skillListingBudgetFraction` = 0.01); "31 of 32 entries shadowed" was
-  corrected in 2026-07-29 when project scope turned out not to be inherited by
-  subdirectories; and every token figure predating 2026-08-02 charged the whole
-  instructions block rather than only the skill lines, overstating by ~2 points.
-- **Next**: the profile-aware generator fix (Task 13 of
-  `docs/plans/2026-07-31-distribution-profiles-plan.md`) is **no longer planned** —
-  Phase 2 (Tasks 11–16) was descoped when the profiles program closed at Phase-1
-  measurement scope (spec revision 16, 2026-08-15). The
-  behavior is intact: `gen_harness_adapters.py` still links
-  `.claude/skills -> ../skills` (whole-catalog project promotion) and
-  `.agent/skills -> ../skills` (dead output — read by neither harness). Two
-  independent, much smaller fixes remain if pursued: drop `.agent` from
-  `HARNESS_DIRS` to delete the dead link, and gate or remove the wholesale
-  `.claude/skills` link. The measurement half (`scripts/profiles/`) already ships,
-  so any fix is the refusal, not the arithmetic.
-- **Revisit when**: a `.claude/skills` link is observed degrading a 200k-window
-  session — the only configuration where this currently costs anything; the
-  operator's 1M-window sessions stay inside budget. The `.agent/skills`
-  dead-output cleanup can be done anytime as standalone hygiene.
-
 ### dojo has 47 script entrypoints and no front door for the human-run ones
 - **What**: repo-level tooling a person invokes is reachable only by full path
   through `.venv/bin/python`. The sharpest case is the Task 0 probes: `codex debug

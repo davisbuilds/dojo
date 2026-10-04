@@ -1,0 +1,15 @@
+{
+  "_comment": "Project additions for authoring and auditing skills. General skills remain in the user global catalog; other canonical sources can be read on demand.",
+  "roots": [
+    ".agents/skills",
+    ".claude/skills"
+  ],
+  "linked": [
+    "audit-skill",
+    "skill-evals"
+  ],
+  "retired_roots": [
+    ".agent/skills",
+    ".codex/skills"
+  ]
+}

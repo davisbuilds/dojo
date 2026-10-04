@@ -9,12 +9,9 @@ exec python3 "$0" "$@"
 
 Two artifact kinds, all derived from the canonical `skills/<name>/SKILL.md`:
 
-1. Dir-level relative symlinks so SKILL.md-native harnesses discover every skill:
-       .claude/skills  -> ../skills
-       .agent/skills   -> ../skills
-
-   `.agents/skills` is deliberately not created -- Codex reads it as project
-   scope and would list the whole catalog a second time. See HARNESS_DIRS.
+1. Selected project skills from config/project-skills.json, exposed as
+   per-skill links in .agents/skills and .claude/skills. The full source catalog
+   remains readable without being promoted into every session.
 
 2. A colocated Codex interface sidecar per skill:
        skills/<name>/agents/openai.yaml
@@ -29,50 +26,23 @@ Usage:
 """
 
 import argparse
+import json
 import os
 import sys
 from pathlib import Path
 
 import yaml
 
-# `.agents` is deliberately absent. Codex reads `<repo>/.agents/skills` as
-# project scope and does NOT shadow by name across roots, so linking the whole
-# canonical catalog there listed every skill twice -- once from the global
-# install and once from this repo. Measured 2026-08-01 with
-# `codex debug prompt-input`: 90 entries against 41, and 80 of them truncated
-# mid-word because the listing blew past Codex's 5,440-token budget. Codex does
-# not mark truncation, so the routing signal degraded invisibly in the one repo
-# where skills are authored.
-#
-# `.claude` stays, and the reason is a real asymmetry rather than an absence of
-# evidence: **Claude Code shadows by name across scopes and Codex does not.** So
-# the same link buys different things. For Codex it added 33 duplicate entries --
-# pure waste. For Claude Code it adds the ~30 canonical skills not installed
-# globally, which is genuine capability while authoring here. That capability is
-# not free: measured 2026-08-01, a dojo-rooted Claude session lists 75 skills /
-# 23,824 chars against an 8,000-char budget at a 200k context window (the budget
-# is ctx_tokens x 4 x skillListingBudgetFraction, default 0.01, from the v2.1.220
-# bundle). Over budget, Claude Code drops lower-priority descriptions *entirely*,
-# rendering a bare `- skill-name`. At a 1M window the same listing fits with no
-# warning, so the exposure is confined to 200k-context models. This is exactly
-# what a distribution profile should govern; until then the trade is deliberate.
-#
-# `.agent` stays because no harness we have measured reads it, so it costs nothing.
-HARNESS_DIRS = (".claude", ".agent")
-
-# Paths this generator used to create and now actively retires. These are
-# gitignored, so pulling the commit that dropped `.agents` does NOT remove an
-# existing link -- a developer checkout would keep double-listing forever.
-# Only our exact managed symlink is removed; a real directory or a foreign
-# link is left alone and reported.
-LEGACY_HARNESS_DIRS = (".agents",)
-SYMLINK_TARGET = "../skills"
+# Project selection is owned here; workspace deployment tools can reference this
+# declaration directly. It is independent of the measurement-only profiles/ data.
+SELECTION_PATH = "config/project-skills.json"
+SYMLINK_TARGET = "../skills"  # exact legacy root link we may safely retire
 MARKER = "# AUTO-GENERATED from SKILL.md frontmatter — do not edit"
 
-# Claude Code reads slash commands from .claude/commands/. Each skill's
+# Claude Code reads slash commands from .claude/commands/. Selected skills'
 # commands/<rel>.md is linked to .claude/commands/<rel>.md, preserving nested
 # layout (workflows/brainstorm.md -> /workflows:brainstorm). Local-only and
-# gitignored, like the .claude/skills symlink.
+# gitignored, like the per-skill links in .claude/skills.
 COMMANDS_LINK_DIR = ".claude/commands"
 
 
@@ -136,38 +106,63 @@ def is_generated(path: Path) -> bool:
     return path.exists() and path.read_text(encoding="utf-8").startswith(MARKER)
 
 
-def symlink_ok(link: Path) -> bool:
-    return link.is_symlink() and os.readlink(link) == SYMLINK_TARGET
+def load_selection(repo_root: Path, skills_root: Path) -> dict:
+    selection = json.loads((repo_root / SELECTION_PATH).read_text())
+    if not isinstance(selection, dict):
+        raise ValueError("selection must be an object")
+    if selection.get("roots") != [".agents/skills", ".claude/skills"]:
+        raise ValueError("project roots must be .agents/skills and .claude/skills")
+    names = selection.get("linked")
+    if not isinstance(names, list) or any(
+        not isinstance(name, str) or not name or Path(name).name != name
+        or name.startswith(".") or not (skills_root / name / "SKILL.md").is_file()
+        for name in names
+    ) or len(names) != len(set(names)):
+        raise ValueError("linked must contain unique canonical skill names")
+    if selection.get("retired_roots", []) != [".agent/skills", ".codex/skills"]:
+        raise ValueError("retired_roots must name .agent/skills and .codex/skills")
+    return selection
 
 
-def ensure_symlink(link: Path, write: bool) -> tuple[bool, str | None]:
-    """Ensure ``link`` is a relative symlink to ``../skills``.
-
-    Returns (ok, error). Never recursively deletes a real (non-symlink)
-    directory: a populated local harness dir may hold untracked skills or
-    config, so refuse and ask the developer to move it instead.
-    """
-    if symlink_ok(link):
-        return True, None
-    if not write:
-        return False, None  # drift, reported by --check
-
-    if link.is_symlink():
-        link.unlink()  # wrong/broken symlink: safe to replace
-    elif link.exists():
-        if link.is_dir():
-            if any(link.iterdir()):
-                return False, (
-                    f"{link} is a non-empty real directory; refusing to delete it. "
-                    f"Move or remove it, then re-run to create the symlink."
-                )
-            link.rmdir()  # empty real dir: safe to replace
+def ensure_selected_skills(root: Path, skills_root: Path, names: list[str], write: bool) -> tuple[list[str], list[str]]:
+    drift, errors = [], []
+    if root.is_symlink():
+        if os.readlink(root) != SYMLINK_TARGET:
+            return [], [f"{root} is a foreign symlink; leaving it alone"]
+        if not write:
+            return [f"{root} is a retired whole-catalog link"], []
+        root.unlink()
+    elif root.exists() and not root.is_dir():
+        return [], [f"{root} is a real file; leaving it alone"]
+    if write:
+        root.mkdir(parents=True, exist_ok=True)
+    if root.is_dir():
+        for entry in root.iterdir():
+            if entry.name in names:
+                continue
+            if entry.is_symlink() and _symlink_target_abs(entry).parent == skills_root:
+                if write:
+                    entry.unlink()
+                else:
+                    drift.append(f"{entry} is no longer selected")
+            else:
+                errors.append(f"{entry} is unexpected local content; leaving it alone")
+    for name in names:
+        link, source = root / name, skills_root / name
+        target = os.path.relpath(source, root)
+        if link.is_symlink() and os.readlink(link) == target:
+            continue
+        if link.exists() or link.is_symlink():
+            if not link.is_symlink() or _symlink_target_abs(link).parent != skills_root:
+                errors.append(f"{link} is not a managed skill link; leaving it alone")
+                continue
+            if write:
+                link.unlink()
+        if write:
+            link.symlink_to(target)
         else:
-            return False, f"{link} is a real file; refusing to replace it."
-
-    link.parent.mkdir(parents=True, exist_ok=True)
-    os.symlink(SYMLINK_TARGET, link)
-    return True, None
+            drift.append(f"{link} missing or wrong target")
+    return drift, errors
 
 
 def retire_legacy_symlink(link: Path, write: bool) -> tuple[bool, str | None]:
@@ -188,8 +183,7 @@ def retire_legacy_symlink(link: Path, write: bool) -> tuple[bool, str | None]:
         if any(link.iterdir()):
             return False, (
                 f"{link} is a non-empty real directory; refusing to delete it. "
-                f"It may hold your own skills. Remove it by hand if you want Codex "
-                f"to stop listing the catalog twice."
+                f"It may hold your own skills. Move it aside before retiring this root."
             )
         # An empty real dir contributes no skills, so it is harmless -- but it is
         # also what an interrupted migration leaves behind. Clear it when writing.
@@ -208,7 +202,7 @@ def retire_legacy_symlink(link: Path, write: bool) -> tuple[bool, str | None]:
     return False, None
 
 
-def plan_command_links(skills_root: Path, commands_root: Path) -> tuple[dict[Path, Path], list[str]]:
+def plan_command_links(skills_root: Path, commands_root: Path, selected: list[str]) -> tuple[dict[Path, Path], list[str]]:
     """Map each desired .claude/commands link to its source command file.
 
     Returns (desired, collisions). A collision is two skills whose command files
@@ -219,7 +213,7 @@ def plan_command_links(skills_root: Path, commands_root: Path) -> tuple[dict[Pat
     collisions: list[str] = []
     for cmd in sorted(skills_root.glob("*/commands/**/*.md")):
         parts = cmd.relative_to(skills_root).parts  # (skill, "commands", *rel)
-        if len(parts) < 3 or parts[1] != "commands":
+        if len(parts) < 3 or parts[1] != "commands" or parts[0] not in selected:
             continue
         link = commands_root.joinpath(*parts[2:])
         if link in seen:
@@ -328,23 +322,25 @@ def main() -> int:
     errors: list[str] = []
     wrote: list[str] = []
 
-    # 1. Dir-level symlinks (local-only; gitignored)
-    if not args.skip_symlinks:
-        for harness in HARNESS_DIRS:
-            link = repo_root / harness / "skills"
-            ok, error = ensure_symlink(link, write)
-            if error:
-                errors.append(error)
-            elif not ok:
-                drift.append(f"{harness}/skills should be a symlink -> {SYMLINK_TARGET}")
+    # Validate selection even in CI sidecar-only mode.
+    try:
+        selection = load_selection(repo_root, skills_root)
+    except (OSError, ValueError, TypeError) as exc:
+        print(f"Invalid project skill selection: {exc}", file=sys.stderr)
+        return 1
 
-        for harness in LEGACY_HARNESS_DIRS:
-            link = repo_root / harness / "skills"
-            stale, error = retire_legacy_symlink(link, write)
+    if not args.skip_symlinks:
+        for root_rel in selection["roots"]:
+            missing, refused = ensure_selected_skills(
+                repo_root / root_rel, skills_root, selection["linked"], write)
+            drift.extend(missing)
+            errors.extend(refused)
+        for root_rel in selection["retired_roots"]:
+            stale, error = retire_legacy_symlink(repo_root / root_rel, write)
             if error:
                 errors.append(error)
             elif stale:
-                drift.append(f"{harness}/skills is a retired catalog link and should be removed")
+                drift.append(f"{root_rel} is a retired catalog link and should be removed")
 
     # 2. Codex sidecars
     for skill_md in sorted(skills_root.glob("*/SKILL.md")):
@@ -369,7 +365,7 @@ def main() -> int:
     # 3. Command wrappers -> .claude/commands (local-only, like the skills symlink)
     if not args.skip_symlinks:
         commands_root = repo_root / COMMANDS_LINK_DIR
-        desired, collisions = plan_command_links(skills_root, commands_root)
+        desired, collisions = plan_command_links(skills_root, commands_root, selection["linked"])
         for c in collisions:
             errors.append(f"command collision (rename one to disambiguate): {c}")
         for link, source in sorted(desired.items()):
@@ -401,7 +397,7 @@ def main() -> int:
         print("Harness adapters are up to date.")
         return 0
 
-    print(f"Symlinks ensured for {', '.join(HARNESS_DIRS)}; sidecars written: {len(wrote)}")
+    print(f"Symlinks ensured for {', '.join(selection['roots'])}; sidecars written: {len(wrote)}")
     return 0
 
 
