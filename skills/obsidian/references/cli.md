@@ -10,7 +10,7 @@ Behavior below was observed on Obsidian 1.13.7 (macOS). Commands differ by versi
 - The app does the work. Per the docs, if it isn't running, the first command launches it.
 - Probe with `obsidian version`. A disabled CLI prints `Command line interface is not enabled…` rather than failing.
 - On macOS, registration links `/usr/local/bin/obsidian` to the bundled native client `obsidian-cli` (an admin prompt). Older registrations instead left a `# Added by Obsidian` PATH entry in `~/.zprofile` pointing at the app's `MacOS` folder, where `obsidian` is the Electron entry point: it works, but starts several times slower than `obsidian-cli`. The docs say that entry can be deleted.
-- Don't install, register, or reconfigure Obsidian on the user's behalf; report what's missing.
+- Install, register, or reconfigure Obsidian only when requested or already authorized. Otherwise, report what's missing and continue with file-based work where sufficient.
 
 ## Calling It
 

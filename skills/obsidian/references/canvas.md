@@ -1,5 +1,7 @@
 # Canvas (.canvas)
 
+This reference covers JSON Canvas files. For Mermaid or other diagram-as-code embedded in notes, use the note conventions in `markdown.md` and the diagram format's own syntax.
+
 `.canvas` files are [JSON Canvas 1.0](https://jsoncanvas.org/spec/1.0/): one object with `nodes` and `edges` arrays. Array order is z-order (first = bottom), so list groups before the nodes they contain. There is no CLI support for canvases; write the JSON directly.
 
 ## Format

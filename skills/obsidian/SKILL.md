@@ -41,7 +41,6 @@ The Obsidian CLI (`obsidian` / `obsidian-cli`) reaches the running app: resolved
 
 - Not for Markdown that will never live in Obsidian, or for plugin configuration JSON under `.obsidian/plugins/`
 - Not for Dataview or Templater syntax unless the vault already uses that plugin or the user asks
-- Not for Mermaid or other diagram-as-code formats; canvases are JSON Canvas files
 - Deleting, running `eval`, or changing plugins, themes, or sync through the CLI needs explicit user intent
 
 ## Verification
