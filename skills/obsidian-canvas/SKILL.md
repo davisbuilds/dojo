@@ -59,7 +59,7 @@ Colors: presets `"1"`–`"6"` (red, orange, yellow, green, cyan, purple — apps
 
 ## Verification
 
-- The file parses as JSON with only `nodes` and `edges` at the top level.
+- The file parses as JSON; validate the core `nodes` and `edges` fields when present. Preserve unrecognized fields, including top-level plugin metadata, when editing an existing canvas.
 - IDs are unique across nodes and edges; every edge endpoint exists.
 - Each node has its type's required fields; enum values (`type`, sides, ends, `backgroundStyle`) are from the lists above.
 - Every `file` node path exists in the vault, and children sit inside their group's bounds.
