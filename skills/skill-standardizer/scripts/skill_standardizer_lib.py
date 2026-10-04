@@ -31,7 +31,10 @@ DEPRECATED_SKILL_REPLACEMENTS = {
     "error-handling-review": "local-review",
     "type-design-review": "local-review",
     "agent-native-architecture": "agent-native-design",
-    "json-canvas": "obsidian-canvas",
+    "json-canvas": "obsidian",
+    "obsidian-markdown": "obsidian",
+    "obsidian-bases": "obsidian",
+    "obsidian-canvas": "obsidian",
     "imagegen": "gpt-imagen",
 }
 

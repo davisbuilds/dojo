@@ -253,6 +253,57 @@ def check_review_lens_consolidation(existing_roots: str) -> None:
                 os.environ[name] = value
 
 
+def test_obsidian_format_skills_consolidate_into_obsidian() -> None:
+    original_cwd = Path.cwd()
+    env_names = ["AGENTS_HOME", "CODEX_HOME", "CLAUDE_HOME"]
+    original_env = {name: os.environ.get(name) for name in env_names}
+    old_names = ["obsidian-markdown", "obsidian-bases", "obsidian-canvas", "json-canvas"]
+    try:
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            repo = base / "repo"
+            canonical = repo / "skills"
+            source = write_skill(canonical, "obsidian")
+            roots = [base / name / "skills" for name in [".agents", ".codex", ".claude"]]
+            for env_name, root in zip(env_names, roots):
+                os.environ[env_name] = str(root.parent)
+                for old_name in old_names:
+                    old = write_skill(root, old_name)
+                    (old / "local-note.md").write_text(old_name)
+            os.chdir(repo)
+
+            def audit():
+                return build_audit_report(
+                    context=resolve_context(str(canonical), [], False),
+                    local_policy="prefer-global-link", global_policy="prefer-primary-link",
+                    keep_local_skills=set(), enforce_mirror=False,
+                    codex_agents_dedupe=True, only_existing=True,
+                    selected_skills={"obsidian"},
+                )
+
+            report = audit()
+            migrations = [a for a in report["actions"] if a["action"] in {"replace_deprecated_skill", "remove_deprecated_skill"}]
+            assert_true(len(migrations) == len(old_names) * len(roots), f"every old Obsidian skill must migrate in every root: {migrations}")
+            backup_root = base / "backups"
+            for _ in range(2):
+                result = apply_actions(audit(), apply=True, backup_root=str(backup_root))
+                assert_true(not result["errors"], f"migration failed: {result}")
+            for root in roots:
+                assert_true((root / "obsidian" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "consolidated skill missing or differs from canonical")
+                for old_name in old_names:
+                    assert_true(not (root / old_name).exists(), f"{old_name} survived consolidation")
+            assert_true(len(list(backup_root.rglob("local-note.md"))) == len(old_names) * len(roots), "old installations were not backed up")
+            assert_true(not audit()["actions"], "consolidation did not converge")
+            os.chdir(original_cwd)
+    finally:
+        os.chdir(original_cwd)
+        for name, value in original_env.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
+
+
 def test_agent_native_rename_migrates_existing_installations() -> None:
     original_cwd = Path.cwd()
     env_names = ["AGENTS_HOME", "CODEX_HOME", "CLAUDE_HOME"]
@@ -317,7 +368,7 @@ def test_deprecated_replacement_uses_real_source() -> None:
         skills = repo / "skills"
         skills.mkdir(parents=True)
         (repo / "AGENTS.md").write_text("x", encoding="utf-8")
-        write_skill(skills, "obsidian-canvas")
+        write_skill(skills, "obsidian")
 
         agents_home = base / ".agents"
         codex_home = base / ".codex"
@@ -346,7 +397,7 @@ def test_deprecated_replacement_uses_real_source() -> None:
         replacement = replacements[0]
         assert_true(replacement.get("link") is False, f"replacement should copy from canonical source: {replacement}")
         assert_true(
-            replacement["source"].endswith("/repo/skills/obsidian-canvas"),
+            replacement["source"].endswith("/repo/skills/obsidian"),
             f"replacement should use canonical source when primary mirror is missing: {replacement}",
         )
 
@@ -1158,6 +1209,7 @@ def main() -> int:
         test_review_lenses_consolidate_without_local_review,
         test_review_lenses_consolidate_with_only_primary_local_review,
         test_review_lenses_consolidate_into_existing_local_review,
+        test_obsidian_format_skills_consolidate_into_obsidian,
         test_agent_native_rename_migrates_existing_installations,
         test_invalid_entries_do_not_emit_missing_actions,
         test_underscore_dirs_are_not_invalid_in_full_scan,

@@ -56,7 +56,10 @@ This reference defines default policy for `skill-standardizer`.
 - `error-handling-review` -> `local-review`
 - `type-design-review` -> `local-review`
 - `agent-native-architecture` -> `agent-native-design`
-- `json-canvas` -> `obsidian-canvas`
+- `json-canvas` -> `obsidian`
+- `obsidian-markdown` -> `obsidian`
+- `obsidian-bases` -> `obsidian`
+- `obsidian-canvas` -> `obsidian`
 - `imagegen` -> `gpt-imagen`
 
 Treat the canonical replacement as the source of truth for future audits and sync operations.

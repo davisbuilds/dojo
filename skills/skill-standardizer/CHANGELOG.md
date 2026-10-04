@@ -1,3 +1,7 @@
+## 1.3.6 - 2026-10-03
+
+- Map obsidian-markdown, obsidian-bases, obsidian-canvas, and json-canvas to the consolidated obsidian skill.
+
 ## 1.3.5 - 2026-10-02
 
 - Migrate both retired specialist review names to local-review with backups; cover consolidation when the replacement is already installed.
