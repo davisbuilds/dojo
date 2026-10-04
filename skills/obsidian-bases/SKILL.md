@@ -2,263 +2,83 @@
 name: obsidian-bases
 description: Create and edit Obsidian Bases (.base files) with database-style views, filters, formulas, and summaries. Use when working with .base files, building table/card/dashboard views over a vault, or when the user mentions Bases, filters, or formulas in Obsidian.
 skill-type: reference
-version: 1.0.0
+version: 2.0.0
 ---
 
-# Obsidian Bases Skill
+# Obsidian Bases
 
-Obsidian Bases are YAML-based `.base` files that define dynamic views of notes in an Obsidian vault. A Base file can contain multiple views, global filters, formulas, property configurations, and custom summaries.
-
-## Complete Schema
-
-```yaml
-# Global filters apply to ALL views in the base
-filters:
-  and: []    # All conditions must be true
-  or: []     # Any condition can be true
-  not: []    # Exclude matching items
-  # Can also be a single filter string: 'status == "done"'
-
-# Define formula properties (computed values)
-formulas:
-  formula_name: 'expression'
-
-# Configure display names for properties
-properties:
-  property_name:
-    displayName: "Display Name"
-  formula.formula_name:
-    displayName: "Formula Display Name"
-
-# Define custom summary formulas
-summaries:
-  custom_summary_name: 'values.mean().round(3)'
-
-# Define one or more views
-views:
-  - type: table | cards | list | map
-    name: "View Name"
-    limit: 10                    # Optional: limit results
-    groupBy:                     # Optional: group results
-      property: property_name
-      direction: ASC | DESC
-    filters:                     # View-specific filters (same syntax as global)
-      and: []
-    order:                       # Properties to display in order
-      - file.name
-      - property_name
-      - formula.formula_name
-    summaries:                   # Map properties to summary formulas
-      property_name: Average
-```
-
-## Filter Syntax
-
-```yaml
-# Single filter
-filters: 'status == "done"'
-
-# AND / OR / NOT
-filters:
-  and:
-    - 'status == "done"'
-    - 'priority > 3'
-
-# Nested filters
-filters:
-  or:
-    - file.hasTag("tag")
-    - and:
-        - file.hasTag("book")
-        - file.hasLink("Textbook")
-    - not:
-        - file.hasTag("archived")
-```
-
-### Filter Operators
-
-| Operator | Description |
-|----------|-------------|
-| `==` | equals |
-| `!=` | not equal |
-| `>`, `<`, `>=`, `<=` | comparisons |
-| `&&` | logical and |
-| `\|\|` | logical or |
-| `!` | logical not |
-
-## Properties
-
-Three types of properties:
-1. **Note properties** - From frontmatter: `author` or `note.author`
-2. **File properties** - File metadata: `file.name`, `file.mtime`, etc.
-3. **Formula properties** - Computed values: `formula.my_formula`
-
-### File Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `file.name` | String | File name |
-| `file.basename` | String | Name without extension |
-| `file.path` | String | Full path |
-| `file.folder` | String | Parent folder |
-| `file.ext` | String | Extension |
-| `file.size` | Number | Size in bytes |
-| `file.ctime` | Date | Created time |
-| `file.mtime` | Date | Modified time |
-| `file.tags` | List | All tags |
-| `file.links` | List | Internal links |
-| `file.backlinks` | List | Files linking to this |
-| `file.embeds` | List | Embeds in note |
-| `file.properties` | Object | All frontmatter |
-
-### The `this` Keyword
-
-- In main content area: refers to the base file itself
-- When embedded: refers to the embedding file
-- In sidebar: refers to the active file in main content
-
-## Formulas
-
-```yaml
-formulas:
-  total: "price * quantity"
-  status_icon: 'if(done, "✅", "⏳")'
-  formatted_price: 'if(price, price.toFixed(2) + " dollars")'
-  created: 'file.ctime.format("YYYY-MM-DD")'
-  days_old: '(now() - file.ctime).days'
-  days_until_due: 'if(due_date, (date(due_date) - today()).days, "")'
-```
-
-For the complete function catalog (global, string, number, list, date, duration, file, link, object, regex functions), see `references/functions.md`.
-
-## Default Summary Formulas
-
-| Name | Input | Description |
-|------|-------|-------------|
-| `Average`, `Min`, `Max`, `Sum`, `Range`, `Median`, `Stddev` | Number | Numeric aggregations |
-| `Earliest`, `Latest`, `Range` | Date | Date aggregations |
-| `Checked`, `Unchecked` | Boolean | Boolean counts |
-| `Empty`, `Filled`, `Unique` | Any | General counts |
-
-## Complete Example: Task Tracker
-
-```yaml
-filters:
-  and:
-    - file.hasTag("task")
-    - 'file.ext == "md"'
-
-formulas:
-  days_until_due: 'if(due, (date(due) - today()).days, "")'
-  is_overdue: 'if(due, date(due) < today() && status != "done", false)'
-  priority_label: 'if(priority == 1, "🔴 High", if(priority == 2, "🟡 Medium", "🟢 Low"))'
-
-properties:
-  status:
-    displayName: Status
-  formula.days_until_due:
-    displayName: "Days Until Due"
-  formula.priority_label:
-    displayName: Priority
-
-views:
-  - type: table
-    name: "Active Tasks"
-    filters:
-      and:
-        - 'status != "done"'
-    order:
-      - file.name
-      - status
-      - formula.priority_label
-      - due
-      - formula.days_until_due
-    groupBy:
-      property: status
-      direction: ASC
-    summaries:
-      formula.days_until_due: Average
-
-  - type: table
-    name: "Completed"
-    filters:
-      and:
-        - 'status == "done"'
-    order:
-      - file.name
-      - completed_date
-```
-
-## Common Filter Patterns
-
-```yaml
-# By tag
-filters:
-  and:
-    - file.hasTag("project")
-
-# By folder
-filters:
-  and:
-    - file.inFolder("Notes")
-
-# By date range (last 7 days)
-filters:
-  and:
-    - 'file.mtime > now() - "7d"'
-
-# By property value
-filters:
-  and:
-    - 'status == "active"'
-    - 'priority >= 3'
-```
-
-## Embedding Bases
-
-```markdown
-![[MyBase.base]]
-![[MyBase.base#View Name]]
-```
-
-## YAML Quoting Rules
-
-- Use single quotes for formulas containing double quotes: `'if(done, "Yes", "No")'`
-- Use double quotes for simple strings: `"My View Name"`
+A `.base` file is YAML defining filters, formulas, property display config, and one or more views over vault files. The same YAML can be embedded in a note as a ```` ```base ```` code block. Bases is a core plugin; Dataview syntax does not apply.
 
 ## When To Use
 
-- Creating or editing `.base` files for Obsidian vaults
-- Building table, cards, list, or map views over vault notes
-- Writing filters, formulas, or summaries for Bases
-- User mentions Obsidian Bases, database views, or `.base` file syntax
+- Creating or editing `.base` files or `base` code blocks
+- Writing Bases filters, formulas, or summaries
+- Debugging a base that shows the wrong rows, empty columns, or `Error:` cells
+
+## Schema
+
+```yaml
+filters:                 # global; ANDed with each view's filters
+  and:
+    - file.inFolder("Library")
+    - 'type == "book"'
+formulas:
+  age_days: '(now() - file.ctime).days.round()'
+  label: 'if(rating >= 4, "★ " + file.name, file.name)'
+properties:              # display config only; not used by filters or formulas
+  formula.age_days:
+    displayName: "Age (days)"
+summaries:               # custom summary formulas; `values` is the column's list
+  mean2: 'values.mean().round(2)'
+views:
+  - type: table          # table | cards | list | map, plus plugin/newer types
+    name: "By author"
+    filters: 'status != "abandoned"'
+    groupBy:
+      property: author
+      direction: ASC
+    order: [file.name, author, formula.age_days]
+    summaries:
+      formula.age_days: Average
+    limit: 50
+```
+
+## What Usually Goes Wrong
+
+- **No filter means the whole vault.** There is no `from`; an unfiltered base includes every file, attachments included. Scope with `file.inFolder()`, `file.hasTag()`, a property test, and `file.ext == "md"` when only notes should appear.
+- **Filter on the vault's real values.** Property names and values must match the frontmatter exactly (`type == "book"` misses notes typed `Book` or `books`), and tags are tested with `file.hasTag("x")`, not `tags == "x"`.
+- **Property namespaces.** Bare names are note properties (`author` = `note.author`); `file.*` is file metadata (fields table in `references/functions.md`); formulas are referenced as `formula.name`. Display names never work in expressions. For a note, `file.name` compares equal to the name without `.md`.
+- **Quoting.** Expressions are YAML strings: wrap in single quotes when they contain double-quoted literals (`'status == "done"'`). Text literals need their own quotes.
+- **Date math.** `today()`/`now()` plus or minus a duration string works (`file.mtime > now() - "7d"`; units `y M w d h m s`). Subtracting two dates gives a Duration, which supports neither `.round()` nor division into days; read a numeric field first: `(date(due) - today()).days.round()`. Scale durations explicitly with the duration on the left: `duration("1d") * 2`.
+- **Links.** Wikilinks in frontmatter are Link objects: compare with `author == this` or `list.contains(link("Name"))`, not string equality.
+- **`this`** is the base file when opened directly, the embedding note when embedded, and the active note when shown in a sidebar.
+- **Expensive or stale fields.** `file.backlinks` and `file.properties` are slow and don't refresh as the vault changes; prefer `file.links` from the other side, or named properties.
+- **View types.** Copy a `type` string from a view created in the UI rather than guessing one; newer types (such as Kanban) require newer Obsidian versions.
+
+Default summary names: `Average`, `Min`, `Max`, `Sum`, `Range`, `Median`, `Stddev` (numbers); `Earliest`, `Latest`, `Range` (dates); `Checked`, `Unchecked` (booleans); `Empty`, `Filled`, `Unique` (any).
+
+Full function catalog by type (global, string, number, date, duration fields, list, link, file fields and functions, object, regex): `references/functions.md`.
+
+## Embedding
+
+`![[Books.base]]` or `![[Books.base#View name]]` in a note.
 
 ## Boundaries
 
-- Not for editing standard Obsidian Markdown (use obsidian-markdown skill instead)
-- Not for Dataview plugin queries; Bases uses its own YAML schema
-- Skip when the user needs a community plugin that is not Bases (e.g., Kanban, Calendar)
-- Do not generate Base files that reference plugins or properties the vault does not have
-
-## Output
-
-- A valid `.base` YAML file or YAML code block ready to paste into Obsidian
-- Includes views, filters, formulas, properties, and summaries as needed
-- Uses correct quoting rules (single quotes for expressions containing double quotes)
+- Not for `.md` note syntax (`obsidian-markdown`) or `.canvas` files (`obsidian-canvas`)
+- Not for Dataview or other query plugins; Bases has its own expression language
 
 ## Verification
 
-- Output is valid YAML that Obsidian Bases can parse without errors
-- All referenced properties, formulas, and summary names are internally consistent
-- Filter expressions use only documented operators and functions
-- Duration arithmetic accesses numeric fields (`.days`, `.hours`) before applying `.round()`
+- The file parses as YAML, and every `formula.x` in `order`, `properties`, and `summaries` is defined.
+- If the Obsidian CLI responds (`obsidian version`), run the real evaluator: `obsidian base:query path=<file.base> view="<name>" format=json` (or `format=paths` for just the row set). Valid YAML doesn't mean the base evaluates: formula errors come back as `Error: ...` cell values, not a failed command, so search the output for them.
+- If it doesn't, spot-check filters against the frontmatter of a note that should match and one that shouldn't, and say the base wasn't evaluated in-app.
 
 ## References
 
-- [Bases Syntax](https://help.obsidian.md/bases/syntax)
-- [Functions](https://help.obsidian.md/bases/functions)
-- [Views](https://help.obsidian.md/bases/views)
-- [Formulas](https://help.obsidian.md/formulas)
+- [Bases syntax](https://help.obsidian.md/bases/syntax), [Functions](https://help.obsidian.md/bases/functions), [Views](https://help.obsidian.md/bases/views)
+- Date-subtraction behavior above was verified against Obsidian 1.13.7; the official syntax page still describes it as returning milliseconds.
+- Adapted from [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) (MIT).
 
 ## Sibling skills
 

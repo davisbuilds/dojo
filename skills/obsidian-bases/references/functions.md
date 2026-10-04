@@ -10,6 +10,7 @@ Complete function catalog for Bases formulas. Load on demand when writing formul
 | `duration()` | `duration(string): duration` | Parse duration string |
 | `now()` | `now(): date` | Current date and time |
 | `today()` | `today(): date` | Current date (time = 00:00:00) |
+| `random()` | `random(): number` | Random number in [0, 1); re-rolls whenever a view loads |
 | `if()` | `if(condition, trueResult, falseResult?)` | Conditional |
 | `min()` | `min(n1, n2, ...): number` | Smallest number |
 | `max()` | `max(n1, n2, ...): number` | Largest number |
@@ -142,6 +143,24 @@ When subtracting two dates, the result is a **Duration** type (not a number). Du
 | `sort()` | `list.sort(): list` | Sort ascending |
 | `unique()` | `list.unique(): list` | Remove duplicates |
 | `isEmpty()` | `list.isEmpty(): boolean` | No elements |
+
+## File Fields
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `file.name` | String | For notes, compares equal to the name without `.md` (observed, Obsidian 1.13.7) |
+| `file.basename` | String | Name without extension; works though the help page no longer lists it (observed, 1.13.7) |
+| `file.path` | String | Vault-relative path |
+| `file.folder` | String | Parent folder path |
+| `file.ext` | String | Extension; `file.ext == "md"` limits a base to notes |
+| `file.size` | Number | Bytes |
+| `file.ctime`, `file.mtime` | Date | Created / modified |
+| `file.tags` | List | Inline and frontmatter tags; renders with `#`, but `contains()` and `hasTag()` match with or without it |
+| `file.links` | List | Internal links, including frontmatter links |
+| `file.embeds` | List | Embeds in the note |
+| `file.backlinks` | List | Slow and not refreshed as the vault changes; prefer `file.links` from the other side |
+| `file.properties` | Object | All frontmatter; not refreshed as the vault changes |
+| `file.file` | File | File object, only for functions that take one |
 
 ## File Functions
 

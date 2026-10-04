@@ -2,288 +2,98 @@
 name: obsidian-markdown
 description: Create and edit Obsidian Flavored Markdown with wikilinks, embeds, callouts, properties, and other Obsidian-specific syntax. Use when working with .md files in Obsidian, or when the user mentions wikilinks, callouts, frontmatter, tags, embeds, or Obsidian notes.
 skill-type: reference
-version: 1.0.0
+version: 2.0.0
 ---
 
-# Obsidian Flavored Markdown Skill
+# Obsidian Flavored Markdown
 
-Obsidian extends CommonMark / GitHub Flavored Markdown with wikilinks, embeds, callouts, comments, and specialized properties. This skill covers only the Obsidian-specific extensions — standard Markdown syntax (headings, lists, bold/italic, code blocks, tables, footnotes, blockquotes, horizontal rules, HTML) is assumed knowledge.
+Obsidian-specific syntax plus what it takes for a note to fit an existing vault. CommonMark/GFM is assumed knowledge. Vault files are plain Markdown, YAML, and JSON: read and edit them directly. When Obsidian is running with its CLI enabled, the CLI adds what only the app knows — resolved links, indexed tags and properties, applied setting defaults, link-updating renames.
 
-## Internal Links (Wikilinks)
-
-### Basic Links
-
-```markdown
-[[Note Name]]
-[[Note Name|Display Text]]
-```
-
-### Link to Headings
-
-```markdown
-[[Note Name#Heading]]
-[[Note Name#Heading|Custom Text]]
-[[#Heading in same note]]
-[[##Search all headings in vault]]
-```
-
-### Link to Blocks
-
-```markdown
-[[Note Name#^block-id]]
-[[Note Name#^block-id|Custom Text]]
-```
-
-Define a block ID by adding `^block-id` at the end of a paragraph:
-```markdown
-This is a paragraph that can be linked to. ^my-block-id
-```
-
-For lists and quotes, add the block ID on a separate line:
-```markdown
-> This is a quote
-> With multiple lines
-
-^quote-id
-```
-
-### Search Links
-
-```markdown
-[[##heading]]     Search for headings containing "heading"
-[[^^block]]       Search for blocks containing "block"
-```
-
-## Embeds
-
-### Embed Notes
-
-```markdown
-![[Note Name]]
-![[Note Name#Heading]]
-![[Note Name#^block-id]]
-```
-
-### Embed Images
-
-```markdown
-![[image.png]]
-![[image.png|640x480]]    Width x Height
-![[image.png|300]]        Width only (maintains aspect ratio)
-```
-
-### External Images
-
-```markdown
-![Alt text](https://example.com/image.png)
-![Alt text|300](https://example.com/image.png)
-```
-
-### Embed Audio / PDF
-
-```markdown
-![[audio.mp3]]
-![[document.pdf]]
-![[document.pdf#page=3]]
-![[document.pdf#height=400]]
-```
-
-### Embed Search Results
-
-````markdown
-```query
-tag:#project status:done
-```
-````
-
-## Callouts
-
-### Basic Callout
-
-```markdown
-> [!note]
-> This is a note callout.
-
-> [!info] Custom Title
-> This callout has a custom title.
-
-> [!tip] Title Only
-```
-
-### Foldable Callouts
-
-```markdown
-> [!faq]- Collapsed by default
-> This content is hidden until expanded.
-
-> [!faq]+ Expanded by default
-> This content is visible but can be collapsed.
-```
-
-### Nested Callouts
-
-```markdown
-> [!question] Outer callout
-> > [!note] Inner callout
-> > Nested content
-```
-
-### Supported Callout Types
-
-| Type | Aliases | Description |
-|------|---------|-------------|
-| `note` | - | Blue, pencil icon |
-| `abstract` | `summary`, `tldr` | Teal, clipboard icon |
-| `info` | - | Blue, info icon |
-| `todo` | - | Blue, checkbox icon |
-| `tip` | `hint`, `important` | Cyan, flame icon |
-| `success` | `check`, `done` | Green, checkmark icon |
-| `question` | `help`, `faq` | Yellow, question mark |
-| `warning` | `caution`, `attention` | Orange, warning icon |
-| `failure` | `fail`, `missing` | Red, X icon |
-| `danger` | `error` | Red, zap icon |
-| `bug` | - | Red, bug icon |
-| `example` | - | Purple, list icon |
-| `quote` | `cite` | Gray, quote icon |
-
-### Custom Callouts (CSS)
-
-```css
-.callout[data-callout="custom-type"] {
-  --callout-color: 255, 0, 0;
-  --callout-icon: lucide-alert-circle;
-}
-```
-
-## Highlight Syntax
-
-```markdown
-==Highlighted text==
-```
-
-## Comments
-
-```markdown
-This is visible %%but this is hidden%% text.
-
-%%
-This entire block is hidden.
-It won't appear in reading view.
-%%
-```
-
-## Properties (Frontmatter)
-
-Properties use YAML frontmatter at the start of a note:
-
-```yaml
----
-title: My Note Title
-date: 2024-01-15
-tags:
-  - project
-  - important
-aliases:
-  - My Note
-  - Alternative Name
-cssclasses:
-  - custom-class
-status: in-progress
-rating: 4.5
-completed: false
-due: 2024-02-01T14:30:00
----
-```
-
-### Property Types
-
-| Type | Example |
-|------|---------|
-| Text | `title: My Title` |
-| Number | `rating: 4.5` |
-| Checkbox | `completed: true` |
-| Date | `date: 2024-01-15` |
-| Date & Time | `due: 2024-01-15T14:30:00` |
-| List | `tags: [one, two]` or YAML list |
-| Links | `related: "[[Other Note]]"` |
-
-### Default Properties
-
-- `tags` - Note tags
-- `aliases` - Alternative names for the note
-- `cssclasses` - CSS classes applied to the note
-
-## Tags
-
-```markdown
-#tag
-#nested/tag
-#tag-with-dashes
-#tag_with_underscores
-```
-
-Tags can contain: letters (any language), numbers (not as first character), underscores, hyphens, forward slashes (for nesting).
-
-In frontmatter:
-```yaml
-tags:
-  - tag1
-  - nested/tag2
-```
-
-## Escaping Pipes in Tables
-
-Escape pipes with backslash in wikilinks inside tables:
-```markdown
-| Column 1 | Column 2 |
-|----------|----------|
-| [[Link\|Display]] | ![[Image\|100]] |
-```
-
-## Usage
-
-1. Use wikilinks (`[[...]]`) for internal note references instead of Markdown links
-2. Use embeds (`![[...]]`) to inline content from other notes, images, or PDFs
-3. Use callouts (`> [!type]`) for structured admonitions
-4. Use YAML frontmatter for structured metadata (tags, aliases, dates)
-5. Use `%%comments%%` for content hidden from reading view
+Notes that parse fine can still drift from their vault — a new tag variant, an unfamiliar property key, the wrong link style — and that drift fragments tag search and Bases views.
 
 ## When To Use
 
-- Creating or editing `.md` files intended for an Obsidian vault
-- User mentions wikilinks, callouts, embeds, frontmatter properties, or Obsidian-specific syntax
-- Building notes with block references or embedded search queries
-- Adding or updating YAML frontmatter properties on Obsidian notes
+- Creating or editing `.md` notes that live in an Obsidian vault
+- Adding or changing frontmatter properties, tags, wikilinks, embeds, callouts, or block references
+- Renaming or moving notes inside a vault
+
+## Fit the Vault
+
+A new or edited note should look like its neighbors. The sources, roughly in order of authority:
+
+- **Vault guidance.** An `AGENTS.md`/`CLAUDE.md` at the vault root overrides this skill's examples, especially tag vocabulary and property conventions. Read it before adding tags or properties.
+- **Vault settings** in `.obsidian/`, when the task touches them: `app.json` sets link style (`useMarkdownLinks: true` means Markdown links with URL-encoded paths instead of `[[Note Name]]`), link paths (`newLinkFormat`: shortest, relative, or absolute), and where attachments go (`attachmentFolderPath`); `daily-notes.json` and `templates.json` set those folders and formats.
+- **Sibling notes** in the same folder: their frontmatter keys, key names, value vocabulary (`type`, `status`), and list style — or no frontmatter where they have none. Bases views filter on property values, so an invented key or value silently drops a note from a view.
+- **Let the app resolve settings when it can.** With the Obsidian CLI, `obsidian daily:path` returns today's daily-note path with the app's folder and date-format defaults applied (`daily-notes.json` omits unchanged defaults, so reading it can mislead), `daily:append content=...` writes to it, and `property:set name=<key> value=<v> type=<text|list|number|checkbox|date|datetime>` writes a property with an explicit type instead of leaving the type to inference.
+- **Existing tags.** Search frontmatter `tags:` and inline `#tags`, or ask the app with `obsidian tags counts sort=count`. Tags are case-insensitive (`#AI` and `#ai` are one tag), so reuse the established form rather than adding a casing, plural, or synonym variant, and skip tags that only restate the folder or a property. A new tag earns its place when nothing fits and it will apply to more than one note; mention new tags and property keys in the reply, since they change the vault's shared vocabulary.
+
+## Properties
+
+```yaml
+---
+type: book
+author: "[[Ursula K. Le Guin]]"
+related:
+  - "[[Other Note]]"
+published: 1969-03-01
+rating: 4.5
+read: true
+tags:
+  - fiction
+aliases:
+  - Left Hand
+---
+```
+
+- Quote wikilinks in YAML (`"[[Note]]"`); unquoted `[[...]]` parses as a nested list. Use wikilinks, not Markdown links, for internal links in properties.
+- `tags`, `aliases`, and `cssclasses` are lists. The singular `tag`/`alias`/`cssclass` keys are deprecated.
+- Frontmatter tags take no `#`. Types are inferred per property name vault-wide (text, list, number, checkbox, date, datetime), so keep one type per key: a key that is a date in one note and free text in another breaks sorting and Bases filters.
+- When editing, preserve existing key order and list style (`[a, b]` vs block list); don't reformat the whole block.
+
+## Tags
+
+Inline `#tag` or frontmatter `tags:`. Allowed: letters, numbers, `_`, `-`, `/` for nesting (`#area/health`); at least one non-numeric character; no spaces. If the vault keeps tags in frontmatter, don't also add inline tag lines.
+
+## Links and Block References
+
+```markdown
+[[Note Name|Display]]   [[Note Name#Heading]]   [[#Heading in this note]]
+[[Note Name#^block-id]]
+
+A linkable paragraph. ^block-id
+```
+
+- Block IDs: letters, numbers, and dashes only. For a list, quote, or table, put `^block-id` on its own line after the block, separated by a blank line.
+- Shortest-form wikilinks (`[[Name]]`) resolve by unique file name, so they survive a folder move but break on rename; path-form links break on either. Rename or move with `obsidian rename`/`obsidian move` (which honor the vault's "Automatically update internal links" setting), or update inbound links yourself.
+- `[[##heading]]` and `[[^^block]]` are editor search triggers that autocomplete turns into a real link. Written literally into a file, `[[^^x]]` is an unresolved link and `[[##x]]` silently becomes a link to a missing heading in the same note, which `obsidian unresolved` does not report.
+- Inside tables, escape the pipe: `[[Note\|Display]]`, `![[image.png\|200]]`.
+
+## Embeds and Callouts
+
+Embeds are wikilinks with `!`; sizes and pages go after the target: `![[image.png|300]]` (width) or `|640x480`, `![[doc.pdf#page=3]]` (also `#height=400`), external `![alt|300](https://...)`. A fenced `query` block embeds live search results.
+
+Callouts: `> [!type] Optional title`; add `-` after the type to collapse by default or `+` to start expanded but foldable; nest with `> >`. Types (aliases): `note`, `abstract` (`summary`, `tldr`), `info`, `todo`, `tip` (`hint`, `important`), `success` (`check`, `done`), `question` (`help`, `faq`), `warning` (`caution`, `attention`), `failure` (`fail`, `missing`), `danger` (`error`), `bug`, `example`, `quote` (`cite`). Unknown types render as `note`; a custom type needs a CSS snippet in `.obsidian/snippets/` targeting `.callout[data-callout="name"]` (set `--callout-color: r, g, b` and `--callout-icon: lucide-<icon>`), and the snippet does nothing until enabled (Appearance settings or `obsidian snippet:enable name=<file>`).
+
+`==highlight==`; `%%hidden comment%%`, or `%%` lines around a hidden block.
 
 ## Boundaries
 
-- Not for Obsidian Bases / `.base` files (use obsidian-bases skill instead)
-- Not for plain/GitHub Flavored Markdown that will never live in Obsidian
-- Skip when the task is purely about Obsidian plugin configuration (e.g., community plugin settings JSON)
-- Do not generate Dataview or Templater syntax unless the user explicitly requests it
-
-## Output
-
-- Valid Obsidian Flavored Markdown ready to save as a `.md` file in a vault
-- Frontmatter uses correct YAML types (text, number, list, date, checkbox)
-- Wikilinks, embeds, callouts, and block IDs follow documented syntax
+- Not for `.base` files (`obsidian-bases`) or `.canvas` files (`obsidian-canvas`)
+- Not for Markdown that will never live in Obsidian
+- Do not write Dataview or Templater syntax unless the vault already uses that plugin or the user asks
+- Skip plugin configuration JSON under `.obsidian/plugins/`
 
 ## Verification
 
-- Frontmatter parses as valid YAML between `---` fences
-- Internal links use `[[...]]` syntax with proper heading/block anchors
-- Callout types are from the supported set (note, tip, warning, etc.) or clearly marked as custom
-- No raw HTML is used where an Obsidian Markdown equivalent exists
+- Frontmatter parses as YAML; wikilinks in it are quoted; list properties are lists.
+- Tags and property keys either already exist in the vault or are named in the reply as new.
+- Link targets exist: by file name in the vault, or with `obsidian unresolved verbose` when the CLI responds (`obsidian version`; it needs the app running and the CLI enabled under Settings → General → Advanced). `obsidian properties file=<name>` and `obsidian tags file=<name>` show what Obsidian actually indexed when that matters.
+- Edits landed where intended. Notes written on mobile often contain non-breaking spaces and curly quotes, which make exact-string replacements silently miss.
 
 ## References
 
-- [Basic formatting syntax](https://help.obsidian.md/syntax)
-- [Advanced formatting syntax](https://help.obsidian.md/advanced-syntax)
-- [Obsidian Flavored Markdown](https://help.obsidian.md/obsidian-flavored-markdown)
-- [Internal links](https://help.obsidian.md/links)
-- [Embed files](https://help.obsidian.md/embeds)
-- [Callouts](https://help.obsidian.md/callouts)
-- [Properties](https://help.obsidian.md/properties)
+- [Obsidian Flavored Markdown](https://help.obsidian.md/obsidian-flavored-markdown), [Properties](https://help.obsidian.md/properties), [Tags](https://help.obsidian.md/tags), [Callouts](https://help.obsidian.md/callouts), [Obsidian CLI](https://help.obsidian.md/cli)
+- Adapted from [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) (MIT).
 
 ## Sibling skills
 
