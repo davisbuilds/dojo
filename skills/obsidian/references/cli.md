@@ -6,9 +6,10 @@ Behavior below was observed on Obsidian 1.13.7 (macOS). Commands differ by versi
 
 ## Availability
 
-- Needs Obsidian **running** with **Settings → General → Advanced → Command line interface** on. The setting persists as `"cli": true` in the app's `obsidian.json`; the running app rewrites that file from memory, so edit it only while Obsidian is quit.
+- Requires the Obsidian 1.12 installer; the docs ask for 1.12.7 or later. Turn on **Settings → General → Advanced → Command line interface** and follow the registration prompt. The setting persists as `"cli": true` in the app's `obsidian.json`, which the running app rewrites from memory, so edit that file only while Obsidian is quit.
+- The app does the work. Per the docs, if it isn't running, the first command launches it.
 - Probe with `obsidian version`. A disabled CLI prints `Command line interface is not enabled…` rather than failing.
-- Installers before 1.11.7 print an "installer is out of date" warning and lack the native `obsidian-cli` client. Current installers ship both `obsidian` (Electron entry point) and `obsidian-cli` (native client over a local socket, several times faster to start); either works when the app is running.
+- On macOS, registration links `/usr/local/bin/obsidian` to the bundled native client `obsidian-cli` (an admin prompt). Older registrations instead left a `# Added by Obsidian` PATH entry in `~/.zprofile` pointing at the app's `MacOS` folder, where `obsidian` is the Electron entry point: it works, but starts several times slower than `obsidian-cli`. The docs say that entry can be deleted.
 - Don't install, register, or reconfigure Obsidian on the user's behalf; report what's missing.
 
 ## Calling It

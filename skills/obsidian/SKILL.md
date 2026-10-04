@@ -35,7 +35,7 @@ A new or edited file should look like its neighbors. Sources, roughly in order o
 
 ## The App, When It's Running
 
-The Obsidian CLI (`obsidian` / `obsidian-cli`) reaches the running app: resolved links, the tag and property index, Bases evaluation, link-updating renames, File Recovery history. Probe with `obsidian version`; it needs the app open and the CLI enabled in Settings → General → Advanced. Two traps before the first command: it exits 0 even when it fails (errors arrive as text on stdout), and most commands act on whichever note is open in the app unless `path=` is given. Details in `references/cli.md`.
+The Obsidian CLI (`obsidian` / `obsidian-cli`) reaches the running app: resolved links, the tag and property index, Bases evaluation, link-updating renames, File Recovery history. Probe with `obsidian version`; it needs a 1.12+ installer and the CLI enabled in Settings → General → Advanced, and launches the app if it isn't running. Two traps before the first command: it exits 0 even when it fails (errors arrive as text on stdout), and most commands act on whichever note is open in the app unless `path=` is given. Details in `references/cli.md`.
 
 ## Boundaries
 
