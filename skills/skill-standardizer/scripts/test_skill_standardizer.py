@@ -258,9 +258,10 @@ def test_obsidian_format_skills_consolidate_into_obsidian() -> None:
     # alias that resolves to the same replacement in scope.
     for selection in [{"obsidian"}, {"obsidian-canvas"}, {"json-canvas"}]:
         check_obsidian_consolidation(selection)
+        check_obsidian_consolidation(selection, linked_secondaries=True)
 
 
-def check_obsidian_consolidation(selection: set[str]) -> None:
+def check_obsidian_consolidation(selection: set[str], linked_secondaries: bool = False) -> None:
     original_cwd = Path.cwd()
     env_names = ["AGENTS_HOME", "CODEX_HOME", "CLAUDE_HOME"]
     original_env = {name: os.environ.get(name) for name in env_names}
@@ -275,8 +276,12 @@ def check_obsidian_consolidation(selection: set[str]) -> None:
             for env_name, root in zip(env_names, roots):
                 os.environ[env_name] = str(root.parent)
                 for old_name in old_names:
-                    old = write_skill(root, old_name)
-                    (old / "local-note.md").write_text(old_name)
+                    if linked_secondaries and root != roots[0]:
+                        root.mkdir(parents=True, exist_ok=True)
+                        (root / old_name).symlink_to(roots[0] / old_name, target_is_directory=True)
+                    else:
+                        old = write_skill(root, old_name)
+                        (old / "local-note.md").write_text(old_name)
             os.chdir(repo)
 
             def audit():
@@ -298,8 +303,8 @@ def check_obsidian_consolidation(selection: set[str]) -> None:
             for root in roots:
                 assert_true((root / "obsidian" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "consolidated skill missing or differs from canonical")
                 for old_name in old_names:
-                    assert_true(not (root / old_name).exists(), f"{old_name} survived consolidation for selection {selection}")
-            assert_true(len(list(backup_root.rglob("local-note.md"))) == len(old_names) * len(roots), "old installations were not backed up")
+                    assert_true(not os.path.lexists(root / old_name), f"{old_name} survived consolidation for selection {selection}")
+            assert_true(len(list(backup_root.rglob("local-note.md"))) == len(old_names) * (1 if linked_secondaries else len(roots)), "old installations were not backed up")
             assert_true(not audit()["actions"], "consolidation did not converge")
             os.chdir(original_cwd)
     finally:
