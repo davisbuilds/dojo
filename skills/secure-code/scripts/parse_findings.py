@@ -1,80 +1,77 @@
 #!/usr/bin/env python3
-"""Parse semgrep JSON output into severity-grouped markdown for LLM consumption."""
-
+"""Render scan evidence without treating matches or absence as security verdicts."""
 import json
+from pathlib import Path
 import sys
 
-SEVERITY_ORDER = {"CRITICAL": 0, "ERROR": 1, "WARNING": 2, "INFO": 3}
-SEVERITY_LABELS = {"CRITICAL": "CRITICAL", "ERROR": "HIGH", "WARNING": "MEDIUM", "INFO": "LOW"}
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from scan import classify
+
+
+def status(data):
+    if not isinstance(data, dict):
+        return 'invalid'
+    structural = classify(data, 0)
+    if structural == 'invalid':
+        return structural
+    evidence = data.get('_scan', {})
+    reported = evidence.get('status') if isinstance(evidence, dict) else None
+    if reported == 'completed' and structural != 'completed':
+        return structural
+    return reported or classify(data, None)
 
 
 def parse_findings(data: dict) -> str:
-    results = data.get("results", [])
-    if not results:
-        return "No findings detected."
-
-    # Group by severity, then by file
-    by_severity: dict[str, list[dict]] = {}
-    for r in results:
-        sev = r.get("extra", {}).get("severity", "INFO").upper()
-        by_severity.setdefault(sev, []).append(r)
-
-    # Summary counts
-    counts = {SEVERITY_LABELS.get(s, s): len(items) for s, items in by_severity.items()}
-    summary_parts = []
-    for label in ["CRITICAL", "HIGH", "MEDIUM", "LOW"]:
-        if label in counts:
-            summary_parts.append(f"{counts[label]} {label.lower()}")
-    summary = f"**Summary:** {', '.join(summary_parts)} finding{'s' if sum(counts.values()) != 1 else ''}\n"
-
-    lines = [summary, "---\n"]
-
-    for sev in sorted(by_severity.keys(), key=lambda s: SEVERITY_ORDER.get(s, 99)):
-        label = SEVERITY_LABELS.get(sev, sev)
-        items = by_severity[sev]
-
-        # Group by file within severity
-        by_file: dict[str, list[dict]] = {}
-        for r in items:
-            path = r.get("path", "unknown")
-            by_file.setdefault(path, []).append(r)
-
-        lines.append(f"## {label}\n")
-
-        for path, file_items in sorted(by_file.items()):
-            lines.append(f"### `{path}`\n")
-            for r in file_items:
-                rule_id = r.get("check_id", "unknown-rule")
-                message = r.get("extra", {}).get("message", "No message")
-                start_line = r.get("start", {}).get("line", "?")
-                end_line = r.get("end", {}).get("line", "?")
-                metadata = r.get("extra", {}).get("metadata", {})
-                cwe = metadata.get("cwe", [])
-                cwe_str = f" | CWE: {', '.join(cwe)}" if cwe else ""
-
-                lines.append(f"- **{rule_id}** (line {start_line}-{end_line}{cwe_str})")
-                lines.append(f"  {message}\n")
-
-    # Errors from semgrep
-    errors = data.get("errors", [])
-    if errors:
-        lines.append("## Scan Errors\n")
-        for err in errors:
-            msg = err.get("message", err.get("long_msg", str(err)))
-            lines.append(f"- {msg}")
-
-    return "\n".join(lines)
+    state = status(data)
+    lines = [f'## Scan evidence: {state}',
+             'Rule matches are investigation leads, not confirmed vulnerabilities.']
+    if not isinstance(data, dict) or state == 'invalid':
+        return '\n'.join(lines)
+    evidence = data.get('_scan', {})
+    evidence = evidence if isinstance(evidence, dict) else {}
+    lines.append(f"Engine version: {data.get('version', 'unknown')}; exit code: {evidence.get('exit_code', 'unknown')}")
+    if evidence.get('targets'):
+        lines.append(f"Requested targets: {evidence['targets']}")
+    paths = data.get('paths', {})
+    if isinstance(paths, dict):
+        scanned = paths.get('scanned')
+        lines.append(f"Reported scanned files: {len(scanned) if isinstance(scanned, list) else 'unknown'}")
+        skipped = paths.get('skipped')
+        lines.append(f"Skipped-file detail: {len(skipped) if isinstance(skipped, list) else 'not reported'}")
+        for item in skipped if isinstance(skipped, list) else []:
+            lines.append(f'- Skipped: {item}')
+    for error in data.get('errors', []) or []:
+        lines.append(f'- Scan error: {error}')
+    if evidence.get('stderr') and state != 'completed':
+        lines.append(f"Scanner diagnostics:\n{evidence['stderr']}")
+    results = data.get('results', [])
+    if not isinstance(results, list):
+        lines.append('Invalid results collection.')
+        return '\n'.join(lines)
+    lines.append(f'## Rule matches: {len(results)}')
+    for match in results:
+        if not isinstance(match, dict):
+            lines.append(f'Invalid result: {match}')
+            continue
+        extra = match.get('extra', {})
+        cwe = extra.get('metadata', {}).get('cwe', [])
+        cwe = ', '.join(map(str, cwe)) if isinstance(cwe, list) else str(cwe)
+        lines.append(f"- [{extra.get('severity', 'unknown')}] {match.get('check_id', '?')} "
+                     f"at {match.get('path', '?')}:{match.get('start', {}).get('line', '?')} "
+                     f"{cwe}\n  {extra.get('message', '')}")
+    lines.append('No-match results do not establish safety; assess exclusions, rule scope, and untested boundaries.')
+    return '\n'.join(lines)
 
 
 def main():
-    if len(sys.argv) > 1:
-        with open(sys.argv[1]) as f:
-            data = json.load(f)
-    else:
-        data = json.load(sys.stdin)
-
+    try:
+        data = json.loads(Path(sys.argv[1]).read_text()) if len(sys.argv) > 1 else json.load(sys.stdin)
+    except (OSError, ValueError) as exc:
+        print(f'Invalid scan evidence: {exc}', file=sys.stderr)
+        return 2
     print(parse_findings(data))
+    return 0 if status(data) == 'completed' else 2
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    sys.exit(main())
