@@ -1,19 +1,6 @@
----
-name: obsidian-bases
-description: Create and edit Obsidian Bases (.base files) with database-style views, filters, formulas, and summaries. Use when working with .base files, building table/card/dashboard views over a vault, or when the user mentions Bases, filters, or formulas in Obsidian.
-skill-type: reference
-version: 2.0.0
----
-
-# Obsidian Bases
+# Bases (.base)
 
 A `.base` file is YAML defining filters, formulas, property display config, and one or more views over vault files. The same YAML can be embedded in a note as a ```` ```base ```` code block. Bases is a core plugin; Dataview syntax does not apply.
-
-## When To Use
-
-- Creating or editing `.base` files or `base` code blocks
-- Writing Bases filters, formulas, or summaries
-- Debugging a base that shows the wrong rows, empty columns, or `Error:` cells
 
 ## Schema
 
@@ -47,7 +34,7 @@ views:
 
 - **No filter means the whole vault.** There is no `from`; an unfiltered base includes every file, attachments included. Scope with `file.inFolder()`, `file.hasTag()`, a property test, and `file.ext == "md"` when only notes should appear.
 - **Filter on the vault's real values.** Property names and values must match the frontmatter exactly (`type == "book"` misses notes typed `Book` or `books`), and tags are tested with `file.hasTag("x")`, not `tags == "x"`.
-- **Property namespaces.** Bare names are note properties (`author` = `note.author`); `file.*` is file metadata (fields table in `references/functions.md`); formulas are referenced as `formula.name`. Display names never work in expressions. For a note, `file.name` compares equal to the name without `.md`.
+- **Property namespaces.** Bare names are note properties (`author` = `note.author`); `file.*` is file metadata (fields table in `functions.md`); formulas are referenced as `formula.name`. Display names never work in expressions. For a note, `file.name` compares equal to the name without `.md`.
 - **Quoting.** Expressions are YAML strings: wrap in single quotes when they contain double-quoted literals (`'status == "done"'`). Text literals need their own quotes.
 - **Date math.** `today()`/`now()` plus or minus a duration string works (`file.mtime > now() - "7d"`; units `y M w d h m s`). Subtracting two dates gives a Duration, which supports neither `.round()` nor division into days; read a numeric field first: `(date(due) - today()).days.round()`. Scale durations explicitly with the duration on the left: `duration("1d") * 2`.
 - **Links.** Wikilinks in frontmatter are Link objects: compare with `author == this` or `list.contains(link("Name"))`, not string equality.
@@ -57,32 +44,14 @@ views:
 
 Default summary names: `Average`, `Min`, `Max`, `Sum`, `Range`, `Median`, `Stddev` (numbers); `Earliest`, `Latest`, `Range` (dates); `Checked`, `Unchecked` (booleans); `Empty`, `Filled`, `Unique` (any).
 
-Full function catalog by type (global, string, number, date, duration fields, list, link, file fields and functions, object, regex): `references/functions.md`.
+Full function catalog by type (global, string, number, date, duration fields, list, link, file fields and functions, object, regex): `functions.md`.
 
 ## Embedding
 
 `![[Books.base]]` or `![[Books.base#View name]]` in a note.
 
-## Boundaries
-
-- Not for `.md` note syntax (`obsidian-markdown`) or `.canvas` files (`obsidian-canvas`)
-- Not for Dataview or other query plugins; Bases has its own expression language
-
-## Verification
+## Checks
 
 - The file parses as YAML, and every `formula.x` in `order`, `properties`, and `summaries` is defined.
-- If the Obsidian CLI responds (`obsidian version`), run the real evaluator: `obsidian base:query path=<file.base> view="<name>" format=json` (or `format=paths` for just the row set). Valid YAML doesn't mean the base evaluates: formula errors come back as `Error: ...` cell values, not a failed command, so search the output for them.
-- If it doesn't, spot-check filters against the frontmatter of a note that should match and one that shouldn't, and say the base wasn't evaluated in-app.
-
-## References
-
-- [Bases syntax](https://help.obsidian.md/bases/syntax), [Functions](https://help.obsidian.md/bases/functions), [Views](https://help.obsidian.md/bases/views)
+- Only the app evaluates a base. With the CLI: `obsidian base:query path=<file.base> view="<name>" format=json` (or `format=paths` for just the row set). Formula errors come back as `Error: ...` cell values, not a failed command, so search the output for them. Without the CLI, spot-check filters against a note that should match and one that shouldn't, and say the base wasn't evaluated.
 - Date-subtraction behavior above was verified against Obsidian 1.13.7; the official syntax page still describes it as returning milliseconds.
-- Adapted from [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) (MIT).
-
-## Sibling skills
-
-Three Obsidian-format references, distinguished by *file type*.
-
-- `obsidian-markdown` — `.md` notes with Obsidian extensions (wikilinks, callouts, properties). Use for note authoring; this skill is for the database-view layer over those notes.
-- `obsidian-canvas` — `.canvas` visual canvases. Orthogonal.

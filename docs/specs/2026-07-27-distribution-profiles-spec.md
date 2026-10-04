@@ -356,7 +356,7 @@ catalog as conformant.
   non-`core` members and includes these required anchors: `engineering`
   includes `create-cli` and `secure-code`; `research` includes `deep-research`
   and `research-architect`; `design` includes `design-critique` and
-  `web-design-guidelines`; `knowledge` includes `obsidian-markdown` and
+  `web-design-guidelines`; `knowledge` includes `obsidian` and
   `session-retro`; `shipping` includes `vercel-deploy` and `vercel-preview-logs`;
   and `skill-authoring` includes `skill-creator` and `skill-standardizer`.
   `full` resolves to every canonical skill at the selected revision. Complete
@@ -890,6 +890,14 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-10-03 (revision 18). Consolidate the Obsidian skills.** SC-02's
+  knowledge anchors are now `obsidian` and `session-retro`. `obsidian` replaces
+  `obsidian-markdown`, `obsidian-bases`, and `obsidian-canvas` (notes, Bases, and
+  Canvas move to its references alongside the Obsidian CLI), so the overlay keeps
+  its vault-note capability and gains the formats it previously excluded. The
+  loader, tests, and reviewed profile reflect this explicit membership change;
+  remaining profile invariants are unchanged.
 
 - **2026-09-24 (revision 17). Retire the GitHub publishing skill.** SC-02's
   shipping anchors are now `vercel-deploy` and `vercel-preview-logs`, retaining

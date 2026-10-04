@@ -649,7 +649,7 @@ None
 3. Author the six overlays. Each must contain its SC-02 anchors and at least two
    non-`core` members. Anchors: engineering → `create-cli`, `secure-code`;
    research → `deep-research`, `research-architect`; design → `design-critique`,
-   `web-design-guidelines`; knowledge → `obsidian-markdown`, `session-retro`;
+   `web-design-guidelines`; knowledge → `obsidian`, `session-retro` (SC-02 revision 18);
    shipping → `vercel-deploy`, `vercel-preview-logs` (SC-02 revision 17); skill-authoring →
    `skill-creator`, `skill-standardizer`.
 4. Author `full.yaml` with `kind: inspection` and `members: "*"` — a sentinel

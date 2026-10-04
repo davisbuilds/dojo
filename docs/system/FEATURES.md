@@ -86,9 +86,7 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 
 | Skill | Purpose |
 |-------|---------|
-| `obsidian-markdown` | Obsidian Flavored Markdown with wikilinks and callouts |
-| `obsidian-bases` | Obsidian Bases with views, filters, and formulas |
-| `obsidian-canvas` | Obsidian Canvas files for visual canvases |
+| `obsidian` | Obsidian vault notes, Bases, and Canvas files, plus the Obsidian CLI for app-only answers |
 | `markdown-converter` | Convert file formats to Markdown |
 | `fetchmd` | Convert webpages or local HTML into clean Markdown for AI workflows |
 | `handoff` | Portable continuation snapshots for a fresh agent: intent, grounding, state, evidence, and next action |

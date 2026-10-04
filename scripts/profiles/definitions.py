@@ -60,7 +60,7 @@ KINDS = frozenset(KIND_BY_NAME.values())
 ANCHORS = {
     "design": ("design-critique", "web-design-guidelines"),
     "engineering": ("create-cli", "secure-code"),
-    "knowledge": ("obsidian-markdown", "session-retro"),
+    "knowledge": ("obsidian", "session-retro"),
     "research": ("deep-research", "research-architect"),
     "shipping": ("vercel-deploy", "vercel-preview-logs"),
     "skill-authoring": ("skill-creator", "skill-standardizer"),
