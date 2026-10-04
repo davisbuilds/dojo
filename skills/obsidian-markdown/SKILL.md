@@ -7,7 +7,9 @@ version: 2.0.0
 
 # Obsidian Flavored Markdown
 
-Obsidian-specific syntax plus what it takes for a note to fit an existing vault. CommonMark/GFM is assumed knowledge. Notes that parse fine can still drift from their vault — a new tag variant, an unfamiliar property key, the wrong link style — and that drift fragments tag search and Bases views.
+Obsidian-specific syntax plus what it takes for a note to fit an existing vault. CommonMark/GFM is assumed knowledge. Vault files are plain Markdown, YAML, and JSON: read and edit them directly. When Obsidian is running with its CLI enabled, the CLI adds what only the app knows — resolved links, indexed tags and properties, applied setting defaults, link-updating renames.
+
+Notes that parse fine can still drift from their vault — a new tag variant, an unfamiliar property key, the wrong link style — and that drift fragments tag search and Bases views.
 
 ## When To Use
 
@@ -23,7 +25,7 @@ A new or edited note should look like its neighbors. The sources, roughly in ord
 - **Vault settings** in `.obsidian/`, when the task touches them: `app.json` sets link style (`useMarkdownLinks: true` means Markdown links with URL-encoded paths instead of `[[Note Name]]`), link paths (`newLinkFormat`: shortest, relative, or absolute), and where attachments go (`attachmentFolderPath`); `daily-notes.json` and `templates.json` set those folders and formats.
 - **Sibling notes** in the same folder: their frontmatter keys, key names, value vocabulary (`type`, `status`), and list style — or no frontmatter where they have none. Bases views filter on property values, so an invented key or value silently drops a note from a view.
 - **Let the app resolve settings when it can.** With the Obsidian CLI, `obsidian daily:path` returns today's daily-note path with the app's folder and date-format defaults applied (`daily-notes.json` omits unchanged defaults, so reading it can mislead), `daily:append content=...` writes to it, and `property:set name=<key> value=<v> type=<text|list|number|checkbox|date|datetime>` writes a property with an explicit type instead of leaving the type to inference.
-- **Existing tags.** `obsidian tags counts sort=count` lists them; otherwise search `tags:` and inline `#tags`. Tags are case-insensitive (`#AI` and `#ai` are one tag), so reuse the established form rather than adding a casing, plural, or synonym variant, and skip tags that only restate the folder or a property. A new tag earns its place when nothing fits and it will apply to more than one note; mention new tags and property keys in the reply, since they change the vault's shared vocabulary.
+- **Existing tags.** Search frontmatter `tags:` and inline `#tags`, or ask the app with `obsidian tags counts sort=count`. Tags are case-insensitive (`#AI` and `#ai` are one tag), so reuse the established form rather than adding a casing, plural, or synonym variant, and skip tags that only restate the folder or a property. A new tag earns its place when nothing fits and it will apply to more than one note; mention new tags and property keys in the reply, since they change the vault's shared vocabulary.
 
 ## Properties
 
@@ -85,7 +87,7 @@ Callouts: `> [!type] Optional title`; add `-` after the type to collapse by defa
 
 - Frontmatter parses as YAML; wikilinks in it are quoted; list properties are lists.
 - Tags and property keys either already exist in the vault or are named in the reply as new.
-- If the Obsidian CLI responds (`obsidian version`; it needs the app running and the CLI enabled under Settings → General → Advanced), check against the app: `obsidian unresolved verbose` for broken links, `obsidian properties file=<name>` and `obsidian tags file=<name>` for what Obsidian actually indexed. If it doesn't, confirm link targets exist by file name and say the note wasn't checked in-app.
+- Link targets exist: by file name in the vault, or with `obsidian unresolved verbose` when the CLI responds (`obsidian version`; it needs the app running and the CLI enabled under Settings → General → Advanced). `obsidian properties file=<name>` and `obsidian tags file=<name>` show what Obsidian actually indexed when that matters.
 - Edits landed where intended. Notes written on mobile often contain non-breaking spaces and curly quotes, which make exact-string replacements silently miss.
 
 ## References
