@@ -62,8 +62,8 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 | Skill | Purpose |
 |-------|---------|
 | `repo-hardening` | Audit repos for supply-chain risk, generate repo-local security artifacts, and drive hardening work |
-| `secure-code` | Static analysis security scanning and architectural trifecta detection via semgrep |
-| `audit-skill` | Security-audit agent skills for prompt injection, overreach, secrets, and dangerous code patterns |
+| `secure-code` | Security investigation with scan evidence, flow tracing, and agent authority review |
+| `audit-skill` | Investigate skill instructions, scripts, provenance, and effective authority; collect indicators without trust grades |
 
 ### Platform Integrations
 
