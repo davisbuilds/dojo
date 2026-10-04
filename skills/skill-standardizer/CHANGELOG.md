@@ -1,3 +1,7 @@
+## 1.3.7 - 2026-10-04
+
+- Retire deprecated symlinks themselves without following or moving their targets; cover primary-copy and secondary-link migrations.
+
 ## 1.3.6 - 2026-10-03
 
 - Map obsidian-markdown, obsidian-bases, obsidian-canvas, and json-canvas to the consolidated obsidian skill.

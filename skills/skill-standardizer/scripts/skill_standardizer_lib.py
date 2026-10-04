@@ -1317,16 +1317,16 @@ def apply_actions(
                 # deleted outright.
                 pass
             elif action_type == "remove_deprecated_skill":
-                backup = _backup_destination(_expand(action["deprecated_dest"]), backup_base, stamp)
+                backup = _backup_destination(_expand_nofollow(action["deprecated_dest"]), backup_base, stamp)
                 if backup:
                     result["backups"].append(
                         {
-                            "dest": str(_expand(action["deprecated_dest"])),
+                            "dest": str(_expand_nofollow(action["deprecated_dest"])),
                             "backup": str(backup),
                         }
                     )
             elif action_type == "replace_deprecated_skill":
-                deprecated_dest = _expand(action["deprecated_dest"])
+                deprecated_dest = _expand_nofollow(action["deprecated_dest"])
                 deprecated_backup = _backup_destination(deprecated_dest, backup_base, stamp)
                 if deprecated_backup:
                     result["backups"].append(
