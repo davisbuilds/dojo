@@ -138,6 +138,15 @@ project, add it to that project's skills root rather than to the global root —
 that is the point of the cut. `~/.agents/.removed-20260812/` holds copies, though
 the canonical source is dojo.
 
+**2026-10-03 — consolidate the Obsidian skills into `obsidian`.** One listing
+entry with a 319-character description replaces `obsidian-markdown`,
+`obsidian-bases`, and `obsidian-canvas` (748 characters across three entries);
+notes, Bases, Canvas, and the Obsidian CLI become references of the one skill.
+This settles the `obsidian-canvas` cost-per-use candidate. The `knowledge`
+overlay anchor moves with it (SC-02 revision 18), and skill-standardizer maps the
+old names so a sync replaces installed copies. Not yet re-measured against a
+live Codex render.
+
 ## Verified position after the cuts (2026-08-12, build 0.146.0)
 
 Measured from a live `codex-tui` rollout in a neutral non-dojo directory — the
@@ -227,8 +236,6 @@ Current attribution: dojo 2,547 (53%), connectors 1,102 (23%), Codex bundled 607
 - **`research-architect`** — 179 tokens, the single most expensive skill in the
   catalog, two consultations in 317 sessions. It is a `research` overlay anchor,
   so removing it changes what that overlay means.
-- **`obsidian-canvas`** — 39.5 tokens/use, worse than several already flagged.
-  Easy to miss when ranking by absolute cost rather than cost per use.
 - **The two image skills** — `gpt-imagen` (81) and `gemini-imagen` (66) total 147
   tokens for four consultations, **while Codex bundles its own `imagegen`** at
   `~/.codex/skills/.system/imagegen`. Declaring them equivalent was deliberately

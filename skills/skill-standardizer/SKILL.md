@@ -2,7 +2,7 @@
 name: skill-standardizer
 description: Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.
 skill-type: workflow
-version: 1.3.5
+version: 1.3.6
 ---
 
 # Skill Standardizer
@@ -67,7 +67,10 @@ Current built-in mapping:
 - `error-handling-review` -> `local-review`
 - `type-design-review` -> `local-review`
 - `agent-native-architecture` -> `agent-native-design`
-- `json-canvas` -> `obsidian-canvas`
+- `json-canvas` -> `obsidian`
+- `obsidian-markdown` -> `obsidian`
+- `obsidian-bases` -> `obsidian`
+- `obsidian-canvas` -> `obsidian`
 - `imagegen` -> `gpt-imagen`
 
 When a deprecated skill name is found:
@@ -176,7 +179,7 @@ python3 <skill-dir>/scripts/sync.py \
   --apply
 ```
 
-`--skill` is repeatable. In selected-skill mode, audits and sync plans hide unrelated invalid directories and unrelated canonical skills. Deprecated aliases remain in scope when either the alias or replacement is selected.
+`--skill` is repeatable. In selected-skill mode, audits and sync plans hide unrelated invalid directories and unrelated canonical skills. Deprecated aliases remain in scope when the replacement or any alias that resolves to it is selected.
 
 ## Intersection Mode
 

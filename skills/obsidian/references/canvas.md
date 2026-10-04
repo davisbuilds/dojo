@@ -1,18 +1,8 @@
----
-name: obsidian-canvas
-description: Create and edit Obsidian Canvas files (.canvas) with nodes, edges, groups, and connections. Use when working with .canvas files, creating visual canvases, mind maps, flowcharts, or when the user mentions Canvas files in Obsidian.
-skill-type: reference
-version: 2.0.0
----
+# Canvas (.canvas)
 
-# Obsidian Canvas
+This reference covers JSON Canvas files. For Mermaid or other diagram-as-code embedded in notes, use the note conventions in `markdown.md` and the diagram format's own syntax.
 
-`.canvas` files are [JSON Canvas 1.0](https://jsoncanvas.org/spec/1.0/): one object with `nodes` and `edges` arrays. Array order is z-order (first = bottom), so list groups before the nodes they contain.
-
-## When To Use
-
-- Creating or editing `.canvas` files: mind maps, flowcharts, boards, research maps
-- Laying out existing vault notes, links, or images on a canvas
+`.canvas` files are [JSON Canvas 1.0](https://jsoncanvas.org/spec/1.0/): one object with `nodes` and `edges` arrays. Array order is z-order (first = bottom), so list groups before the nodes they contain. There is no CLI support for canvases; write the JSON directly.
 
 ## Format
 
@@ -51,27 +41,9 @@ Colors: presets `"1"`–`"6"` (red, orange, yellow, green, cyan, purple — apps
 - **File nodes** use the vault-relative path with extension (`Folder/Note.md`), not a wikilink. Renaming the note outside Obsidian breaks the node.
 - **Text nodes don't auto-size**, so content that overflows is clipped; size them to their text (roughly 300–450 px wide for a short paragraph). Readable defaults otherwise: 50–100 px between nodes, coordinates on a 10 or 20 px grid.
 
-## Boundaries
-
-- Not for Mermaid, PlantUML, or other diagram-as-code formats
-- Not for `.md` notes (`obsidian-markdown`) or `.base` files (`obsidian-bases`)
-- Produces static files; it does not drive the interactive canvas editor
-
-## Verification
+## Checks
 
 - The file parses as JSON; validate the core `nodes` and `edges` fields when present. Preserve unrecognized fields, including top-level plugin metadata, when editing an existing canvas.
 - IDs are unique across nodes and edges; every edge endpoint exists.
 - Each node has its type's required fields; enum values (`type`, sides, ends, `backgroundStyle`) are from the lists above.
 - Every `file` node path exists in the vault, and children sit inside their group's bounds.
-
-## References
-
-- [JSON Canvas 1.0 spec](https://jsoncanvas.org/spec/1.0/)
-- Adapted from [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) (MIT).
-
-## Sibling skills
-
-Three Obsidian-format references, distinguished by *file type*.
-
-- `obsidian-markdown` — `.md` notes. Use for note authoring; canvases reference notes as nodes.
-- `obsidian-bases` — `.base` database views. Orthogonal.
