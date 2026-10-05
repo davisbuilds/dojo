@@ -119,8 +119,8 @@ def load_selection(repo_root: Path, skills_root: Path) -> dict:
         for name in names
     ) or len(names) != len(set(names)):
         raise ValueError("linked must contain unique canonical skill names")
-    if selection.get("retired_roots", []) != [".agent/skills", ".codex/skills"]:
-        raise ValueError("retired_roots must name .agent/skills and .codex/skills")
+    if selection.get("retired_roots", []) != [".agent/skills"]:
+        raise ValueError("retired_roots must name only the historically managed .agent/skills")
     return selection
 
 

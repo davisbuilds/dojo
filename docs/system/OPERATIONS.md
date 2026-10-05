@@ -171,7 +171,7 @@ Code itself (its own `.claude.json` snapshots, nothing to do with skills).
 
 Exposes only the project additions declared in `config/project-skills.json` through per-skill links in `.agents/skills` and `.claude/skills`. The default selection is `audit-skill` and `skill-evals`; other canonical skills remain readable from `skills/`, with general skills supplied by a separate user-global installation. This declaration is independent of the measurement profiles under `profiles/` and can be referenced by workspace deployment checks.
 
-The generator migrates its exact legacy whole-catalog links and retires `.agent/skills` and `.codex/skills`. It refuses to overwrite real content or foreign links. Move unexpected content aside deliberately before retrying. Run after cloning and after changing the selection or skill descriptions:
+The generator migrates its exact legacy whole-catalog links and retires `.agent/skills`. It never owned `.codex/skills`, so that path is left untouched. It refuses to overwrite real content or foreign links. Move unexpected content aside deliberately before retrying. Run after cloning and after changing the selection or skill descriptions:
 
 ```bash
 python scripts/gen_harness_adapters.py                      # write symlinks, .claude/commands links, and sidecars

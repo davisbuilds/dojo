@@ -24,7 +24,7 @@ def make_repo(tmp_path: Path):
     config = tmp_path / "config/project-skills.json"
     config.parent.mkdir()
     selection = {"roots": [".agents/skills", ".claude/skills"], "linked": [],
-                 "retired_roots": [".agent/skills", ".codex/skills"]}
+                 "retired_roots": [".agent/skills"]}
     config.write_text(json.dumps(selection))
 
     def make_skill(name: str, description: str, agents_file: str | None = None, content: str | None = None):
@@ -325,7 +325,7 @@ def test_selection_replaces_catalog_links_and_prunes_unselected_commands(tmp_pat
     old_command = _add_command(other, 'brainstorm.md')
     config = tmp_path / 'config' / 'project-skills.json'
     config.parent.mkdir(exist_ok=True)
-    config.write_text(json.dumps({'roots': ['.agents/skills', '.claude/skills'], 'linked': ['audit-skill'], 'retired_roots': ['.agent/skills', '.codex/skills']}))
+    config.write_text(json.dumps({'roots': ['.agents/skills', '.claude/skills'], 'linked': ['audit-skill'], 'retired_roots': ['.agent/skills']}))
     for harness in ('.agents', '.claude', '.agent'):
         root = tmp_path / harness / 'skills'
         root.rmdir()
@@ -348,3 +348,18 @@ def test_selection_replaces_catalog_links_and_prunes_unselected_commands(tmp_pat
     assert (other / 'agents/openai.yaml').exists()  # source catalog still gets sidecars
     assert _invoke(module, tmp_path, ['--check']) == 0
     assert _invoke(module, tmp_path, []) == 0
+
+
+def test_unowned_codex_catalog_link_survives_regeneration(tmp_path):
+    module = load_module()
+    skills, make_skill = make_repo(tmp_path)
+    make_skill('audit-skill', 'Use when auditing skill authority.')
+    root = tmp_path / '.codex'
+    root.mkdir()
+    link = root / 'skills'
+    link.symlink_to('../skills')
+    assert _invoke(module, tmp_path, []) == 0
+    assert link.is_symlink()
+    assert os.readlink(link) == '../skills'
+    assert link.resolve() == skills
+    assert _invoke(module, tmp_path, ['--check']) == 0

@@ -173,7 +173,8 @@ scripts/                  # Manifest generation + generation pipeline (Python)
 scripts/profiles/         # Distribution-profile library: rollout observation (rollout_codex.py — what the harness actually SENT, the authoritative surface), live listing probes as cross-checks, resolution + identity, budget policies with saturation-derived limits, observation, evidence (read-only; see docs/specs/2026-07-27-distribution-profiles-spec.md)
 profiles/                 # Reviewed profile data: core + capability overlays + full, harness equivalences, and per-harness budget policies under profiles/policies/
 tests/                    # pytest suite for scripts/, hooks/, and skill-owned scripts (see Test Tiers); flat, one test file per script, plus tests/fixtures/
-.claude/ .agent/          # Each `skills/` is a generated relative symlink -> ../skills (Codex sidecars colocated at skills/<name>/agents/openai.yaml); .agents/skills is retired, not generated
+.agents/ .claude/         # Selected per-skill links in skills/; selected command links in .claude/commands/
+config/project-skills.json # Owns project additions and the retired .agent/skills root
 spec/                     # Agent skills specification (upstream)
 docs/catalog/             # Generated browseable skill catalog (index.html) from skills.json
 docs/design/              # Brainstorm design summaries (brainstorming output — WHAT, chosen direction)

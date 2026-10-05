@@ -120,7 +120,18 @@ The four design skills above compose into a pipeline: `design-md` (token spec) �
 
 ## Command Wrappers
 
-Slash-style entrypoints for harnesses that support command files. `scripts/gen_harness_adapters.py` links each skill's `commands/<rel>.md` into `.claude/commands/<rel>.md` (local-only, gitignored), so Claude Code resolves them as real slash commands — nested files like `commands/workflows/brainstorm.md` become `/workflows:brainstorm`. Run the generator after a clone to populate them:
+Slash-style entrypoints for harnesses that support command files.
+`scripts/gen_harness_adapters.py` links commands only from skills selected in
+`config/project-skills.json` into `.claude/commands/` (local-only, gitignored).
+Nested paths are preserved. The default project additions, `audit-skill` and
+`skill-evals`, currently bundle no command files; regeneration therefore adds
+none and prunes stale generated commands from the former whole-catalog setup.
+Hand-authored commands are preserved. General skill exposure comes from the
+user's separate global installation; command availability also depends on the
+harness and installation method.
+
+The canonical catalog includes the following command runbooks. This is an
+inventory, not a promise that a default Dojo checkout exposes these slash commands:
 
 - `/review` — local code review
 - `/review-pr` — GitHub PR review

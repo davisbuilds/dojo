@@ -9,7 +9,6 @@
     "skill-evals"
   ],
   "retired_roots": [
-    ".agent/skills",
-    ".codex/skills"
+    ".agent/skills"
   ]
 }
