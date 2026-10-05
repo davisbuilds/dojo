@@ -4,37 +4,104 @@
       "id": "portable-prompt",
       "type": "implicit",
       "prompt": "Draft a portable research prompt I can run in Claude, ChatGPT, and Gemini.",
-      "expected": {"trigger": ["research-architect"], "avoid": ["deep-research"]}
+      "expected": {
+        "trigger": [
+          "research-architect"
+        ],
+        "avoid": [
+          "deep-research"
+        ]
+      }
     },
     {
       "id": "commission-research",
       "type": "implicit",
       "prompt": "Commission research into agent interoperability; help shape the question and brief.",
-      "expected": {"trigger": ["research-architect"], "avoid": ["deep-research"]}
+      "expected": {
+        "trigger": [
+          "research-architect"
+        ],
+        "avoid": [
+          "deep-research"
+        ]
+      }
     },
     {
       "id": "returned-reports",
       "type": "contextual",
       "prompt": "Verify and synthesize these three research reports; assess their conflicting evidence and recommendations.",
-      "expected": {"trigger": ["research-architect"], "avoid": ["deep-research"]}
+      "expected": {
+        "trigger": [
+          "research-architect"
+        ],
+        "avoid": [
+          "deep-research"
+        ]
+      }
     },
     {
       "id": "direct-comparison",
       "type": "implicit",
       "prompt": "Research current database backup options and answer with a source-backed comparison and practical implications.",
-      "expected": {"trigger": ["deep-research"], "avoid": ["research-architect"]}
+      "expected": {
+        "trigger": [
+          "deep-research"
+        ],
+        "avoid": [
+          "research-architect"
+        ]
+      }
     },
     {
       "id": "direct-due-diligence",
       "type": "implicit",
       "prompt": "Conduct due diligence on the empirical evidence for this claim, with primary sources and citations.",
-      "expected": {"trigger": ["deep-research"], "avoid": ["research-architect"]}
+      "expected": {
+        "trigger": [
+          "deep-research"
+        ],
+        "avoid": [
+          "research-architect"
+        ]
+      }
     },
     {
       "id": "simple-edit",
       "type": "negative",
       "prompt": "Fix the spelling mistakes in this paragraph.",
-      "expected": {"trigger": [], "avoid": ["deep-research", "research-architect"]}
+      "expected": {
+        "trigger": [],
+        "avoid": [
+          "deep-research",
+          "research-architect"
+        ]
+      }
+    },
+    {
+      "id": "commission-due-diligence",
+      "type": "implicit",
+      "prompt": "Commission a multi-model due diligence research run with citations and practical implications",
+      "expected": {
+        "trigger": [
+          "research-architect"
+        ],
+        "avoid": [
+          "deep-research"
+        ]
+      }
+    },
+    {
+      "id": "cross-app-current-comparison",
+      "type": "implicit",
+      "prompt": "Plan research across Claude and Gemini about current evidence-based comparisons",
+      "expected": {
+        "trigger": [
+          "research-architect"
+        ],
+        "avoid": [
+          "deep-research"
+        ]
+      }
     }
   ]
 }

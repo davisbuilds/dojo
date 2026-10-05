@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Research Architect"
-  short_description: "Shape research questions and portable deep-research prompts"
+  short_description: "Commission and plan multi-model research runs across Claude"
   default_prompt: "Use $research-architect for this task."

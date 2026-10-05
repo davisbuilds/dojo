@@ -1,6 +1,6 @@
 ---
 name: research-architect
-description: Shape research questions and portable deep-research prompts; commission research across external apps or models; independently verify and synthesize returned reports. Use for a research prompt or brief, planning a research run, critiquing its scope, or assessing reports already produced.
+description: Commission and plan multi-model research runs across Claude, ChatGPT, Gemini, or other executors. Shape research questions, briefs, and portable prompts; independently verify and synthesize returned reports. Use for a research prompt, research brief, cross-app research plan, or assessment of completed reports.
 skill-type: workflow
 version: 4.0.0
 triggers:

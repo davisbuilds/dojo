@@ -1,6 +1,6 @@
 ---
 name: deep-research
-description: Answer questions through direct web research and source-backed analysis. Use for current information, evidence-based comparisons, due diligence, literature investigations, or a focused answer with citations and practical implications.
+description: Conduct web research to answer the user's question with checked sources and citations. Use when the user wants findings now — investigate a claim, compare options, or explain what the evidence establishes.
 skill-type: workflow
 compatibility: Web research requires retrieval access. Optional structured-finding helpers require python3.
 version: 3.0.0
