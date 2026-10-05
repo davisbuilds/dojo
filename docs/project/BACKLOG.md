@@ -25,6 +25,28 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 
 ## Open
 
+### Review test requirements against the current skill design principles
+
+- **What**: review validators and their tests together for requirements that no
+  longer earn their constraints. Preserve meaningful regression coverage; do not
+  target a smaller test count or rewrite the whole suite by default.
+- **Why or evidence, 2026-10-04**: collection at `7ce4996` yielded 800 cases
+  across 37 test files; the suite passed in about 13 seconds. The inventory
+  includes 140 portable-command-path cases, 256 distribution/measurement cases,
+  102 research-tooling cases, and 58 plan/spec-validator cases. This was an
+  inventory and sampled source review, not an assessment of every assertion or
+  evidence of improved agent outcomes. Candidates include mandatory research
+  prompt blocks and instruction-count limits in `tests/test_lint_prompt.py`,
+  exact prose assertions in `tests/test_research_architect_skeleton.py`, and
+  fixed profile vocabulary/membership in `tests/test_profiles_definitions.py`.
+- **Next**: identify the current consumer or protected failure for each disputed
+  requirement before keeping, narrowing, replacing, or retiring it. Change the
+  owning instructions, validators, and tests together. Keep coverage for safe
+  mutation, authority boundaries, portability, evidence fidelity, and real CLI
+  contracts. Distinguish evaluation-runner unit tests from live agent evidence;
+  deterministic green checks do not establish skill effectiveness. Research
+  revisions can resolve their local subset; the broader suite pass is deferred.
+
 ### Isolate standardizer tests from process state
 
 - **What**: several standalone standardizer tests leave cwd and harness-home
