@@ -52,9 +52,9 @@
     },
     {
       "name": "deep-research",
-      "description": "Use when a task needs direct web-backed research with citation-ready synthesis \u2014 the user wants the answer, not a commissioned research program. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead \u2014 this skill is its execution backend.",
+      "description": "Answer questions through direct web research and source-backed analysis. Use for current information, evidence-based comparisons, due diligence, literature investigations, or a focused answer with citations and practical implications.",
       "path": "skills/deep-research",
-      "version": "2.3.3"
+      "version": "3.0.0"
     },
     {
       "name": "design-critique",
@@ -162,9 +162,9 @@
     },
     {
       "name": "research-architect",
-      "description": "Engineer high-quality deep-research prompts and orchestrate their execution and verification. Use when the user wants to draft, improve, or critique a research prompt or brief; commission or plan a multi-source or multi-model research run; run research through external deep-research products (Claude/OpenAI/Gemini DR); or verify and score a research report that something else produced. Triggers on \"research prompt\", \"research brief\", \"commission research\", \"plan a research run\", \"verify this report\", \"research architect\". For a direct low-stakes lookup where the user just wants the answer, use deep-research instead.",
+      "description": "Shape research questions and portable deep-research prompts; commission research across external apps or models; independently verify and synthesize returned reports. Use for a research prompt or brief, planning a research run, critiquing its scope, or assessing reports already produced.",
       "path": "skills/research-architect",
-      "version": "3.0.1",
+      "version": "4.0.0",
       "triggers": [
         "research prompt",
         "research brief",

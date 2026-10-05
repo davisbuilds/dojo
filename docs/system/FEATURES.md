@@ -43,8 +43,8 @@ The four design skills above compose into a pipeline: `design-md` (token spec) �
 | `blind-spots` | Find what you don't know about one change — blind spot pass before it's built, or a brief-then-quiz before you merge (never scored, never gating) |
 | `create-cli` | CLI design or focused interface consultation during implementation |
 | `agent-native-design` | Design agent-facing interfaces, delegated work, and products for agent consumers |
-| `deep-research` | Web-backed research with conditional depth, explainable URL-host evidence filtering, and verified first-party source safeguards |
-| `research-architect` | Engineer deep-research prompts, route execution, independently verify reports, synthesize multi-run results, and compound lessons via postmortems |
+| `deep-research` | Direct source-backed research with claim-level evidence checks and optional structured-finding triage |
+| `research-architect` | Shape portable research prompts with the user, commission independent same-question runs, and assess or synthesize returned reports |
 
 ### Disciplines
 
@@ -143,7 +143,7 @@ inventory, not a promise that a default Dojo checkout exposes these slash comman
 - `/understand-change` — blind spot pass on a proposed change: scope, blast radius, and unknown unknowns
 - `/quiz-change` — get briefed on an implemented change, then quizzed on it one question at a time
 - `/standardize-skills` — skill standardization
-- `/deep-research` — route depth and filter evidence in one command
+- `/deep-research` — advisory depth estimates and ranking for supplied JSON findings; no retrieval or source verification
 - `/repo-audit` — generate repo-local audit artifacts and summarize hardening gaps
 - `/repo-harden` — implement the highest-value hardening fixes and refresh the audit packet
 - `/retro` — capture session learnings into existing project reference docs, including matching root, `docs/system`, or `docs/project` files

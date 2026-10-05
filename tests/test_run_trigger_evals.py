@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 
 
@@ -313,3 +314,21 @@ def test_idf_computed_over_full_corpus_not_selected_subset(tmp_path: Path) -> No
     subset = module.build_skill_index(root, {"secure-code", "filler-0"})
     # "semgrep" idf must be identical whether or not we filter the returned set.
     assert full["secure-code"]["idf"]["semgrep"] == subset["secure-code"]["idf"]["semgrep"]
+
+
+def test_research_family_routes_against_current_catalog() -> None:
+    """Keep commissioning, returned reports, and direct answers distinct.
+
+    This is a lexical regression check, not evidence of live-agent routing.
+    """
+    module = load_module()
+    skills = module.build_skill_index(REPO_ROOT / "skills", None)
+    fixture = REPO_ROOT / "skills/research-architect/evals/trigger-cases.json"
+    cases = json.loads(fixture.read_text())["cases"]
+    assert cases
+    result = module.evaluate_cases(skills, cases)
+    assert result["summary"]["failed"] == 0, result["assertions"]
+    declared = module.evaluate_declared_triggers(skills)
+    research = [a for a in declared["assertions"] if a["skill"] == "research-architect"]
+    assert research
+    assert all(a["passed"] for a in research), research

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run deep-research pipeline end-to-end.
+"""Triage supplied research findings; no web retrieval or claim verification.
 
 Pipeline:
 1) Route depth with depth_router.py
@@ -23,7 +23,7 @@ DEPTH_LEVELS = ("quick", "standard", "deep")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run deep-research routing and filtering in one command")
+    parser = argparse.ArgumentParser(description="Suggest depth and rank supplied findings (advisory only)")
     parser.add_argument("--input", help="Path to input JSON. Reads stdin when omitted.")
     parser.add_argument("--output", help="Path to output JSON. Writes stdout when omitted.")
     parser.add_argument("--override-depth", choices=DEPTH_LEVELS, help="Force quick|standard|deep.")
@@ -142,6 +142,8 @@ def main() -> int:
         research_packet = None
 
     result: Dict[str, Any] = {
+        "assessment_scope": "heuristic_triage",
+        "sources_verified": False,
         "depth_plan": depth_plan,
         "research_packet": research_packet,
         "meta": {
@@ -153,7 +155,7 @@ def main() -> int:
 
     if not should_filter:
         result["meta"]["note"] = (
-            "Filter stage was skipped. Provide a 'findings' array in input and omit --depth-only to run full pipeline."
+            "Filter stage was skipped. Provide a 'findings' array in input and omit --depth-only to rank supplied findings. No sources were retrieved or verified."
         )
 
     try:

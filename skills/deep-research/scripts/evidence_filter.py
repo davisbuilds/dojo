@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Evidence filtering and aggregation utility for deep research.
+"""Heuristic ranking and deduplication of supplied research findings.
 
 Reads raw findings JSON, scores and deduplicates findings, and emits a compact
-research packet with citations and discarded-context logs.
+research packet with citations and discarded-context logs. Scores are triage
+priors, not claim-support verdicts. Preserve the input and inspect exclusions
+that could affect the conclusion; this script does not fetch or verify sources.
 """
 
 from __future__ import annotations
@@ -99,7 +101,7 @@ class Finding:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Filter and aggregate deep research findings")
+    parser = argparse.ArgumentParser(description="Rank supplied research findings (heuristic only; no source verification)")
     parser.add_argument("--input", help="Path to JSON input file. Reads stdin when omitted.")
     parser.add_argument("--output", help="Path to write JSON output. Writes stdout when omitted.")
     parser.add_argument("--depth", choices=DEPTH_LEVELS, help="Override depth tier from input payload.")
@@ -614,6 +616,8 @@ def main() -> int:
     next_queries = infer_next_queries(research_brief, missing_terms)
 
     output = {
+        "assessment_scope": "heuristic_triage",
+        "sources_verified": False,
         "research_brief": research_brief,
         "depth": depth,
         "key_findings": key_findings,

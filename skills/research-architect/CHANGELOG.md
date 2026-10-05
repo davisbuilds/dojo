@@ -1,3 +1,11 @@
+## 4.0.0 - 2026-10-05
+
+- Replace the mandatory stage pipeline with independent entry points for shaping a research inquiry and assessing returned reports. Preserve user involvement and the portable prompt as a primary deliverable.
+- Default multi-app runs to the same core question independently, followed by separate synthesis; preserve source lineage, applicability, and meaningful disagreement.
+- Replace fixed prompt blocks and deletion quotas with adaptable composition and focused critique references. Add report-assessment guidance and authored replay scenarios; retain dated runs as historical evidence.
+- Narrow prompt linting to draft hygiene. Remove instruction counts, budgets, required sections, and summary tokens from validation; JSON drops `instruction_count` and `budget` and adds `scope`. Retain `--executor` as a compatibility label and add empty-prompt detection.
+- Preserve citation extraction and scoring tools as optional reviewer aids, with explicit sampling and verification limits. Add research-family lexical routing cases.
+
 ## 3.0.1 - 2026-09-23
 
 - Replace private project references in public research eval fixtures with portable examples.

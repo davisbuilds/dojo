@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Deep Research"
-  short_description: "Use when a task needs direct web-backed research with"
+  short_description: "Answer questions through direct web research and source-backed"
   default_prompt: "Use $deep-research for this task."

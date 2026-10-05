@@ -1,20 +1,14 @@
 #!/usr/bin/env python3
-"""Deterministic scaffolding for the stage-8 structural verification pass.
-
-Splits stage 8 at its natural seam. Extraction, sampling, and arithmetic are
-mechanical and belong here; judging whether a fetched page actually supports the
-claim attached to it is judgment and stays with the verifying subagent.
+"""Extract citation worksheets and summarize reviewer-supplied verdicts.
 
     worksheet  report.md      -> claims + citations + a sample to check
     score      worksheet.json -> support, applicability, and usable-citation rates
 
-The sample is weighted toward quantitative and source-attribution claims: across
-every executor profiled so far, mutated numbers and mischaracterized findings are
-the dominant failure mode, so a uniform sample under-tests where reports break.
-
-This script never fetches. The verifying agent has its own fetch tool and must
-look at the page to fill in a verdict; a liveness check here would only tempt a
-"URL resolves" hit rate, which is not what stage 8 measures.
+This script never fetches or judges source support. The reviewer retrieves the
+source, checks the claim and its applicability, and fills verdicts. Sampling
+favors quantitative and source-attribution claims based on dated run failures;
+it does not estimate whole-report accuracy. Inspect extraction and supplement
+important claims the sampler missed. These rates do not grade recommendations.
 """
 
 from __future__ import annotations

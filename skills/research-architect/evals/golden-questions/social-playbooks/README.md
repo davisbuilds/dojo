@@ -1,5 +1,10 @@
 # Golden question: social-playbooks (2026-07-12)
 
+Historical workflow replay: the numbered stages and fixed-block contracts here
+predate version 4. Preserve these records as evidence of that run, not templates
+or acceptance criteria for the current workflow. Current replay criteria live in
+`../../research-workflow-scenarios.md`.
+
 Sanitized drafting artifacts from the skill's first live run (stages 0–6 plus the
 red-team and friction log). Seed material for the planned golden-question eval
 harness (see `docs/project/BACKLOG.md`, research-architect deferred-tooling
