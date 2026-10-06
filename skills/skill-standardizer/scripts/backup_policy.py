@@ -33,7 +33,12 @@ def snapshot(root: Path, algorithm: str = 'sha1', ignore=None) -> dict[str, str]
             return
         elif stat.S_ISREG(mode):
             data = path.read_bytes()
-            kind = '100755' if mode & 0o111 else '100644'
+            execute_mask = mode & 0o111
+            # Git stores only all-or-none executability. Keep partial masks
+            # distinct for copy verification, and ineligible for Git recovery.
+            kind = {0: '100644', 0o111: '100755'}.get(
+                execute_mask, f'partial-execute-{execute_mask:03o}'
+            )
         else:
             raise ValueError(f'Unsupported filesystem entry: {path}')
         blob = hashlib.new(algorithm, b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()

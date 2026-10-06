@@ -1,6 +1,7 @@
 ## 2.0.0 - 2026-10-06
 
 - Replace count-based backup retention with exact Git recovery proofs and recorded symlink targets; preserve unique or uncertain contents indefinitely. Remove `--keep-backups`.
+- Preserve partial execute masks that Git cannot represent exactly.
 - Verify replacements before releasing rollback copies and save compact recovery records first. Failed applies retain available rollback data.
 - Add a dry-run-first cleanup command for old managed backups, with no traversal of backup symlinks.
 

@@ -92,7 +92,8 @@ it automatically.
 After a successful apply, a prior directory can be discarded only if its complete
 tree matches a committed version of that skill in canonical Git history reachable
 from `HEAD`. The proof includes file bytes, entry types, executable bits, relative
-paths, and symlink text. It ignores nothing: even untracked cache files and empty
+paths, and symlink text. Partial execute masks (such as mode `0645`) are
+not Git-recoverable and remain preserved. It ignores nothing: even untracked cache files and empty
 directories prevent a match. Git does not preserve timestamps, ownership, extended
 attributes, or non-executable permission bits; these are not part of this skill
 content recovery guarantee. Missing history or a failed proof means preserve.

@@ -191,3 +191,16 @@ def test_git_proof_matches_internal_link_text_without_following_it(history, tmp_
     shutil.copytree(source, copy, symlinks=True)
     proof = GitRecovery(str(repo / 'skills')).prove(copy, 'alpha')
     assert proof and proof['commit'] == git(repo, 'rev-parse', 'HEAD')
+
+
+@pytest.mark.parametrize('mode', [0o645, 0o654, 0o744])
+def test_partial_execute_masks_are_not_git_recoverable(history, mode):
+    from backup_policy import GitRecovery
+    repo, source, installed, _, _ = history
+    (source / 'SKILL.md').chmod(0o755)
+    git(repo, 'add', 'skills/alpha/SKILL.md')
+    git(repo, 'commit', '-qm', 'Executable skill file')
+    shutil.rmtree(installed)
+    shutil.copytree(source, installed)
+    (installed / 'SKILL.md').chmod(mode)
+    assert GitRecovery(str(repo / 'skills')).prove(installed, 'alpha') is None
