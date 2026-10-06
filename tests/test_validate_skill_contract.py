@@ -211,3 +211,26 @@ def test_normal_cli_omits_style_hints_but_can_request_them(tmp_path: Path) -> No
     hints = subprocess.run(args + ["--authoring-hints"], capture_output=True, text=True)
     assert hints.returncode == 0
     assert json.loads(hints.stdout)["summary"]["warn"] == 1
+
+
+@pytest.mark.parametrize("hints", [False, True])
+def test_saved_report_records_whether_hints_ran(tmp_path: Path, hints: bool) -> None:
+    import json
+    import subprocess
+    import sys
+
+    write_skill(
+        tmp_path, "reportable", "# Guidance\n\n## Scope\nUse the input.\n\n"
+        "## Boundaries\nRespect scope.\n\n## Verification\nCheck the result.\n",
+        skill_type="reference",
+    )
+    report_path = tmp_path / "report.md"
+    args = [sys.executable, str(SCRIPT_PATH), "--skills-root", str(tmp_path),
+            "--strict", "--json", "--markdown", str(report_path)]
+    if hints:
+        args.append("--authoring-hints")
+    result = subprocess.run(args, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["summary"]["pass"] == 1
+    expected = "enabled" if hints else "disabled (not evaluated)"
+    assert f"Authoring hints: {expected}" in report_path.read_text()

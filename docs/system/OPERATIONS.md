@@ -204,7 +204,8 @@ python scripts/slop_scan.py PATH...  # scan specific files
 
 ### Skill health report
 
-Read-only aggregation of contract status + declared-trigger routing across the catalog (reporting, not a gate):
+Read-only aggregation of strict catalog contract status + declared-trigger routing
+(reporting, not a gate; release-blocking metadata defects still appear as failures):
 
 ```bash
 python scripts/skills_health.py         # human-readable

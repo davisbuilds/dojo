@@ -54,7 +54,7 @@ def _dojo_skill_names(skills_root: Path) -> list[str]:
 
 
 def build_report(skills_root: Path) -> dict:
-    contract = _run_json([sys.executable, str(CONTRACT), "--skills-root", str(skills_root), "--json"])
+    contract = _run_json([sys.executable, str(CONTRACT), "--skills-root", str(skills_root), "--strict", "--json"])
     triggers = _run_json([sys.executable, str(TRIGGERS), "--from-triggers", "--skills-root", str(skills_root)])
 
     # Group trigger assertions by skill

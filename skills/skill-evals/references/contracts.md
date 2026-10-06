@@ -13,7 +13,8 @@ python3 skills/skill-evals/scripts/validate_skill_contract.py \
 Metadata validation gates release; heading, trigger wording, resource navigation,
 and length checks require `--authoring-hints` and are advisory even in strict mode. Strict mode additionally
 requires a matching directory/name and a declared skill type. Warnings exit zero;
-required failures exit one. Reports are optional via `--markdown <path>`.
+required failures exit one. Reports are optional via `--markdown <path>` and
+record whether authoring hints ran, including when both modes produce a clean result.
 `line_count` counts actual lines including frontmatter, not tokens. See the
 repository contract for exact checks. No result here proves behavioral quality.
 

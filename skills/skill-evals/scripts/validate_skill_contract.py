@@ -342,7 +342,7 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool, authoring_h
     }
 
 
-def render_markdown(results: list[dict[str, Any]], strict: bool) -> str:
+def render_markdown(results: list[dict[str, Any]], strict: bool, authoring_hints: bool = False) -> str:
     total = len(results)
     passes = sum(1 for r in results if r["status"] == "pass")
     warns = sum(1 for r in results if r["status"] == "warn")
@@ -352,7 +352,8 @@ def render_markdown(results: list[dict[str, Any]], strict: bool) -> str:
     out.append("# SKILL Contract Application Report")
     out.append("")
     out.append(f"Date: {datetime.now(timezone.utc).date().isoformat()} (UTC)")
-    out.append("Packaging checks and authoring hints; not behavioral evidence.")
+    out.append("Packaging assessment; not behavioral evidence.")
+    out.append(f"Authoring hints: {'enabled' if authoring_hints else 'disabled (not evaluated)'}")
     out.append(f"Mode: {'strict' if strict else 'default'}")
     out.append("")
     out.append("## Summary")
@@ -469,7 +470,7 @@ def main() -> int:
     }
 
     if args.markdown:
-        report = render_markdown(results, args.strict)
+        report = render_markdown(results, args.strict, args.authoring_hints)
         output_path = Path(args.markdown)
         if not output_path.is_absolute():
             output_path = (repo_root / output_path).resolve()

@@ -129,3 +129,21 @@ def test_findings_mode_does_not_run_static_build_report(monkeypatch, capsys):
     assert module.main() == 0
     out = capsys.readouterr().out
     assert "#### find-skills" in out  # fixture's never-fired dojo skill
+
+
+def test_health_reports_strict_catalog_defects_as_failures(tmp_path: Path):
+    module = load_module()
+    make_skill(tmp_path, "alpha")
+    make_skill(tmp_path, "bravo")
+    assert module.build_report(tmp_path)["summary"]["contract_pass"] == 2
+
+    alpha = tmp_path / "alpha" / "SKILL.md"
+    alpha.write_text(alpha.read_text().replace("skill-type: reference\n", ""))
+    bravo = tmp_path / "bravo" / "SKILL.md"
+    bravo.write_text(bravo.read_text().replace("name: bravo", "name: different-name"))
+
+    report = module.build_report(tmp_path)
+    assert report["summary"]["contract_fail"] == 2
+    by_name = {s["skill"]: s for s in report["skills"]}
+    assert "skill_type_declared" in by_name["alpha"]["required_failures"]
+    assert "name_matches_directory" in by_name["bravo"]["required_failures"]
