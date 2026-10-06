@@ -1,6 +1,10 @@
 # Deep Research Contracts
 
-This file defines the JSON contracts for `depth_router.py` and `evidence_filter.py`.
+These optional helpers triage an existing collection; none performs retrieval or
+claim verification. Each output includes `assessment_scope: "heuristic_triage"`
+and `sources_verified: false`. Depth ranges and scores are advisory, not a
+quality gate. Preserve the original input: discarded records do not retain all
+source content needed for reassessment.
 
 ## `depth_router.py`
 
@@ -28,6 +32,8 @@ This file defines the JSON contracts for `depth_router.py` and `evidence_filter.
 
 ```json
 {
+  "assessment_scope": "heuristic_triage",
+  "sources_verified": false,
   "selected_depth": "quick|standard|deep",
   "override_applied": "boolean",
   "score": "integer (-1 when override is used)",
@@ -83,6 +89,8 @@ python3 <skill-dir>/scripts/run_pipeline.py \
 
 ```json
 {
+  "assessment_scope": "heuristic_triage",
+  "sources_verified": false,
   "research_brief": "string",
   "depth": "quick|standard|deep",
   "key_findings": [
@@ -134,14 +142,21 @@ python3 <skill-dir>/scripts/run_pipeline.py \
 }
 ```
 
-## Composable Usage Pattern
+## Optional usage
 
-1. Build `research_brief`.
-2. Route depth with `depth_router.py`.
-3. Execute search loop using returned budgets.
-4. Normalize findings into the expected list shape.
-5. Run `evidence_filter.py`.
-6. Synthesize final response from `key_findings` and `citations` only.
+Use `depth_router.py` when a rough tier estimate is useful, and
+`evidence_filter.py` when ranking a supplied JSON collection helps triage it.
+`run_pipeline.py` composes the two. The `budgets` key retains legacy numeric
+ranges for interface compatibility; neither their minimum nor maximum is an
+instruction to the researcher. Caller-selected filtering limits still control
+how many records the helper emits, not what evidence may inform the answer.
+
+Inspect consequential retained and excluded findings against their sources.
+Lexical overlap can miss relevant counterexamples, deduplication can collapse
+distinct claims, and domain priors cannot establish page-level support. Use
+supported evidence from either bucket. The original input remains the source
+for excluded content. The helper's `confidence_gaps` and `next_queries` are
+heuristic suggestions, not a complete coverage assessment.
 
 ## Notes
 
@@ -159,11 +174,6 @@ python3 <skill-dir>/scripts/run_pipeline.py \
   over-budget rules still apply. Caller-provided `source_type` consistency is
   diagnostic and affects only the credibility tiebreak; it does not gate this
   verified-host retention.
-- If claim quality is critical, use this output as a pre-synthesis gate and run a final claim check afterward.
-- The skill-level packet (see SKILL.md Output Contract) adds a `self_report`
-  field on top of the `evidence_filter.py` output. It is composed by the agent
-  at synthesis — no script emits it — and feeds `research-architect` stage-10
-  postmortems.
 
 ## `run_pipeline.py`
 
@@ -182,6 +192,8 @@ CLI flags:
 
 ```json
 {
+  "assessment_scope": "heuristic_triage",
+  "sources_verified": false,
   "depth_plan": { "...depth_router output..." },
   "research_packet": { "...evidence_filter output or null..." },
   "meta": {

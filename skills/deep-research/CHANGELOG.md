@@ -1,3 +1,11 @@
+## 3.0.0 - 2026-10-05
+
+- Center direct research on the question, consequential uncertainty, claim-level evidence, and useful implications; remove mandatory search quotas, filtering, packet schemas, and self-reports.
+- Keep structured-finding helpers optional. Allow verified evidence from excluded records and retain original inputs for reassessment; heuristic scores no longer govern admissible evidence.
+- Mark each helper's JSON output with `assessment_scope: heuristic_triage` and `sources_verified: false`; revise depth stop guidance and help text to describe advisory triage accurately.
+- Clarify the existing slash command's structured-input scope, remove its checkout-relative permission matcher, and update helper contracts and CLI coverage.
+- Separate direct-answer discovery from research commissioning in the description.
+
 ## 2.3.3 - 2026-08-14
 
 - Anchor runnable script commands and their bundled-resource operands (`--input <skill-dir>/assets/...`) to <skill-dir> so they resolve outside a dojo checkout

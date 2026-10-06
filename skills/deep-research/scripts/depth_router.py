@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Depth routing utility for deep research tasks.
+"""Advisory depth estimates for research tasks.
 
-Selects quick, standard, or deep search depth using simple task signals.
+Suggests a depth tier using simple task signals. Legacy ranges are estimates,
+not search quotas or evidence-sufficiency criteria. This tool never retrieves
+or verifies sources.
 Reads JSON input from --input or stdin and writes JSON to --output or stdout.
 """
 
@@ -91,7 +93,7 @@ STOPWORDS = {
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Route a research task to quick/standard/deep depth")
+    parser = argparse.ArgumentParser(description="Suggest an advisory research depth tier; no source retrieval or verification")
     parser.add_argument("--input", help="Path to JSON input. Reads stdin when omitted.")
     parser.add_argument("--output", help="Path to write JSON output. Writes stdout when omitted.")
     parser.add_argument(
@@ -236,6 +238,8 @@ def build_output(
     budget = BUDGETS[selected_depth]
 
     return {
+        "assessment_scope": "heuristic_triage",
+        "sources_verified": False,
         "selected_depth": selected_depth,
         "override_applied": override_applied,
         "score": score,
@@ -255,9 +259,9 @@ def build_output(
                 "max_kept": budget.max_kept_findings,
             },
             "stop_rules": [
-                "Stop when two consecutive query rounds add no materially new findings.",
-                "Stop when required claim categories have at least two independent sources.",
-                "Stop when confidence gaps are exhausted or search budget max is reached.",
+                "Assess whether remaining uncertainty could change the answer for its intended use.",
+                "Do not treat source counts or these estimated ranges as evidence of sufficiency.",
+                "Respect the user budget and report consequential gaps that remain.",
             ],
         },
     }

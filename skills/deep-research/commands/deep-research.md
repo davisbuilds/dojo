@@ -1,58 +1,45 @@
 ---
 name: deep-research
-description: Run the deep-research pipeline in one command with automatic depth routing and optional evidence filtering.
+description: Triage an existing JSON collection of research findings with advisory depth estimates and heuristic ranking; does not retrieve or verify sources.
 argument-hint: "--input <path> [--output <path>] [--override-depth quick|standard|deep] [--max-findings <n>] [--depth-only]"
-allowed-tools: [Read, Bash(python3 skills/deep-research/scripts/run_pipeline.py:*)]
 ---
 
 # Deep Research Command
 
-Use this wrapper to run the canonical deep research pipeline from `skills/deep-research`.
+This wrapper retains the structured-helper interface. For a natural-language
+research question, use the `deep-research` skill's research guidance directly.
 
 ## Behavior
 
-1. Load `deep-research` skill guidance from `skills/deep-research/SKILL.md`.
-2. Run the pipeline script:
+Resolve `<skill-dir>` to this installed skill's absolute directory, then run:
 
 ```bash
 python3 <skill-dir>/scripts/run_pipeline.py $ARGUMENTS
 ```
 
-3. Interpret output sections in this order:
-1. `depth_plan`
-2. `research_packet`
-3. `meta`
+The command estimates a depth tier and optionally filters supplied findings.
+It does not search, fetch cited pages, or establish whether a claim is supported.
+Use `references/contracts.md` for the input and output schema.
 
-4. If `research_packet` is `null`, report that filter stage was skipped and explain how to provide findings.
+- `depth_plan` contains advisory estimates; its search ranges are not quotas.
+- `research_packet` contains ranked findings, exclusions, and heuristic gaps.
+  It is `null` when filtering was skipped; report that state accurately.
+- `meta` identifies which helpers ran and the limits of the output.
 
-## Input Expectations
+Retain the input. Inspect relevant exclusions and verify important claims before
+using this packet to answer the user. A low score is not a reason to ignore a
+supported counterexample; a high score is not a reason to trust an unsupported
+claim. Do not present heuristic `confidence_gaps` as a complete uncertainty audit.
 
-Input JSON must include:
-- `research_brief`: string
-- `findings`: array (required only when running full pipeline)
-
-Optional context flags for routing:
-- `high_stakes`
-- `requires_current_info`
-- `multi_entity_comparison`
-- `unknown_scope`
-- `task_context` object with same flags
-
-## Output Rules
-
-- Base conclusions only on `research_packet.key_findings` and `research_packet.citations`.
-- Never reintroduce items from `research_packet.discarded_context` into final claims.
-- If `confidence_gaps` is non-empty, report those gaps explicitly.
-
-## Example Invocations
+## Examples
 
 ```bash
-# Depth planning only
+# Advisory depth estimate only
 /deep-research --input /tmp/research.json --depth-only --pretty
 
-# Full pipeline with automatic depth selection
+# Rank supplied findings; preserve the source input
 /deep-research --input /tmp/research.json --output /tmp/research.packet.json --pretty
 
-# Full pipeline with forced depth and tighter retained findings
+# Override tier and retained-record count for this triage
 /deep-research --input /tmp/research.json --override-depth deep --max-findings 18 --pretty
 ```

@@ -1,47 +1,25 @@
-# Stage-5 Red-Team Checklist
+# Focused prompt critique
 
-The mandate for the stage-5 critique subagent. Spawn a **fresh** subagent (no
-drafting-stage context) and give it the assembled prompt plus this checklist
-verbatim. Its job is adversarial simulation, not generic critique.
+Use when a prompt has consequential ambiguity, competing goals, uncertain source
+access, or a history of weak results. A separate reviewer can help, but the
+critique may be inline and need not produce its own artifact.
 
-## The mandate (paste into the subagent prompt)
+Read the prompt as an executor who has no surrounding conversation:
 
-> Role-play a competent but lazy executor running this research prompt. You
-> want to finish fast and look compliant. Report, in this order:
->
-> 1. **Letter-vs-spirit gaps** — where you could satisfy the literal
->    requirement while missing its point. Quote the instruction; describe the
->    lazy-but-compliant output.
-> 2. **Silent skips** — instructions you would quietly ignore because they are
->    expensive, vague, or unverifiable. Say why each is skippable in practice.
-> 3. **Conflicts** — pairs of instructions that cannot both be followed, or
->    where following one weakens the other.
-> 4. **Deletions (mandatory: at least three)** — instructions that are dead
->    weight: restatements of general good practice, requirements no verifier
->    could check from the report text, or duplicates of what another block
->    already enforces. Name them for deletion even if the prompt is good.
-> 5. **Missing do-nots** — topic-specific failure modes a lazy executor would
->    hit that the do-not list does not cover. Propose each as a one-line
->    do-not item.
->
-> Do not praise the prompt. Do not suggest additions except in item 5. Your
-> output is consumed by a drafting session that will edit the prompt directly.
+- Could a polished answer satisfy its wording while missing the user's real
+  question? Identify the concrete mismatch.
+- Does a premise ask the executor to confirm an unverified statistic, forecast,
+  or user belief? Distinguish a research lead from a fact to assume.
+- Does the requested breadth leave room to investigate the central uncertainty?
+  Identify a specific lower-priority question to defer if needed.
+- Are required sources or attachments actually available on the chosen surface?
+  If access is untested, retain the uncertainty instead of inventing a fallback
+  that cannot answer the question.
+- Do formatting or process demands serve an actual consumer? Remove or revise
+  redundant and conflicting instructions without a deletion quota.
+- Is there a useful output if the evidence is weak, the premise is wrong, or no
+  action is justified?
 
-## Why the deletion mandate is non-negotiable
-
-Iterated prompt-critique loops are additive by disposition: every round adds
-hedges and constraints, and long prompts demonstrably drop instructions —
-every instruction competes with every other. Requiring three deletions per
-round is the structural counterweight. If the red-teamer genuinely cannot find
-three, record that observation with this run when useful. It can inform a later
-revision of the mandate; it does not require editing the installed skill.
-
-## Processing the findings (drafting session)
-
-- Fold items 1–3 into rewrites: make the requirement checkable or delete it.
-- Apply item 4 deletions unless a deletion would remove the only enforcement
-  of a stage-0/1 priority — in that case record why it stays.
-- Add item-5 do-nots only if they are concrete errors for THIS topic; generic
-  virtue goes nowhere.
-- Re-run `scripts/lint_prompt.py` after edits. One round is usually enough; a
-  second round only if round one surfaced a conflict (item 3).
+Return only consequential improvements, with the failure each addresses. An
+already focused prompt may need no changes. Do not iterate critiques to optimize
+wording indefinitely; a real output is better evidence of whether it worked.

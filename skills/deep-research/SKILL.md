@@ -1,204 +1,116 @@
 ---
 name: deep-research
-description: Use when a task needs direct web-backed research with citation-ready synthesis — the user wants the answer, not a commissioned research program. For commissioning multi-model or externally-executed research programs, or verifying reports produced elsewhere, use research-architect instead — this skill is its execution backend.
+description: Conduct web research to answer the user's question with checked sources and citations. Use when the user wants findings now — investigate a claim, compare options, or explain what the evidence establishes.
 skill-type: workflow
-compatibility: "Requires python3. Requires network access for web research."
-version: 2.3.3
+compatibility: Web research requires retrieval access. Optional structured-finding helpers require python3.
+version: 3.0.0
 ---
 
 # Deep Research
 
-Run web research with explicit budgets, deterministic filtering, and compact evidence handoff.
+Investigate the question at the depth its uncertainty and consequences warrant.
+Deliver a supported answer that is useful to the user, with a clear account of
+what the evidence does and does not establish.
 
 ## When To Use
 
-Use this skill when the user asks for:
-- up-to-date, source-backed analysis
-- comparisons across multiple entities or options
-- due diligence, risk, or policy-sensitive research
-- long-form synthesis where irrelevant context must be pruned aggressively
+Use for direct source-backed research, from a focused comparison to a substantial
+investigation. Reuse the user's brief or accepted scope; there is no separate
+commissioning requirement for complex or high-stakes questions.
 
-Skip this skill for:
-- simple static facts that do not require web retrieval
-- tasks where user-provided context is already complete and verified
-- engineering a research prompt/brief, planning multi-model or external DR
-  runs, or verifying a report someone else produced — that is
-  `research-architect`, which calls this skill as its execution backend
+## Boundaries
+
+Use `research-architect` when the requested deliverable is a portable research
+prompt, a multi-app run design, or assessment and synthesis of reports produced
+elsewhere. Consulting either skill does not import the other's artifacts.
+Simple static facts and tasks fully answered by supplied material do not need a
+research workflow.
 
 ## Workflow
 
-### Quick Runner
+### Research around the uncertainty
 
-For one-command execution (route + optional filter), run:
+Start with the question and intended use, using context already available. Ask
+when an unresolved scope choice would materially change the investigation;
+otherwise proceed with a reasonable, stated interpretation. Keep a coherent
+focus and prioritize the uncertainties that could change the answer. The brief
+can remain in the conversation unless a later consumer needs a file.
+
+Choose retrieval methods that can answer those uncertainties. Follow relevant
+leads, inspect original sources, and refine the search as the evidence develops.
+An official interface claim, an empirical outcome, and a user's experience may
+need different source types. Use primary sources for claims about what a study,
+product, standard, or implementation actually says or does. Secondary sources
+can supply leads, interpretation, and criticism; follow important attributions
+back to their origin.
+
+Allocate effort by information value and the cost of being wrong. Seek opposing
+evidence and alternative explanations when the claim is contested, incentives
+may distort reporting, or a recommendation depends on a fragile assumption.
+Do not add counterarguments for symmetry or broaden into adjacent topics merely
+to fill a report.
+
+There are no required search counts, parallel tracks, or citation quotas. Stop
+when the central question is supported well enough for its intended use, when
+further retrieval is unlikely to resolve the remaining gaps, or at the user's
+budget limit. Explain gaps that constrain the answer and the next observation
+that could resolve them; do not call an exhausted search proof of absence.
+
+### Judge evidence at the claim level
+
+Inspect the source behind consequential claims. Check the actual passage,
+measurement conditions, dates or versions when material, and whether its scope
+fits the claim. A result in another population or environment may be suggestive
+without supporting the proposed application.
+
+Distinguish measured outcomes, author claims, inference, and forecasts. Trace
+source lineage before counting corroboration: syndication, multiple summaries,
+and model agreement can all repeat one original claim. A reputable domain is a
+provenance clue, not proof that every page or statement is reliable.
+
+Record access limitations honestly. A search snippet, inaccessible full text,
+or repository README is not equivalent to inspecting the underlying evidence or
+implementation. Quote or characterize only what was actually retrieved. Carry
+material contradictions forward when the evidence cannot resolve them.
+
+## Output
+
+Answer the question directly, citing sources near the claims they support. Match
+the structure and detail to the user's use: compare options when a choice is
+needed, explain implications when learning is the goal, and recommend a next
+step only when warranted. Avoid turning every inquiry into a build plan.
+
+## Verification
+
+Before delivering, check that the central conclusion follows from applicable
+evidence, important numbers and attributions retain their original meaning, and
+limitations could not silently reverse the recommendation. Separate supported
+findings from inference and unresolved questions. State the limits of any
+verification; a confidence label cannot replace an explanation.
+
+Save a report or evidence record when requested or useful for continuation. No
+fixed packet schema, self-report, or postmortem is required for ordinary research.
+Research does not authorize implementation, publication, or promotion of a
+finding into standing instructions.
+
+## Optional structured-finding helpers
+
+For an existing JSON collection of findings, the bundled scripts can suggest a
+depth tier and rank/deduplicate the supplied records:
 
 ```bash
-python3 <skill-dir>/scripts/run_pipeline.py --input /path/to/research.json --pretty
+python3 <skill-dir>/scripts/run_pipeline.py --input findings.json --pretty
 ```
 
-Use `--depth-only` to return routing budgets without filtering.
-For a ready-to-run example, use `assets/sample-input.json`.
+This command performs **no web retrieval or claim verification**. Its legacy
+search ranges are estimates, not minimum work or completion criteria. Its
+relevance, credibility, novelty, and recency scores are heuristics, not evidence
+verdicts. Filtering can omit a decisive exception or contrary finding. Preserve
+the original input and inspect relevant exclusions; supported evidence may be
+used regardless of which output bucket it occupies.
 
-### 1) Scope Gate
-
-Before searching, produce a strict research brief:
-- define objective in one paragraph
-- list constraints and non-goals
-- capture required source priorities (official docs, primary papers, etc.)
-
-If scope is ambiguous, ask clarifying questions first.
-
-### 2) Depth Routing
-
-Use `scripts/depth_router.py` to select `quick`, `standard`, or `deep`.
-
-```bash
-python3 <skill-dir>/scripts/depth_router.py --pretty <<'JSON'
-{
-  "research_brief": "Compare incident response platforms for SOC teams in regulated healthcare environments.",
-  "task_context": {
-    "high_stakes": true,
-    "requires_current_info": true,
-    "multi_entity_comparison": true
-  }
-}
-JSON
-```
-
-Routing policy:
-- `quick`: 3-6 searches, single track, rapid answer
-- `standard`: 8-20 searches, 2-4 tracks, one refinement pass
-- `deep`: 20-80 searches, 4-8 tracks, contradiction checks and broader coverage
-
-The user can override depth explicitly.
-
-### 3) Research Loop
-
-Run search rounds with this loop:
-1. broad query expansion
-2. targeted follow-up queries
-3. gap check after each round
-4. stop on saturation (no material novelty in two rounds)
-
-Prefer primary sources first, then secondary analysis.
-
-### 4) Evidence Distillation
-
-After collecting raw findings, run `scripts/evidence_filter.py`.
-
-```bash
-python3 <skill-dir>/scripts/evidence_filter.py --pretty <<'JSON'
-{
-  "research_brief": "Compare incident response platforms for SOC teams in regulated healthcare environments.",
-  "depth": "standard",
-  "findings": [
-    {
-      "title": "Vendor A security and compliance overview",
-      "url": "https://example.com/vendor-a/security",
-      "summary": "HIPAA and SOC 2 controls, audit logging, and breach workflow details.",
-      "source_type": "official",
-      "published_at": "2026-01-18"
-    }
-  ]
-}
-JSON
-```
-
-The script:
-- scores findings (relevance, domain-derived credibility, novelty, recency)
-- deduplicates by canonical URL and semantic overlap
-- discards low-signal entries with explicit reasons
-- retains relevant, registry-verified priority sources when only the aggregate
-  score would discard them, with an explicit retention reason and confidence gap
-- emits compact, citation-ready findings, credibility reasons, and confidence
-  gaps
-
-Credibility comes from the URL hostname and the conservative policy in
-`references/credibility-registry.json`. A self-declared `source_type` can break
-ties for a known domain or lower an unknown-domain prior, but it cannot raise an
-unknown domain above neutral. Treat the score as a provenance prior, never as a
-substitute for checking whether the cited page supports the claim.
-
-The registry covers first-party model, harness, protocol, and agent-framework
-documentation alongside scholarly, government, university, on-chain, and code
-hosts. Rules may explicitly cover an owned root plus its subdomains; exact-host
-matching remains the default. This lets official documentation survive host
-moves without letting lookalike domains or arbitrary repositories inherit
-first-party authority.
-
-Ceilings encode what each class can actually establish: provider documentation
-is authoritative for its own product behavior but not independent performance
-evidence; raw chain state and raw source files are high-provenance and
-low-interpretation; a community-authored Dune query is only as good as its SQL;
-and a repository README is a claim about the code rather than evidence for it.
-Verified priority sources may bypass only the aggregate score threshold. They
-must still clear the off-topic floor, deduplication, and finding budget, and the
-packet records the bypass so synthesis checks page-level support. Because
-priority status comes from the verified hostname policy, missing or mismatched
-caller-provided `source_type` metadata does not disable this safeguard.
-
-Credibility is a **reliability** prior only. It says nothing about whether a
-finding is still current — that is a separate axis. A high-scoring source
-reporting a closed window is reliable and irrelevant, so weigh recency
-independently rather than letting a strong host stand in for a fresh fact.
-
-### 5) Synthesis
-
-Build the final response from filtered output only.
-
-Required output sections:
-- concise answer
-- key findings with citations
-- confidence gaps
-- suggested next queries (if unresolved gaps remain)
-- self-report, for standard/deep runs: instructions or source classes you
-  could not honor, and why — candor here is rewarded, not penalized
-
-## Output Contract
-
-Return this shape for downstream composition:
-- `research_brief`
-- `key_findings`
-- `citations`
-- `discarded_context`
-- `confidence_gaps`
-- `next_queries`
-- `self_report` (optional on quick runs, expected on standard/deep) —
-  agent-composed at synthesis, not script-emitted; consumed by
-  `research-architect` stage-10 postmortems
-
-Do not mix discarded items back into final claims.
-
-## Quality Rules
-
-- Recency-sensitive tasks must include current dated sources.
-- High-stakes tasks require stronger source diversity and official documentation.
-- If confidence gaps remain, report them explicitly instead of speculating.
-- Do not infer article quality from institutional branding alone: repositories,
-  peer-reviewed articles, institutional research pages, and university news all
-  carry different credibility ceilings.
-- Use only source classes you can actually reach. If a priority source class
-  is inaccessible (paywall, login wall, blocked platform), do not silently
-  substitute lower-grade sources for it — name the fallback you used and
-  record the gap in `confidence_gaps` and the `self_report`.
-- Keep synthesis concise; preserve traceability through citations.
-
-## References
-
-- `references/contracts.md`: input schemas, output schemas, and composable usage notes.
-- `references/credibility-registry.json`: versioned hostname authority,
-  owned-subdomain policy, priority-source behavior, document class, score,
-  ceiling, and rationale rules used by the evidence filter. Add hosts
-  conservatively; exact matching remains the default.
-
-## Sibling skills
-
-Parallel evidence-gathering stage in the pre-execution pipeline.
-
-- `research-architect` — upstream/downstream orchestrator: engineers the
-  prompt, routes execution (this skill is the local backend), and verifies
-  whatever comes back. High-stakes or multi-model research starts there.
-- `brainstorming` — common caller when option exploration depends on facts.
-- `first-principles` — common caller when reasoning hinges on unknowns (library behavior, API contracts).
-- `write-spec` — common caller when the contract needs grounded evidence (the WHAT).
-- `write-plan` — common caller when execution steps need grounded references (the HOW).
-- `fetchmd` — narrower tool for fetching specific known URLs into markdown; this skill orchestrates broader web-backed research with depth routing and citation synthesis.
+Use these tools only when their structured triage helps. They are not a required
+step before synthesis. See [contracts and limitations](references/contracts.md)
+for their JSON interfaces and [the command wrapper](commands/deep-research.md)
+for flags. The example at `assets/sample-input.json` illustrates the input shape,
+not a validated research result.

@@ -35,10 +35,11 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   includes 140 portable-command-path cases, 256 distribution/measurement cases,
   102 research-tooling cases, and 58 plan/spec-validator cases. This was an
   inventory and sampled source review, not an assessment of every assertion or
-  evidence of improved agent outcomes. Candidates include mandatory research
-  prompt blocks and instruction-count limits in `tests/test_lint_prompt.py`,
-  exact prose assertions in `tests/test_research_architect_skeleton.py`, and
-  fixed profile vocabulary/membership in `tests/test_profiles_definitions.py`.
+  evidence of improved agent outcomes. The research revision removes mandatory
+  prompt blocks, instruction-count limits, and exact skeleton-prose assertions;
+  its tooling retains draft-hygiene, citation, and CLI coverage. Remaining
+  candidates include fixed profile vocabulary/membership in
+  `tests/test_profiles_definitions.py` and plan/spec validator requirements.
 - **Next**: identify the current consumer or protected failure for each disputed
   requirement before keeping, narrowing, replacing, or retiring it. Change the
   owning instructions, validators, and tests together. Keep coverage for safe
@@ -75,9 +76,6 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   with the same harness/repo controls. Assess outcomes, authority boundaries,
   unnecessary artifacts/stops, context cost, and time. Prioritize remaining
   skills from observed friction; do not infer low value from invocation counts.
-- **Remaining candidate, 2026-10-02**: review the research family's mandatory
-  stages. This is a source-review candidate, not a measured model-performance
-  finding.
 - **Deferred knowledge-capture follow-up, 2026-09-23**: `loop-design`'s progress
   template and iteration instructions emphasize accumulating log entries. Consider
   a compact current checkpoint (next action, unresolved failure, latest evidence)
@@ -87,22 +85,9 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 - **Revisit when**: a candidate is selected, real usage exposes more friction,
   experimental results arrive, or model/tool changes warrant recalibration.
 
-### Declared research trigger collides with the execution skill
-
-- **What**: `commission research` ranks `deep-research` above its declared owner
-  `research-architect` in the lexical self-routing check.
-- **Why or evidence**: reproduced 2026-09-17 with
-  `run_trigger_evals.py --from-triggers --skills-root skills` in an untouched
-  pre-split archive of `a657a57`, before the workflow edits: 13/14 assertions pass; the
-  same collision remains after the first pass. This is a lexical routing result,
-  not a demonstrated semantic misfire.
-- **Next**: inspect the research-family trigger boundary when tuning that family;
-  retain both commissioning and direct-execution cases. Do not weaken the fixture
-  or change unrelated descriptions solely to make this task's checks green.
-
 ### Remaining command permission patterns hardcode dojo-relative paths
 
-- **What**: `local-review`, `deep-research`, `repo-hardening`, and `loop-design`
+- **What**: `local-review`, `repo-hardening`, and `loop-design`
   command wrappers still declare literal `Bash(... skills/<name>/...)` prefixes.
   Their runnable bodies use installed absolute paths, which these matchers do not
   cover. Observed in source on 2026-10-03; effective behavior is harness-dependent.
@@ -190,11 +175,11 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   still thin for a reusable library. The third run also proved manual cross-run
   diffing valuable, but only one of three reports preserved M1's exact section
   structure and two exports had opaque claim-to-URL linkage.
-- **Next**: Seed `rubric-library.md` after one more cross-domain run identifies
-  a reusable discriminating item. Build `diff_runs.py` only after another
-  multi-run exercise establishes a tolerant alignment strategy for missing,
-  added, and reordered sections; reuse `score_report.py`'s normalized citation
-  coverage instead of assuming every export carries direct URLs.
+- **Next**: revisit after another real run exposes recurring work worth tooling.
+  Current synthesis aligns claims and questions without fixed report headings;
+  any future helper must tolerate missing, added, and reordered sections and
+  opaque citations. Treat the dated rubric observations above as candidates for
+  optional evidence lenses, not a reason to restore mandatory scorecards.
 
 ### skills-health: many canonical dojo skills aren't installed globally, so they're unmeasurable
 - **What**: As of 2026-07-15, 26 of 57 canonical `skills/` are installed in none

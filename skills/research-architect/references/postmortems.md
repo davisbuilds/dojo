@@ -1,5 +1,10 @@
 # Postmortems — skeleton and process lessons
 
+Historical run evidence. Stage numbers, block names, and prescriptive remedies
+below refer to the workflow used at the time; they are not current requirements.
+Use the current SKILL.md and synthesis reference for today's policy. Recheck
+consequential capability assumptions rather than generalizing from these runs.
+
 Curated historical observations about the skeleton and pipeline. Consult relevant
 entries during stages 2–5; their conclusions reflect the named runs, not timeless
 requirements. New observations belong with their research run. Update this file

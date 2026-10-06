@@ -1,5 +1,10 @@
 # Executor profiles — per-executor quirks and routing facts
 
+Historical run evidence. Stage numbers, block names, and prescriptive remedies
+below refer to the workflow used at the time; they are not current requirements.
+Use the current SKILL.md and synthesis reference for today's policy. Recheck
+consequential capability assumptions rather than generalizing from these runs.
+
 Curated observations of specific executors in dated runs. Consult relevant entries
 to inform scouting and prompt design; recheck consequential access or behavior
 assumptions in the current environment. New run observations stay with their run;

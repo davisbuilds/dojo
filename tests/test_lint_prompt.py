@@ -24,50 +24,15 @@ def load_module():
 lint_prompt = load_module()
 
 
-def make_prompt(
-    *,
-    slots: bool = False,
-    comments: bool = False,
-    rubric: bool = True,
-    degradation: bool = True,
-    do_not: bool = True,
-    summary: bool = True,
-    self_report: bool = True,
-    extra: str = "",
-) -> str:
+def make_prompt(*, slots: bool = False, comments: bool = False, extra: str = "") -> str:
     parts = [
-        "# Research Prompt\n",
-        "You are a skeptical research analyst. Your job: map the territory.\n",
+        "Compare backup methods for a local SQLite desktop app. Explain the tradeoffs "
+        "for an offline user, citing the official documentation.",
     ]
     if slots:
-        parts.append("**Seed sources:** {{SEED_SOURCES}}\n")
+        parts.append("Background: {{SEED_SOURCES}}")
     if comments:
-        parts.append("<!-- drafting guidance that should have been deleted -->\n")
-    if do_not:
-        parts.append(
-            "**Do NOT (known failure modes for this topic):**\n"
-            "- treat k-anonymity as equivalent to formal DP\n"
-        )
-    if degradation:
-        parts.append(
-            "**Degradation order:** if depth becomes constrained, deliver "
-            "sections 3 and 6 at full depth and stub the rest.\n"
-        )
-    if rubric:
-        parts.append(
-            "This report will be scored against the following acceptance "
-            "criteria by a separate verification pass.\n"
-        )
-    if summary:
-        parts.append(
-            "End the report with a machine-parseable summary block: "
-            "`key_findings` / `citations` / `confidence_gaps` / `next_queries`.\n"
-        )
-    if self_report:
-        parts.append(
-            "Close with a short **self-report**: confidence, gaps, and which "
-            "instructions you could not fully follow.\n"
-        )
+        parts.append("<!-- drafting note: resolve scope -->")
     parts.append(extra)
     return "\n".join(parts)
 
@@ -76,34 +41,27 @@ def check(result: dict, name: str) -> dict:
     return next(c for c in result["checks"] if c["name"] == name)
 
 
-# --- instruction counting -------------------------------------------------
+# The linter checks shippable text, not a prescribed research methodology.
+@pytest.mark.parametrize("executor", ["web", "terminal"])
+def test_focused_prompt_needs_no_workflow_sections(executor):
+    prompt = (
+        "Compare SQLite backup options for a local desktop app. Explain which "
+        "option fits an offline user and cite the official documentation."
+    )
+    assert lint_prompt.evaluate(prompt, executor)["status"] == "pass"
 
 
-def test_count_instructions_counts_imperative_markers():
-    text = "You must cite. Never guess. Always date claims. Do not pad."
-    assert lint_prompt.count_instructions(text) == 4
+@pytest.mark.parametrize("executor", ["web", "terminal"])
+def test_instruction_count_does_not_gate_prompt(executor):
+    prompt = make_prompt(extra="You must preserve the supplied constraint.\n" * 65)
+    assert lint_prompt.evaluate(prompt, executor)["status"] == "pass"
 
 
-def test_count_instructions_case_insensitive():
-    assert lint_prompt.count_instructions("Do NOT invent. you MUST verify.") == 2
-
-
-def test_count_instructions_zero_on_plain_prose():
-    assert lint_prompt.count_instructions("A useful null result is a success.") == 0
-
-
-def test_count_instructions_counts_bullet_initial_imperatives():
-    text = "- Grade every major claim.\n- Demand unit economics.\n"
-    assert lint_prompt.count_instructions(text) == 2
-
-
-def test_count_instructions_does_not_double_count_marked_bullet():
-    assert lint_prompt.count_instructions("- Always cite primary sources.\n") == 1
-
-
-def test_count_instructions_ignores_descriptive_bullets():
-    text = "- Sources include registries and filings.\n- Findings are dated.\n"
-    assert lint_prompt.count_instructions(text) == 0
+@pytest.mark.parametrize("prompt", ["", " \n\t"])
+def test_empty_prompt_fails(prompt):
+    result = lint_prompt.evaluate(prompt, "terminal")
+    assert check(result, "nonempty_prompt")["status"] == "fail"
+    assert result["status"] == "fail"
 
 
 # --- individual checks ----------------------------------------------------
@@ -142,64 +100,6 @@ def test_xml_like_text_inside_prompt_is_not_treated_as_trailing_debris():
     assert check(result, "harness_debris")["status"] == "pass"
 
 
-@pytest.mark.parametrize(
-    ("kwargs", "name"),
-    [
-        ({"rubric": False}, "rubric_present"),
-        ({"degradation": False}, "degradation_order"),
-        ({"do_not": False}, "do_not_list"),
-        ({"summary": False}, "summary_block"),
-        ({"self_report": False}, "self_report"),
-    ],
-)
-def test_missing_required_block_fails(kwargs, name):
-    result = lint_prompt.evaluate(make_prompt(**kwargs), executor="terminal")
-    assert check(result, name)["status"] == "fail"
-    assert result["status"] == "fail"
-
-
-def test_partial_summary_block_fails():
-    text = make_prompt(summary=False, extra="Include `key_findings` and `citations`.\n")
-    result = lint_prompt.evaluate(text, executor="terminal")
-    c = check(result, "summary_block")
-    assert c["status"] == "fail"
-    assert "confidence_gaps" in c["detail"]
-
-
-# --- instruction budget ---------------------------------------------------
-
-
-def base_count() -> int:
-    return lint_prompt.count_instructions(make_prompt())
-
-
-def imperatives(n: int) -> str:
-    return "".join(f"You must check item {i}.\n" for i in range(n))
-
-
-def test_budget_over_fails_for_web():
-    over = lint_prompt.BUDGETS["web"] - base_count() + 1
-    result = lint_prompt.evaluate(make_prompt(extra=imperatives(over)), executor="web")
-    assert check(result, "instruction_budget")["status"] == "fail"
-
-
-def test_budget_same_count_passes_for_terminal():
-    over = lint_prompt.BUDGETS["web"] - base_count() + 1
-    result = lint_prompt.evaluate(
-        make_prompt(extra=imperatives(over)), executor="terminal"
-    )
-    assert check(result, "instruction_budget")["status"] == "pass"
-
-
-def test_budget_within_ten_percent_warns():
-    target = int(lint_prompt.BUDGETS["web"] * 0.9) - base_count() + 1
-    result = lint_prompt.evaluate(
-        make_prompt(extra=imperatives(target)), executor="web"
-    )
-    assert check(result, "instruction_budget")["status"] == "warn"
-    assert result["status"] == "warn"
-
-
 # --- CLI ------------------------------------------------------------------
 
 
@@ -228,8 +128,7 @@ def test_cli_fail_exits_one(tmp_path):
 
 
 def test_cli_warn_exits_zero_unless_strict(tmp_path):
-    target = int(lint_prompt.BUDGETS["web"] * 0.9) - base_count() + 1
-    text = make_prompt(extra=imperatives(target))
+    text = make_prompt(extra=SEEDED_FLOATING)
     assert run_cli(tmp_path, text, "--executor", "web").returncode == 0
     assert run_cli(tmp_path, text, "--executor", "web", "--strict").returncode == 1
 
