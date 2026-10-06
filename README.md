@@ -56,6 +56,13 @@ Prefer to do it yourself? The manual steps are below.
 
 The generated [`skills.json`](skills.json) manifest is the runtime inventory source of truth.
 
+## Development checks
+
+With repository dependencies installed, use `bin/dojo check <skill> --base origin/main`
+for focused packaging/release checks, or `bin/dojo inspect <skill> --harness codex`
+for installed-copy and fresh catalog evidence. Both support `--json` and `--help`.
+See [operations](docs/system/OPERATIONS.md#dojo-development-cli) for scope and limits.
+
 ## Prerequisites
 
 The hooks require `git`, `jq`, `python3`, `sed`, and `grep`. These ship with most systems. Verify with:

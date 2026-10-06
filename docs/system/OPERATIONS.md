@@ -31,6 +31,71 @@ Run the repo regression tests with:
 python -m pytest tests/ -q
 ```
 
+## Dojo development CLI
+
+From an environment with the repository dependencies installed (Python 3.11+):
+
+```bash
+bin/dojo --help
+bin/dojo check skill-creator --base origin/main --json
+bin/dojo check skills/skill-creator --base origin/main --repo-checks
+bin/dojo inspect skill-creator --harness codex --cwd . --json
+```
+
+An absolute path to `bin/dojo` works from another directory. The checkout holding
+that executable supplies the validator implementation and default canonical
+repository. `--repo <trusted-checkout>` changes the target repository;
+`inspect --cwd <directory>` independently selects the Codex invocation context.
+The CLI runs the current Python interpreter; activate `.venv` or invoke it with
+`.venv/bin/python bin/dojo` when dependencies live there. No global installation
+or shell configuration is required.
+
+`check` reuses the existing strict metadata validator and conservative Markdown
+link checker for the selected skill. `--base` adds the existing release check,
+filtered to that skill; it includes tracked and untracked changes. Omitting it
+reports release checking as skipped. `--repo-checks` adds repository-wide manifest,
+composed-doc, adapter-sidecar, and catalog checks. These may report unrelated
+repository drift, and are labeled with repository scope. Checks never run a
+skill's bundled scripts or replace the full repository test/CI suite.
+
+`inspect` inventories candidate copies and fingerprints, reports matching
+`skills.config` declarations and Dojo profile equivalences, and invokes the
+existing Codex prompt-input probe. It checks target exposure count and the exposed
+bundle's content against canonical. Probe origin classification uses the selected
+repository's catalog even when the CLI comes from another checkout. Missing/duplicate exposure, divergent exposed
+content, and a profile suppression contrary to observed Dojo exposure are findings.
+If the probe is unavailable or clipped such that absence cannot be established,
+it reports incomplete evidence. Configuration rows are declarations, not a full
+precedence trace. A fresh prompt rendering does not establish actual body loading
+or the state of an existing desktop session. Only Codex is supported in this pilot.
+
+Both commands are read-only with respect to project content, installations, and
+configuration. Harness diagnostics can use their normal caches. `--repo-checks`
+executes scripts from the explicitly selected checkout: use trusted checkouts.
+There are no automatic repairs, model turns, synchronization, or paid evaluations.
+`--timeout` bounds each external check (60 seconds by default); on Unix, timed-out
+checks and their descendants are terminated.
+
+JSON schema version 1 contains `command`, `target`, `status`, `observed_at`,
+`evidence`, `checks`, and `limitations`. Each check has an `id`, `status`, `scope`,
+`source`, and tool-specific `details`. Evidence identifies both tool and target
+checkouts, dirty state, the selected bundle fingerprint, and the resolved Git base
+or harness observation when applicable. The fingerprint includes hidden files,
+entry types and executable masks, with standardizer-generated-cache exclusions;
+it does not seal every repository dependency. Inputs changing during a target
+check produce unavailable evidence rather than a stable-revision claim.
+
+Exit codes: **0** requested checks completed without findings; **1** findings;
+**2** invalid input or unavailable/incomplete evidence. Unavailable takes precedence
+when both occur. Optional skipped checks are visible and do not imply coverage.
+Argument syntax errors use normal argparse stderr/exit 2; parsed requests emit
+one JSON object with `--json`, including execution errors. Human output defaults
+to a concise check list with evidence and limits. No aggregate skill-quality or
+trust score is produced.
+
+Pilot goals and acceptance boundaries are recorded in the
+[CLI pilot design](../design/2026-10-06-dojo-cli-pilot.md).
+
 ## Skill Management Commands
 
 ### Create a new skill

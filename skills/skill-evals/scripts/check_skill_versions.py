@@ -212,7 +212,8 @@ def changed_skill_map(paths: Iterable[str]) -> dict[str, list[str]]:
     return changed
 
 
-def check_versions(repo_root: Path, skills_root: Path, base: str, include_untracked: bool) -> list[str]:
+def check_versions(repo_root: Path, skills_root: Path, base: str, include_untracked: bool,
+                   selected_skills: set[str] | None = None) -> list[str]:
     errors: list[str] = []
     if not base_ref_exists(repo_root, base):
         return [f"git base ref is not resolvable: {base}"]
@@ -220,6 +221,8 @@ def check_versions(repo_root: Path, skills_root: Path, base: str, include_untrac
     changed = changed_skill_map(changed_files(repo_root, base, include_untracked))
 
     for skill_name, paths in sorted(changed.items()):
+        if selected_skills is not None and skill_name not in selected_skills:
+            continue
         skill_dir = skills_root / skill_name
         skill_md = skill_dir / "SKILL.md"
         if not skill_md.exists():

@@ -203,7 +203,7 @@
       "name": "skill-evals",
       "description": "Check skill packaging, release versions, and lexical routing fixtures, and choose evidence appropriate to a skill-quality claim. Use when validating a skill edit, investigating trigger collisions, or assessing what an evaluation establishes.",
       "path": "skills/skill-evals",
-      "version": "2.0.0"
+      "version": "2.1.0"
     },
     {
       "name": "skill-installer",
