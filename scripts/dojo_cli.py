@@ -70,7 +70,9 @@ def add(result, name, status, scope, source, details):
 def content_hash(path):
     standardizer = load('skills/skill-standardizer/scripts/skill_standardizer_lib.py')
     backup = load('skills/skill-standardizer/scripts/backup_policy.py')
-    return backup.fingerprint(backup.snapshot(path, ignore=standardizer._copy_ignore))
+    # Installation links identify a bundle; compare its contents, not the link text.
+    # Links inside the bundle retain the standardizer's structural semantics.
+    return backup.fingerprint(backup.snapshot(path.resolve(strict=True), ignore=standardizer._copy_ignore))
 
 
 def identity(repo, target):
