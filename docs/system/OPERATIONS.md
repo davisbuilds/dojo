@@ -156,11 +156,23 @@ git show <sha>:skills/<name>/SKILL.md           # read that version
 git restore --source=<sha> skills/<name>        # bring it back
 ```
 
-`sync.py --apply` also writes a timestamped backup of whatever it overwrote,
-under `--backup-root` (default `.skill-standardizer/backups/`, gitignored).
-Those hold the one thing git cannot: an *installed* copy that had drifted from
-canonical. That is worth little once drift is being watched, so they are pruned
-to the most recent `--keep-backups` runs (default 10; `0` keeps everything).
+`sync.py --apply` stages replaced entries under `--backup-root` (default
+`.skill-standardizer/backups/`, relative to the invocation directory and
+gitignored here). Once replacement verification succeeds, exact Git-recoverable
+copies and recorded symlinks are discarded. Unique or uncertain contents remain;
+there is no age/count pruning. Small JSON records in `records/` preserve Git
+coordinates and installation evidence. Failed applies keep available rollback
+data; restoration is manual. See the standardizer's
+[recovery policy](../../skills/skill-standardizer/references/policy.md#recovery-and-retention)
+for what the proof covers.
+
+Inspect old managed backups before removing recoverable entries:
+
+```bash
+python3 skills/skill-standardizer/scripts/cleanup_backups.py \
+  --backup-root .skill-standardizer/backups --canonical-root skills
+# Repeat with --apply to perform the inspected cleanup.
+```
 
 Other backup directories on these machines are **not** managed by this
 repository and are left alone: `~/.agents/.skill-backups/` and

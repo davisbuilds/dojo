@@ -13,6 +13,8 @@ import re
 import shutil
 from typing import Any
 
+import backup_policy
+
 AGENTS_HOME_ENV = "AGENTS_HOME"
 CODEX_HOME_ENV = "CODEX_HOME"
 CLAUDE_HOME_ENV = "CLAUDE_HOME"
@@ -1162,41 +1164,6 @@ def write_json(path: str | Path, payload: dict[str, Any]) -> None:
     output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-BACKUP_RUN_RE = re.compile(r"^\d{8}-\d{6}$")
-DEFAULT_KEEP_BACKUPS = 10
-
-
-def prune_backups(backup_root: Path, keep: int) -> list[Path]:
-    """Keep the `keep` most recent backup runs; remove older ones.
-
-    Backups accumulate one directory per apply and nothing aged them out: 19
-    runs and 8.5M in dojo by 2026-08-12, with more in the harness roots. Harmless
-    until it is not, and invisible either way.
-
-    Count-based rather than age-based on purpose. Several applies in one
-    afternoon is the normal shape of this work, so an age rule would delete the
-    lot a month later while preserving nothing useful from a busy day. `keep=0`
-    disables pruning entirely.
-
-    Only directories whose names are run stamps are considered. This root sits
-    inside a repository and a caller may point it anywhere, so anything else
-    found here is somebody's file and is left alone -- a prune that guesses is a
-    prune that deletes the wrong thing.
-    """
-    if keep <= 0 or not backup_root.is_dir():
-        return []
-
-    runs = sorted(
-        (p for p in backup_root.iterdir() if p.is_dir() and BACKUP_RUN_RE.match(p.name)),
-        key=lambda p: p.name,
-    )
-    pruned: list[Path] = []
-    for run in runs[:-keep] if keep else runs:
-        shutil.rmtree(run, ignore_errors=True)
-        pruned.append(run)
-    return pruned
-
-
 def _backup_destination(dest: Path, backup_root: Path, stamp: str) -> Path | None:
     if not dest.exists() and not dest.is_symlink():
         return None
@@ -1266,7 +1233,6 @@ def apply_actions(
     report: dict[str, Any],
     apply: bool,
     backup_root: str,
-    keep_backups: int = DEFAULT_KEEP_BACKUPS,
 ) -> dict[str, Any]:
     actions = report.get("actions", [])
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -1279,12 +1245,15 @@ def apply_actions(
         "backups": [],
         "errors": [],
         "backup_root": str(backup_base),
-        "pruned_backups": [],
+        "discarded_backups": [],
+        "record_path": None,
+        "installations": [],
     }
 
     if not apply:
         return result
 
+    recovery = backup_policy.GitRecovery(report.get("canonical_root"))
     ordered_actions = sorted(actions, key=_action_priority)
 
     for action in ordered_actions:
@@ -1298,6 +1267,12 @@ def apply_actions(
                 backup = _backup_destination(dest, backup_base, stamp)
                 if backup:
                     result["backups"].append({"dest": str(dest), "backup": str(backup)})
+
+            expected = None
+            source_proof = None
+            if source is not None:
+                expected = backup_policy.snapshot(source, ignore=_copy_ignore)
+                source_proof = recovery.prove(source, source.name)
 
             if action_type == "promote_to_primary":
                 # Copy concrete skill to primary global, then relink secondary
@@ -1339,6 +1314,27 @@ def apply_actions(
             else:
                 raise ValueError(f"Unsupported action type: {action_type}")
 
+            # Verify actual replacement before releasing any rollback storage.
+            if action_type in {"remove_stale_entry", "remove_deprecated_skill"}:
+                removed = _expand_nofollow(action.get("deprecated_dest", action["dest"]))
+                if removed.exists() or removed.is_symlink():
+                    raise RuntimeError(f"Removal verification failed: {removed}")
+            elif action_type == "relink_to_global" or (action_type == "replace_deprecated_skill" and action.get("link")):
+                if not dest.is_symlink() or dest.resolve() != source.resolve():
+                    raise RuntimeError(f"Link verification failed: {dest}")
+            else:
+                if dest.is_symlink() or backup_policy.snapshot(dest) != expected:
+                    raise RuntimeError(f"Copy verification failed: {dest}")
+                if action_type == "promote_to_primary" and (
+                    not secondary_dest.is_symlink() or secondary_dest.resolve() != dest.resolve()
+                ):
+                    raise RuntimeError(f"Promotion link verification failed: {secondary_dest}")
+            result["installations"].append({
+                "action": action_type, "dest": str(dest),
+                "source": str(source) if source else None,
+                "source_recovery": source_proof,
+                "source_fingerprint": backup_policy.fingerprint(expected) if expected is not None else None,
+            })
             result["applied"].append(action)
         except Exception as exc:  # noqa: BLE001
             result["errors"].append(
@@ -1348,16 +1344,35 @@ def apply_actions(
                 }
             )
 
-    # After applying, never before: the run just written must be among the
-    # newest kept, or a prune could delete the only way to undo this apply.
-    #
-    # And only after a *successful* one. A failed sync is when older runs
-    # matter most, and a failing action writes no new backup -- so pruning
-    # here would discard every recovery point and leave nothing in place of
-    # them.
-    if not result["errors"]:
-        for run in prune_backups(backup_base, keep_backups):
-            result["pruned_backups"].append(str(run))
+    # Persist restoration coordinates before deleting recoverable rollback data.
+    # Unique/unknown state is never aged out, and any failure keeps this run intact.
+    records = []
+    for backup in result["backups"]:
+        proof = recovery.prove(Path(backup["backup"]), Path(backup["dest"]).name)
+        backup["recovery"] = proof
+        backup["reason"] = (
+            "Preserved because this apply failed" if result["errors"] else
+            "Recoverable from recorded Git tree or link target" if proof else
+            "No exact committed tree match; preserve unique or uncertain contents"
+        )
+        records.append(dict(backup))
+    if actions:
+        try:
+            result["record_path"] = str(backup_policy.save_record(backup_base, {
+                "canonical_root": report.get("canonical_root"),
+                "installations": result["installations"], "backups": records,
+                "apply_errors": result["errors"],
+            }))
+            if not result["errors"]:
+                for backup in list(result["backups"]):
+                    proof = backup["recovery"]
+                    path = Path(backup["backup"])
+                    if proof and backup_policy.still_matches(path, proof):
+                        backup_policy.discard(path)
+                        result["discarded_backups"].append(backup)
+                        result["backups"].remove(backup)
+        except Exception as exc:
+            result["errors"].append({"action": {"action": "recovery-record", "skill": ""}, "error": str(exc)})
 
     return result
 

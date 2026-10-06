@@ -45,7 +45,7 @@ This reference defines default policy for `skill-standardizer`.
   2. `~/.codex/skills`
   3. `~/.claude/skills`
 - Action mode default: dry run
-- Apply mode always backs up replaced destinations
+- Apply mode stages replaced destinations until verification; retain only unique or uncertain copies after success
 - Deprecated-name replacement default:
   - Back up the deprecated directory
   - Install the canonical replacement in the same root
@@ -79,6 +79,37 @@ Combine `--skill` with `--enforce-mirror` to install a selected canonical skill 
 ## Topology Normalization (`--normalize-primary`)
 
 When enabled, concrete skills found in secondary global roots are promoted to the primary global root and the secondary copies are replaced with symlinks. This handles the common case where skills were originally installed in `~/.codex/skills` or `~/.claude/skills` and need to be consolidated into `~/.agents/skills` as the single gold copy.
+
+## Recovery and Retention
+
+Git history is the recovery source for committed skills. Before replacing or
+removing an installed entry, sync moves it to a timestamped run under
+`--backup-root`. It verifies copies against the source snapshot (excluding the
+normal generated-file copy exclusions), checks link targets, and confirms
+removals. Failed applies preserve available rollback data; they do not restore
+it automatically.
+
+After a successful apply, a prior directory can be discarded only if its complete
+tree matches a committed version of that skill in canonical Git history reachable
+from `HEAD`. The proof includes file bytes, entry types, executable bits, relative
+paths, and symlink text. It ignores nothing: even untracked cache files and empty
+directories prevent a match. Git does not preserve timestamps, ownership, extended
+attributes, or non-executable permission bits; these are not part of this skill
+content recovery guarantee. Missing history or a failed proof means preserve.
+
+Before discarding anything, write a mode-0600 JSON record under `records/` with
+original destination, backup path, recovery coordinates, and installation evidence.
+A backed-up symlink needs only its exact target text, never a copy of the target.
+Cleanup of legacy runs records the backup path because their original destination
+may no longer be known. Records describe recoverability, not a deletion completion
+journal. Keep the referenced Git history available for later recovery.
+
+Unknown copies have no automatic expiry. `cleanup_backups.py` inspects only
+recognized standardizer run/entry names under an explicitly supplied root; it
+never follows run or entry symlinks. Dry-run is default; `--apply` records proofs
+before deletion and rechecks contents. Unrecognized or unmatched entries remain.
+It does not manage unrelated backup directories. The count-based `--keep-backups`
+option was removed in 2.0.0 because age does not establish recoverability.
 
 ## Safety Constraints
 

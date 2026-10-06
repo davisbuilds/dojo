@@ -7,7 +7,6 @@ import argparse
 import sys
 
 from skill_standardizer_lib import (
-    DEFAULT_KEEP_BACKUPS,
     apply_actions,
     build_audit_report,
     print_json,
@@ -31,7 +30,6 @@ class Args(argparse.Namespace):
     normalize_primary: bool
     apply: bool
     backup_root: str
-    keep_backups: int
     format: str
     report_out: str | None
 
@@ -116,17 +114,7 @@ def parse_args(argv: list[str]) -> Args:
     parser.add_argument(
         "--backup-root",
         default=".skill-standardizer/backups",
-        help="Backup directory used in apply mode.",
-    )
-    parser.add_argument(
-        "--keep-backups",
-        type=int,
-        default=DEFAULT_KEEP_BACKUPS,
-        help=(
-            "Backup runs to retain after applying (default "
-            f"{DEFAULT_KEEP_BACKUPS}; 0 keeps every run). Nothing else ages them "
-            "out, so they accumulate one directory per apply."
-        ),
+        help="Directory for temporary rollback, preserved unique copies, and recovery records.",
     )
     parser.add_argument(
         "--format",
@@ -165,7 +153,6 @@ def main(argv: list[str]) -> int:
         report,
         apply=args.apply,
         backup_root=args.backup_root,
-        keep_backups=args.keep_backups,
     )
 
     payload = {
@@ -184,7 +171,12 @@ def main(argv: list[str]) -> int:
         print(summarize_report(report))
         print(f"Planned actions: {len(sync_result['planned'])}")
         print(f"Applied actions: {len(sync_result['applied'])}")
-        print(f"Backups: {len(sync_result['backups'])}")
+        print(f"Preserved backups: {len(sync_result['backups'])}")
+        print(f"Discarded recoverable copies: {len(sync_result['discarded_backups'])}")
+        if sync_result['record_path']:
+            print(f"Recovery record: {sync_result['record_path']}")
+        for backup in sync_result['backups']:
+            print(f"- {backup['backup']}: {backup['reason']}")
         print(f"Errors: {len(sync_result['errors'])}")
         if sync_result["errors"]:
             print("Errors:")

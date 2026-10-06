@@ -2,7 +2,7 @@
 name: skill-standardizer
 description: Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.
 skill-type: workflow
-version: 1.3.7
+version: 2.0.0
 ---
 
 # Skill Standardizer
@@ -21,7 +21,7 @@ This skill provides a deterministic workflow:
 1. Discover roots and classify scope.
 2. Audit byte-level and semantic drift.
 3. Generate actions (dry run by default), including deprecated-name replacement when configured by policy.
-4. Apply safe synchronization with backups.
+4. Apply synchronization with verified replacements and recoverable rollback.
 5. Re-audit and report final state.
 
 ## Canonical Model
@@ -91,7 +91,7 @@ Run from anywhere; scripts auto-discover repo root when possible.
   - Warning-level issues that plan no action (for example an unrecognized non-skill directory) are reported but do not change the exit code.
   - Use `--ignore-dir <name>` to treat a directory as a non-skill support dir; repeat for multiple names.
 - `scripts/sync.py`
-  - Applies planned actions (copy/symlink) with backups.
+  - Applies planned actions (copy/symlink), verifies replacements, and preserves unique prior contents.
   - Use `--skill <name>` to apply only the selected skill's planned changes.
   - Use `--ignore-dir <name>` as with `audit.py`.
   - Default is dry run; use `--apply` to execute.
@@ -203,10 +203,33 @@ python3 <skill-dir>/scripts/sync.py \
   --apply
 ```
 
+## Recovery Policy
+
+Use Git for committed skill versions. During apply, move old entries aside until
+replacement verification succeeds. Then discard only copies that exactly match
+a committed skill tree, or symlinks whose target text is recorded. Preserve
+untracked files, local edits, and uncertain contents; never age them out by count.
+If apply or recording fails, keep available rollback data. Recovery is manual.
+
+`--backup-root` defaults to `.skill-standardizer/backups` relative to the working
+directory. Its `records/` directory holds small recovery records with Git
+coordinates, destination paths, and fingerprints instead of duplicate content.
+See [policy details](references/policy.md#recovery-and-retention) for proof limits.
+
+To inspect older standardizer backups, run:
+
+```bash
+python3 <skill-dir>/scripts/cleanup_backups.py \
+  --backup-root <backup-directory> --canonical-root <repo>/skills
+```
+
+Add `--apply` to remove proven recoverable entries after reviewing the result.
+Unmatched entries remain. The former `--keep-backups` option is removed.
+
 ## Safety Rules
 
 - Never mutate plugin cache directories unless explicitly included.
-- Never overwrite without backup in apply mode.
+- Stage prior contents before replacement; discard only after verification and a saved recovery record.
 - Never remove a deprecated skill name without creating or confirming the canonical replacement in that root.
 - Always print resolved canonical and target roots before applying.
 - If no canonical root is found, restrict apply actions to explicit local/global normalization.
@@ -228,7 +251,7 @@ See `references/policy.md` for policy details and tradeoffs.
 ## Output
 
 - A drift audit report (text or JSON) listing all discovered skills and their sync status
-- Backup copies of any files replaced during synchronization
+- Recovery records for applied changes, plus preserved copies of unique or uncertain prior contents
 - Symlinks replacing duplicate copies to point at the canonical or primary source
 
 ## Verification
