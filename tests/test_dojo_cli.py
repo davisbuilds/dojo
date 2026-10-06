@@ -147,15 +147,23 @@ def test_help_works_without_repository_or_harness(tmp_path):
     assert result.returncode == 0 and 'inspect' in result.stdout and 'check' in result.stdout
 
 
-def test_inspect_detects_drift_in_the_exposed_copy(repo, tmp_path):
+@pytest.mark.parametrize('linked', [False, True])
+def test_inspect_detects_drift_in_the_exposed_copy(repo, tmp_path, linked):
     import shutil, os
     env = fake_codex(tmp_path, repo)
     env['PATH'] += os.pathsep + str(Path(shutil.which('git')).parent)
     installed = tmp_path / 'home/.agents/skills/alpha'
     shutil.copytree(repo/'skills/alpha', installed)
-    (installed/'SKILL.md').write_text('older installed content')
+    exposed = installed
+    if linked:
+        exposed = tmp_path / 'home/.codex/skills/alpha'
+        exposed.parent.mkdir(parents=True)
+        exposed.symlink_to(installed, target_is_directory=True)
     exe = tmp_path/'tools/codex'
-    exe.write_text(exe.read_text().replace(str(repo/'skills/alpha/SKILL.md'), str(installed/'SKILL.md')))
+    exe.write_text(exe.read_text().replace(str(repo/'skills/alpha/SKILL.md'), str(exposed/'SKILL.md')))
+    code, result = invoke(repo, 'inspect', 'alpha', '--harness', 'codex', '--cwd', str(repo), env=env)
+    assert code == 0, result
+    (installed/'SKILL.md').write_text('older installed content')
     code, result = invoke(repo, 'inspect', 'alpha', '--harness', 'codex', '--cwd', str(repo), env=env)
     assert code == 1, result
     item = next(c for c in result['checks'] if c['id']=='exposed-content')
