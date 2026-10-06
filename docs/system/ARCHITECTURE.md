@@ -71,7 +71,7 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 SKILL.md frontmatter is the single source of truth; deterministic, idempotent generators derive artifacts from it, each with a `--check` mode that fails on drift:
 
 - `scripts/gen_skill_docs.py` — **opt-in** shared-fragment composition. Expands declared includes into SKILL.md between `<!-- AUTO-GENERATED -->` markers. Bare names resolve to `skills/_fragments/<name>.md`; namespaced `rules/<name>` includes resolve to the `rules/` tier. Skills that declare no include are left untouched.
-- `scripts/gen_harness_adapters.py` — emits per-skill harness sidecars for the target set: `.claude/`, `.agent/`, and Codex (`.agents/` was retired 2026-08-01 — see README). Sidecars are generated artifacts (do not hand-edit); CI runs `--check` to enforce they stay synced with frontmatter. It also links each skill's `commands/*.md` into `.claude/commands/` (local-only, gitignored) so Claude Code resolves them as slash commands, with collision refusal and stale-link pruning.
+- `scripts/gen_harness_adapters.py` — generates Codex sidecars for the full canonical catalog; CI checks them against frontmatter. Separately, `config/project-skills.json` selects project additions for `.agents/skills`, `.claude/skills`, and generated `.claude/commands` wrappers. Local links are gitignored and regenerated per clone. Legacy catalog links are retired; unexpected local content is reported and preserved.
 - `scripts/gen_catalog.py` — renders a self-contained, searchable `docs/catalog/index.html` from `skills.json`. Because the catalog is derived entirely from the manifest, `scripts/generate_skills_manifest.py` refreshes it in the same run (pass `--no-catalog` to skip, `--catalog <path>` to retarget), so a manual manifest regen can't leave it stale; the post-tool-use hook relies on that cascade rather than a separate call. CI runs `gen_catalog.py --check`.
 
 ## Validation Pipeline
@@ -173,7 +173,8 @@ scripts/                  # Manifest generation + generation pipeline (Python)
 scripts/profiles/         # Distribution-profile library: rollout observation (rollout_codex.py — what the harness actually SENT, the authoritative surface), live listing probes as cross-checks, resolution + identity, budget policies with saturation-derived limits, observation, evidence (read-only; see docs/specs/2026-07-27-distribution-profiles-spec.md)
 profiles/                 # Reviewed profile data: core + capability overlays + full, harness equivalences, and per-harness budget policies under profiles/policies/
 tests/                    # pytest suite for scripts/, hooks/, and skill-owned scripts (see Test Tiers); flat, one test file per script, plus tests/fixtures/
-.claude/ .agent/          # Each `skills/` is a generated relative symlink -> ../skills (Codex sidecars colocated at skills/<name>/agents/openai.yaml); .agents/skills is retired, not generated
+.agents/ .claude/         # Selected per-skill links in skills/; selected command links in .claude/commands/
+config/project-skills.json # Owns project additions and the retired .agent/skills root
 spec/                     # Agent skills specification (upstream)
 docs/catalog/             # Generated browseable skill catalog (index.html) from skills.json
 docs/design/              # Brainstorm design summaries (brainstorming output — WHAT, chosen direction)

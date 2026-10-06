@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import os
+import json
 from pathlib import Path
 
 
@@ -20,6 +21,11 @@ def load_module():
 def make_repo(tmp_path: Path):
     skills_root = tmp_path / "skills"
     skills_root.mkdir()
+    config = tmp_path / "config/project-skills.json"
+    config.parent.mkdir()
+    selection = {"roots": [".agents/skills", ".claude/skills"], "linked": [],
+                 "retired_roots": [".agent/skills"]}
+    config.write_text(json.dumps(selection))
 
     def make_skill(name: str, description: str, agents_file: str | None = None, content: str | None = None):
         d = skills_root / name
@@ -30,6 +36,8 @@ def make_repo(tmp_path: Path):
         if agents_file is not None:
             (d / "agents").mkdir()
             (d / "agents" / "openai.yaml").write_text(content or "", encoding="utf-8")
+        selection["linked"].append(name)
+        config.write_text(json.dumps(selection))
         return d
 
     # Pre-seed harness dirs as plain directories (mimicking the drifted state)
@@ -58,10 +66,10 @@ def test_generates_symlinks_and_sidecars(tmp_path: Path):
 
     assert _invoke(module, tmp_path, []) == 0
 
-    for harness in (".claude", ".agent"):
+    for harness in (".claude", ".agents"):
         link = tmp_path / harness / "skills"
-        assert link.is_symlink()
-        assert os.readlink(link) == "../skills"
+        assert not link.is_symlink()
+        assert (link / "diagnose").resolve() == skills_root / "diagnose"
 
     sidecar = skills_root / "diagnose" / "agents" / "openai.yaml"
     assert sidecar.exists()
@@ -252,30 +260,20 @@ def test_skip_symlinks_skips_commands(tmp_path: Path):
 
 
 def test_does_not_link_the_catalog_into_codex_project_scope(tmp_path: Path):
-    """Codex reads `.agents/skills` and does not shadow by name across roots.
-
-    Linking the whole canonical catalog there listed every installed skill
-    twice and pushed the listing past Codex's budget, which it resolves by
-    clipping descriptions mid-word with no marker. Measured 2026-08-01: 90
-    entries against 41, 80 of them truncated. Regenerating adapters must not
-    create or restore that link.
-    """
+    """Even an empty selection creates real roots, never a catalog link."""
     module = load_module()
     make_repo(tmp_path)  # pre-seeds .agents/skills as a plain dir
 
-    assert ".agents" not in module.HARNESS_DIRS
     assert _invoke(module, tmp_path, []) == 0
 
     agents_link = tmp_path / ".agents" / "skills"
     assert not agents_link.is_symlink(), "generator must not link the catalog into Codex project scope"
     # the sibling it still owns proves the run actually did its work
-    assert (tmp_path / ".claude" / "skills").is_symlink()
+    assert (tmp_path / ".claude" / "skills").is_dir()
 
 
 def test_retires_a_pre_existing_agents_link(tmp_path: Path):
-    """The link is gitignored, so pulling the change that dropped `.agents`
-    leaves it in place on any checkout that ran the old generator. Codex would
-    keep double-listing forever. Generation must actively retire it."""
+    """Old catalog links migrate to an explicit per-skill root."""
     module = load_module()
     make_repo(tmp_path)
     stale = tmp_path / ".agents" / "skills"
@@ -286,7 +284,7 @@ def test_retires_a_pre_existing_agents_link(tmp_path: Path):
     assert stale.is_symlink()  # --check writes nothing
 
     assert _invoke(module, tmp_path, []) == 0
-    assert not stale.exists() and not stale.is_symlink()
+    assert stale.is_dir() and not stale.is_symlink()
     assert (tmp_path / ".agents").is_dir()  # the dir may hold real config
     assert _invoke(module, tmp_path, ["--check"]) == 0  # idempotent
 
@@ -315,3 +313,53 @@ def test_leaves_a_foreign_agents_symlink_alone(tmp_path: Path):
 
     assert _invoke(module, tmp_path, []) == 1  # error -> non-zero
     assert stale.is_symlink() and os.readlink(stale) == "../elsewhere"
+
+
+def test_selection_replaces_catalog_links_and_prunes_unselected_commands(tmp_path):
+    import json
+    module = load_module()
+    skills, make_skill = make_repo(tmp_path)
+    selected = make_skill('audit-skill', 'Use when auditing skills for authority risks.')
+    other = make_skill('brainstorming', 'Use when clarifying requirements.')
+    _add_command(selected, 'audit.md')
+    old_command = _add_command(other, 'brainstorm.md')
+    config = tmp_path / 'config' / 'project-skills.json'
+    config.parent.mkdir(exist_ok=True)
+    config.write_text(json.dumps({'roots': ['.agents/skills', '.claude/skills'], 'linked': ['audit-skill'], 'retired_roots': ['.agent/skills']}))
+    for harness in ('.agents', '.claude', '.agent'):
+        root = tmp_path / harness / 'skills'
+        root.rmdir()
+        root.symlink_to('../skills')
+    commands = tmp_path / '.claude/commands'
+    commands.mkdir()
+    (commands / 'brainstorm.md').symlink_to(old_command)
+    (commands / 'personal.md').write_text('keep me')
+    assert _invoke(module, tmp_path, ['--check']) == 1
+    assert _invoke(module, tmp_path, []) == 0
+    for harness in ('.agents', '.claude'):
+        root = tmp_path / harness / 'skills'
+        assert not root.is_symlink()
+        assert sorted(p.name for p in root.iterdir()) == ['audit-skill']
+        assert (root / 'audit-skill').resolve() == selected
+    assert not (tmp_path / '.agent/skills').exists()
+    assert not (commands / 'brainstorm.md').is_symlink()
+    assert (commands / 'audit.md').resolve() == selected / 'commands/audit.md'
+    assert (commands / 'personal.md').read_text() == 'keep me'
+    assert (other / 'agents/openai.yaml').exists()  # source catalog still gets sidecars
+    assert _invoke(module, tmp_path, ['--check']) == 0
+    assert _invoke(module, tmp_path, []) == 0
+
+
+def test_unowned_codex_catalog_link_survives_regeneration(tmp_path):
+    module = load_module()
+    skills, make_skill = make_repo(tmp_path)
+    make_skill('audit-skill', 'Use when auditing skill authority.')
+    root = tmp_path / '.codex'
+    root.mkdir()
+    link = root / 'skills'
+    link.symlink_to('../skills')
+    assert _invoke(module, tmp_path, []) == 0
+    assert link.is_symlink()
+    assert os.readlink(link) == '../skills'
+    assert link.resolve() == skills
+    assert _invoke(module, tmp_path, ['--check']) == 0

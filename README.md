@@ -28,12 +28,11 @@ Do this, in order:
    `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.
    It should pass. If it fails, show me the output and stop.
 
-4. Apply harness adapters so this repo's skills are discoverable by SKILL.md-native
-   harnesses: `python3 scripts/gen_harness_adapters.py`. This creates local,
-   gitignored symlinks (`.claude/skills`, `.agent/skills` -> `../skills`) and
-   leaves the committed Codex sidecars untouched — it produces no
-   git changes. (Codex sidecars at `skills/<name>/agents/openai.yaml` are already
-   committed, so Codex works without this step.)
+4. Apply harness adapters: `python3 scripts/gen_harness_adapters.py`. This
+   exposes the project additions in `config/project-skills.json` through
+   `.agents/skills` and `.claude/skills`, and generates Codex sidecars for the
+   full canonical catalog. General skills come from your separate global
+   installation; source files remain readable without installing every skill.
 
 5. Report back: confirm tools present + deps installed + validator passed, and show
    me how to install a skill into my agent, e.g.
@@ -141,11 +140,11 @@ Skills may also declare an optional `triggers:` list of literal trigger phrases.
 
 ### Multi-harness support
 
-The agent-agnostic claim is backed by generated adapters, not duplicated content. `scripts/gen_harness_adapters.py` derives, from each skill's frontmatter:
+The agent-agnostic claim is backed by generated adapters, not duplicated content. `scripts/gen_harness_adapters.py` derives adapters from the canonical catalog and the project selection:
 
-- **Dir-level relative symlinks** so SKILL.md-native harnesses see every skill: `.claude/skills` and `.agent/skills` each point to `../skills`. These live under gitignored harness dirs, so they are **local-only and regenerated per clone** — run the generator after cloning. `.agents/skills` is **deliberately not created, and actively retired if found**: Codex reads it as project scope and does not shadow by name, so it listed the whole catalog a second time (measured 90 entries against 41, 80 of them truncated). Because the link is gitignored, pulling this change cannot remove it — the generator does.
-- **A colocated Codex sidecar** at `skills/<name>/agents/openai.yaml`. These are committed, portable artifacts. Generated sidecars carry an `AUTO-GENERATED` marker; hand-curated ones (with icons, polished copy) are preserved and never overwritten.
-- **Slash-command links** from each skill's `commands/*.md` into `.claude/commands/` so Claude Code resolves them as real slash commands (`/review`, `/quiz-change`, `/workflows:brainstorm`). Local-only and gitignored, like the skill symlinks.
+- **Selected project links** in `.agents/skills` and `.claude/skills`, owned by `config/project-skills.json`. The default additions are `audit-skill` and `skill-evals`; general skills stay in the user's global catalog. These gitignored links are regenerated per clone. The generator retires its legacy whole-catalog links, including `.agent/skills`, while preserving and reporting foreign content.
+- **Command links** in `.claude/commands` for only the selected skills. Stale generated links are pruned; hand-authored commands are preserved.
+- **Codex sidecars** (`skills/<name>/agents/openai.yaml`) for every canonical skill, independent of project exposure. Generated sidecars follow frontmatter; hand-curated sidecars are preserved.
 
 Run `python3 scripts/gen_harness_adapters.py` to regenerate everything locally. CI enforces the committed sidecars with `gen_harness_adapters.py --check --skip-symlinks`.
 

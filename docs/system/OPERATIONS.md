@@ -169,7 +169,9 @@ Code itself (its own `.claude.json` snapshots, nothing to do with skills).
 
 ### Regenerate harness adapters
 
-Creates the local `.claude/.agent` `skills/` symlinks and the colocated Codex `openai.yaml` sidecars from frontmatter. Also retires a legacy `.agents/skills` catalog link if one survives from an older checkout (a real directory or a foreign symlink is reported, never deleted). Run after cloning (symlinks are gitignored) and after editing skill descriptions:
+Exposes only the project additions declared in `config/project-skills.json` through per-skill links in `.agents/skills` and `.claude/skills`. The default selection is `audit-skill` and `skill-evals`; other canonical skills remain readable from `skills/`, with general skills supplied by a separate user-global installation. This declaration is independent of the measurement profiles under `profiles/` and can be referenced by workspace deployment checks.
+
+The generator migrates its exact legacy whole-catalog links and retires `.agent/skills`. It never owned `.codex/skills`, so that path is left untouched. It refuses to overwrite real content or foreign links. Move unexpected content aside deliberately before retrying. Run after cloning and after changing the selection or skill descriptions:
 
 ```bash
 python scripts/gen_harness_adapters.py                      # write symlinks, .claude/commands links, and sidecars
@@ -179,7 +181,7 @@ python scripts/gen_harness_adapters.py --check --skip-symlinks  # verify committ
 
 Hand-curated sidecars (no `AUTO-GENERATED` marker) are preserved; for those, author with `skills/skill-creator/scripts/generate_openai_yaml.py`.
 
-The same generator links each skill's `commands/*.md` into `.claude/commands/` (local-only, gitignored) so Claude Code exposes them as slash commands. It refuses when two skills' commands map to the same name (rename one), prunes symlinks whose source was removed, and never touches a hand-authored file in `.claude/commands/`. Commands are governed by the symlink phase, so `--skip-symlinks` (CI) ignores them.
+The same generator links only selected skills' `commands/*.md` into `.claude/commands/` (local-only, gitignored) so Claude Code exposes them as slash commands. It refuses when two skills' commands map to the same name (rename one), prunes managed symlinks whose source was removed or whose skill is no longer selected, and never touches a hand-authored file in `.claude/commands/`. Commands are governed by the symlink phase, so `--skip-symlinks` (CI) ignores them.
 
 ### Regenerate the skill catalog
 
