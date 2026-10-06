@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 import sys
@@ -973,14 +974,14 @@ def test_stale_secondary_link_is_removed_not_relinked() -> None:
             f"expected a removal, got: {actions}",
         )
 
-        apply_actions(report, apply=True, backup_root=str(base / "backups"))
+        result = apply_actions(report, apply=True, backup_root=str(base / "backups"))
         assert_true(
             not stale.is_symlink() and not stale.exists(),
             "the stale link must be gone after apply",
         )
-        # Backups are named <skill>-<digest>, not the bare skill name.
-        backups = list((base / "backups").rglob("audit-skill-*"))
-        assert_true(bool(backups), "removal must leave a backup behind")
+        assert_true(bool(result["record_path"]), "link removal needs a recovery record")
+        saved = json.loads(Path(result["record_path"]).read_text())
+        assert_true(saved["backups"][0]["recovery"]["kind"] == "symlink", "record exact link target")
 
 
 def test_a_broken_primary_entry_is_still_restored_from_canonical() -> None:
@@ -1027,43 +1028,8 @@ def test_a_broken_primary_entry_is_still_restored_from_canonical() -> None:
                     f"a damaged primary entry is not stale: {types}")
 
 
-def test_backup_retention_keeps_recent_runs_and_prunes_the_rest() -> None:
-    """Backups accumulate one directory per apply and nothing ages them out.
-
-    Measured 2026-08-12: 19 runs and 8.5M in dojo, 2.6M more in ~/.agents on the
-    mini. Harmless until it is not, and invisible either way.
-
-    Pruning is deliberately count-based rather than age-based: several applies in
-    one afternoon is the normal shape of this work, and an age rule would delete
-    all of them the following month while a burst of runs on one day would
-    survive.
-    """
-    from skill_standardizer_lib import prune_backups
-
-    with tempfile.TemporaryDirectory() as td:
-        root = Path(td) / "backups"
-        root.mkdir()
-        stamps = [f"2026081{n}-120000" for n in range(1, 6)]
-        for stamp in stamps:
-            (root / stamp).mkdir()
-            (root / stamp / "payload").write_text(stamp, encoding="utf-8")
-        # Anything that is not a run directory must be left alone: this root is
-        # inside a repository, and a prune that guesses is a prune that deletes.
-        (root / "README.md").write_text("not a run", encoding="utf-8")
-        (root / "manual-copy").mkdir()
-
-        pruned = prune_backups(root, keep=2)
-
-        remaining = sorted(p.name for p in root.iterdir())
-        assert_true(
-            remaining == ["20260814-120000", "20260815-120000", "README.md", "manual-copy"],
-            f"unexpected survivors: {remaining}",
-        )
-        assert_true(len(pruned) == 3, f"expected 3 pruned runs, got {pruned}")
-
-
-def test_backup_retention_never_removes_the_run_just_written() -> None:
-    """The newest run is the one that would be needed to undo this apply."""
+def test_sync_preserves_unknown_backup_history() -> None:
+    """Sync never ages out backups whose recovery has not been established."""
     with tempfile.TemporaryDirectory() as td:
         base = Path(td)
         repo = base / "repo"
@@ -1100,7 +1066,7 @@ def test_backup_retention_never_removes_the_run_just_written() -> None:
             enforce_mirror=False,
             codex_agents_dedupe=True,
         )
-        result = apply_actions(report, apply=True, backup_root=str(backup_root), keep_backups=1)
+        result = apply_actions(report, apply=True, backup_root=str(backup_root))
 
         assert_true(bool(result["backups"]), "this fixture must produce a backup")
         # Resolve both sides: on macOS /var is a symlink to /private/var, and the
@@ -1110,21 +1076,7 @@ def test_backup_retention_never_removes_the_run_just_written() -> None:
         surviving = {p.resolve() for p in backup_root.iterdir() if p.is_dir()}
         for run in written:
             assert_true(run in surviving, f"pruned the run it just wrote: {run}")
-        assert_true(len(surviving) == 1, f"keep=1 should leave one run: {surviving}")
-
-
-def test_backup_retention_is_off_for_a_dry_run_and_when_disabled() -> None:
-    """A dry run must not touch the filesystem, and keep=0 means keep everything."""
-    from skill_standardizer_lib import prune_backups
-
-    with tempfile.TemporaryDirectory() as td:
-        root = Path(td) / "backups"
-        root.mkdir()
-        for stamp in ["20260101-000000", "20260102-000000", "20260103-000000"]:
-            (root / stamp).mkdir()
-
-        assert_true(prune_backups(root, keep=0) == [], "keep=0 must prune nothing")
-        assert_true(len(list(root.iterdir())) == 3, "keep=0 must leave every run")
+        assert_true(len(surviving) == 5, f"unknown runs, current run, and records must survive: {surviving}")
 
 
 def test_mirror_copy_repairs_a_secondary_entry_instead_of_removing_it() -> None:
@@ -1183,12 +1135,7 @@ def test_mirror_copy_repairs_a_secondary_entry_instead_of_removing_it() -> None:
 
 
 def test_a_failed_apply_does_not_prune_backup_history() -> None:
-    """Pruning is promised *after a successful apply*.
-
-    A failed sync is exactly when older runs matter most, and an action that
-    errors writes no new backup -- so pruning to keep=1 during a failure would
-    discard every recovery point and keep nothing in their place.
-    """
+    """Failed sync preserves all earlier recovery points."""
     with tempfile.TemporaryDirectory() as td:
         base = Path(td)
         backup_root = base / "backups"
@@ -1205,14 +1152,11 @@ def test_a_failed_apply_does_not_prune_backup_history() -> None:
                 }
             ]
         }
-        result = apply_actions(broken, apply=True, backup_root=str(backup_root), keep_backups=1)
+        result = apply_actions(broken, apply=True, backup_root=str(backup_root))
 
         assert_true(bool(result["errors"]), "this fixture must produce an error")
-        assert_true(
-            result["pruned_backups"] == [],
-            f"a failed apply must not prune: {result['pruned_backups']}",
-        )
-        surviving = sorted(p.name for p in backup_root.iterdir())
+        assert_true(result["discarded_backups"] == [], "failed apply must preserve rollback")
+        surviving = sorted(p.name for p in backup_root.iterdir() if p.name != "records")
         assert_true(len(surviving) == 3, f"all runs must survive a failure: {surviving}")
 
 
@@ -1243,9 +1187,7 @@ def main() -> int:
         test_a_project_root_holding_a_copy_is_still_reported,
         test_stale_secondary_link_is_removed_not_relinked,
         test_a_broken_primary_entry_is_still_restored_from_canonical,
-        test_backup_retention_keeps_recent_runs_and_prunes_the_rest,
-        test_backup_retention_never_removes_the_run_just_written,
-        test_backup_retention_is_off_for_a_dry_run_and_when_disabled,
+        test_sync_preserves_unknown_backup_history,
         test_mirror_copy_repairs_a_secondary_entry_instead_of_removing_it,
         test_a_failed_apply_does_not_prune_backup_history,
     ]
