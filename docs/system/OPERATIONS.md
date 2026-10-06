@@ -61,7 +61,8 @@ skill's bundled scripts or replace the full repository test/CI suite.
 `inspect` inventories candidate copies and fingerprints, reports matching
 `skills.config` declarations and Dojo profile equivalences, and invokes the
 existing Codex prompt-input probe. It checks target exposure count and the exposed
-bundle's content against canonical. Missing/duplicate exposure, divergent exposed
+bundle's content against canonical. Probe origin classification uses the selected
+repository's catalog even when the CLI comes from another checkout. Missing/duplicate exposure, divergent exposed
 content, and a profile suppression contrary to observed Dojo exposure are findings.
 If the probe is unavailable or clipped such that absence cannot be established,
 it reports incomplete evidence. Configuration rows are declarations, not a full

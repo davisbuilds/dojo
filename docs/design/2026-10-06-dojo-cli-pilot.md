@@ -1,6 +1,6 @@
 # Dojo evidence CLI pilot
 
-Status: implemented for review, 2026-10-06.
+Status: implemented, 2026-10-06; outcome observations remain open.
 
 ## Purpose
 

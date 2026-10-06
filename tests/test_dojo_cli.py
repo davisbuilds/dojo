@@ -169,3 +169,21 @@ def test_skill_digest_tracks_untracked_hidden_content(repo):
     _, after = invoke(repo, 'check', 'alpha')
     assert before['evidence']['content_hash'] != after['evidence']['content_hash']
     assert after['evidence']['working_tree_dirty']
+
+
+def test_inspect_uses_selected_catalog_for_profile_disagreement(repo, tmp_path):
+    import shutil, os
+    env = fake_codex(tmp_path, repo)
+    env['PATH'] += os.pathsep + str(Path(shutil.which('git')).parent)
+    installed = tmp_path / 'home/.agents/skills/alpha'
+    shutil.copytree(repo/'skills/alpha', installed)
+    exe = tmp_path/'tools/codex'
+    exe.write_text(exe.read_text().replace(str(repo/'skills/alpha/SKILL.md'), str(installed/'SKILL.md')))
+    (repo/'profiles').mkdir()
+    (repo/'profiles/harness-equivalences.yaml').write_text(
+        'equivalences:\n  - skill: alpha\n    harness: codex\n    bundled_entry: alpha\n    evidence: fixture\n')
+    code, result = invoke(repo, 'inspect', 'alpha', '--harness', 'codex', '--cwd', str(repo), env=env)
+    assert code == 1, result
+    catalog = next(c for c in result['checks'] if c['id']=='catalog')
+    assert catalog['details']['exposed'][0]['origin'] == 'dojo-managed'
+    assert any(c['id']=='profile-disagreement' and c['status']=='fail' for c in result['checks'])

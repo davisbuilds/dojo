@@ -490,13 +490,14 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cwd", default=".", help="working directory to probe")
     parser.add_argument("--json", action="store_true", help="emit machine-readable output")
+    parser.add_argument("--skills-root", help="Canonical catalog used to classify live probe origins")
     parser.add_argument("--from-fixture", help="parse a captured prompt-input JSON instead of probing")
     args = parser.parse_args(argv)
 
     if args.from_fixture:
         listing = parse_block(extract_block(json.loads(Path(args.from_fixture).read_text())))
     else:
-        listing = probe(args.cwd)
+        listing = probe(args.cwd, Path(args.skills_root).expanduser().resolve() if args.skills_root else None)
 
     if args.json:
         payload = asdict(listing)

@@ -189,7 +189,7 @@ def inspect(args, repo, target, result):
         rules = []
         add(result, 'profile-policy', 'skipped', 'Dojo declaration', str(equivalence_path), 'No declaration file')
 
-    command = [sys.executable, str(TOOL_ROOT / 'scripts/profiles/probe_codex.py'), '--cwd', str(cwd), '--json']
+    command = [sys.executable, str(TOOL_ROOT / 'scripts/profiles/probe_codex.py'), '--cwd', str(cwd), '--skills-root', str(repo / 'skills'), '--json']
     code, stdout, stderr = run(command, cwd, args.timeout)
     if code:
         add(result, 'catalog', 'unavailable', 'fresh Codex prompt-input', command,
