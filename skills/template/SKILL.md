@@ -1,30 +1,30 @@
 ---
 name: template
-description: Skill starter template with commented guidance for every contract section. Use when creating a new skill and you need a scaffold that passes strict contract validation.
+description: Adaptable skill starter with Dojo release metadata. Use when creating a new skill and you want a minimal scaffold with optional authoring prompts.
 skill-type: workflow
-version: 2.0.0
+version: 3.0.0
 ---
 
 # Skill Template
 
 Copy this file to `skills/<your-skill>/SKILL.md` and adapt its structure. Use only
 content that adds a capability, preference, or justified safeguard beyond the
-agent's existing context. Anchors make a skill navigable; they do not require a
-fixed process, a document, or a handoff. Use `reference` for guidance that needs
-no workflow or output section.
+agent's existing context. The sections below are optional authoring prompts, not
+a contract checklist. Rename, combine, or remove them to suit the capability.
+Use `reference` for primarily navigational guidance.
 
 <!-- DELETE everything between « » after filling in. These are authoring hints. -->
 
 ## When To Use
 
-<!-- «Scope anchor — required by contract. Name the actual triggering need, without a scenario quota.» -->
+<!-- «Selection context, if the description needs elaboration. Name the actual triggering need, without a scenario quota.» -->
 
 - «Situation where this skill adds value over general agent capability»
 - «Additional trigger scenario only if it clarifies scope»
 
 ## Boundaries
 
-<!-- «Non-goals — required by contract. What this skill does NOT do.» -->
+<!-- «Relevant boundaries, if needed. What this skill does NOT do.» -->
 
 - «Task type this skill should not be used for»
 - «Relevant sibling guidance, without activating its full workflow or deliverables»
@@ -32,21 +32,21 @@ no workflow or output section.
 
 ## Workflow
 
-<!-- «Execution anchor for workflow skills. State useful decision criteria; prescribe an order only when dependencies or risk require it.» -->
+<!-- «Task guidance, if needed. State useful decision criteria; prescribe an order only when dependencies or risk require it.» -->
 
 «Describe the decisions, capabilities, or necessary sequence that adds value.
 Reuse accepted context and evidence. Do not invent steps to fill the template.»
 
 ## Output
 
-<!-- «Output anchor for workflow skills. Match the user's scope; consultation can improve the existing task output without creating a separate artifact.» -->
+<!-- «Result expectations, if needed. Match the user's scope; consultation can improve the existing task output without creating a separate artifact.» -->
 
 - «Primary deliverable (file, report, code, etc.)»
 - «Secondary deliverable if any»
 
 ## Verification
 
-<!-- «Verification anchor — required by contract. How to confirm quality.» -->
+<!-- «Evidence, where useful. How to confirm quality.» -->
 
 - «Testable criterion for the primary output»
 - «Second quality check»
@@ -54,7 +54,7 @@ Reuse accepted context and evidence. Do not invent steps to fill the template.»
 
 ## Resources
 
-<!-- «Resource map — required by contract IF the skill bundles scripts/, references/, assets/, or commands/. Delete this section if no resources exist.» -->
+<!-- «Point to resources the executor needs, if any. Delete this section if no resources exist.» -->
 
 - `scripts/«name».sh` — «what it does»
 - `references/«name».md` — «what it contains»
@@ -63,30 +63,14 @@ Reuse accepted context and evidence. Do not invent steps to fill the template.»
 
 ## Authoring Checklist
 
-Use the relevant authoring checks before shipping. The strict contract validates
-structural anchors; manual review judges value, scope, and process proportionality:
+Before releasing, replace placeholders and remove these authoring hints. Check
+metadata, relevant script behavior, and repository-generated artifacts. Match the
+version/changelog to the change. Inspect scope and useful outcomes directly;
+recognized headings and passing lexical fixtures do not establish task quality.
 
-- [ ] Frontmatter `name` is hyphen-case, matches directory name, max 64 chars
-- [ ] Frontmatter `description` includes trigger language (`Use when...`, `Triggers on...`)
-- [ ] Description is under 1024 chars, no angle brackets
-- [ ] `When To Use` section present (scope anchor)
-- [ ] `Boundaries` section present (boundaries anchor)
-- [ ] Workflow skills have an execution anchor; reference skills need no invented process
-- [ ] Workflow skills explain the output; a separate artifact is required only when useful
-- [ ] `Verification` section present (verification anchor)
-- [ ] `Resources` section present if skill has scripts/, references/, assets/, or commands/
-- [ ] Context and resource placement meet the current skill contract; unnecessary instructions are removed
-- [ ] Mandatory instructions protect an actual requirement, not a preferred ritual
-- [ ] Sibling consultation preserves task scope; formats and artifacts have real consumers
-- [ ] All `«placeholder»` text replaced
-- [ ] All `<!-- comments -->` removed
-- [ ] Validated: `python3 skills/skill-creator/scripts/quick_validate.py <skill-path>`
-- [ ] Strict pass: `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills <name> --strict`
+- Metadata: `python3 skills/skill-creator/scripts/quick_validate.py <skill-path>`
+- Dojo catalog: `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills <name> --strict`
 
-## Sibling skills
-
-Part of the skill-management toolchain.
-
-- `skill-creator` — guided authoring path. Use that skill when you want full guidance; use this template when you just need a contract-passing shell.
-- `skill-evals` — runs the strict validator referenced in the checklist above.
-- `audit-skill` — security audit before publishing/installing.
+These paths are relative to the Dojo checkout. Outside Dojo, use the loaded
+`skill-creator` directory for its tools. Consult `skill-evals` for the evidence
+appropriate to a claim; neither consultation requires a report or benchmark.

@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Template"
-  short_description: "Skill starter template with commented guidance for every"
+  short_description: "Adaptable skill starter with Dojo release metadata"
   default_prompt: "Use $template for this task."

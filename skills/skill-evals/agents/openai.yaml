@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Skill Evals"
-  short_description: "Evaluate skill quality and routing reliability with"
+  short_description: "Check skill packaging, release versions, and lexical routing"
   default_prompt: "Use $skill-evals for this task."

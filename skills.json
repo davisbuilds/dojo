@@ -194,16 +194,16 @@
     },
     {
       "name": "skill-creator",
-      "description": "Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends an AI agent's capabilities with specialized knowledge, workflows, or tool integrations.",
+      "description": "Create and improve agent skills with precise discovery, useful instructions, portable resources, and proportionate testing. Use when authoring SKILL.md, revising skill behavior, or preparing a skill release.",
       "path": "skills/skill-creator",
-      "version": "2.0.1",
+      "version": "3.0.0",
       "license": "Complete terms in LICENSE.txt"
     },
     {
       "name": "skill-evals",
-      "description": "Evaluate skill quality and routing reliability with deterministic checks. Use when creating/updating skills, validating trigger behavior (explicit/implicit/contextual/negative), applying SKILL.md contract checklists, or generating cross-skill compliance reports.",
+      "description": "Check skill packaging, release versions, and lexical routing fixtures, and choose evidence appropriate to a skill-quality claim. Use when validating a skill edit, investigating trigger collisions, or assessing what an evaluation establishes.",
       "path": "skills/skill-evals",
-      "version": "1.5.2"
+      "version": "2.0.0"
     },
     {
       "name": "skill-installer",
@@ -219,9 +219,9 @@
     },
     {
       "name": "template",
-      "description": "Skill starter template with commented guidance for every contract section. Use when creating a new skill and you need a scaffold that passes strict contract validation.",
+      "description": "Adaptable skill starter with Dojo release metadata. Use when creating a new skill and you want a minimal scaffold with optional authoring prompts.",
       "path": "skills/template",
-      "version": "2.0.0"
+      "version": "3.0.0"
     },
     {
       "name": "test-strategy",

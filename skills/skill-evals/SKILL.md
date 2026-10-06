@@ -1,82 +1,88 @@
 ---
 name: skill-evals
-description: Evaluate skill quality and routing reliability with deterministic checks. Use when creating/updating skills, validating trigger behavior (explicit/implicit/contextual/negative), applying SKILL.md contract checklists, or generating cross-skill compliance reports.
+description: Check skill packaging, release versions, and lexical routing fixtures, and choose evidence appropriate to a skill-quality claim. Use when validating a skill edit, investigating trigger collisions, or assessing what an evaluation establishes.
 skill-type: workflow
-compatibility: "Requires python3 and PyYAML."
-version: 1.5.2
+compatibility: "Requires python3 and PyYAML; repository checks need a Dojo checkout."
+version: 2.0.0
 ---
 
 # Skill Evals
 
-Deterministic evaluation harness for skill quality.
+Choose the check that answers the question. Packaging validity, discoverability,
+and useful task outcomes are different claims; one cannot substitute for another.
 
-## When To Use
+## Evidence and limits
 
-Use this skill when you need to:
-- test whether skills trigger in the right situations
-- run a repo-wide SKILL.md contract checklist
-- compare skills before/after edits
-- generate a compliance report for maintainers
+| Question | Available evidence | What it does not establish |
+| --- | --- | --- |
+| Is the bundle valid and releasable? | Metadata/schema checks, version/changelog checks, generated-artifact checks, relevant script tests | Correct advice, safe execution, or useful results |
+| Are descriptions lexically distinguishable? | `run_trigger_evals.py` fixtures or declared phrases | Actual harness discovery, invocation, or improved task outcomes |
+| Which skill does a model say it would choose? | Repository `scripts/behavioral_evals.py`, explicitly opted into | The harness actually loaded the body, or the task was performed well |
+| Does this revision improve work? | Representative task runs with a suitable baseline, inspected outputs and execution evidence | General benefit beyond the observed tasks, models, and harnesses |
 
-## Workflow
+Select targets and checks from the change and uncertainty. Report their scope,
+failures, exclusions, and limits. A concise answer is enough unless a saved report
+has a consumer. Do not repair, launch paid runs, or synchronize installations
+merely because an evaluation identified a concern; stay within the user's scope.
 
-1. Define a target set (`--skills`) or evaluate all skills.
-2. Run contract validation.
-3. Run release-version validation for changed skills when evaluating a branch.
-4. Optionally run trigger evals with case fixtures.
-5. Publish a markdown report with failures, warnings, and suggested fixes.
+## Repository checks
 
-## Commands
+Run these from the Dojo checkout; these are repository tool paths, not paths
+assumed to exist in a consuming project's working directory.
 
 ```bash
-# Contract checks (all skills)
-python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --markdown docs/project/skill-contract-application-YYYY-MM-DD.md
+# Metadata gates. --json exposes each result; --authoring-hints adds prose hints.
+python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
 
-# Version bump checks (changed skills)
+# Release-relevant changes need a version bump and matching changelog heading.
 python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
 
-# Perform the bump the check requires: update SKILL.md version + prepend a CHANGELOG heading
+# Helper when a release bump is part of the authorized edit.
 python3 skills/skill-evals/scripts/bump_skill_version.py skills/<name> patch -m "What changed."
 
-# Trigger evals from fixture
+# Lexical routing diagnostics, not a real harness invocation.
 python3 skills/skill-evals/scripts/run_trigger_evals.py --cases skills/skill-evals/assets/sample-trigger-cases.json --skills-root skills --pretty
-
-# Trigger evals from declared `triggers:` frontmatter (self-routing + collision check)
 python3 skills/skill-evals/scripts/run_trigger_evals.py --from-triggers --skills-root skills --pretty
 ```
 
-## Output Contract
+Use `--skills name,other-name` on the contract checker for a focused inspection.
+`--markdown <path>` saves an optional report. Strict mode enforces catalog
+metadata. `--authoring-hints` opts into prose headings, trigger wording, resource
+navigation, and length heuristics; these never become failures. Review substance
+before acting on a warning. A recognized
+heading is not evidence that the section is useful or even complete.
 
-Provide:
-- overall pass/warn/fail summary
-- per-skill checklist results
-- concrete remediation list (ordered by severity)
+## Routing diagnostics
 
-## Boundaries
+The lexical scorer uses TF-IDF over stemmed tokens. In fixture mode the winner
+must be an expected `trigger`; each `avoid` must rank below it. An empty `trigger`
+requires all `avoid` skills below the match-nothing floor. `--threshold` retains
+the older absolute-score mode. Declared phrases must self-route without a tie.
 
-- Do not treat lexical trigger scoring as a replacement for end-to-end LLM evals. Scoring is TF-IDF cosine over stemmed tokens — a deterministic proxy for routing, not a real agent. `scripts/behavioral_evals.py` is the real-agent backstop.
-- `--cases` asserts by ranking (default): the top-scoring skill must be an expected `trigger`, and each `avoid` skill must score below it; a case with an empty `trigger` must keep every `avoid` under the match-nothing floor. Pass `--threshold` for the older absolute-score model.
-- A fixture case may set `"known_hard": true` for a genuine lexical-ceiling collision (e.g. a prompt naming a competing skill's core verb). It is reported under `known_hard_*` and excluded from `failed`, so it stays visible without a fake pass or deletion.
-- `--from-triggers` still asserts each declared `triggers:` phrase self-routes to its owner without being tied or beaten; phrases should echo the skill's name/description vocabulary.
-- Do not auto-edit skills unless explicitly requested.
-- Keep recommendations deterministic and reproducible.
+Use natural requests and meaningful near misses. Inspect confusion against the
+actual catalog, not only a handpicked competing pair. Do not stuff descriptions
+with keywords merely to satisfy this proxy. `known_hard` cases are visible but
+excluded from gating failures; report that exclusion rather than claiming all
+cases passed. Schema details and example fixtures are in `references/contracts.md`
+and `assets/sample-trigger-cases.json`.
 
-## Verification
+## Outcome evidence
 
-- All assertions in the fixture file pass (exit code 0)
-- Changed skills either are part of the first unversioned baseline or have a version bump plus changelog entry
-- No regressions in previously-passing skills
-- Persisted report matches live validation output
+When a behavioral comparison is warranted, define success from the user's task
+before looking at candidate outputs. Distinguish revision effect (old vs. new)
+from marginal value (with vs. without the skill) and discovery (whether it loads).
+Preserve the same task inputs, model, harness, tools, and relevant instructions;
+freeze full bundles including resources and check what the executor actually
+received. Compare correctness and meaningful boundaries as well as unnecessary
+steps, user interruptions, time, and cost. Avoid grading obedience to incidental
+wording or your own preferred headings.
 
-## References
+Use repeats when variability could change the conclusion; retain unseen cases
+for confirmation after tuning. Separate grounded source repairs from claims of
+measured improvement. A smoke run supplies diagnostic evidence, not a universal
+quality score. Reuse an appropriate existing runner or harness toolkit; this
+skill does not require a new benchmark or launch one automatically.
 
-- `references/contracts.md` - input/output schemas
-- `assets/sample-trigger-cases.json` - fixture for trigger tests
-
-## Sibling skills
-
-Part of the skill-management toolchain.
-
-- `skill-creator` / `template` — upstream authoring. Validate after edits land here.
-- `audit-skill` — security review (prompt injection, exfiltration). Orthogonal to contract validation; this skill checks structure, that one checks safety.
-- `skill-standardizer` — keep skill copies aligned across mirrors after validation passes.
+Deliver what the evidence establishes and what remains untested. Security review
+belongs to `audit-skill` when that is the question; deployment drift belongs to
+`skill-standardizer`. Neither workflow follows automatically from validation.

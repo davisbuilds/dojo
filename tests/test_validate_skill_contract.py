@@ -52,7 +52,7 @@ def always_valid(_path: str) -> tuple[bool, str]:
 
 
 def evaluate(skill_dir: Path, strict: bool = True) -> dict:
-    return MODULE.evaluate_skill(skill_dir, always_valid, strict)
+    return MODULE.evaluate_skill(skill_dir, always_valid, strict, authoring_hints=True)
 
 
 # --- resource_map_present -------------------------------------------------
@@ -105,52 +105,109 @@ def test_rules_directory_undocumented_fails(tmp_path: Path) -> None:
     assert MODULE.resource_map_present((skill_dir / "SKILL.md").read_text(), skill_dir) is False
 
 
-# --- context_budget -------------------------------------------------------
-#
-# The 251-500 tier is ADVISORY BY DESIGN and must stay a warning even under
-# --strict. It flags inverted progressive disclosure, which is a judgment call
-# about placement rather than a contract breach, and six existing skills sit in
-# the band. Escalating it to a failure would turn CI red on work nobody has
-# agreed to do. Only the >700 tier fails under strict.
+# These checks exercise the difference between packaging failures and authoring
+# hints. Content quality is deliberately not inferred from these assertions.
 
 
-def long_body(lines: int) -> str:
-    filler = "\n".join(f"- point {i}" for i in range(lines))
-    return (
-        "# Thing\n\n## When To Use\n\n- always\n\n## Boundaries\n\n- not for x\n\n"
-        "## Steps\n\n1. do it\n\n## Output\n\n- a thing\n\n"
-        "See `references/detail.md`.\n\n## Verification\n\n- it ran\n\n" + filler + "\n"
-    )
+@pytest.mark.parametrize("strict", [False, True])
+def test_freeform_guidance_is_not_a_contract_failure(tmp_path: Path, strict: bool) -> None:
+    skill = write_skill(tmp_path, "freeform", "# Choose a source\n\nRead the supplied source and return its supported answer.\n")
+    result = evaluate(skill, strict)
+    assert result["status"] == "warn"
+    assert result["required_failures"] == []
+    assert result["checks"]["execution_anchor_present"]["required"] is False
 
 
-def test_midsize_skill_with_references_warns_but_never_fails_under_strict(tmp_path: Path) -> None:
-    skill_dir = write_skill(tmp_path, "midsize", long_body(300), bundled=("references",))
-    result = evaluate(skill_dir, strict=True)
-    assert 250 < result["line_count"] <= 500
+@pytest.mark.parametrize("strict", [False, True])
+def test_very_long_skill_warns_without_blocking(tmp_path: Path, strict: bool) -> None:
+    skill = write_skill(tmp_path, "long-skill", "A relevant instruction.\n" * 800)
+    result = evaluate(skill, strict)
     assert result["checks"]["context_budget"]["status"] == "warn"
-    assert "context_budget" not in result["required_failures"]
-    assert "context_budget" in result["warnings"]
+    assert result["checks"]["context_budget"]["required"] is False
+    assert not result["required_failures"]
 
 
-def test_midsize_skill_without_references_passes(tmp_path: Path) -> None:
-    """Length alone is not the defect; having somewhere to put the detail is."""
-    skill_dir = write_skill(tmp_path, "midsize-no-refs", long_body(300), bundled=("scripts",))
-    result = evaluate(skill_dir, strict=True)
-    assert 250 < result["line_count"] <= 500
+@pytest.mark.parametrize("bundled", [(), ("references",)])
+def test_reference_directory_does_not_change_length_diagnostic(tmp_path: Path, bundled) -> None:
+    skill = write_skill(tmp_path, "medium-skill", "A relevant instruction.\n" * 300, bundled=bundled)
+    result = evaluate(skill)
     assert result["checks"]["context_budget"]["status"] == "pass"
+    assert result["line_count"] == len((skill / "SKILL.md").read_text().splitlines())
 
 
-def test_short_skill_passes_regardless_of_references(tmp_path: Path) -> None:
-    skill_dir = write_skill(tmp_path, "short", long_body(20), bundled=("references",))
-    result = evaluate(skill_dir, strict=True)
-    assert result["line_count"] <= 250
-    assert result["checks"]["context_budget"]["status"] == "pass"
+def test_natural_description_does_not_require_magic_trigger_words(tmp_path: Path) -> None:
+    skill = write_skill(tmp_path, "natural", "# Main\n\nExplain the user's supplied data.\n")
+    p = skill / "SKILL.md"
+    p.write_text(p.read_text().replace("Do a thing. Use when the user asks to do a thing.", "Interpret supplied time-series data and explain anomalies."))
+    result = evaluate(skill)
+    assert result["checks"]["description_trigger_ready"]["status"] == "warn"
+    assert not result["required_failures"]
 
 
-@pytest.mark.parametrize("strict,expected", [(True, "fail"), (False, "warn")])
-def test_very_long_skill_still_fails_under_strict(tmp_path: Path, strict: bool, expected: str) -> None:
-    """The pre-existing >700 escalation is unchanged by the new tier."""
-    skill_dir = write_skill(tmp_path, f"huge-{strict}", long_body(800), bundled=("references",))
-    result = evaluate(skill_dir, strict=strict)
-    assert result["line_count"] > 700
-    assert result["checks"]["context_budget"]["status"] == expected
+@pytest.mark.parametrize("strict", [False, True])
+def test_invalid_packaging_still_blocks(tmp_path: Path, strict: bool) -> None:
+    skill = write_skill(tmp_path, "invalid", "# Main\n")
+    result = MODULE.evaluate_skill(skill, lambda _: (False, "Invalid SemVer"), strict)
+    assert result["status"] == "fail"
+    assert "frontmatter_valid" in result["required_failures"]
+
+
+@pytest.mark.parametrize("change,check", [
+    ("name", "name_matches_directory"),
+    ("skill-type", "skill_type_declared"),
+])
+def test_strict_enforces_catalog_identity(tmp_path: Path, change: str, check: str) -> None:
+    skill = write_skill(tmp_path, "catalog-entry", "# Main\n")
+    p = skill / "SKILL.md"
+    s = p.read_text()
+    s = s.replace("name: catalog-entry", "name: another-entry") if change == "name" else s.replace("skill-type: workflow\n", "")
+    p.write_text(s)
+    assert check in evaluate(skill, True)["required_failures"]
+    assert check not in evaluate(skill, False)["required_failures"]
+
+
+def test_report_uses_current_date_and_qualifies_evidence() -> None:
+    from datetime import datetime, timezone
+    report = MODULE.render_markdown([], True)
+    assert datetime.now(timezone.utc).date().isoformat() in report
+    assert "not behavioral evidence" in report
+
+
+@pytest.mark.parametrize("edit,expected_exit", [
+    (None, 0),
+    (("version: 1.0.0", "version: not-semver"), 1),
+    (("skill-type: workflow", "skill-type: [workflow]"), 1),
+    (("name: cli-entry", "name: another-name"), 1),
+])
+def test_cli_uses_real_metadata_gate(tmp_path: Path, edit, expected_exit: int) -> None:
+    import json
+    import subprocess
+    import sys
+
+    skill = write_skill(tmp_path, "cli-entry", "# Decide\n\nReturn a supported answer.\n")
+    p = skill / "SKILL.md"
+    if edit:
+        p.write_text(p.read_text().replace(*edit))
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), "--skills-root", str(tmp_path), "--strict", "--json"],
+        capture_output=True, text=True,
+    )
+    assert result.returncode == expected_exit, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["summary"]["total"] == 1
+    assert payload["summary"]["fail"] == expected_exit
+
+
+def test_normal_cli_omits_style_hints_but_can_request_them(tmp_path: Path) -> None:
+    import json
+    import subprocess
+    import sys
+
+    write_skill(tmp_path, "freeform-cli", "# Work\n\nAnswer from the supplied source.\n")
+    args = [sys.executable, str(SCRIPT_PATH), "--skills-root", str(tmp_path), "--strict", "--json"]
+    default = subprocess.run(args, capture_output=True, text=True)
+    assert default.returncode == 0
+    assert json.loads(default.stdout)["summary"]["warn"] == 0
+    hints = subprocess.run(args + ["--authoring-hints"], capture_output=True, text=True)
+    assert hints.returncode == 0
+    assert json.loads(hints.stdout)["summary"]["warn"] == 1

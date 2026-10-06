@@ -99,6 +99,28 @@ applicable. Update release metadata and standing docs. Avoid solving every
 incident by adding another universal rule. Aim for useful behavior as capability
 changes, not permanent adherence to today's workflow.
 
+## Harness overlap and evidence
+
+Before adding generic authoring guidance, inspect the creator already supplied
+by the intended harness and whether it is actually active. A marketplace source,
+an installed plugin, and an entry loaded into the current session are different
+surfaces. Same names do not establish equivalent behavior. Dojo's creator is a
+standalone, portable authoring guide: it combines useful
+authoring decisions, proportionate behavioral testing, and release/packaging tools.
+It does not assume another creator fills in missing steps or require both
+workflows. Repository-specific catalog rules belong here and in
+`rules/skill-authoring.md`. Retain destination-specific validation rather than
+imposing Dojo's schema on every harness.
+
+Keep evaluation claims separate: metadata validity, lexical ranking, a model's
+stated selection, actual harness loading, and task outcomes. The existing
+`scripts/behavioral_evals.py` asks a model to choose a name from a supplied catalog;
+it does not exercise native discovery or run the selected skill. For meaningful
+revision comparisons, preserve complete bundles and the baseline's other
+instructions, inspect actual execution, and confirm on unseen tasks after tuning.
+Use an existing runner when suitable; an authoring edit does not authorize an
+experiment or require a new evaluation framework.
+
 ## Research Background
 
 1. **Progressive disclosure + narrow scope are converging norms**
@@ -121,8 +143,9 @@ changes, not permanent adherence to today's workflow.
 
 ## Design Contract
 
-Every SKILL.md needs these design elements. The validator checks structural
-anchors; it cannot establish the quality of the decisions or behavior:
+Review these design concerns where applicable. Metadata validation is a release
+gate; heading, phrasing, and length detectors are opt-in and advisory. Neither
+can establish the quality of the decisions or behavior:
 
 - **Single responsibility** -- one clear purpose
 - **Trigger boundary** -- a precise description and explicit scope/non-goals
@@ -134,7 +157,7 @@ See `docs/system/skill-contract-v1.md` for the full checklist.
 ## Anti-Patterns
 
 - **Negative trigger clauses in descriptions** increase lexical overlap with competing skills (e.g. "Do NOT use for Gemini" adds "gemini" as a matching token). Use distinct vocabulary instead of cross-references.
-- **Instruction-only skills** are not inherently weak -- they become weak when they lack routing cues, I/O contracts, or eval loops.
+- **Instruction-only skills** can add useful judgment or context. Assess that value directly; do not require an evaluation loop or extra output contract merely to justify their format.
 - **Overly strict language** in advisory guidance creates friction. Reserve mandates for actual authority, safety, compatibility, or consumer requirements; explain the condition that makes them necessary.
 - **Repository-relative paths in runnable commands.** A command a skill tells the agent to run — `bash skills/<name>/scripts/x.sh`, `python3 skills/<name>/scripts/x.py`, or an operand like `--config skills/<name>/rules/` — resolves against the **user's** working directory, not dojo. Skills are installed globally and load from whatever repository the session is in, so a `skills/<name>/...` path is simply not there and the command fails everywhere except a dojo checkout (where it works, which is what hides the bug). Anchor every runnable path to **`<skill-dir>/...`** — the agent substitutes the directory it loaded the skill from — and anchor *operands* too, not just the executable: `bash <skill-dir>/scripts/scan.sh --config <skill-dir>/rules/`. This is distinct from a **file reference** in prose (`see references/REFERENCE.md`), which is correctly relative to the skill root because a reader already knows where the skill is. `tests/test_skill_script_paths.py` enforces this across the catalog; `skill-evals`/`skill-creator` are exempt because they are dojo's own gates, meant to run from a dojo checkout.
 

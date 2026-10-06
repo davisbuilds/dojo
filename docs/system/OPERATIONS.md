@@ -455,12 +455,14 @@ python3 scripts/gen_catalog.py --check
 python3 scripts/slop_scan.py
 ```
 
-The strict validator is type-aware:
+The strict validator gates metadata validity, matching directory/name identity,
+and an explicit `workflow` or `reference` type. Recognizable headings, trigger
+wording, resource navigation, and length are opt-in (`--authoring-hints`) advisory
+hints, never gates. A
+`reference` does not receive missing execution/output hints. Warnings exit zero;
+passing packaging checks does not demonstrate useful task outcomes.
 
-- `workflow` skills must define execution flow and output expectations.
-- `reference` skills are evaluated on scope, boundaries, verification, and resource navigation without being forced into workflow-only sections.
-
-Hooks enforce quality at edit-time and session-stop:
+Hooks enforce packaging and repository consistency at edit-time and session-stop:
 
 - Pre-tool-use hook blocks pushes to protected branches unless the command includes `DOJO_ALLOW_PROTECTED_PUSH=1`.
 - Pre-tool-use hook validates SKILL.md on every write.

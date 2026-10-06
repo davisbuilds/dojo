@@ -1,3 +1,10 @@
+## 3.0.0 - 2026-10-06
+
+- Replace the generic tutorial with a standalone authoring guide combining portable tools, scoped design decisions, and optional behavioral comparison guidance.
+- Distinguish destination requirements from Dojo release conventions.
+- Remove unused workflow/output tutorial references and reduce initializer scaffolding to optional prompts.
+- Clarify metadata-only validation, archive contents, and preservation of curated harness sidecars.
+
 ## 2.0.1 - 2026-10-02
 
 - Align description guidance with the required body scope anchor instead of telling authors to omit it.

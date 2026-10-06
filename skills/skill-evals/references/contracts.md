@@ -7,8 +7,15 @@
 ```bash
 python3 skills/skill-evals/scripts/validate_skill_contract.py \
   --skills-root skills \
-  --markdown docs/project/skill-contract-application-YYYY-MM-DD.md
+  --strict --json
 ```
+
+Metadata validation gates release; heading, trigger wording, resource navigation,
+and length checks require `--authoring-hints` and are advisory even in strict mode. Strict mode additionally
+requires a matching directory/name and a declared skill type. Warnings exit zero;
+required failures exit one. Reports are optional via `--markdown <path>`.
+`line_count` counts actual lines including frontmatter, not tokens. See the
+repository contract for exact checks. No result here proves behavioral quality.
 
 ### Output shape (JSON mode)
 
@@ -19,7 +26,8 @@ python3 skills/skill-evals/scripts/validate_skill_contract.py \
     "pass": 0,
     "warn": 0,
     "fail": 0,
-    "strict": false
+    "strict": false,
+    "authoring_hints": false
   },
   "skills": [
     {
@@ -69,21 +77,6 @@ separately and excluded from `failed`.
 - **threshold** (`--threshold`): each labeled skill is compared to an absolute
   per-type threshold — the older model, retained for fixtures that want it.
 
-## `check_skill_versions.py`
-
-### CLI
-
-```bash
-python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
-```
-
-### Behavior
-
-- Collects release-relevant changes under `skills/<name>/`.
-- Ignores generated Codex sidecars, changelog-only edits, bytecode, and cache files.
-- Allows the first migration from an unversioned base skill.
-- Requires later changed skills to increase their SemVer release and include a `CHANGELOG.md` heading for the new version.
-
 ### Output shape (JSON mode)
 
 ```json
@@ -123,3 +116,18 @@ python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
   ]
 }
 ```
+
+## `check_skill_versions.py`
+
+### CLI
+
+```bash
+python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
+```
+
+### Behavior
+
+- Collects release-relevant changes under `skills/<name>/`.
+- Ignores generated Codex sidecars, changelog-only edits, bytecode, and cache files.
+- Allows the first migration from an unversioned base skill.
+- Requires later changed skills to increase their SemVer release and include a `CHANGELOG.md` heading for the new version.
