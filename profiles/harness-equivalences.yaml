@@ -38,8 +38,16 @@ equivalences:
       Observed at ~/.codex/skills/.system/skill-creator/SKILL.md and listed in
       tests/fixtures/profiles/codex-prompt-input-dojo-2026-08-02.json alongside
       dojo's own copy from ~/.agents/skills — i.e. this name is charged to the
-      Codex budget twice in every session today. Descriptions differ only in
-      naming Codex rather than the agent generically.
+      observed listing. Rechecked local system creator on 2026-10-06: it covers
+      general authoring, scope discipline, optional scaffolding, and verification.
+      This equivalence is for general authoring, not Dojo's SemVer/schema tools;
+      those remain repository-owned and reachable through its instructions.
+      This legacy suppression predates the preference for Dojo's standalone
+      creator. Reconcile it with supported exposure controls during rollout;
+      see the creator distribution follow-up in docs/project/BACKLOG.md.
+      Claude's official creator was present in marketplace source but absent
+      from the installed/enabled plugin registry in that local inspection;
+      marketplace availability alone does not justify suppressing Dojo there.
   - skill: skill-installer
     harness: codex
     bundled_entry: skill-installer

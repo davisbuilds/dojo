@@ -1,9 +1,9 @@
 # Skill authoring rules
 
-Standing conventions for adding or changing a skill. Structural requirements
+Standing conventions for adding or changing a skill. Packaging requirements
 are enforced by `skills/skill-evals/scripts/validate_skill_contract.py`; the
 design judgments below require review. See `docs/system/skill-contract-v1.md`
-for the structural contract and `docs/system/SKILL-BEST-PRACTICES.md` for the
+for the packaging contract and `docs/system/SKILL-BEST-PRACTICES.md` for the
 authoring and retirement guidance.
 
 ## Frontmatter
@@ -11,24 +11,23 @@ authoring and retirement guidance.
 - `name`: hyphen-case, ≤64 chars, matches the directory name.
 - `description`: ≤1024 chars, no angle brackets, and trigger-ready — say both
   what the skill does and when to use it ("Use when…", "Triggers on…").
+- `version`: SemVer release; bump and update the skill changelog for release-relevant changes.
 - `skill-type`: declare `workflow` or `reference`.
 - `triggers` (optional): literal trigger phrases that should route to the skill.
-  Echo the skill's name/description vocabulary so the trigger evals can confirm
-  self-routing without collisions.
+  Use natural requests; treat lexical collisions as diagnostics, not a reason
+  to add keywords that broaden actual discovery.
 
-## Body (contract anchors)
+## Body (design review)
 
-- Scope anchor: a "When to use" / "Prerequisites" section.
-- Boundaries anchor: explicit non-goals ("Not for…", "Skip when…").
-- Verification anchor: quality / success criteria.
-- Resource map: if the skill bundles `scripts/`, `references/`, `assets/`, or
-  `commands/`, point to them from the body.
-- `workflow` skills also need an execution anchor (Workflow/Process/Steps) and
-  an output contract.
+Explain relevant scope, boundaries, useful outcomes, verification, and how to
+reach needed resources. Fit the structure to the capability; no named sections
+or numbered workflow are required. The validator's opt-in heading/resource hints
+are fallible prompts for review, not semantic checks or release gates.
 
 ## Economy
 
-- Keep SKILL.md under ~500 lines; push detail into `references/`.
+- Keep instructions relevant; move optional detail to references when it helps
+  selection. Line count is an advisory placement signal, not a length mandate.
 - Add only what the agent does not already know. Context is shared and finite.
 - Identify the capability, preference, or consequential failure that justifies
   an instruction. Prefer narrowing or removing obsolete process over adding

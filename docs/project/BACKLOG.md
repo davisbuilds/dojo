@@ -46,7 +46,23 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   mutation, authority boundaries, portability, evidence fidelity, and real CLI
   contracts. Distinguish evaluation-runner unit tests from live agent evidence;
   deterministic green checks do not establish skill effectiveness. Research
-  revisions can resolve their local subset; the broader suite pass is deferred.
+  and authoring revisions resolve their local subsets; the broader suite pass is
+  deferred. The authoring validator no longer gates prose headings or length;
+  remaining candidates above still need consumer-grounded review.
+
+### Roll out the preferred standalone creator without duplicate discovery
+
+- **What**: make Dojo's standalone `skill-creator` the preferred authoring entry
+  when its revised bundle is deployed to harnesses.
+- **Why or evidence, 2026-10-06**: the inspected Codex session exposes both the
+  bundled creator and Dojo's global copy. The existing profile equivalence still
+  suppresses Dojo in favor of the bundled creator; it predates this preference.
+  Claude's official marketplace creator was available but not installed/enabled
+  in the inspected registry. These are dated observations, not universal defaults.
+- **Next**: during rollout, verify supported selection/exposure controls and actual
+  fresh-session loading, then reconcile the profile equivalence and deployment
+  declarations together. Do not rely on name collisions or patch vendor cache
+  files. Keep the usable canonical bundle independent of those controls.
 
 ### Isolate standardizer tests from process state
 

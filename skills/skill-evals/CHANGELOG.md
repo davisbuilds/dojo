@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0 - 2026-10-06
+
+- Separate packaging validity, lexical routing, model selection, and task-outcome evidence; make saved reports optional.
+- Make heading, trigger wording, resource-map, and length heuristics opt-in via `--authoring-hints` and advisory in every mode. Warn on length only above 500 actual lines.
+- Strict mode enforces directory/name identity and declared skill type alongside the existing metadata schema.
+- Date reports at execution time, record whether authoring hints ran, and explicitly qualify their evidence scope.
+- Align catalog health reporting with the strict metadata gate.
+
 ## 1.5.2 - 2026-09-24
 
 - Remove the retired GitHub publishing skill from the expanded routing fixture.

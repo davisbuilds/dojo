@@ -1,147 +1,115 @@
-# SKILL Contract v1
+# SKILL Contract
 
-Date: 2026-04-04
-Scope: All `skills/*/SKILL.md` files in this repository.
+Revised: 2026-10-06. Scope: `skills/*/SKILL.md` in Dojo.
+The historical filename is retained so existing references keep resolving.
 
-This contract defines a deterministic checklist for skill quality. It is designed for enforcement by `skills/skill-evals/scripts/validate_skill_contract.py`.
+The validator enforces packaging metadata and optionally reports authoring hints.
+It cannot certify advice, safety, discovery in a harness, or useful task outcomes.
+`skills/skill-evals/scripts/validate_skill_contract.py` implements this contract.
 
-## Skill Types
+## Packaging gates
 
-Skills declare a `skill-type` frontmatter field to express the structural shape they are expected to follow.
+`frontmatter_valid` is required in both default and strict modes. It uses
+`skill-creator/scripts/quick_validate.py`: parseable YAML mapping, supported
+fields and types, nonempty legal name and description, valid SemVer `version`,
+and valid optional `skill-type`, `triggers`, and compatibility metadata. Names
+are hyphen-case up to 64 characters; descriptions are at most 1024 characters
+without angle brackets. See the validator for the complete schema.
 
-Allowed values:
+`--strict` also requires:
 
-- `workflow`
-  - For procedural, audit, remediation, review, planning, or command-oriented skills that should define how work gets executed and what the output should contain.
-- `reference`
-  - For reference routers, guideline catalogs, and best-practice indexes that are primarily navigational and informational rather than procedural.
+- `name_matches_directory`: frontmatter name exactly matches the directory name.
+- `skill_type_declared`: explicit `workflow` or `reference` classification.
 
-Current repo state:
+Default mode warns on these two catalog-specific requirements. Untyped skills
+fall back to workflow hints. An invalid declared type still fails metadata
+validation in either mode. Workflow means task-oriented guidance; reference
+means primarily navigational/informational guidance. Neither requires a fixed
+sequence, heading order, report, or extra artifact.
 
-- The catalog is fully typed.
-- New and updated skills should continue to declare `skill-type`.
-- For robustness, untyped skills still default to `workflow` behavior if one appears in the future.
+## Authoring hints, never gates
 
-## Scope of the contract
+Use `--authoring-hints` to opt into the prose/length detectors. They are off by
+default to avoid recurring false alarms; their existing check keys remain in JSON
+as `na` when not requested. With hints enabled, missing anchors warn in both modes;
+recognized anchors only show that a heuristic matched.
 
-These checks validate skill packaging and structural anchors; they do not prove
-behavioral quality. A workflow/output anchor does not require a fixed phase
-sequence, durable document, handoff menu, or repeated approval. The output can
-be an answer, an authorized code change, or relevant guidance integrated into the
-current task. Follow the scope/composition rules in `rules/skill-authoring.md`.
+| Check | What the detector recognizes |
+| --- | --- |
+| `description_trigger_ready` | Conventional trigger phrases, such as “Use when” |
+| `scope_anchor_present` | Familiar scope headings |
+| `boundaries_anchor_present` | Familiar headings or boundary phrases |
+| `execution_anchor_present` | Familiar workflow/usage headings or a numbered step |
+| `output_anchor_present` | Familiar output headings |
+| `verification_anchor_present` | Familiar verification headings |
+| `resource_map_present` | Resource headings or directory-path mentions when resources exist |
+| `context_budget` | Whole-file line count, including frontmatter; warns above 500 |
 
-Saved spec and plan artifacts have their own schemas. Their substantive and
-high-risk requirements remain applicable when those artifacts are produced;
-`Handoff` sections and numbered option menus are optional.
+Execution and output hints are not applicable to reference skills when no anchor
+is recognized. `triggers_valid` reports optional declared phrases; malformed
+phrases also fail the metadata gate.
 
-## Skill Versions
+These are review prompts, not a document schema. An unrecognized section may
+already express the right substance; a recognized empty heading may express
+nothing. Do not add headings or keywords just to silence hints. Review relevant
+scope, boundaries, outcomes, verification, and resource reachability directly.
+The resource heuristic does not validate files or links. Use repository link
+checks and relevant script tests for those properties.
 
-Every cataloged skill declares a top-level `version` frontmatter field. This is the skill release version, not the `skills.json` manifest schema version.
+Line count is not token use or proof of waste. The presence of `references/`
+does not make a shorter body defective, and length does not become a failure in
+strict mode. Move or remove content based on relevance and when it is needed.
 
-Rules:
+## Skill releases
 
-- Use SemVer 2.0.0 syntax without a leading `v` (for example, `1.0.0` or `1.2.0-beta.1`).
-- Existing cataloged skills are baselined at `1.0.0`.
-- Use `PATCH` for typo fixes, clearer wording, examples, and non-behavioral documentation changes.
-- Use `MINOR` for new optional commands, references, trigger phrases, or backward-compatible capability expansion.
-- Use `MAJOR` for changed workflow contracts, removed resources, changed required outputs, narrowed trigger semantics, or incompatible script behavior.
-- Release-relevant skill edits after the baseline must increase the skill version and add a `CHANGELOG.md` heading for the new version.
+Each catalog skill declares its release `version`, separate from the manifest
+schema version. Use SemVer without a leading `v`.
 
-## Optional Frontmatter Extensions
+- Patch: clarification, typo fixes, non-behavioral examples or documentation.
+- Minor: compatible capabilities, optional commands/references, expanded triggers.
+- Major: changed workflow contracts or required outputs, removed resources,
+  narrowed triggers, or incompatible script behavior.
 
-These are dojo-specific extensions beyond the upstream `spec/agent-skills-spec.md`. They are optional; absence never fails the contract.
+Release-relevant changes increase the version and add a corresponding
+`CHANGELOG.md` heading. `check_skill_versions.py` enforces that against a Git
+base; it is a separate gate. The first unversioned baseline is supported.
 
-### `triggers`
+## Optional `triggers`
 
-A list of literal trigger phrases that should route to this skill (for example, the exact things a user might type or ask).
+A nonempty list of nonempty literal phrases declares routing intent:
 
 ```yaml
 triggers:
   - review this pr
-  - code review
   - check my diff
 ```
 
-Rationale: `description` carries trigger-ready *prose* (see `description_trigger_ready`), but prose is not directly testable. `triggers` makes routing intent explicit and machine-checkable, so `skills/skill-evals/scripts/run_trigger_evals.py` can assert each declared phrase self-routes to its own skill and flag collisions with other skills. When present, `triggers` must be a non-empty list of non-empty strings. Skills without `triggers` keep the description-inferred behavior unchanged.
+`run_trigger_evals.py --from-triggers` checks self-routing and lexical collisions.
+A declared phrase passing does not establish actual harness invocation. Author
+natural phrases and inspect failure causes; do not optimize only for the scorer.
 
-## Generated Artifacts (single source of truth)
+## Generated artifacts
 
-SKILL.md frontmatter is the source of truth. Two generation steps derive artifacts from it; both are deterministic, idempotent, and expose a `--check` mode that fails on drift:
+Frontmatter and declared includes own generated content:
 
-- **Shared-fragment composition** (`scripts/gen_skill_docs.py`): expands declared shared includes into SKILL.md between `<!-- AUTO-GENERATED -->` markers. **Opt-in only** — a skill that declares no template/includes is never modified.
-- **Harness sidecars** (`scripts/gen_harness_adapters.py`): emits per-skill adapter files for each target harness (`.claude/`, `.agent/`, Codex) from frontmatter. Sidecars are generated artifacts and must not be hand-edited; the compliance `--check` treats hand-edits as drift.
+- `scripts/gen_skill_docs.py` expands opt-in shared fragments. Skills without a
+  template/include declaration are untouched.
+- `scripts/gen_harness_adapters.py` generates marked Codex sidecars and selected
+  project links/commands. It preserves unmarked, curated sidecars. Use the
+  generator for files it owns; retain policy/dependencies in curated files.
+- Manifest/catalog generators derive inventory and documentation from canonicals.
 
-## Universal Required Checks (must pass)
+Generation checks establish consistency, not effectiveness. See
+[ARCHITECTURE.md](ARCHITECTURE.md) for ownership and pipeline details.
 
-1. `frontmatter_valid`
-   - SKILL has valid frontmatter and passes `skill-creator` quick validation, including required SemVer `version`.
+## Results
 
-2. `description_trigger_ready`
-   - Frontmatter description includes trigger-ready language (for example: `use when`, `when the user`, `triggers on`, `on-demand via`).
+- `pass`: packaging gates passed and no hints were raised.
+- `warn`: gates passed, but one or more advisory checks need interpretation.
+- `fail`: a required packaging gate failed.
 
-3. `scope_anchor_present`
-   - Includes `When to use`/`When to apply`/`Prerequisites` style scope section.
-
-4. `boundaries_anchor_present`
-   - Includes explicit non-goals or boundaries (`Not for`, `Skip`, `Constraints`, `Anti-patterns`, etc.).
-
-5. `verification_anchor_present`
-   - Defines quality/verification/success criteria.
-
-6. `resource_map_present`
-   - If skill bundles resources (`scripts/`, `references/`, `assets/`, `commands/`, `rules/`), SKILL.md points to them clearly.
-   - `rules/` holds standing constraints that apply whenever the skill is
-     active, as distinct from `references/`, which holds material looked up on
-     demand. That distinction is why it is a directory of its own rather than
-     being folded into `references/`.
-
-## Type-Specific Structural Checks
-
-### `workflow`
-
-These checks are required for `workflow` skills and for any untyped skill that falls back to `workflow` behavior:
-
-7. `execution_anchor_present`
-   - Body includes a clear execution anchor through at least one of:
-     - a workflow/process heading (`Workflow`, `Process`, `Core Workflow`, etc.)
-     - commands/usage heading (`Commands`, `Usage`, `Quick Start`, etc.)
-     - a numbered step sequence (`1.`, `2.`, `3.`)
-
-8. `output_anchor_present`
-   - Defines output contract/deliverables/summary expectations.
-
-### `reference`
-
-For `reference` skills:
-
-- `execution_anchor_present` is not applicable.
-- `output_anchor_present` is not applicable.
-- Reference skills should still define scope, boundaries, verification, and resource navigation clearly.
-
-## Recommended Checks (warn on fail by default)
-
-9. `context_budget`
-   - SKILL.md line count guidance:
-     - <=250: pass
-     - 251-500 **and the skill bundles `references/`**: warn (progressive
-       disclosure — the skill already has somewhere to put this detail)
-     - 251-500 with no `references/`: pass
-     - 501-700: warn
-     - >700: warn (needs decomposition plan)
-   - The 251-500 warn is conditional on `references/` existing because
-     placement is the defect, not length. A long SKILL.md with nowhere to move
-     detail is a different problem from one that owns a populated
-     `references/` and keeps the detail inline anyway.
-
-10. `triggers_valid`
-    - Only applies when the optional `triggers` field is present.
-    - Passes when `triggers` is a non-empty list of non-empty strings; warns otherwise.
-    - Absent `triggers` is `na` (not a warning).
-
-## Status Rules
-
-- `pass`: all required checks pass and no warnings.
-- `warn`: all required checks pass, one or more recommended checks warn.
-- `fail`: one or more required checks fail.
-
-Use `--strict` to treat recommended checks as failures.
+The CLI exits nonzero on required failures or invocation errors, including an
+empty selection. Warnings alone exit zero, including under `--strict`.
+`--json` exposes per-check status, requiredness, and whether hints were enabled. `--markdown <path>` optionally
+saves the same assessment with the current UTC date; no saved report is required.
+A passing result must not be presented as behavioral evidence.

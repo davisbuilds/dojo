@@ -32,6 +32,7 @@ installed copy does not belong here — see Test Tiers.
 - `name`: hyphen-case, max 64 chars (must match directory name).
 - `description`: max 1024 chars, no angle brackets. Acts as the trigger — determines when the agent uses the skill.
 - `version`: explicit per-skill SemVer release, no leading `v`.
+- `skill-type`: `workflow` or `reference`; required by the strict catalog gate.
 - Optional fields: `license`, `allowed-tools`, `metadata`, `compatibility`.
 - Optional dojo extension: `triggers` — a list of literal trigger phrases that should route to the skill. Machine-checkable by the trigger evals (see `skill-contract-v1.md`). Skills without `triggers` are unaffected.
 
@@ -85,6 +86,10 @@ SKILL.md frontmatter is the single source of truth; deterministic, idempotent ge
 - Name: hyphen-case, max 64 chars, no leading/trailing/consecutive hyphens.
 - Description: no angle brackets, max 1024 chars.
 - Only allowed frontmatter properties.
+
+`skills/skill-evals/scripts/validate_skill_contract.py` adds strict catalog
+identity/type gates and opt-in advisory prose heuristics. It does not gate on heading
+names, trigger phrases, or length, and does not establish behavioral quality.
 
 `skills/skill-evals/scripts/check_skill_versions.py` compares changed skill files against a git base ref. Release-relevant skill edits require a strictly greater version than the base SKILL.md and a matching `CHANGELOG.md` entry. The initial migration from unversioned skills is allowed without reconstructing historical changelogs.
 

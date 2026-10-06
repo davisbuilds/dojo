@@ -5,13 +5,14 @@ if command -v python >/dev/null 2>&1; then
 fi
 exec python3 "$0" "$@"
 ":"""
-"""Validate SKILL.md files against SKILL Contract v1."""
+"""Validate Dojo packaging metadata and report advisory authoring hints."""
 
 import argparse
 import json
 import re
 import sys
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -66,23 +67,11 @@ def normalized_skill_type(frontmatter: dict[str, Any] | None) -> str:
 
 
 def is_required(check_name: str, skill_type: str, strict: bool) -> bool:
-    universal_required = {
-        "frontmatter_valid",
-        "description_trigger_ready",
-        "scope_anchor_present",
-        "boundaries_anchor_present",
-        "verification_anchor_present",
-        "resource_map_present",
-    }
-    workflow_required = {"execution_anchor_present", "output_anchor_present"}
-
-    if check_name in universal_required:
-        return True if strict else check_name in {"frontmatter_valid", "description_trigger_ready"}
-    if check_name in workflow_required:
-        return skill_type == "workflow"
-    if check_name == "context_budget":
-        return strict
-    return False
+    # Prose heuristics are never release gates. Strict mode enforces catalog
+    # identity in addition to the portable metadata schema.
+    return check_name == "frontmatter_valid" or (
+        strict and check_name in {"name_matches_directory", "skill_type_declared"}
+    )
 
 
 def not_applicable(check_name: str, skill_type: str) -> bool:
@@ -114,10 +103,10 @@ def resource_map_present(text: str, skill_dir: Path) -> bool:
     return has_resource_heading or has_path_mentions
 
 
-def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str, Any]:
+def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool, authoring_hints: bool = False) -> dict[str, Any]:
     skill_md = skill_dir / "SKILL.md"
     text = skill_md.read_text(encoding="utf-8")
-    lines = text.count("\n") + 1
+    lines = len(text.splitlines())
 
     valid, validate_msg = validate_skill_fn(str(skill_dir))
     fm = parse_frontmatter(text)
@@ -134,12 +123,25 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         message=validate_msg,
     )
 
+    for key, matches, message in (
+        ("name_matches_directory", bool(fm) and fm.get("name") == skill_dir.name,
+         "Frontmatter name must match the skill directory"),
+        ("skill_type_declared", bool(fm) and isinstance(fm.get("skill-type"), str) and fm["skill-type"] in ALLOWED_SKILL_TYPES,
+         "Catalog skills must declare workflow or reference skill-type"),
+    ):
+        required = is_required(key, skill_type, strict)
+        checks[key] = CheckResult(
+            status="pass" if matches else ("fail" if required else "warn"),
+            required=required,
+            message=message,
+        )
+
     checks["description_trigger_ready"] = CheckResult(
-        status="pass" if description and description_trigger_ready(description) else "fail",
+        status="pass" if description and description_trigger_ready(description) else "warn",
         required=is_required("description_trigger_ready", skill_type, strict),
         message="Description includes trigger-ready language"
         if description and description_trigger_ready(description)
-        else "Description should include trigger language (for example: 'use when', 'triggers on')",
+        else "No conventional trigger phrase recognized; review selection clarity without requiring specific wording",
     )
 
     execution_anchor = has_heading(
@@ -175,7 +177,7 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         else (
             "Not applicable for reference skills"
             if not_applicable("execution_anchor_present", skill_type)
-            else "Add workflow/process/commands section or numbered execution steps"
+            else "No execution anchor recognized; review whether the intended operation is clear. No heading or sequence is required"
         ),
     )
 
@@ -193,7 +195,7 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
     checks["scope_anchor_present"] = CheckResult(
         status="pass" if scope_anchor else ("fail" if is_required("scope_anchor_present", skill_type, strict) else "warn"),
         required=is_required("scope_anchor_present", skill_type, strict),
-        message="Scope anchor present" if scope_anchor else "Add a scope section (When to use / Prerequisites)",
+        message="Scope anchor present" if scope_anchor else "No scope heading recognized; review scope in the description and body",
     )
 
     boundaries_anchor = has_heading(
@@ -214,7 +216,7 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         required=is_required("boundaries_anchor_present", skill_type, strict),
         message="Boundaries anchor present"
         if boundaries_anchor
-        else "Add boundaries/non-goals section (Not for / Constraints)",
+        else "No boundary anchor recognized; review relevant limits without inventing non-goals",
     )
 
     output_anchor = has_heading(
@@ -235,7 +237,7 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         else (
             "Not applicable for reference skills"
             if not_applicable("output_anchor_present", skill_type)
-            else "Add output expectations section"
+            else "No output heading recognized; review whether the intended result is clear"
         ),
     )
 
@@ -255,7 +257,7 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         required=is_required("verification_anchor_present", skill_type, strict),
         message="Verification anchor present"
         if verification_anchor
-        else "Add verification/quality criteria section",
+        else "No verification heading recognized; review how consequential claims will be checked",
     )
 
     resource_anchor = resource_map_present(text, skill_dir)
@@ -264,31 +266,14 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         required=is_required("resource_map_present", skill_type, strict),
         message="Resource map present"
         if resource_anchor
-        else "Skill bundles resources but SKILL.md does not clearly reference them",
+        else "No resource navigation recognized; inspect whether needed bundled resources are reachable",
     )
 
-    has_references = (skill_dir / "references").exists()
-    if lines <= 250:
-        context_status = "pass"
-        context_msg = f"SKILL.md is within context budget ({lines} lines)"
-    elif lines <= 500 and has_references:
-        # Progressive disclosure: a skill that owns references/ and still keeps
-        # this much in SKILL.md is carrying detail it already has somewhere to
-        # put. Warn only -- placement is a judgment call, not a contract breach.
-        context_status = "warn"
-        context_msg = (
-            f"SKILL.md is {lines} lines and this skill bundles references/; "
-            "consider moving detail there"
-        )
-    elif lines <= 500:
-        context_status = "pass"
-        context_msg = f"SKILL.md is within context budget ({lines} lines)"
-    elif lines <= 700:
-        context_status = "warn"
-        context_msg = f"SKILL.md is long ({lines} lines); consider splitting references"
-    else:
-        context_status = "warn" if not strict else "fail"
-        context_msg = f"SKILL.md is very long ({lines} lines); should be decomposed"
+    # Line count is a placement hint, not measured context consumption or quality.
+    context_status = "warn" if lines > 500 else "pass"
+    context_msg = f"SKILL.md has {lines} lines (including frontmatter)"
+    if lines > 500:
+        context_msg += "; review relevance and placement, not a mandatory split"
 
     checks["context_budget"] = CheckResult(
         status=context_status,
@@ -312,6 +297,15 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
         required=is_required("triggers_valid", skill_type, strict),
         message=triggers_msg,
     )
+
+    if not authoring_hints:
+        metadata_checks = {
+            "frontmatter_valid", "name_matches_directory", "skill_type_declared", "triggers_valid",
+        }
+        for name, result in checks.items():
+            if name not in metadata_checks:
+                result.status = "na"
+                result.message = "Authoring hint not requested (--authoring-hints)"
 
     required_failures = [name for name, result in checks.items() if result.required and result.status == "fail"]
     warns = [name for name, result in checks.items() if result.status == "warn"]
@@ -348,7 +342,7 @@ def evaluate_skill(skill_dir: Path, validate_skill_fn, strict: bool) -> dict[str
     }
 
 
-def render_markdown(results: list[dict[str, Any]], strict: bool) -> str:
+def render_markdown(results: list[dict[str, Any]], strict: bool, authoring_hints: bool = False) -> str:
     total = len(results)
     passes = sum(1 for r in results if r["status"] == "pass")
     warns = sum(1 for r in results if r["status"] == "warn")
@@ -357,7 +351,9 @@ def render_markdown(results: list[dict[str, Any]], strict: bool) -> str:
     out: list[str] = []
     out.append("# SKILL Contract Application Report")
     out.append("")
-    out.append(f"Date: 2026-03-07")
+    out.append(f"Date: {datetime.now(timezone.utc).date().isoformat()} (UTC)")
+    out.append("Packaging assessment; not behavioral evidence.")
+    out.append(f"Authoring hints: {'enabled' if authoring_hints else 'disabled (not evaluated)'}")
     out.append(f"Mode: {'strict' if strict else 'default'}")
     out.append("")
     out.append("## Summary")
@@ -389,7 +385,7 @@ def render_markdown(results: list[dict[str, Any]], strict: bool) -> str:
                 out.append(f"- `{key}`: {row['checks'][key]['message']}")
             out.append("")
 
-        out.append("## Recommended Improvements")
+        out.append("## Authoring Hints (manual review)")
         out.append("")
         for row in sorted(issues, key=lambda item: item["skill"]):
             if not row["warnings"]:
@@ -410,7 +406,7 @@ def collect_skills(skills_root: Path, selected: set[str] | None) -> list[Path]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate SKILL.md files against SKILL Contract v1")
+    parser = argparse.ArgumentParser(description="Validate Dojo packaging metadata and report advisory authoring hints")
     parser.add_argument(
         "--skills-root",
         default="skills",
@@ -420,7 +416,11 @@ def main() -> int:
         "--skills",
         help="Comma-separated subset of skills to evaluate",
     )
-    parser.add_argument("--strict", action="store_true", help="Treat recommended checks as required")
+    parser.add_argument("--strict", action="store_true", help="Enforce catalog name and skill-type in addition to metadata validity; prose hints remain advisory")
+    parser.add_argument(
+        "--authoring-hints", action="store_true",
+        help="Include advisory prose/length heuristics; these never affect the exit code",
+    )
     parser.add_argument("--json", action="store_true", help="Print JSON output")
     parser.add_argument("--markdown", help="Write markdown report to this path")
     args = parser.parse_args()
@@ -453,7 +453,7 @@ def main() -> int:
         print("No skills selected.", file=sys.stderr)
         return 1
 
-    results = [evaluate_skill(skill_dir, validate_skill, args.strict) for skill_dir in skill_dirs]
+    results = [evaluate_skill(skill_dir, validate_skill, args.strict, args.authoring_hints) for skill_dir in skill_dirs]
 
     summary = {
         "total": len(results),
@@ -461,6 +461,7 @@ def main() -> int:
         "warn": sum(1 for item in results if item["status"] == "warn"),
         "fail": sum(1 for item in results if item["status"] == "fail"),
         "strict": args.strict,
+        "authoring_hints": args.authoring_hints,
     }
 
     payload = {
@@ -469,7 +470,7 @@ def main() -> int:
     }
 
     if args.markdown:
-        report = render_markdown(results, args.strict)
+        report = render_markdown(results, args.strict, args.authoring_hints)
         output_path = Path(args.markdown)
         if not output_path.is_absolute():
             output_path = (repo_root / output_path).resolve()
