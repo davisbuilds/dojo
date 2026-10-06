@@ -50,19 +50,19 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   deferred. The authoring validator no longer gates prose headings or length;
   remaining candidates above still need consumer-grounded review.
 
-### Roll out the preferred standalone creator without duplicate discovery
+### Reconcile the creator profile with its deployed preference
 
-- **What**: make Dojo's standalone `skill-creator` the preferred authoring entry
-  when its revised bundle is deployed to harnesses.
-- **Why or evidence, 2026-10-06**: the inspected Codex session exposes both the
-  bundled creator and Dojo's global copy. The existing profile equivalence still
-  suppresses Dojo in favor of the bundled creator; it predates this preference.
-  Claude's official marketplace creator was available but not installed/enabled
-  in the inspected registry. These are dated observations, not universal defaults.
-- **Next**: during rollout, verify supported selection/exposure controls and actual
-  fresh-session loading, then reconcile the profile equivalence and deployment
-  declarations together. Do not rely on name collisions or patch vendor cache
-  files. Keep the usable canonical bundle independent of those controls.
+- **What**: remove the legacy profile suppression of Dojo's standalone creator
+  and reconcile affected profile tests/declarations.
+- **Why or evidence, 2026-10-06**: both hosts disable the native Codex creator by
+  exact path in user configuration. Fresh CLI prompt probes expose one Dojo
+  creator. Claude's redundant review toolkit is disabled at user scope on both.
+  The Codex profile equivalence still suppresses Dojo in favor of the native
+  creator; the new `inspect` command reports this disagreement. Existing desktop
+  sessions need refresh before claiming the same catalog there.
+- **Next**: align the profile declaration and its current-policy tests, preserving
+  historical fixtures and generic suppression coverage. Verify a fresh effective
+  catalog alongside the resulting profile; keep vendor cache files untouched.
 
 ### Isolate standardizer tests from process state
 
@@ -116,56 +116,20 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   vendor documentation or a real positive/negative probe before applying it.
   Do not guess at wildcard semantics or broaden authority just to avoid prompts.
 
-### Disable pr-review-toolkit now that its two specialists are ported
-- **What**: the two specialist lenses that were the only reason
-  `pr-review-toolkit@claude-plugins-official` stayed enabled shipped as dojo
-  references in `local-review` (consolidated from the specialist skills on
-  2026-10-02). The plugin's remaining four agents (`code-reviewer`, `code-simplifier`,
-  `comment-analyzer`, `pr-test-analyzer`) are baseline knowledge that duplicates
-  existing skills, so nothing unique is left. Disabling was deliberately deferred
-  when the port landed.
-- **Why or evidence**: keeping an otherwise-redundant plugin enabled is standing
-  context/maintenance cost the whole audit program exists to cut; the two references
-  now cover the unique ground.
-- **Next**: disable the plugin (reversible local/user-scope settings change:
-  `"enabledPlugins": {"pr-review-toolkit@claude-plugins-official": false}` in the
-  right settings scope, or via `/plugin`), then confirm no workflow depended on
-  its four baseline agents. The useful diff-to-specialist routing pattern is
-  already covered by `local-review`'s optional error-handling and type-invariant
-  references; no additional routing workflow is needed.
+### Observe the bounded CLI pilot before expanding its scope
 
-### dojo has 47 script entrypoints and no front door for the human-run ones
-- **What**: repo-level tooling a person invokes is reachable only by full path
-  through `.venv/bin/python`. The sharpest case is the Task 0 probes: `codex debug
-  prompt-input` and `claude --debug-file` were assumed not to exist for weeks, and
-  now that they are wrapped, the capability answers a question nothing else in the
-  repo answers — *what does this session's skill listing actually cost, on this
-  harness, right now* — from `scripts/profiles/probe_codex.py`, where nobody will
-  find it. `skill-standardizer/scripts/{audit,sync}.py` take **14 and 16
-  arguments** and are run from a runbook, from memory, on two machines.
-- **Why or evidence**: 47 `.py` files carry an argparse entrypoint (measured
-  2026-08-03). They are not one population and should not be treated as one:
-  - ~13 are **machine-invoked** by hooks or CI, which already call them by path.
-    Two run on *every* Bash tool call, so added indirection there is a new runtime
-    dependency, not a convenience.
-  - ~30 are **skill-owned** under `skills/*/scripts/`, invoked by an agent that
-    has just read the SKILL.md naming the exact command. The skill body is the
-    interface; wrapping them fights progressive disclosure.
-  - The remainder — the probes, the standardizer pair, `skills_health.py`,
-    `run_trigger_evals.py`, `bump_skill_version.py` — are **human-invoked** and
-    are the only ones a CLI would help.
-  Noted in passing: dojo ships a `create-cli` skill, an SC-02 anchor of the
-  `engineering` overlay, and has no CLI.
-- **Current decision**: the distribution-profiles program completed without Task 8;
-  its CLI wrapper was descoped because it did not improve measurement correctness.
-  [Operations](../system/OPERATIONS.md) owns the existing probe commands.
-- **Revisit when**: repeated difficulty discovering or invoking the human-facing
-  probes justifies a standalone CLI. Re-evaluate that narrow interface rather than
-  assuming the completed program will create `bin/dojo`.
-- **Keep out deliberately**: generators, validators, and skill-owned scripts. A
-  wrapper that hooks and CI bypass creates two paths to one behavior that can
-  drift — the exact failure this program keeps finding. Four subcommands is a
-  tool; fifteen is a project nobody decided to start.
+- **What**: exercise `bin/dojo check` and `bin/dojo inspect` on normal skill edits
+  and harness-discovery investigations, including use by a fresh agent.
+- **Why or evidence, 2026-10-06**: the [pilot](../design/2026-10-06-dojo-cli-pilot.md)
+  connects existing tools and exposes revision, scope, findings, and evidence
+  limits. Its first live creator inspection surfaced a profile/exposure mismatch.
+  Tests and author-driven use establish functionality, not a measured reduction
+  in supervision or an improvement in task outcomes.
+- **Next**: observe whether an agent can reach the correct conclusion without
+  reconstructing commands or overstating a pass. Add commands only for recurring
+  unmet work. Claude probing needs an explicit capture/effect contract; revision
+  comparisons remain with the separate ops/OpenBench pilot. Do not wrap every
+  skill-owned script or create another evaluation runner.
 
 ### Revisit contract anchors if they obstruct a useful short guidance skill
 

@@ -91,17 +91,19 @@ def sibling_section(text: str) -> str:
     return rest[: nxt.start()] if nxt else rest
 
 
-def check(skills_root: Path = SKILLS_ROOT, living_docs: list[Path] | None = None) -> list[str]:
+def check(skills_root: Path = SKILLS_ROOT, living_docs: list[Path] | None = None,
+          files: list[Path] | None = None, repo_root: Path | None = None) -> list[str]:
+    repo_root = REPO_ROOT if repo_root is None else repo_root
     living = LIVING_DOCS if living_docs is None else living_docs
     skills = known_skills(skills_root)
     problems: list[str] = []
 
-    for path in markdown_files(skills_root, living):
+    for path in markdown_files(skills_root, living) if files is None else files:
         try:
             text = path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
-        rel = path.relative_to(REPO_ROOT) if path.is_relative_to(REPO_ROOT) else path
+        rel = path.relative_to(repo_root) if path.is_relative_to(repo_root) else path
         # assets/ holds templates whose links are placeholders by design.
         if "assets" in path.parts:
             continue
@@ -110,7 +112,7 @@ def check(skills_root: Path = SKILLS_ROOT, living_docs: list[Path] | None = None
         for link in MD_LINK.findall(text):
             target = (path.parent / link.split("#", 1)[0]).resolve()
             try:
-                as_rel = target.relative_to(REPO_ROOT).as_posix()
+                as_rel = target.relative_to(repo_root).as_posix()
             except ValueError:
                 as_rel = ""
             if as_rel.startswith(LOCAL_ONLY_PREFIXES):

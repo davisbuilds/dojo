@@ -5,6 +5,7 @@ on:
     paths:
       - 'skills/**'
       - 'scripts/**'
+      - 'bin/**'
       - 'profiles/**'
       - 'hooks/**'
       - 'tests/**'
@@ -22,6 +23,7 @@ on:
     paths:
       - 'skills/**'
       - 'scripts/**'
+      - 'bin/**'
       - 'profiles/**'
       - 'hooks/**'
       - 'tests/**'
