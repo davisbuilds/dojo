@@ -54,6 +54,15 @@ def equivalences(catalog):
     return definitions.load_equivalences(PROFILES_DIR / "harness-equivalences.yaml", catalog)
 
 
+@pytest.fixture
+def example_suppression():
+    """Synthetic anchor suppression, independent of the deployed creator preference."""
+    return {"skill-creator": definitions.Equivalence(
+        skill="skill-creator", harness="codex", bundled_entry="example-native-creator",
+        evidence="constructed for resolver coverage",
+    )}
+
+
 # --------------------------------------------------------------------------
 # Composition
 # --------------------------------------------------------------------------
@@ -164,19 +173,29 @@ def test_profile_identity_moves_when_a_definition_body_changes(defs):
     assert before != after
 
 
-def test_one_profile_identity_two_harnesses_different_realizations(defs, catalog, equivalences):
+@pytest.mark.parametrize("harness", ("codex", "claude-code"))
+def test_authoring_profile_retains_standalone_creator(defs, catalog, equivalences, harness):
+    """The selected Dojo creator survives current harness distribution policy."""
+    result = resolve(("core", "skill-authoring"), defs, catalog)
+    realized = resolve_for_harness(result, equivalences.for_harness(harness), harness)
+    assert "skill-creator" in realized.realized
+    assert "skill-creator" not in {item.skill for item in realized.suppressed}
+
+
+def test_one_profile_identity_two_harnesses_different_realizations(defs, catalog, example_suppression):
     """EV-NEG-06 and SC-11, the central case of spec revision 9.
 
-    Codex bundles `skill-creator`; Claude Code does not. The reviewed selection
-    is the same on both, so profile identity must be byte-identical — otherwise
-    a cross-machine comparison reads a correct suppression as drift. What landed
+    This constructed policy suppresses an authoring anchor on Codex only. The
+    selection is the same on both, so profile identity must be byte-identical.
+    Otherwise a cross-machine comparison reads a correct suppression as drift. What landed
     differs, so realization identity must not be.
     """
     result = resolve(("core", "skill-authoring"), defs, catalog)
 
-    codex = resolve_for_harness(result, equivalences.for_harness("codex"), "codex")
-    claude = resolve_for_harness(result, equivalences.for_harness("claude-code"), "claude-code")
+    codex = resolve_for_harness(result, example_suppression, "codex")
+    claude = resolve_for_harness(result, {}, "claude-code")
 
+    assert "skill-creator" in result.members  # SC-02 constrains selection, not realization.
     assert "skill-creator" not in codex.realized
     assert "skill-creator" in claude.realized
 
@@ -187,14 +206,14 @@ def test_one_profile_identity_two_harnesses_different_realizations(defs, catalog
 
     common = dict(
         canonical_revision="rev1", target_identity="t", budget_policy_identity="p",
-        equivalence_identity=equivalences.identity,
+        equivalence_identity=definitions.equivalence_identity(tuple(example_suppression.values())),
     )
     codex_id = realization_identity(result.identity, harness_model_version="codex@1", **common)
     claude_id = realization_identity(result.identity, harness_model_version="claude@1", **common)
     assert codex_id != claude_id
 
 
-def test_suppression_does_not_reach_profile_identity(defs, catalog, equivalences):
+def test_suppression_does_not_reach_profile_identity(defs, catalog, example_suppression):
     """The property the previous test depends on, isolated.
 
     If resolved membership ever became an input to profile identity, the two
@@ -202,7 +221,7 @@ def test_suppression_does_not_reach_profile_identity(defs, catalog, equivalences
     correct resolution.
     """
     result = resolve(("core", "skill-authoring"), defs, catalog)
-    codex = resolve_for_harness(result, equivalences.for_harness("codex"), "codex")
+    codex = resolve_for_harness(result, example_suppression, "codex")
     assert codex.realized != result.members, "fixture no longer exercises suppression"
     assert profile_identity(result.selection, defs) == result.identity
 

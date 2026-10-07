@@ -362,11 +362,13 @@ catalog as conformant.
   `full` resolves to every canonical skill at the selected revision. Complete
   overlay membership is explicit profile evidence, not inferred from category
   names or installed state. **Anchors constrain the profile definition, not the
-  realization:** an anchor may be suppressed on a harness that ships its own
-  equivalent — `skill-authoring`'s `skill-creator` is suppressed on Codex — and
-  the overlay still satisfies this criterion, because the capability is present
-  at the target either way. An anchor absent from the definition remains a
-  violation.
+  realization:** an anchor may be suppressed where a reviewed equivalence
+  declaration selects the harness's supplied capability in its place; the
+  overlay still satisfies this criterion because the capability is present at
+  the target either way. Dojo's standalone `skill-creator` is selected on both
+  harnesses and must remain in the `skill-authoring` realization. A bundled
+  creator does not authorize its suppression; if both are listed, report the
+  collision. An anchor absent from the definition remains a violation.
 - **SC-03 — Usable baseline:** `core` contains the general delivery loop:
   `brainstorming`, `first-principles`, `write-spec`, `write-plan`, `diagnose`,
   `local-review`, `test-strategy`, and `verify-before-complete`. Membership is
@@ -720,14 +722,16 @@ The reference behavior is explicit:
   contract-revision question for when outcome evidence exists.
 - Overlays are authored once and harness-independent, but they **resolve against
   a harness**. A profile states the capabilities a target should have; what
-  physically lands is that set minus anything the harness already provides. The
+  physically lands is that set minus the members explicitly declared replaceable
+  by the harness's supplied capabilities. The
   suppression is not free-form per-harness membership — it is a single declared,
-  reviewable rule with one trigger: the harness ships its own equivalent of a
-  member. Codex **lists** `skill-creator`, `skill-installer`, `imagegen`,
-  `plugin-creator`, and `openai-docs` as `.system` entries; Claude Code carries a
-  different set, none overlapping. Installing dojo's copy alongside is
-  duplication, and `skill-creator` is duplicated in **every** Codex session
-  today. **Corrected 2026-08-03:** earlier revisions also named `review-agent`
+  reviewable substitution choice. Shipping a similarly named or capable native
+  skill is insufficient when Dojo's implementation is the selected one.
+  The August 2026 observations listed Codex's bundled `skill-creator` alongside
+  Dojo's copy; those historical captures do not establish current exposure.
+  The standalone Dojo creator is now selected, with native exposure controlled
+  separately by harness configuration. Profile resolution does not change that
+  configuration. **Corrected 2026-08-03:** earlier revisions also named `review-agent`
   here. It exists at `~/.codex/skills/.system/review-agent/` and appears in **no
   listing** — not in the Task 0 capture and not in a live probe re-run. Only
   listed entries can displace a member, so it is not an equivalence candidate.
@@ -890,6 +894,15 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-10-07 (revision 19). Retain Dojo's standalone creator.** SC-02 and
+  the harness-resolution assumptions now distinguish a native alternative from
+  the implementation selected for distribution. Remove the obsolete Codex
+  creator equivalence and align the authoring profile description. Current-policy
+  tests retain Dojo's creator on both harnesses; constructed fixtures preserve
+  anchor suppression, evidence attribution, and identity-ordering coverage.
+  Historical captures remain unchanged. No harness configuration or vendor skill
+  files are modified by this policy revision.
 
 - **2026-10-03 (revision 18). Consolidate the Obsidian skills.** SC-02's
   knowledge anchors are now `obsidian` and `session-retro`. `obsidian` replaces

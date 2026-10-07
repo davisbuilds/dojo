@@ -2,16 +2,14 @@
 name: skill-authoring
 kind: overlay
 description: >-
-  Authoring a skill and keeping it correct: write it, prove it routes, keep the
-  copies identical. `skill-creator` is declared equivalent on Codex
-  (profiles/harness-equivalences.yaml) and is therefore suppressed in a Codex
-  realization; per SC-02 the overlay still satisfies its anchor requirement,
-  because anchors constrain the definition rather than the realization.
+  Authoring a skill and keeping it useful: create it, select appropriate checks,
+  and maintain canonical copies. Dojo's standalone `skill-creator` remains
+  selected on both harnesses; native alternatives do not suppress it.
   `template` is excluded as a scaffold `skill-creator` already emits;
   `skill-installer` is a distribution action rather than an authoring one — and
   is itself Codex-bundled; `audit-skill` is third-party trust screening at
   install time, not authoring.
 members:
   - skill-creator       # SC-02 anchor
-  - skill-evals         # the check between creating and syncing: does the description actually route
+  - skill-evals         # packaging, lexical routing checks, and outcome-evidence guidance
   - skill-standardizer  # SC-02 anchor

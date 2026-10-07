@@ -25,7 +25,13 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from profiles import evidence as ev_mod, probe_codex  # noqa: E402
 from profiles.budget import Verdict, assess, load_policy  # noqa: E402
-from profiles.definitions import load_catalog, load_definitions, load_equivalences  # noqa: E402
+from profiles.definitions import (  # noqa: E402
+    Equivalence,
+    equivalence_identity,
+    load_catalog,
+    load_definitions,
+    load_equivalences,
+)
 from profiles.evidence import (  # noqa: E402
     SC06_FIELDS,
     STATE_CONFORMANT,
@@ -136,11 +142,18 @@ def test_the_report_carries_exactly_the_sc06_field_set(pieces, catalog):
 def test_a_suppressed_member_is_distinguishable_from_one_never_selected(pieces, catalog):
     """SC-11's attributability requirement, which is why suppression is declared.
 
-    `skill-creator` is selected and suppressed on Codex. `caveman` was never
+    A constructed policy suppresses `skill-creator`. `caveman` was never
     selected. A report that only listed what landed would render the two
     identically, and no cross-harness difference could be attributed.
     """
-    payload = evidence_for(pieces, catalog).payload
+    resolution, _, observation, assessment, policy, _ = pieces
+    example = Equivalence("skill-creator", "codex", "example-native-creator", "constructed")
+    harness = resolve_for_harness(resolution, {example.skill: example}, "codex")
+    payload = build_evidence(
+        resolution, harness, observation, assessment, policy,
+        repo_root=REPO_ROOT, canonical_root=SKILLS,
+        equivalence_id=equivalence_identity((example,)),
+    ).payload
     suppressed = {s["skill"] for s in payload["suppressed"]}
     assert "skill-creator" in suppressed
     assert "skill-creator" in payload["resolved_members"]
