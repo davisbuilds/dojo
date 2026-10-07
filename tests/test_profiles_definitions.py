@@ -366,30 +366,25 @@ def test_the_declaration_is_non_empty_and_names_real_skills(equivalences, catalo
     assert all(e.bundled_entry and e.evidence for e in equivalences.entries)
 
 
-def test_codex_bundles_skill_creator(equivalences):
-    """The live case spec revision 9 was written from.
-
-    dojo's `skill-creator` is charged to the Codex budget twice in every session
-    today. If this declaration disappears, the duplication stops being visible.
-    """
+def test_codex_equivalences_preserve_the_selected_creator(equivalences):
+    """A native alternative must not remove the chosen standalone creator."""
     codex = equivalences.for_harness("codex")
-    assert "skill-creator" in codex
-    assert codex["skill-creator"].bundled_entry
-    assert "codex" in codex["skill-creator"].evidence.lower()
+    assert "skill-creator" not in codex
+    assert "skill-installer" in codex
 
 
-def test_a_suppressed_anchor_still_satisfies_sc02(profiles, equivalences):
-    """SC-02: anchors constrain the definition, not the realization.
+@pytest.fixture
+def multiple_equivalences(workdir, catalog):
+    """Ordering coverage must not depend on the current policy having two entries."""
+    path = workdir / "harness-equivalences.yaml"
+    mutate_equivalences(path, [
+        {"skill": name, "harness": "codex", "bundled_entry": name, "evidence": "constructed"}
+        for name in ("skill-creator", "skill-installer")
+    ])
+    return definitions.load_equivalences(path, catalog)
 
-    `skill-creator` is both a required `skill-authoring` anchor and declared
-    equivalent on Codex. The definition must still carry it; suppression happens
-    at realization time and is not subtraction from the contract.
-    """
-    assert "skill-creator" in profiles["skill-authoring"].members
-    assert "skill-creator" in equivalences.for_harness("codex")
 
-
-def test_identity_is_computed_over_a_sorted_serialization(equivalences):
+def test_identity_is_computed_over_a_sorted_serialization(multiple_equivalences):
     """Probed directly, because `load_equivalences` sorts before hashing.
 
     Going only through the loader hides whether `equivalence_identity` normalizes
@@ -397,14 +392,14 @@ def test_identity_is_computed_over_a_sorted_serialization(equivalences):
     Two independent sorts is deliberate: the loader's fixes report order, this
     one fixes identity, and neither should depend on the other staying.
     """
-    entries = equivalences.entries
+    entries = multiple_equivalences.entries
     assert len(entries) > 1, "a single-entry declaration cannot exercise ordering"
     permuted = (entries[-1],) + entries[1:-1] + (entries[0],)
     assert permuted != entries
     assert definitions.equivalence_identity(permuted) == definitions.equivalence_identity(entries)
 
 
-def test_identity_ignores_order_but_not_content(workdir, catalog, equivalences):
+def test_identity_ignores_order_but_not_content(workdir, catalog, multiple_equivalences):
     """Identity feeds realization identity, so both halves matter.
 
     Reordering the file is a review-time accident with no semantic content and
@@ -414,14 +409,14 @@ def test_identity_ignores_order_but_not_content(workdir, catalog, equivalences):
     path = workdir / "harness-equivalences.yaml"
     entries = [
         {"skill": e.skill, "harness": e.harness, "bundled_entry": e.bundled_entry, "evidence": e.evidence}
-        for e in equivalences.entries
+        for e in multiple_equivalences.entries
     ]
     mutate_equivalences(path, list(reversed(entries)))
-    assert definitions.load_equivalences(path, catalog).identity == equivalences.identity
+    assert definitions.load_equivalences(path, catalog).identity == multiple_equivalences.identity
 
     entries[0] = {**entries[0], "evidence": entries[0]["evidence"] + " (re-observed)"}
     mutate_equivalences(path, entries)
-    assert definitions.load_equivalences(path, catalog).identity != equivalences.identity
+    assert definitions.load_equivalences(path, catalog).identity != multiple_equivalences.identity
 
 
 def test_rejects_an_unknown_harness(workdir, catalog):

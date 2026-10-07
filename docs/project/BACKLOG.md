@@ -50,20 +50,6 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   deferred. The authoring validator no longer gates prose headings or length;
   remaining candidates above still need consumer-grounded review.
 
-### Reconcile the creator profile with its deployed preference
-
-- **What**: remove the legacy profile suppression of Dojo's standalone creator
-  and reconcile affected profile tests/declarations.
-- **Why or evidence, 2026-10-06**: both hosts disable the native Codex creator by
-  exact path in user configuration. Fresh CLI prompt probes expose one Dojo
-  creator. Claude's redundant review toolkit is disabled at user scope on both.
-  The Codex profile equivalence still suppresses Dojo in favor of the native
-  creator; the new `inspect` command reports this disagreement. Existing desktop
-  sessions need refresh before claiming the same catalog there.
-- **Next**: align the profile declaration and its current-policy tests, preserving
-  historical fixtures and generic suppression coverage. Verify a fresh effective
-  catalog alongside the resulting profile; keep vendor cache files untouched.
-
 ### Isolate standardizer tests from process state
 
 - **What**: several standalone standardizer tests leave cwd and harness-home

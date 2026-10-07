@@ -17,6 +17,11 @@
 #     authors that name.
 #
 # Not declared, deliberately:
+#   * `skill-creator` — Dojo's standalone creator is the selected authoring
+#     capability on both harnesses. Keep it in the profile even when Codex ships
+#     its own creator; control native exposure through harness configuration.
+#     A listed native copy remains a collision to report, not permission to
+#     remove the selected Dojo copy.
 #   * `openai-docs` and `plugin-creator` — Codex-bundled, no dojo counterpart.
 #   * `gemini-imagen` — Codex's `imagegen` is one image capability, and
 #     gemini-imagen's is the Gemini-specific multi-image composition path.
@@ -31,23 +36,6 @@
 #     entries here.
 version: 1
 equivalences:
-  - skill: skill-creator
-    harness: codex
-    bundled_entry: skill-creator
-    evidence: >-
-      Observed at ~/.codex/skills/.system/skill-creator/SKILL.md and listed in
-      tests/fixtures/profiles/codex-prompt-input-dojo-2026-08-02.json alongside
-      dojo's own copy from ~/.agents/skills — i.e. this name is charged to the
-      observed listing. Rechecked local system creator on 2026-10-06: it covers
-      general authoring, scope discipline, optional scaffolding, and verification.
-      This equivalence is for general authoring, not Dojo's SemVer/schema tools;
-      those remain repository-owned and reachable through its instructions.
-      This legacy suppression predates the preference for Dojo's standalone
-      creator. Reconcile it with supported exposure controls during rollout;
-      see the creator distribution follow-up in docs/project/BACKLOG.md.
-      Claude's official creator was present in marketplace source but absent
-      from the installed/enabled plugin registry in that local inspection;
-      marketplace availability alone does not justify suppressing Dojo there.
   - skill: skill-installer
     harness: codex
     bundled_entry: skill-installer
