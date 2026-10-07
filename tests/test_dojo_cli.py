@@ -226,3 +226,58 @@ def test_inspect_uses_selected_catalog_for_profile_disagreement(repo, tmp_path):
     catalog = next(c for c in result['checks'] if c['id']=='catalog')
     assert catalog['details']['exposed'][0]['origin'] == 'dojo-managed'
     assert any(c['id']=='profile-disagreement' and c['status']=='fail' for c in result['checks'])
+
+
+@pytest.mark.parametrize('args', [['-h'], ['check', '-h'], ['inspect', '-h'], ['list', '-h'], ['info', '-h']])
+def test_short_help_is_available_at_each_command(tmp_path, args):
+    result = subprocess.run([sys.executable, str(CLI), *args], cwd=tmp_path,
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    from rich.text import Text
+    rendered = Text.from_ansi(result.stdout).plain
+    assert 'Usage:' in rendered and '--help' in rendered
+
+
+@pytest.mark.parametrize('flag', ['--version', '-v'])
+def test_version_uses_the_cli_checkout_manifest(tmp_path, flag):
+    import tomllib
+    expected = tomllib.loads((ROOT/'pyproject.toml').read_text())['project']['version']
+    result = subprocess.run([sys.executable, str(CLI), flag], cwd=tmp_path,
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == f'dojo {expected}\n'
+    assert not result.stderr
+
+
+def test_list_searches_the_selected_manifest_without_mutation(repo):
+    entries = [dict(name='alpha', version='1.0.0', path='skills/alpha', description='Use for testing.'),
+               dict(name='beta', version='2.0.0', path='skills/beta', description='Use for research.')]
+    manifest = repo/'skills.json'
+    manifest.write_text(json.dumps({'version': 1, 'skills': entries}))
+    before = manifest.read_bytes()
+    code, result = invoke(repo, 'list', 'RESEARCH')
+    assert code == 0 and [s['name'] for s in result['skills']] == ['beta']
+    assert result['total_count'] == 2 and result['match_count'] == 1
+    code, result = invoke(repo, 'list', 'no-match')
+    assert code == 0 and result['skills'] == [] and result['match_count'] == 0
+    assert manifest.read_bytes() == before
+
+
+@pytest.mark.parametrize('content', [None, '{}', '{"version":1,"skills":[{}]}'])
+def test_list_unavailable_manifest_is_not_an_empty_catalog(repo, content):
+    if content is not None:
+        (repo/'skills.json').write_text(content)
+    code, result = invoke(repo, 'list')
+    assert code == 2 and result['status'] == 'unavailable'
+    assert 'error' in result
+
+
+def test_info_identifies_running_checkout_and_environment(tmp_path):
+    result = subprocess.run([sys.executable, str(CLI), 'info', '--json'], cwd=tmp_path,
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    info = json.loads(result.stdout)
+    assert Path(info['repository']).resolve() == ROOT.resolve()
+    assert Path(info['python']['environment']).resolve() == Path(sys.prefix).resolve()
+    assert info['head_commit'] == git(ROOT, 'rev-parse', 'HEAD')
+    assert info['dependencies']['typer']

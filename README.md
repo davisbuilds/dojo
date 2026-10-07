@@ -59,7 +59,10 @@ The generated [`skills.json`](skills.json) manifest is the runtime inventory sou
 
 With repository dependencies installed, use `uv run --locked bin/dojo check <skill> --base origin/main`
 for focused packaging/release checks, or `uv run --locked bin/dojo inspect <skill> --harness codex`
-for installed-copy and fresh catalog evidence. Both support `--json` and `--help`.
+for installed-copy and fresh catalog evidence. `dojo list [query]` searches the
+canonical catalog; `dojo info` identifies the running checkout and environment.
+All commands support `--json` and `-h` / `--help`. `dojo -v` / `--version` prints
+the CLI version from `pyproject.toml`, independently of individual skill versions.
 See [operations](docs/system/OPERATIONS.md#dojo-development-cli) for scope and limits.
 
 ## Prerequisites
@@ -84,7 +87,9 @@ uv sync --locked
 Typer, Rich) and the dev group (pytest). [`uv.lock`](uv.lock) pins the resolved
 versions and hashes. `.python-version` selects Python 3.12 for local work and CI;
 the tools support Python 3.11+. This is a checkout-based project, not a published
-Python package; its metadata version does not version individual skills.
+Python package. Its version and [root changelog](CHANGELOG.md) cover the CLI and
+tooling; skills retain their own versions. [Release Please](docs/system/OPERATIONS.md#cli-and-tooling-releases)
+proposes version/changelog PRs and creates `dojo-cli-v…` tags after merge and CI.
 
 Use `uv run --locked <command>` for repo tools. Configured Python hooks select
 this checkout's `.venv` explicitly, including in already-running agents. `uv run` can
@@ -97,7 +102,10 @@ To make the checkout available as `dojo` from any directory:
 ```bash
 mkdir -p "$HOME/.local/bin"
 ln -s "$PWD/bin/dojo" "$HOME/.local/bin/dojo"
-dojo --help
+dojo -h
+dojo --version
+dojo list research
+dojo info
 ```
 
 Run this from the checkout you want the command to follow, and ensure

@@ -28,6 +28,14 @@ Merge commits and rebase merges are both allowed; squash merges are disabled.
 - **Rebase merge.** Use when the PR's commits are clean and the linear history reads better without an extra merge node. Avoid if the PR's commits are noisy (WIP, fixups) — clean them up locally first.
 - **Authoring expectation.** Because squash is gone, individual PR commits land in `main`. Keep PR commit messages tidy: meaningful subjects, no WIP markers, no fixup chains. Squash or reword locally before opening the PR if needed.
 
+## Release classification
+
+Retained commits use Conventional Commit subjects. CLI/tooling releases derive
+from those commits and merge messages, so PR titles/bodies must describe the same
+release intent. Skill prose uses `docs(<skill>)` without tooling breaking markers;
+skills retain their own versions and changelogs. See
+[the release contract](../system/OPERATIONS.md#cli-and-tooling-releases).
+
 ## CI Gates
 
 GitHub Actions runs regression, strict skill-contract, version, and generated-file

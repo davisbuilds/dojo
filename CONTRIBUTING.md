@@ -50,7 +50,14 @@ through merge or rebase merges; squash is disabled.
 [Operations](docs/system/OPERATIONS.md) owns setup, regression checks, generated
 files, and release commands. Skills are versioned individually: record consumer
 changes and compatibility implications in the affected skill's changelog and
-follow its version-bump checks. No duplicate catalog-wide changelog is required.
+follow its version-bump checks. The root
+[CHANGELOG](CHANGELOG.md) covers CLI/tooling releases only and is generated through
+Release Please; contributors do not need to edit it manually. Use `docs(<skill>)`
+for instruction-only changes, with compatibility recorded in the skill's own
+version/changelog. Reserve `feat`, `fix`, and breaking markers for tooling changes,
+including shared skill scripts. PR titles and bodies follow the same distinction.
+See [CLI releases](docs/system/OPERATIONS.md#cli-and-tooling-releases) for the
+pre-1.0 policy and review process.
 
 Update the owning reference when its claims change and reconcile affected backlog
 entries. Roadmap tracks direction; Git and PRs hold routine delivery history.

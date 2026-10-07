@@ -299,11 +299,108 @@ def render(result):
 
 
 app = typer.Typer(help=__doc__, add_completion=False, pretty_exceptions_enable=False,
-                  no_args_is_help=False)
+                  no_args_is_help=False, context_settings={'help_option_names': ['-h', '--help']})
 Repo = Annotated[str, typer.Option(help='Trusted canonical Dojo checkout (default: CLI checkout)')]
 Json = Annotated[bool, typer.Option('--json', help='Emit one schema-versioned JSON result')]
 Timeout = Annotated[float, typer.Option(help='Per external-check timeout in seconds')]
 Skill = Annotated[str, typer.Argument(help='Canonical skill name or directory path')]
+
+
+def cli_version():
+    import tomllib
+    with (TOOL_ROOT / 'pyproject.toml').open('rb') as stream:
+        return tomllib.load(stream)['project']['version']
+
+
+def version_callback(value: bool):
+    if value:
+        print(f'dojo {cli_version()}')
+        raise typer.Exit()
+
+
+@app.callback()
+def root_command(
+    version: Annotated[bool, typer.Option('--version', '-v', callback=version_callback,
+                                         is_eager=True, help='Show the CLI version and exit')] = False,
+):
+    """Inspect and validate Dojo skills and the local tooling environment."""
+
+
+def discovery_result(command):
+    return dict(schema_version=1, command=command, status='pass',
+                observed_at=datetime.now(timezone.utc).isoformat())
+
+
+def discovery_error(result, exc):
+    result.update(status='unavailable', error={'type': type(exc).__name__, 'message': str(exc)})
+
+
+def emit_discovery(result, json_output):
+    if json_output:
+        print(json.dumps(result, indent=2))
+    else:
+        console = Console(markup=False, highlight=False)
+        if result['status'] != 'pass':
+            typer.echo(result['error']['message'], err=True)
+        elif result['command'] == 'list':
+            console.print(f"{result['match_count']} of {result['total_count']} canonical skills")
+            table = Table('Skill', 'Version', 'Description', box=None)
+            for skill in result['skills']:
+                table.add_row(skill['name'], skill['version'], skill['description'])
+            console.print(table)
+            console.print('Source: ' + result['manifest_path'])
+            console.print(result['limitations'][0])
+        else:
+            console.print(f"dojo {result['version']}")
+            for key in ('repository', 'head_commit', 'working_tree_dirty', 'python', 'dependencies'):
+                console.print(f'{key}: ' + json.dumps(result[key]))
+    raise typer.Exit(0 if result['status'] == 'pass' else 2)
+
+
+@app.command('list')
+def list_command(query: Annotated[str, typer.Argument(help='Case-insensitive name/description search')] = '',
+                 repo: Repo = str(TOOL_ROOT), json_output: Json = False):
+    """Browse the canonical manifest, independently of harness installation."""
+    result = discovery_result('list')
+    try:
+        repository = Path(repo).expanduser().resolve()
+        manifest_path = repository / 'skills.json'
+        manifest = json.loads(manifest_path.read_text())
+        if not isinstance(manifest, dict) or manifest.get('version') != 1 or not isinstance(manifest.get('skills'), list):
+            raise ValueError('Expected a version-1 skills.json manifest with a skills array')
+        skills = manifest['skills']
+        for skill in skills:
+            if not isinstance(skill, dict) or not all(isinstance(skill.get(k), str) and skill[k]
+                                                      for k in ('name', 'version', 'description', 'path')):
+                raise ValueError('Malformed skill entry in skills.json')
+        if len({skill['name'] for skill in skills}) != len(skills):
+            raise ValueError('Duplicate skill names in skills.json')
+        matches = [skill for skill in skills if query.casefold() in
+                   (skill['name'] + ' ' + skill['description']).casefold()]
+        result.update(repository=str(repository), manifest_path=str(manifest_path), query=query,
+                      skills=sorted(matches, key=lambda item: item['name']), total_count=len(skills),
+                      match_count=len(matches), limitations=[
+                          'Generated canonical catalog only; freshness and harness exposure are not checked.'])
+    except Exception as exc:
+        discovery_error(result, exc)
+    emit_discovery(result, json_output)
+
+
+@app.command('info')
+def info_command(json_output: Json = False):
+    """Show the running CLI's checkout, revision, and Python environment."""
+    from importlib.metadata import version
+    result = discovery_result('info')
+    try:
+        result.update(version=cli_version(), repository=str(TOOL_ROOT),
+                      head_commit=git(TOOL_ROOT, 'rev-parse', '--verify', 'HEAD'),
+                      working_tree_dirty=bool(git(TOOL_ROOT, 'status', '--porcelain')),
+                      python={'version': sys.version.split()[0], 'executable': sys.executable,
+                              'environment': sys.prefix},
+                      dependencies={name: version(name) for name in ('PyYAML', 'typer', 'rich')})
+    except Exception as exc:
+        discovery_error(result, exc)
+    emit_discovery(result, json_output)
 
 
 @app.command('check')
