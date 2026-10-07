@@ -32,9 +32,10 @@ of per-skill releases.
 
 The commands below can run through `uv run --locked`, or after `source .venv/bin/activate`.
 Configured Python hooks use `hooks/run-python.sh` to select this checkout's
-`.venv` regardless of the harness's inherited PATH. The launcher performs no
-installation or network access; a missing environment produces a setup error on
-stderr (exit 1). Bare `pytest` selects `tests/` through `pyproject.toml`;
+`.venv` regardless of the harness's inherited PATH. This hook helper performs no
+installation or network access; missing setup produces stderr and exit 1 from
+`hooks/run-python.sh`. The separate `dojo` CLI launcher uses exit 2 for missing
+setup, as described below. Bare `pytest` selects `tests/` through `pyproject.toml`;
 the skill-standardizer suite remains a separate direct-script check.
 
 ## Dojo development CLI
