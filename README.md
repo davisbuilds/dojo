@@ -92,6 +92,20 @@ prepare the environment but refuses a stale lockfile. To change dependencies, us
 `uv add` / `uv add --dev`, or edit `pyproject.toml` and run `uv lock`; commit both
 files. `uv sync --locked --no-dev` installs only runtime dependencies.
 
+To make the checkout available as `dojo` from any directory:
+
+```bash
+mkdir -p "$HOME/.local/bin"
+ln -s "$PWD/bin/dojo" "$HOME/.local/bin/dojo"
+dojo --help
+```
+
+Run this from the checkout you want the command to follow, and ensure
+`~/.local/bin` is on PATH. The launcher resolves the link and uses that checkout's
+`.venv`; it preserves your working directory and never installs dependencies.
+Run `uv sync --locked` after dependency updates. A missing environment produces
+a setup error.
+
 Some skills bundle optional dependencies:
 
 | Skill | Extra packages | Env vars |

@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
-"""Run Dojo's development CLI from this checkout."""
+"""Run the checkout's CLI with its installed uv environment, including via symlinks."""
+import os
 from pathlib import Path
 import runpy
-runpy.run_path(str(Path(__file__).resolve().parents[1] / 'scripts/dojo_cli.py'), run_name='__main__')
+import sys
+
+repo = Path(__file__).resolve().parents[1]
+environment = repo / '.venv'
+python = environment / 'bin/python'
+if not os.access(python, os.X_OK):
+    print(f"Dojo environment unavailable. Run 'uv sync --locked' in {repo}", file=sys.stderr)
+    raise SystemExit(2)
+
+cli = repo / 'scripts/dojo_cli.py'
+if Path(sys.prefix).resolve() != environment.resolve():
+    os.execv(str(python), [str(python), str(cli), *sys.argv[1:]])
+runpy.run_path(str(cli), run_name='__main__')
