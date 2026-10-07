@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.0 - 2026-10-07
+
+- Ground operation selection in recurring tool use; clarify bounded evidence, recoverable waiting, and independent consumer-path validation.
+
 ## 3.0.0 - 2026-10-02
 
 - Rename `agent-native-architecture` to `agent-native-design`. Update explicit
