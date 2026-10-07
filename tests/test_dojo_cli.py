@@ -233,7 +233,9 @@ def test_short_help_is_available_at_each_command(tmp_path, args):
     result = subprocess.run([sys.executable, str(CLI), *args], cwd=tmp_path,
                             capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
-    assert 'Usage:' in result.stdout and '--help' in result.stdout
+    from rich.text import Text
+    rendered = Text.from_ansi(result.stdout).plain
+    assert 'Usage:' in rendered and '--help' in rendered
 
 
 @pytest.mark.parametrize('flag', ['--version', '-v'])
