@@ -40,7 +40,7 @@ Follow [skill authoring](rules/skill-authoring.md), including relevant checks an
 the strict skill contract:
 
 ```bash
-python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
+uv run --locked python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
 ```
 
 Use the Conventional Commit prefixes in [doc and commit hygiene](rules/doc-hygiene.md).

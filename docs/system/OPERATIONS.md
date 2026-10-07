@@ -12,43 +12,48 @@ git jq python3 sed grep
 
 ### Python Dependencies
 
-```bash
-python -m pip install --require-hashes -r requirements.lock
-```
-
-Core installs are hash-pinned via `requirements.lock`. Update the lock whenever `requirements.txt` changes:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then:
 
 ```bash
-uv pip compile --generate-hashes requirements.txt -o requirements.lock
+uv sync --locked
+uv run --locked pytest
 ```
 
-Core: `PyYAML==6.0.3`; test tooling: `pytest` (runs the `tests/` regression
-suite). Optional per-skill extras are documented in `requirements.txt`.
+`pyproject.toml` owns dependencies; `uv.lock` pins the resolved versions and
+hashes. `.python-version` selects Python 3.12 for development and CI; supported
+Python starts at 3.11. Runtime dependencies are PyYAML, Typer, and Rich. The default
+dev group adds pytest; `uv sync --locked --no-dev` omits it. Optional per-skill
+packages remain documented in the [README](../../README.md#install) and their skills.
 
-Run the repo regression tests with:
+Use `uv add` / `uv add --dev`, or edit the manifest and run `uv lock`, then commit
+both manifest and lockfile. CI uses `uv sync --locked`, which fails on drift.
+The project is not packaged for distribution; its metadata version is independent
+of per-skill releases.
 
-```bash
-python -m pytest tests/ -q
-```
+The commands below can run through `uv run --locked`, or after `source .venv/bin/activate`.
+Start terminal agents from the activated environment so their `python3` hooks use
+these dependencies too. Bare `pytest` selects `tests/` through `pyproject.toml`;
+the skill-standardizer suite remains a separate direct-script check.
 
 ## Dojo development CLI
 
-From an environment with the repository dependencies installed (Python 3.11+):
+From the repository checkout:
 
 ```bash
-bin/dojo --help
-bin/dojo check skill-creator --base origin/main --json
-bin/dojo check skills/skill-creator --base origin/main --repo-checks
-bin/dojo inspect skill-creator --harness codex --cwd . --json
+uv run --locked bin/dojo --help
+uv run --locked bin/dojo check skill-creator --base origin/main --json
+uv run --locked bin/dojo check skills/skill-creator --base origin/main --repo-checks
+uv run --locked bin/dojo inspect skill-creator --harness codex --cwd . --json
 ```
 
 An absolute path to `bin/dojo` works from another directory. The checkout holding
 that executable supplies the validator implementation and default canonical
 repository. `--repo <trusted-checkout>` changes the target repository;
 `inspect --cwd <directory>` independently selects the Codex invocation context.
-The CLI runs the current Python interpreter; activate `.venv` or invoke it with
-`.venv/bin/python bin/dojo` when dependencies live there. No global installation
-or shell configuration is required.
+For calls outside this checkout, use its `.venv/bin/python` with the absolute
+`bin/dojo` path, or `uv run --locked --project <dojo-checkout> <absolute-bin/dojo>`
+to select its environment without changing the invocation directory. No global
+installation or shell configuration is required.
 
 `check` reuses the existing strict metadata validator and conservative Markdown
 link checker for the selected skill. `--base` adds the existing release check,
@@ -88,10 +93,11 @@ check produce unavailable evidence rather than a stable-revision claim.
 Exit codes: **0** requested checks completed without findings; **1** findings;
 **2** invalid input or unavailable/incomplete evidence. Unavailable takes precedence
 when both occur. Optional skipped checks are visible and do not imply coverage.
-Argument syntax errors use normal argparse stderr/exit 2; parsed requests emit
-one JSON object with `--json`, including execution errors. Human output defaults
-to a concise check list with evidence and limits. No aggregate skill-quality or
-trust score is produced.
+Typer handles command parsing and help. Argument syntax errors use stderr/exit 2;
+parsed requests emit one JSON object with `--json`, including execution errors.
+Rich renders a status table with evidence and limits for humans, respecting
+`NO_COLOR` and non-TTY output. JSON bypasses Rich and contains no terminal styling.
+No aggregate skill-quality or trust score is produced.
 
 Pilot goals and acceptance boundaries are recorded in the
 [CLI pilot design](../design/2026-10-06-dojo-cli-pilot.md).

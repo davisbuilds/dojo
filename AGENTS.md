@@ -37,7 +37,9 @@ The auto-generated `skills.json` manifest is the runtime source of truth for wha
 
 ## Testing
 
-- **Pre-push** (matches CI): `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.
+- **Python environment**: `uv sync --locked`; use `uv run --locked` for repo tools. Dependencies live in `pyproject.toml` and `uv.lock`; bare `uv run --locked pytest` selects `tests/`.
+
+- **Pre-push** (matches CI): `uv run --locked python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.
 - **TDD**: red/green for new features, major refactors, and large changes. The red step must fail for the behavior you're about to fix — a test that fails only because the symbol doesn't exist yet is a stub, not a red test; write the signature first, then a test that fails on the behavior. Skip the red step for code with no behavior to assert, and cover it after. For smaller edits, still run the relevant existing tests before wrapping up.
 
 ## Working Agreement

@@ -147,6 +147,37 @@ def test_help_works_without_repository_or_harness(tmp_path):
     assert result.returncode == 0 and 'inspect' in result.stdout and 'check' in result.stdout
 
 
+@pytest.mark.parametrize('args', [[], ['check'], ['inspect', 'alpha'],
+                                ['inspect', 'alpha', '--harness', 'unsupported'],
+                                ['check', 'alpha', '--timeout', 'invalid']])
+def test_usage_errors_keep_exit_two(tmp_path, args):
+    result = subprocess.run([sys.executable, str(CLI), *args], cwd=tmp_path,
+                            capture_output=True, text=True)
+    assert result.returncode == 2
+    assert 'Traceback' not in result.stderr
+    assert 'Usage:' in result.stderr
+
+
+def test_json_is_unstyled_even_when_color_is_forced(repo):
+    import os
+    env = {**os.environ, 'FORCE_COLOR': '1'}
+    code, result = invoke(repo, 'check', 'alpha', env=env)
+    assert code == 0 and result['schema_version'] == 1
+    code, result = invoke(repo, 'check', 'alpha', '--timeout', 'nan', env=env)
+    assert code == 2 and result['status'] == 'unavailable'
+
+
+def test_human_output_preserves_literal_markup_without_ansi(repo):
+    import os
+    result = subprocess.run([sys.executable, str(CLI), 'check', '[red]missing[/red]',
+                             '--repo', str(repo)], capture_output=True, text=True,
+                            env={**os.environ, 'NO_COLOR': '1', 'TERM': 'dumb'})
+    assert result.returncode == 2
+    assert '[red]missing[/red]' in result.stdout
+    assert '\x1b[' not in result.stdout
+    assert 'execution' in result.stdout
+
+
 @pytest.mark.parametrize('linked', [False, True])
 def test_inspect_detects_drift_in_the_exposed_copy(repo, tmp_path, linked):
     import shutil, os

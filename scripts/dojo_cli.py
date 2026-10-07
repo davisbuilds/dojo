@@ -1,7 +1,8 @@
 """Read-only entry point for skill packaging checks and Codex catalog evidence."""
 from __future__ import annotations
 
-import argparse
+from dataclasses import dataclass
+from enum import Enum
 from datetime import datetime, timezone
 import importlib.util
 import json
@@ -11,6 +12,11 @@ import re
 import signal
 import subprocess
 import sys
+from typing import Annotated
+
+import typer
+from rich.console import Console
+from rich.table import Table
 
 TOOL_ROOT = Path(__file__).resolve().parents[1]
 NAME = re.compile(r'[a-z0-9][a-z0-9-]*')
@@ -237,23 +243,19 @@ def inspect(args, repo, target, result):
     ]
 
 
-def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
-    sub = parser.add_subparsers(dest='command', required=True)
-    for name, help_text in [('check', 'Check selected skill packaging; optional release and repository checks'),
-                            ('inspect', 'Inspect copies and fresh Codex catalog exposure without a model turn')]:
-        p = sub.add_parser(name, help=help_text, description=help_text)
-        p.add_argument('skill', help='Canonical skill name or directory path')
-        p.add_argument('--repo', default=str(TOOL_ROOT), help='Trusted canonical Dojo checkout (default: CLI checkout)')
-        p.add_argument('--json', action='store_true', help='Emit one schema-versioned JSON result')
-        p.add_argument('--timeout', type=float, default=60, help='Per external-check timeout in seconds (default: 60)')
-        if name == 'check':
-            p.add_argument('--base', help='Git release comparison base; omitted means release check is skipped')
-            p.add_argument('--repo-checks', action='store_true', help='Also run repository-wide generated-file checks')
-        else:
-            p.add_argument('--harness', choices=['codex'], required=True)
-            p.add_argument('--cwd', default=os.getcwd(), help='Harness invocation directory (default: current directory)')
-    args = parser.parse_args(argv)
+@dataclass
+class Request:
+    command: str
+    skill: str
+    repo: str
+    json: bool
+    timeout: float
+    base: str | None = None
+    repo_checks: bool = False
+    cwd: str | None = None
+
+
+def execute(args: Request):
     result = dict(schema_version=1, command=args.command, target=args.skill, status='unavailable',
                   observed_at=datetime.now(timezone.utc).isoformat(), evidence={}, checks=[], limitations=[])
     try:
@@ -274,16 +276,71 @@ def main(argv=None):
     if args.json:
         print(json.dumps(result, indent=2))
     else:
-        print(f"{args.command} {result['target']}: {result['status']}")
-        for item in result['checks']:
-            print(f"  {item['status']:11} {item['id']} ({item['scope']})")
-            if item['status'] != 'pass' or args.command == 'inspect':
-                print('    ' + json.dumps(item['details']))
-        print('Evidence: ' + json.dumps(result['evidence']))
-        for limit in result['limitations']:
-            print('Limit: ' + limit)
+        render(result)
     return {'pass': 0, 'fail': 1, 'unavailable': 2}[result['status']]
 
 
+def render(result):
+    """Human presentation only; JSON bypasses Rich entirely."""
+    console = Console(markup=False, highlight=False)
+    styles = {'pass': 'green', 'fail': 'red', 'unavailable': 'yellow', 'skipped': 'dim'}
+    console.print(f"{result['command']} {result['target']}: {result['status']}",
+                  style=styles[result['status']])
+    table = Table('Status', 'Check', 'Scope', box=None, padding=(0, 1))
+    for item in result['checks']:
+        table.add_row(item['status'], item['id'], item['scope'], style=styles[item['status']])
+    console.print(table)
+    for item in result['checks']:
+        if item['status'] != 'pass' or result['command'] == 'inspect':
+            console.print(f"{item['id']}: " + json.dumps(item['details']))
+    console.print('Evidence: ' + json.dumps(result['evidence']))
+    for limit in result['limitations']:
+        console.print('Limit: ' + limit)
+
+
+app = typer.Typer(help=__doc__, add_completion=False, pretty_exceptions_enable=False,
+                  no_args_is_help=False)
+Repo = Annotated[str, typer.Option(help='Trusted canonical Dojo checkout (default: CLI checkout)')]
+Json = Annotated[bool, typer.Option('--json', help='Emit one schema-versioned JSON result')]
+Timeout = Annotated[float, typer.Option(help='Per external-check timeout in seconds')]
+Skill = Annotated[str, typer.Argument(help='Canonical skill name or directory path')]
+
+
+@app.command('check')
+def check_command(
+    skill: Skill,
+    repo: Repo = str(TOOL_ROOT),
+    json_output: Json = False,
+    timeout: Timeout = 60,
+    base: Annotated[str | None, typer.Option(help='Git release comparison base; omitted means release check is skipped')] = None,
+    repo_checks: Annotated[bool, typer.Option('--repo-checks', help='Also run repository-wide generated-file checks')] = False,
+):
+    """Check selected skill packaging; optional release and repository checks."""
+    raise typer.Exit(execute(Request('check', skill, repo, json_output, timeout,
+                                    base=base, repo_checks=repo_checks)))
+
+
+class Harness(str, Enum):
+    codex = 'codex'
+
+
+@app.command('inspect')
+def inspect_command(
+    skill: Skill,
+    harness: Annotated[Harness, typer.Option(help='Harness to inspect (currently Codex only)')],
+    repo: Repo = str(TOOL_ROOT),
+    json_output: Json = False,
+    timeout: Timeout = 60,
+    cwd: Annotated[str | None, typer.Option(help='Harness invocation directory (default: current directory)')] = None,
+):
+    """Inspect copies and fresh Codex catalog exposure without a model turn."""
+    raise typer.Exit(execute(Request('inspect', skill, repo, json_output, timeout,
+                                    cwd=cwd if cwd is not None else os.getcwd())))
+
+
+def main(argv=None):
+    app(args=argv, prog_name='dojo')
+
+
 if __name__ == '__main__':
-    raise SystemExit(main())
+    main()
