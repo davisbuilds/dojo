@@ -2,7 +2,7 @@
 name: agent-native-design
 description: Design software for agent consumers and delegated work. Use when shaping agent-facing capabilities, delegated responsibilities, cross-agent coordination, human control of agent-driven experiences, or products with agents as primary consumers.
 skill-type: reference
-version: 3.0.0
+version: 3.1.0
 ---
 
 # Agent-Native Design

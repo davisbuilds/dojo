@@ -9,6 +9,11 @@ The interface may serve an external agent without embedding a model itself.
 Expose meaningful capabilities in the domain's vocabulary. Granularity follows
 state and responsibility boundaries, not UI buttons or database tables.
 
+Use recurring work and actual tool traces to find missing capabilities: repeated
+joins, context reconstruction, or improvised readiness checks can reveal a useful
+operation. Repair existing discovery or behavior when that resolves the friction.
+Adding a wrapper to each endpoint is not evidence of better task support.
+
 For example, `reserve_slot` may need to check availability and create a reservation
 atomically. Splitting it into `read_calendar` and `insert_reservation` transfers a
 race condition to the caller. Conversely, a single `manage_business` operation
@@ -36,6 +41,11 @@ record and tool definition. Make summaries, filtered queries, pagination, and
 specific resource lookup available where volume warrants them. Retain stable
 identifiers across those views so the agent can act on what it found.
 
+Bound what enters context and make omitted scope visible. Streaming alone does
+not bound volume. A compact result can point to retrievable logs or artifacts for
+deeper investigation; expose enough detail to challenge the summary rather than
+requiring the agent to trust it.
+
 Distinguish no matches from denied access, incomplete retrieval, stale data, and
 unsupported queries. Include source or revision information when a later action
 depends on what was read. Separate supplied facts, user preferences, external
@@ -53,6 +63,12 @@ be checked next. For asynchronous work, return a durable operation reference and
 its current state rather than calling acceptance completion. For a synchronous
 operation, a result with the affected resource and revision may be sufficient;
 do not introduce a job protocol without a need.
+
+Where work outlives a call, provide bounded waiting or usable notifications
+alongside inspection. Distinguish readiness to accept work from completion of that
+work. After a timeout or lost session, let the consumer recover status and effects
+without blindly resubmitting. A detached process is not a notification mechanism
+unless the consumer can actually receive its result.
 
 An investigation interface can be more valuable than another action tool:
 compare expected and observed state, inspect provenance, run a bounded probe, or
@@ -90,3 +106,18 @@ Evaluate the actual consumer path. Useful checks include whether an agent can
 find the operation, select the intended resource, distinguish partial results,
 and recover from an ambiguous failure. Direct API tests establish contract
 behavior; they do not alone prove that an agent can discover and use it well.
+
+For a usefulness claim, inspect representative agent runs: did the agent find and
+use the capability, what did it still reconstruct, and was its conclusion correct?
+Compare with the existing workflow when claiming improvement. A shorter trace
+can still omit necessary verification; a successful author-guided demonstration
+does not establish independent use.
+
+## Further reading
+
+- [Anthropic: writing tools for agents](https://www.anthropic.com/engineering/writing-tools-for-agents)
+  informs meaningful operation boundaries, economical results, and evaluation
+  through actual tool traces.
+- [Justin Poehnelt: native-app tooling](https://justin.poehnelt.com/posts/ship-mcp-server-native-app/)
+  provides an action/wait/inspection example. The lifecycle lesson is applicable
+  beyond its chosen transport; no universal protocol advantage is assumed.

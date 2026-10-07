@@ -7,12 +7,12 @@ description: >
   its interface, or resolving a specific CLI UX decision during implementation.
   Reuse settled conventions without requiring a separate design document.
 skill-type: workflow
-version: 2.0.1
+version: 2.1.0
 ---
 
 # Create CLI
 
-Design command-line syntax and behavior for its human and script consumers.
+Design command-line syntax and behavior for its human, script, and agent consumers.
 Use the relevant conventions during authorized implementation as well as when
 producing a CLI design.
 
@@ -76,7 +76,7 @@ handoff menu is required.
 
 ## Verification
 
-- The affected interface fits existing human and script consumers.
+- The affected interface fits its intended human, script, and agent consumers.
 - Output and errors preserve their promised streams, shapes, and exit behavior.
 - Relevant destructive, noninteractive, and interruption paths have explicit
   behavior and evidence appropriate to the task.

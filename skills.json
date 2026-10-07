@@ -5,7 +5,7 @@
       "name": "agent-native-design",
       "description": "Design software for agent consumers and delegated work. Use when shaping agent-facing capabilities, delegated responsibilities, cross-agent coordination, human control of agent-driven experiences, or products with agents as primary consumers.",
       "path": "skills/agent-native-design",
-      "version": "3.0.0"
+      "version": "3.1.0"
     },
     {
       "name": "api-design",
@@ -48,7 +48,7 @@
       "name": "create-cli",
       "description": "Design command-line interface parameters and UX: arguments, flags, subcommands, help text, output formats, error messages, exit codes, prompts, config/env precedence, and safe/dry-run behavior. Use when designing a CLI, refactoring its interface, or resolving a specific CLI UX decision during implementation. Reuse settled conventions without requiring a separate design document.\n",
       "path": "skills/create-cli",
-      "version": "2.0.1"
+      "version": "2.1.0"
     },
     {
       "name": "deep-research",

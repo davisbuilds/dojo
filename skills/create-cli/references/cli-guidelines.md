@@ -1,14 +1,18 @@
-# Command Line Interface Guidelines (condensed)
+# Command Line Interface Guidelines (adapted)
 
 Source + contribution:
 - Full guide: https://clig.dev/
 - Propose changes: https://github.com/cli-guidelines/cli-guidelines
 
+Adapted for Dojo: the upstream human-first emphasis becomes consumer-aware
+design below. Agent discovery, bounded evidence, and asynchronous lifecycle
+guidance are local additions, not claims about the upstream guide.
+
 Table of contents:
 - Foreword
 - Introduction
 - Philosophy
-  - Human-first design
+  - Design for the intended consumers
   - Simple parts that work together
   - Consistency across programs
   - Saying (just) enough
@@ -37,13 +41,13 @@ Table of contents:
   - Further reading
 - Authors
 
-This is a practical rubric for designing CLI interfaces (args/flags/subcommands/help/output/errors/config). Keep humans first, but preserve composability and scriptability.
+This is a practical rubric for designing CLI interfaces (args/flags/subcommands/help/output/errors/config). Choose defaults for the intended consumers while preserving human inspectability and composability.
 
 ## Foreword
 
 - CLI still uniquely powerful: inspect/control systems; works interactively and in automation.
-- Modern CLI = human-first text UI, not just a machine-first REPL veneer.
-- Goal: maximize utility + accessibility; design for humans and composition.
+- A CLI may primarily serve people, scripts, agents, or a mix; make that choice explicit.
+- Keep behavior understandable and results inspectable by the person responsible for them.
 
 ## Introduction
 
@@ -53,9 +57,9 @@ This is a practical rubric for designing CLI interfaces (args/flags/subcommands/
 
 ## Philosophy
 
-### Human-first design
+### Design for the intended consumers
 
-- Optimize for humans by default; scripts still work via stable modes (`--json`, `--plain`, exit codes).
+- Choose defaults for the actual consumer; preserve stable machine contracts (`--json`, `--plain`, exit codes) and readable diagnostics where needed.
 - Don’t leak developer-only output to normal users; reserve for verbose/debug.
 
 ### Simple parts that work together
@@ -114,6 +118,7 @@ This is a practical rubric for designing CLI interfaces (args/flags/subcommands/
 - Git-like CLIs: support `mycmd help`, `mycmd help subcmd`, `mycmd subcmd --help`.
 - Link to a support path (repo/issues/docs). Prefer deep links per subcommand (when you have web docs).
 - Lead with examples; show common flags/commands first; keep formatting readable without escape-char soup.
+- Help is usually enough for a small command tree. Add runtime schema discovery for large or changing interfaces when it helps consumers construct valid requests; don't require a schema command or per-command skill everywhere.
 
 ### Documentation
 
@@ -122,7 +127,7 @@ This is a practical rubric for designing CLI interfaces (args/flags/subcommands/
 
 ### Output
 
-- Humans first, machines second: detect TTY to choose formatting.
+- Use TTY detection for presentation and interactivity, not to guess the caller's required data contract; provide an explicit stable output mode where consumers need one.
 - If fancy human output breaks parsing, offer `--plain` (stable, line-based) and/or `--json`.
 - On success: usually print *something*, but keep it brief; add `-q/--quiet` when useful.
 - If you change state, say what changed and what the new state is.
@@ -130,6 +135,8 @@ This is a practical rubric for designing CLI interfaces (args/flags/subcommands/
 - Use color sparingly; disable when not a TTY, `NO_COLOR` set, `TERM=dumb`, or `--no-color`.
 - No animations/progress bars when stdout isn’t a TTY.
 - Use a pager for long output only when interactive; common `less` opts: `-FIRX`.
+- For large results, offer filtering, field selection, or limits before emitting data. Streaming NDJSON does not itself bound what enters an agent's context. Make truncation/partial coverage explicit and provide stable IDs or a continuation route.
+- Return decision-relevant summaries with retrievable evidence when useful: log/artifact paths, affected resources, and the scope or revision behind a finding. Distinguish no matches from unavailable data or a check not run.
 
 ### Errors
 
@@ -181,6 +188,8 @@ This is a practical rubric for designing CLI interfaces (args/flags/subcommands/
 - Show progress for long tasks (interactive only); don’t interleave logs confusingly.
 - Use timeouts for network calls; allow configuration.
 - Make reruns safe: idempotent where possible; recoverable; “crash-only” where feasible.
+- For asynchronous operations, expose the needed start/status/wait behavior with bounded waits and a recoverable operation ID. Distinguish acceptance, readiness, completion, and checked effects. A timeout should identify whether work continues and how to inspect it; cancelling a wait need not cancel the operation. Keep synchronous commands simple.
+- State what a dry run checks. Local request validation does not establish remote authorization, eventual success, or rollback support.
 
 ### Future-proofing
 
@@ -233,6 +242,8 @@ This is a practical rubric for designing CLI interfaces (args/flags/subcommands/
 - GNU Coding Standards (esp. flags/help conventions)
 - 12 Factor CLI Apps
 - Heroku CLI Style Guide
+- [Justin Poehnelt: CLI design for agents](https://justin.poehnelt.com/posts/rewrite-your-cli-for-ai-agents/) — runtime discovery and bounded output; adopted selectively above, not a requirement for raw JSON inputs or a universal CLI rewrite.
+- [Justin Poehnelt: native-app tooling](https://justin.poehnelt.com/posts/ship-mcp-server-native-app/) — an action/wait/inspection example; that lifecycle can inform a CLI without requiring MCP.
 
 ## Authors
 
