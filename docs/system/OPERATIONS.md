@@ -32,9 +32,10 @@ of per-skill releases.
 
 The commands below can run through `uv run --locked`, or after `source .venv/bin/activate`.
 Configured Python hooks use `hooks/run-python.sh` to select this checkout's
-`.venv` regardless of the harness's inherited PATH. The launcher performs no
-installation or network access; a missing environment produces a setup error on
-stderr (exit 1). Bare `pytest` selects `tests/` through `pyproject.toml`;
+`.venv` regardless of the harness's inherited PATH. This hook helper performs no
+installation or network access; missing setup produces stderr and exit 1 from
+`hooks/run-python.sh`. The separate `dojo` CLI launcher uses exit 2 for missing
+setup, as described below. Bare `pytest` selects `tests/` through `pyproject.toml`;
 the skill-standardizer suite remains a separate direct-script check.
 
 ## Dojo development CLI
@@ -48,14 +49,27 @@ uv run --locked bin/dojo check skills/skill-creator --base origin/main --repo-ch
 uv run --locked bin/dojo inspect skill-creator --harness codex --cwd . --json
 ```
 
-An absolute path to `bin/dojo` works from another directory. The checkout holding
-that executable supplies the validator implementation and default canonical
-repository. `--repo <trusted-checkout>` changes the target repository;
-`inspect --cwd <directory>` independently selects the Codex invocation context.
-For calls outside this checkout, use its `.venv/bin/python` with the absolute
-`bin/dojo` path, or `uv run --locked --project <dojo-checkout> <absolute-bin/dojo>`
-to select its environment without changing the invocation directory. No global
-installation or shell configuration is required.
+For a short command from any directory, run this once from the intended checkout
+with `~/.local/bin` on PATH:
+
+```bash
+mkdir -p "$HOME/.local/bin"
+ln -s "$PWD/bin/dojo" "$HOME/.local/bin/dojo"
+dojo --help
+```
+
+The launcher resolves symlinks to locate its checkout and selects that checkout's
+installed `.venv`. It preserves the caller's working directory and arguments;
+there is no automatic sync, download, or shell alias. `uv sync --locked` prepares
+or refreshes the environment explicitly. A missing environment reports a setup
+error to stderr with exit 2, before command parsing or JSON output.
+
+The checkout holding the executable supplies the validator implementation and
+default canonical repository. `--repo <trusted-checkout>` changes the target
+repository; `inspect --cwd <directory>` independently selects the Codex invocation
+context. For development in another worktree, call its `bin/dojo` directly after
+running `uv sync --locked` there. Keep the global link pointed at your main
+checkout so deleting a worktree cannot strand it.
 
 `check` reuses the existing strict metadata validator and conservative Markdown
 link checker for the selected skill. `--base` adds the existing release check,
