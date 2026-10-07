@@ -1,73 +1,61 @@
-# Harness Bindings
+# Bind a Loop to the Available Runtime
 
-One blueprint, four runtimes. The bundle (`LOOP.md`, `verify.sh`, `guard.sh`, `progress.md`, `verifier.md`) is identical; only the wiring differs. The scaffolder writes the relevant block into `BINDINGS.md`; this file is the full reference.
+Read this when moving from a loop design to execution. Harness features change;
+inspect the current tool descriptions, local help, or official documentation for
+the actual surface. A similarly named slash command, desktop automation, and
+headless invocation may have different lifetimes and permissions.
 
-## Claude Code
+## Prefer the existing mechanism
 
-| Cadence | Wiring |
-|---|---|
-| `until-done` | `/goal` with the contents of `LOOP.md` as the objective and "stop when `./verify.sh` exits 0" as the condition. A separate small model grades the stop condition. |
-| `interval:<dur>` | `/loop <dur> "read LOOP.md and run exactly one iteration"`. |
-| `cron:'<expr>'` | `/schedule` (routine) running the same one-iteration prompt; or a cron task. |
-| beyond the laptop | GitHub Actions (below) running `claude -p` headless. |
+- **Bounded task:** use an available goal/task mechanism if it supports the
+  required limits, interruption, and continuation. Otherwise a single bounded
+  invocation may suffice. A shell loop is not required to keep an agent working.
+- **Recurring monitor:** prefer an existing scheduler or notification/wait
+  interface. Specify one observation per run, overlap policy, expiry or
+  cancellation, and where results arrive. Don't assume an ended turn will wake
+  when a detached shell command exits.
+- **Experiment:** use the project's existing experiment runner when available.
+  Keep baseline identity, candidate measurements, and trial limits there; let
+  the agent reason about candidates without handing it implicit deployment
+  authority.
 
-- **Checker**: put `verifier.md` at `.claude/agents/<name>-verifier.md`. Add `isolation: worktree` so it grades on a fresh checkout.
-- **Isolation**: run the maker with `--worktree` (or a subagent with `isolation: worktree`) so parallel loops never collide.
-- **Lifecycle**: a Stop/PostToolUse hook can run `verify.sh` and refuse a premature "done".
+For Claude Code, Codex, CI, or a custom runner, establish these properties only
+to the extent the task depends on them:
 
-## Codex
+| Property | What to establish |
+| --- | --- |
+| Invocation | Exact working directory, loaded instructions, inputs, and target checkout/service. A generated brief is not necessarily auto-loaded. |
+| Lifecycle | What starts a run; what ends it; whether work survives disconnection or an ended turn; what cancellation actually terminates, including child operations. |
+| Limits | Where time, iteration, retry, or spend limits are enforced. A prompt asking an agent to stop is a soft limit. |
+| Authority | Actual credentials and allowed filesystem, network, and external effects. A worktree does not isolate the host user or shared services. |
+| Concurrency | Whether the next run skips, queues, or reconciles with an active run. Use the runtime's locking where shared mutation matters. |
+| Recovery | Durable checkpoint or job reference; what a retry can safely repeat; how to inspect ambiguous completion. |
+| Delivery | Destination for results/failures and whether it can notify or resume the intended consumer. |
 
-| Cadence | Wiring |
-|---|---|
-| scheduled | Automations tab → pick project, prompt = "read LOOP.md, run one iteration", set cadence, run on a worktree. Findings land in the Triage inbox. |
-| `until-done` | `/goal` — works across turns to a verifiable stopping condition, with pause/resume. |
-| reusable method | wrap the iteration prompt as a skill (`$name`); "skills define the method, automations define the schedule". |
+A fresh reviewer needs the actual changed state and relevant evidence. A separate
+checkout may omit uncommitted work; a different model does not automatically
+provide independent evidence or narrower authority. Configure a reviewer only
+where it resolves a judgment or verification gap.
 
-- **Checker**: `.codex/agents/<name>-verifier.toml` (name, description, instructions from `verifier.md`, optional stronger model + higher reasoning effort).
-- **Isolation**: automations run on a dedicated worktree by default.
+## If a shell runner is necessary
 
-## GitHub Actions (unattended / beyond the laptop)
+Use a bounded runner with explicit command failure, timeout, and cancellation
+handling. Evaluate a check once per intended observation and retain its result;
+rerunning it to extract an error can change state, repeat cost, or contradict
+the original observation. Distinguish accepted work, unfinished work, unavailable
+evidence, budget exhaustion, and cancellation. Avoid an unbounded `while true`
+whose only exit is a passing command.
 
-- A scheduled workflow (`on: schedule: cron`) checks out the repo and runs the agent headless reading `LOOP.md`:
-  - Claude Code: `claude -p "$(cat .loops/<name>/LOOP.md)"`
-  - Codex: `codex exec "$(cat .loops/<name>/LOOP.md)"`
-- The job runs `verify.sh`; on exit 0 it opens/labels a PR, otherwise commits progress and exits so the next run resumes.
-- This is where scoped creds + spend caps matter most — use repository/environment secrets limited to staging.
+Check scripts and the optional scaffold are not a runner. They do not install
+hooks, suppress permissions, restrict credentials, enforce budgets, publish
+results, commit changes, or launch agents. Reuse the user's existing authority
+within scope, and keep actions beyond that scope pending the actual decision.
 
-## Ralph (the dumbest loop that works)
+## Confirm the connection
 
-The blueprint is also a Ralph loop. The runner is *yours* — this skill does not ship one (that would duplicate `/loop` and the `ralph-wiggum` plugin) — but the wiring is:
-
-```bash
-# from inside .loops/<name>/
-./verify.sh --selftest || { echo "oracle is flaky — fix it first"; exit 1; }
-i=0; last=""
-while :; do
-  i=$((i+1)); [ "$i" -gt 20 ] && { echo "iteration cap"; break; }   # runaway fuse
-  echo "iter=$i ts=$(date +%s)" > .loop_heartbeat                   # liveness
-  <agent> -p "$(cat LOOP.md)"     # fresh context each pass; memory is the repo
-  ./guard.sh || { echo "reward-hacking gate tripped"; break; }      # cheap gate
-  ./verify.sh && break            # the oracle is the only exit
-  cur="$(./verify.sh 2>&1 | grep -m1 -i fail || true)"              # circuit breaker
-  [ "$cur" = "$last" ] && { echo "stuck on same failure — calling a human"; break; }
-  last="$cur"
-done
-```
-
-Each pass is "deterministically bad in a nondeterministic world": individually mediocre, convergent over iterations — but only when `verify.sh` is a real, *deterministic* oracle. With a weak or flaky oracle, Ralph converges confidently on garbage. Add the checker before letting it run unattended.
-
-## Per-iteration context (headless / Ralph only)
-
-Interactive harnesses (`/goal`, Codex automations) build each turn's context themselves via tool calls — let them. But a **headless** loop (`claude -p` / `codex exec` in a `while` or an Action) gets exactly the context you hand it, and two failure modes bite:
-
-- Feed it the whole repo → the window fills, quality rots (context rot), and you pay for irrelevant tokens. The point of stateless iteration is lost.
-- Feed it too little → it fixes blind.
-
-The right slice is three things and nothing extra: **machine state** (`progress.md` / `.loop_state.json`), **the one open failure** being worked, and **only the files relevant to it**. Assemble the file slice deterministically from signals you already have — paths in the failing test's stack trace, plus `git diff --name-only HEAD~1` — and cap it with an explicit token budget so the slice can't grow unnoticed across iterations. Start with that dumb, explainable heuristic; reach for embeddings or a dependency graph only if it actually misses.
-
-## Portability notes
-
-- Keep `done_when` POSIX-runnable so `verify.sh` is identical everywhere.
-- Keep `LOOP.md` instructions harness-neutral (no slash commands inside it) so the same prompt drives any runtime.
-- Run `./guard.sh` before `./verify.sh` every iteration in every harness; both are POSIX shell, so the wiring is identical across runtimes.
-- MCP connectors written for one harness generally work in the other; bundle them as a plugin to share a loop setup across repos.
+For new consequential unattended work, exercise a bounded run and relevant
+failure/recovery behavior in a suitable environment. Confirm the runner actually
+loads the chosen instructions and that observed results reach the intended
+consumer. Reuse current evidence for unchanged runtime guarantees rather than
+re-proving every property on every prompt edit. Report any unresolved limit or
+delivery question before describing a loop as ready to leave unattended.

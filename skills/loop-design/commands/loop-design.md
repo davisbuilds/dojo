@@ -1,43 +1,27 @@
 ---
 name: loop-design
-description: Design a reusable, verifiable autonomous loop and scaffold the files a harness runs (on top of /loop, /goal, automations).
-argument-hint: "[task description] | --blueprint <path.json> [--out-dir <dir>]"
-allowed-tools: [Read, Write, Edit, Bash(python3 skills/loop-design/scripts/scaffold_loop.py:*), Bash(git:*), Bash(./verify.sh:*), Bash(./guard.sh:*)]
+description: Design bounded agent tasks, recurring monitoring, or iterative experiments using the available runtime.
+argument-hint: "[task description] | --blueprint <path.json> [--out-dir <new-dir>]"
 ---
 
 # Loop Design Command
 
-Turn a task into a verifiable, portable autonomous loop — or decide it should not be one.
+Apply the loaded `loop-design` skill to the requested work. Distinguish a bounded
+task, a recurring monitor, and an experiment; reuse settled intent and runtime
+capabilities. Specify relevant evidence, stopping rules, authority, and recovery
+without requiring a new runner or a fixed set of files.
 
-## Behavior
+When a portable brief serves an executor, consult `references/blueprint-spec.md`
+and optionally scaffold it:
 
-1. **Run the go/no-go gate.** Ask the five questions from `skills/loop-design/SKILL.md`:
-   - Is there an oracle (a command that exits 0 when done)?
-   - Is that oracle deterministic (same exit code across ~10 runs on one state)?
-   - Is the maker graded by something other than itself?
-   - Are credentials scoped and spend capped?
-   - Will the diffs actually be read?
-   If gate 1 fails, report why this is not loop-shaped and stop. Do not scaffold. If the oracle is flaky, say so and fix it before scaffolding.
-2. **Draft the blueprint** using the schema in `references/blueprint-spec.md` (`name`, `goal`, `done_when`, `constraints`, `cadence`, `harness`, `checker`, `sandbox`). Use `test-strategy` to design the oracle if one does not exist yet.
-3. **Scaffold the bundle:**
-   ```bash
-   python3 <skill-dir>/scripts/scaffold_loop.py --blueprint <blueprint.json> --out-dir .loops/<name>
-   ```
-   (or pass `--name --goal --done-when --harness` directly).
-4. **Bind to the harness** using the generated `BINDINGS.md` and `references/harness-bindings.md`. Place the checker in `.claude/agents/` or `.codex/agents/`.
-5. **Require an attended dry-run** of one iteration before anything runs unattended — including `./verify.sh --selftest` (oracle is deterministic) and a deliberate protected-path edit to confirm `guard.sh` trips.
+```bash
+python3 <skill-dir>/scripts/scaffold_loop.py --blueprint <blueprint.json> --out-dir .loops/<name>
+```
 
-## Rules
+Resolve `<skill-dir>` from the installed skill. Scaffolding executes no commands
+and configures no runtime. For existing loops, preserve current state and follow
+the schema migration guidance instead of overwriting their bundles.
 
-- Never scaffold a loop without a `done_when` oracle — the script enforces this; do not work around it.
-- Never name an artifact or command `/loop` or `/goal` (collides with harness primitives).
-- Keep `LOOP.md` harness-neutral (no slash commands inside it) so it is portable.
-- Do not commit or push unless the user explicitly asks.
-
-## Output
-
-Report, in order:
-1. The go/no-go verdict (and the reason if no-go).
-2. The bundle path and the files written.
-3. The exact harness wiring line to run next.
-4. The reminder to dry-run one iteration attended before walking away.
+Return the design or requested files, actual runtime wiring when established,
+and any unresolved execution or evidence gap. Respect the user's launch and
+publication scope; ordinary project commit policy still applies.

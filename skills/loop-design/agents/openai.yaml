@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
   display_name: "Loop Design"
-  short_description: "Design a reusable, verifiable autonomous loop on top of harness"
+  short_description: "Design bounded agent tasks, recurring monitoring, and iterative"
   default_prompt: "Use $loop-design for this task."

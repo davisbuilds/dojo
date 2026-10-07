@@ -125,9 +125,9 @@
     },
     {
       "name": "loop-design",
-      "description": "Design a reusable, verifiable autonomous loop on top of harness primitives like /loop and /goal. Use when setting up a recurring, unattended, or overnight agent loop, an automation or cron task, a /loop or /goal run, a Ralph-style while-true loop, or when deciding whether a task SHOULD be looped at all. Agent-agnostic across Claude Code, Codex, and CI. On-demand via /loop-design.",
+      "description": "Design bounded agent tasks, recurring monitoring, and iterative experiments. Use when setting up unattended or overnight work, scheduling repeated agent runs, defining loop stopping and recovery behavior, or deciding whether a task benefits from repetition.",
       "path": "skills/loop-design",
-      "version": "1.0.4"
+      "version": "2.0.0"
     },
     {
       "name": "markdown-converter",
