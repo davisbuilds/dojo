@@ -14,8 +14,9 @@ on:
       - 'docs/project/**'
       - 'docs/specs/**'
       - 'README.md'
-      - 'requirements.txt'
-      - 'requirements.lock'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.python-version'
       - '.github/workflows/skill-contract-pilot.yml'
   push:
     branches:
@@ -32,12 +33,17 @@ on:
       - 'docs/project/**'
       - 'docs/specs/**'
       - 'README.md'
-      - 'requirements.txt'
-      - 'requirements.lock'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.python-version'
       - '.github/workflows/skill-contract-pilot.yml'
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate-pilot:
@@ -52,17 +58,14 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - name: Setup uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
-          python-version: '3.12'
+          version: '0.11.19'
+          enable-cache: false
 
       - name: Install dependencies
-        run: |
-          python -m venv .venv
-          . .venv/bin/activate
-          python -m pip install --upgrade pip
-          python -m pip install --require-hashes -r requirements.lock
+        run: uv sync --locked
 
       - name: Run regression tests
         run: |

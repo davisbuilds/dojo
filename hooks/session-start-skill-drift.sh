@@ -18,13 +18,12 @@ STATE="$REPO_ROOT/.skill-standardizer/drift-state.json"
 if [[ ! -f "$AUDIT" || ! -f "$NOTIFIER" ]]; then
   exit 0
 fi
-command -v python3 >/dev/null 2>&1 || exit 0
 
 # Audit exits 2 on drift; we read the drifted set out of the JSON, so the exit
 # code is irrelevant here. Any failure degrades to an empty report (silent).
-report="$(python3 "$AUDIT" --global-policy prefer-primary-link --format json 2>/dev/null)"
+report="$(bash "$REPO_ROOT/hooks/run-python.sh" "$AUDIT" --global-policy prefer-primary-link --format json 2>/dev/null)"
 [[ -z "$report" ]] && exit 0
 
-printf '%s' "$report" | python3 "$NOTIFIER" --state "$STATE" 2>/dev/null
+printf '%s' "$report" | bash "$REPO_ROOT/hooks/run-python.sh" "$NOTIFIER" --state "$STATE" 2>/dev/null
 
 exit 0

@@ -193,7 +193,10 @@ docs/project/             # Vision, future-only backlog, and collaboration polic
 
 ## Development CLI
 
-`bin/dojo` delegates to `scripts/dojo_cli.py` for focused packaging checks and
+Configured Python hooks run through `hooks/run-python.sh`, which selects
+the checkout's installed `.venv` without syncing dependencies.
+
+`uv run --locked bin/dojo` delegates to the Typer CLI in `scripts/dojo_cli.py` for focused packaging checks and
 Codex catalog inspection. It reuses skill-owned validators, the link checker,
 standardizer fingerprint primitives, generators in check mode, and the existing
 harness probe. Existing CI/script entry points remain authoritative and usable;

@@ -70,8 +70,9 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   environment variables pointing into deleted temporary directories.
 - **Why or evidence**: on 2026-10-02, bare `pytest -q` collected these tests and
   subsequent tests failed at `Path.cwd()`. CI deliberately runs `pytest tests/`
-  and the standardizer script in separate processes; that remains the supported
-  invocation.
+  and the standardizer script in separate processes; `pyproject.toml` now also
+  scopes default pytest discovery to `tests/`. Explicitly collecting the standalone
+  suite still needs isolation.
 - **Next**: restore cwd and environment per test before unifying test discovery;
   preserve direct-script execution without adding a runtime pytest dependency.
 

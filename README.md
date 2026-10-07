@@ -18,17 +18,16 @@ Do this, in order:
    for cmd in git jq python3 sed grep; do command -v "$cmd" >/dev/null && echo "$cmd: ok" || echo "$cmd: MISSING"; done
    If any are MISSING, tell me which and how to install (e.g. `brew install jq`).
 
-2. Install Python deps from the hash-pinned lockfile:
-   `python3 -m pip install --require-hashes -r requirements.lock` (currently just
-   PyYAML). No env vars or secrets are required for the core repo — only the
-   optional gpt-imagen / gemini-imagen skills need OPENAI_API_KEY / GEMINI_API_KEY,
-   and only if I use them.
+2. Install uv if needed (e.g. `brew install uv`), then run `uv sync --locked`.
+   This installs the Python version in `.python-version` and locked dependencies
+   in `.venv`. No secrets are required for the core tools. Optional image skills
+   need their own dependencies and API keys only when used.
 
 3. Verify WITHOUT any secrets: run the skill-contract validator —
-   `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.
+   `uv run --locked python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.
    It should pass. If it fails, show me the output and stop.
 
-4. Apply harness adapters: `python3 scripts/gen_harness_adapters.py`. This
+4. Apply harness adapters: `uv run --locked python3 scripts/gen_harness_adapters.py`. This
    exposes the project additions in `config/project-skills.json` through
    `.agents/skills` and `.claude/skills`, and generates Codex sidecars for the
    full canonical catalog. General skills come from your separate global
@@ -36,7 +35,7 @@ Do this, in order:
 
 5. Report back: confirm tools present + deps installed + validator passed, and show
    me how to install a skill into my agent, e.g.
-   `python3 skills/skill-installer/scripts/install-skill-from-github.py --agent claude --repo davisbuilds/dojo --path skills/<skill-name>`.
+   `uv run --locked python3 skills/skill-installer/scripts/install-skill-from-github.py --agent claude --repo davisbuilds/dojo --path skills/<skill-name>`.
 
 Don't commit anything.
 ```
@@ -58,8 +57,8 @@ The generated [`skills.json`](skills.json) manifest is the runtime inventory sou
 
 ## Development checks
 
-With repository dependencies installed, use `bin/dojo check <skill> --base origin/main`
-for focused packaging/release checks, or `bin/dojo inspect <skill> --harness codex`
+With repository dependencies installed, use `uv run --locked bin/dojo check <skill> --base origin/main`
+for focused packaging/release checks, or `uv run --locked bin/dojo inspect <skill> --harness codex`
 for installed-copy and fresh catalog evidence. Both support `--json` and `--help`.
 See [operations](docs/system/OPERATIONS.md#dojo-development-cli) for scope and limits.
 
@@ -75,17 +74,23 @@ If everything prints `ok`, install the Python dependencies. Otherwise install th
 
 ## Install
 
-Install the core Python dependencies from the hash-pinned lockfile:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then:
 
 ```bash
-python3 -m pip install --require-hashes -r requirements.lock
+uv sync --locked
 ```
 
-`requirements.txt` is the human-edited source for the lock. When the dependency set changes, regenerate [`requirements.lock`](requirements.lock) with:
+[`pyproject.toml`](pyproject.toml) declares the runtime dependencies (PyYAML,
+Typer, Rich) and the dev group (pytest). [`uv.lock`](uv.lock) pins the resolved
+versions and hashes. `.python-version` selects Python 3.12 for local work and CI;
+the tools support Python 3.11+. This is a checkout-based project, not a published
+Python package; its metadata version does not version individual skills.
 
-```bash
-uv pip compile --generate-hashes requirements.txt -o requirements.lock
-```
+Use `uv run --locked <command>` for repo tools. Configured Python hooks select
+this checkout's `.venv` explicitly, including in already-running agents. `uv run` can
+prepare the environment but refuses a stale lockfile. To change dependencies, use
+`uv add` / `uv add --dev`, or edit `pyproject.toml` and run `uv lock`; commit both
+files. `uv sync --locked --no-dev` installs only runtime dependencies.
 
 Some skills bundle optional dependencies:
 
@@ -99,16 +104,16 @@ Some skills bundle optional dependencies:
 
 ```bash
 # Validate the full skill catalog against the strict contract.
-python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
+uv run --locked python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
 
 # Inspect the runtime skill count.
 jq '.skills | length' skills.json
 
 # Regenerate the manifest after skill metadata changes.
-python3 scripts/generate_skills_manifest.py
+uv run --locked python3 scripts/generate_skills_manifest.py
 
 # Install a skill into an agent.
-python3 skills/skill-installer/scripts/install-skill-from-github.py \
+uv run --locked python3 skills/skill-installer/scripts/install-skill-from-github.py \
   --agent claude \
   --repo davisbuilds/dojo \
   --path skills/<skill-name>
@@ -153,7 +158,7 @@ The agent-agnostic claim is backed by generated adapters, not duplicated content
 - **Command links** in `.claude/commands` for only the selected skills. Stale generated links are pruned; hand-authored commands are preserved.
 - **Codex sidecars** (`skills/<name>/agents/openai.yaml`) for every canonical skill, independent of project exposure. Generated sidecars follow frontmatter; hand-curated sidecars are preserved.
 
-Run `python3 scripts/gen_harness_adapters.py` to regenerate everything locally. CI enforces the committed sidecars with `gen_harness_adapters.py --check --skip-symlinks`.
+Run `uv run --locked python3 scripts/gen_harness_adapters.py` to regenerate everything locally. CI enforces the committed sidecars with `gen_harness_adapters.py --check --skip-symlinks`.
 
 ## Available Skills
 
@@ -171,17 +176,17 @@ You can use the `skill-creator` scripts to scaffold a new skill:
 
 ```bash
 # Create a new skill directory
-python3 skills/skill-creator/scripts/init_skill.py <skill-name> --path ./ \
+uv run --locked python3 skills/skill-creator/scripts/init_skill.py <skill-name> --path ./ \
   --resources scripts,references --examples
 
 # Validate your skill structure (works with both `python` and `python3`)
-python3 skills/skill-creator/scripts/quick_validate.py <skill-name>
+uv run --locked python3 skills/skill-creator/scripts/quick_validate.py <skill-name>
 
 # Package a skill for distribution
-python3 skills/skill-creator/scripts/package_skill.py <skill-name> ./dist
+uv run --locked python3 skills/skill-creator/scripts/package_skill.py <skill-name> ./dist
 
 # Optional: generate OpenAI/Codex metadata add-on
-python3 skills/skill-creator/scripts/generate_openai_yaml.py <skill-name> \
+uv run --locked python3 skills/skill-creator/scripts/generate_openai_yaml.py <skill-name> \
   --interface default_prompt="Use $<skill-name> to help with this task."
 ```
 
@@ -203,7 +208,7 @@ When working with an agent that supports these skills:
 
 ```bash
 # Install to Claude Code skills (~/.claude/skills by default)
-python3 skills/skill-installer/scripts/install-skill-from-github.py \
+uv run --locked python3 skills/skill-installer/scripts/install-skill-from-github.py \
   --agent claude \
   --repo openai/skills \
   --path skills/.curated/create-cli

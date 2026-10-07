@@ -40,7 +40,8 @@ means requested checks completed without findings, 1 means findings, and 2 means
 invalid input or unavailable/incomplete evidence. Skipped optional checks remain
 visible. A packaging pass makes no claim about security, invocation, or quality.
 
-Use Python and existing dependencies. Keep existing script interfaces working.
+Use Python with uv-managed dependencies, Typer command parsing, and Rich human
+output. Keep JSON evidence independent of terminal rendering. Keep existing script interfaces working.
 Avoid a new installation service, all-purpose command tree, aggregate trust score,
 or outcome-comparison runner. Any later comparison command should reuse the
 bounded ops/OpenBench pilot once its execution path is established.

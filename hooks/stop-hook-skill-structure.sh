@@ -44,7 +44,7 @@ changed_skills=($(printf '%s\n' "${changed_skills[@]}" | sort -u))
 
 VERSION_CHECKER="$REPO_ROOT/skills/skill-evals/scripts/check_skill_versions.py"
 if [[ -f "$VERSION_CHECKER" ]]; then
-  version_output=$(python3 "$VERSION_CHECKER" --base "${DOJO_VERSION_CHECK_BASE:-origin/main}" 2>&1)
+  version_output=$(bash "$REPO_ROOT/hooks/run-python.sh" "$VERSION_CHECKER" --base "${DOJO_VERSION_CHECK_BASE:-origin/main}" 2>&1)
   version_status=$?
   if [[ "$version_status" -ne 0 ]]; then
     echo "$version_output" >&2

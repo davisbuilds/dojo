@@ -28,7 +28,7 @@ fi
 # silently leaving the composed SKILL.md stale.
 COMPOSER="$REPO_ROOT/scripts/gen_skill_docs.py"
 if [[ -f "$COMPOSER" ]]; then
-  composer_output=$(python3 "$COMPOSER" 2>&1)
+  composer_output=$(bash "$REPO_ROOT/hooks/run-python.sh" "$COMPOSER" 2>&1)
   composer_status=$?
   if [[ "$composer_status" -ne 0 ]]; then
     echo "post-tool-use-regen-manifest: fragment composition failed:" >&2
@@ -44,6 +44,6 @@ fi
 # Regenerate silently — errors are non-blocking. The manifest generator also
 # refreshes the browseable catalog (docs/catalog/index.html) from the same
 # manifest, so it never drifts and needs no separate call here.
-python3 "$GENERATOR" >/dev/null 2>&1
+bash "$REPO_ROOT/hooks/run-python.sh" "$GENERATOR" >/dev/null 2>&1
 
 exit 0
