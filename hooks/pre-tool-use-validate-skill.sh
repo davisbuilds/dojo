@@ -22,4 +22,4 @@ if [[ ! -f "$VALIDATOR" ]]; then
   exit 0
 fi
 
-python3 "$VALIDATOR"
+bash "$REPO_ROOT/hooks/run-python.sh" "$VALIDATOR"

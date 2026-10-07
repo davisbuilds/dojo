@@ -34,7 +34,7 @@ if [[ ! -f "$file_path" ]]; then
   exit 0
 fi
 
-output=$(python3 "$VALIDATOR" "$file_path" --strict-filename 2>&1)
+output=$(bash "$REPO_ROOT/hooks/run-python.sh" "$VALIDATOR" "$file_path" --strict-filename 2>&1)
 exit_code=$?
 
 if [[ $exit_code -ne 0 ]]; then

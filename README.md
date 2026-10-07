@@ -86,8 +86,8 @@ versions and hashes. `.python-version` selects Python 3.12 for local work and CI
 the tools support Python 3.11+. This is a checkout-based project, not a published
 Python package; its metadata version does not version individual skills.
 
-Use `uv run --locked <command>` for repo tools, or activate `.venv` before starting
-a terminal agent so its Python hooks inherit the same environment. `uv run` can
+Use `uv run --locked <command>` for repo tools. Configured Python hooks select
+this checkout's `.venv` explicitly, including in already-running agents. `uv run` can
 prepare the environment but refuses a stale lockfile. To change dependencies, use
 `uv add` / `uv add --dev`, or edit `pyproject.toml` and run `uv lock`; commit both
 files. `uv sync --locked --no-dev` installs only runtime dependencies.

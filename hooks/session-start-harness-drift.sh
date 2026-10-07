@@ -32,9 +32,8 @@ REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
 
 CHECKER="$REPO_ROOT/scripts/profiles/drift_check.py"
 [[ -f "$CHECKER" ]] || exit 0
-command -v python3 >/dev/null 2>&1 || exit 0
 
-report="$(python3 "$CHECKER" --update 2>/dev/null)"
+report="$(bash "$REPO_ROOT/hooks/run-python.sh" "$CHECKER" --update 2>/dev/null)"
 code=$?
 
 # 0 clean and 1 cannot-evaluate are both silent: a machine that has run no
