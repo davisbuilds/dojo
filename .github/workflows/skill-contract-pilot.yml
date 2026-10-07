@@ -2,41 +2,9 @@ name: Skill Contract Strict Set
 
 on:
   pull_request:
-    paths:
-      - 'skills/**'
-      - 'scripts/**'
-      - 'bin/**'
-      - 'profiles/**'
-      - 'hooks/**'
-      - 'tests/**'
-      - 'rules/**'
-      - 'docs/system/**'
-      - 'docs/project/**'
-      - 'docs/specs/**'
-      - 'README.md'
-      - 'pyproject.toml'
-      - 'uv.lock'
-      - '.python-version'
-      - '.github/workflows/skill-contract-pilot.yml'
+    types: [opened, synchronize, reopened, edited]
   push:
-    branches:
-      - main
-    paths:
-      - 'skills/**'
-      - 'scripts/**'
-      - 'bin/**'
-      - 'profiles/**'
-      - 'hooks/**'
-      - 'tests/**'
-      - 'rules/**'
-      - 'docs/system/**'
-      - 'docs/project/**'
-      - 'docs/specs/**'
-      - 'README.md'
-      - 'pyproject.toml'
-      - 'uv.lock'
-      - '.python-version'
-      - '.github/workflows/skill-contract-pilot.yml'
+    branches: [main]
 
 permissions:
   contents: read
@@ -66,6 +34,22 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --locked
+
+      - name: Classify retained commits for release automation
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          DOJO_PR_TITLE: ${{ github.event.pull_request.title }}
+          DOJO_PR_BODY: ${{ github.event.pull_request.body }}
+          EVENT_BEFORE: ${{ github.event.before }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            base=$(git merge-base "$BASE_SHA" "$HEAD_SHA")
+            uv run --locked python scripts/check_commit_subjects.py "$base" "$HEAD_SHA"
+          else
+            uv run --locked python scripts/check_commit_subjects.py "$EVENT_BEFORE" "$GITHUB_SHA"
+            uv run --locked python scripts/check_commit_subjects.py --unreleased "$GITHUB_SHA"
+          fi
 
       - name: Run regression tests
         run: |

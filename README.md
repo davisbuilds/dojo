@@ -87,7 +87,9 @@ uv sync --locked
 Typer, Rich) and the dev group (pytest). [`uv.lock`](uv.lock) pins the resolved
 versions and hashes. `.python-version` selects Python 3.12 for local work and CI;
 the tools support Python 3.11+. This is a checkout-based project, not a published
-Python package; its metadata version does not version individual skills.
+Python package. Its version and [root changelog](CHANGELOG.md) cover the CLI and
+tooling; skills retain their own versions. [Release Please](docs/system/OPERATIONS.md#cli-and-tooling-releases)
+proposes version/changelog PRs and creates `dojo-cli-v…` tags after merge and CI.
 
 Use `uv run --locked <command>` for repo tools. Configured Python hooks select
 this checkout's `.venv` explicitly, including in already-running agents. `uv run` can

@@ -141,6 +141,66 @@ No aggregate skill-quality or trust score is produced.
 Pilot goals and acceptance boundaries are recorded in the
 [CLI pilot design](../design/2026-10-06-dojo-cli-pilot.md).
 
+## CLI and tooling releases
+
+`pyproject.toml` owns the CLI/tooling version. Release Please updates it together
+with the root `dojo` entry in `uv.lock`, `.release-please-manifest.json`, and the
+[root changelog](../../CHANGELOG.md). Tags are `dojo-cli-vX.Y.Z`. Skill frontmatter
+versions and per-skill changelogs remain independent; no registry publication or
+automatic update of installed checkouts is configured.
+
+Retained Conventional Commits express tooling compatibility: `fix`, `perf`, and
+`revert` request a patch; `feat` requests a minor; `!` or `BREAKING CHANGE:` requests
+a breaking release. Before 1.0, breaking changes bump the minor too; 1.0 is a
+separate deliberate decision. Other types stay out of generated notes unless
+marked breaking. Review generated changelog entries and the release PR body for
+consumer meaning and migration instructions before merging the release PR.
+
+Use `docs(<skill>): ...` for skill instruction changes, even when the skill's
+own version requires a major bump. Reserve breaking trailers for tooling; record
+skill compatibility in its owning changelog. This applies to PR titles/bodies as
+well as commits, since merge messages reach Release Please. Keep mixed prose and
+tooling changes in coherent commits. Code fixes in shared skill scripts can use
+`fix` normally: excluding all of `skills/` would hide validators used by the CLI.
+The root release stream relies on commit classification, not path filtering.
+
+CI classifies retained commit subjects and rejects release requests whose changes
+are entirely Markdown, the generated catalog, or `skills.json`. It checks PR
+messages before merge and merge messages afterward. This guard catches a common
+mistake; it cannot infer compatibility intent or classify every generated asset.
+Main checks the full unreleased history so a later valid push cannot conceal an
+earlier unclassified commit. To run the checks locally:
+
+```bash
+uv run --locked python scripts/check_commit_subjects.py origin/main HEAD
+uv run --locked python scripts/check_commit_subjects.py --unreleased HEAD
+```
+
+The bootstrap is commit `86daebd07dbfe531addce02caae6b1f625b447b8`, immediately
+before the first CLI implementation. `0.1.0` is an unpublished metadata baseline,
+not a fabricated historical tag. The first feature release is expected to be
+`0.2.0`; its notes include the pilot's actual history. Subsequent runs use real
+releases. Keep the bootstrap available for conservative commit checks between a
+release PR merge and creation of its matching tag.
+
+The [release workflow](../../.github/workflows/release-please.yml) runs after a
+successful same-repository main-push **Skill Contract Strict Set** workflow. CI
+runs on every PR/main push so path filters cannot strand a release. The writer
+checks that main still matches the tested SHA, serializes release mutations, and
+executes no checked-out code or CI artifacts. This preflight is not a lock against
+later pushes. Merging a release PR authorizes its tag and GitHub Release after CI;
+it does not publish to PyPI or install anything on a workstation.
+
+Activation requires a GitHub App installation restricted to this repository, the
+Actions variable `RELEASE_APP_CLIENT_ID`, and secret `RELEASE_APP_PRIVATE_KEY`.
+The workflow requests a repository-scoped token with Contents, Issues, and Pull
+requests write permissions. Store the private key through secret input, never in
+source or command arguments. An App token lets generated release PRs run CI.
+For a stalled release, inspect the main CI/release run, tested SHA, App repository
+access, and these input names; do not create a manual tag to bypass a failed gate.
+Verify the generated version/lockfile diff and automatically started PR CI before
+calling activation complete.
+
 ## Skill Management Commands
 
 ### Create a new skill
