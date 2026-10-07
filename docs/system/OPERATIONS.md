@@ -55,7 +55,10 @@ with `~/.local/bin` on PATH:
 ```bash
 mkdir -p "$HOME/.local/bin"
 ln -s "$PWD/bin/dojo" "$HOME/.local/bin/dojo"
-dojo --help
+dojo -h
+dojo --version
+dojo list research
+dojo info --json
 ```
 
 The launcher resolves symlinks to locate its checkout and selects that checkout's
@@ -70,6 +73,26 @@ repository; `inspect --cwd <directory>` independently selects the Codex invocati
 context. For development in another worktree, call its `bin/dojo` directly after
 running `uv sync --locked` there. Keep the global link pointed at your main
 checkout so deleting a worktree cannot strand it.
+
+`-h` / `--help` works at the root and for every subcommand. Root `-v` / `--version`
+prints the CLI version from the executable checkout's `pyproject.toml` and exits
+without a check or harness probe. This version is separate from individual skills;
+use `info` for the Git revision and dirty state of unreleased checkout changes.
+
+`list [query]` reads `skills.json` from the CLI checkout or `--repo`. Search is a
+case-insensitive literal substring of skill names and descriptions. Results include
+names, versions, descriptions, and source paths; no match is a successful empty
+result. A missing or malformed manifest exits 2 rather than reporting an empty
+catalog. It does not regenerate the manifest, verify freshness, or inspect harness
+exposure. Use `check --repo-checks` for generated-file consistency and `inspect`
+for exposure evidence.
+
+`info` identifies the running CLI's version, checkout, Git revision/dirty state,
+Python interpreter/environment, and installed core dependency versions. It does
+not select another target repository or query harnesses. `list` and `info` support
+`--json` with `schema_version: 1`, `command`, `status`, and `observed_at`, followed
+by command-specific fields. Failures include `error` and exit 2; successful reads
+exit 0. Their output is inventory, not a validation verdict.
 
 `check` reuses the existing strict metadata validator and conservative Markdown
 link checker for the selected skill. `--base` adds the existing release check,
@@ -97,7 +120,7 @@ There are no automatic repairs, model turns, synchronization, or paid evaluation
 `--timeout` bounds each external check (60 seconds by default); on Unix, timed-out
 checks and their descendants are terminated.
 
-JSON schema version 1 contains `command`, `target`, `status`, `observed_at`,
+For `check` and `inspect`, JSON schema version 1 contains `command`, `target`, `status`, `observed_at`,
 `evidence`, `checks`, and `limitations`. Each check has an `id`, `status`, `scope`,
 `source`, and tool-specific `details`. Evidence identifies both tool and target
 checkouts, dirty state, the selected bundle fingerprint, and the resolved Git base

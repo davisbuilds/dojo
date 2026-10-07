@@ -59,7 +59,10 @@ The generated [`skills.json`](skills.json) manifest is the runtime inventory sou
 
 With repository dependencies installed, use `uv run --locked bin/dojo check <skill> --base origin/main`
 for focused packaging/release checks, or `uv run --locked bin/dojo inspect <skill> --harness codex`
-for installed-copy and fresh catalog evidence. Both support `--json` and `--help`.
+for installed-copy and fresh catalog evidence. `dojo list [query]` searches the
+canonical catalog; `dojo info` identifies the running checkout and environment.
+All commands support `--json` and `-h` / `--help`. `dojo -v` / `--version` prints
+the CLI version from `pyproject.toml`, independently of individual skill versions.
 See [operations](docs/system/OPERATIONS.md#dojo-development-cli) for scope and limits.
 
 ## Prerequisites
@@ -97,7 +100,10 @@ To make the checkout available as `dojo` from any directory:
 ```bash
 mkdir -p "$HOME/.local/bin"
 ln -s "$PWD/bin/dojo" "$HOME/.local/bin/dojo"
-dojo --help
+dojo -h
+dojo --version
+dojo list research
+dojo info
 ```
 
 Run this from the checkout you want the command to follow, and ensure
