@@ -120,7 +120,7 @@ Some skills bundle optional dependencies:
 |-------|----------------|----------|
 | `skills/gpt-imagen/` | `openai>=1.0.0`, `Pillow>=10.0.0` | `OPENAI_API_KEY` |
 | `skills/gemini-imagen/` | `google-genai>=1.0.0`, `Pillow>=10.0.0` | `GEMINI_API_KEY` |
-| `skills/design-md/` | `npx` on PATH; pulls `@google/design.md@0.1.1` on first invocation | — |
+| `skills/design-md/` | `npx` on PATH; pulls `@google/design.md@0.4.0` on first invocation | — |
 
 ## Quick Start
 
