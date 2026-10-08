@@ -36,7 +36,7 @@ The four design skills above compose into a pipeline: `design-md` (token spec) â
 | Skill | Purpose |
 |-------|---------|
 | `api-design` | Design, review, or consult API, event, interface, and machine-output contracts during implementation |
-| `loop-design` | Design verifiable autonomous loops on top of `/loop` and `/goal`; gate on an oracle, then scaffold a portable loop bundle (`/loop-design`) |
+| `loop-design` | Design bounded tasks, recurring monitoring, and experiments with appropriate evidence, stopping rules, and recovery; optional portable brief (`/loop-design`) |
 | `brainstorming` | Clarify direction through conversation; save a design summary when useful or requested |
 | `write-spec` | Resolve acceptance decisions or write a requested durable contract; reuse settled targets and retain conditional high-risk readiness |
 | `write-plan` | Plan dependencies, rollout, and proof when needed; accept tickets/conversations and retain conditional high-risk traceability and review |

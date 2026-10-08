@@ -1,105 +1,103 @@
 ---
 name: loop-design
-description: Design a reusable, verifiable autonomous loop on top of harness primitives like /loop and /goal. Use when setting up a recurring, unattended, or overnight agent loop, an automation or cron task, a /loop or /goal run, a Ralph-style while-true loop, or when deciding whether a task SHOULD be looped at all. Agent-agnostic across Claude Code, Codex, and CI. On-demand via /loop-design.
+description: Design bounded agent tasks, recurring monitoring, and iterative experiments. Use when setting up unattended or overnight work, scheduling repeated agent runs, defining loop stopping and recovery behavior, or deciding whether a task benefits from repetition.
 skill-type: workflow
-compatibility: "Requires python3 (standard library only). Scaffolds a loop bundle into the target repo under .loops/ by default. Does not execute the loop — it emits the artifacts a harness runs."
-version: 1.0.4
+compatibility: "Guidance is harness-agnostic. Optional scaffolder requires Python 3; generated check scripts require POSIX sh. Designs loops without launching them or configuring runtime controls."
+version: 2.0.0
 ---
 
 # Loop Design
 
-## Overview
+Make repeated agent work useful, bounded, and recoverable. Start with the user's
+outcome and the actual runtime. A loop may need only a better prompt in an
+existing scheduler or goal mechanism; designing one does not require a bundle,
+a second agent, or a new runner.
 
-This skill sits one floor **above** the harness loop primitives (`/loop`, `/goal`, Codex automations, GitHub Actions, Ralph). It does not replace them and does not run the loop. It does the part the harness leaves to you:
+## Choose what repeats
 
-1. Decide whether a task **should** be a loop (a go/no-go gate built on one question: is there a pass/fail oracle?).
-2. Capture a **portable loop blueprint** that maps onto any harness.
-3. **Scaffold** the concrete files the harness then runs: the iteration prompt, the stop-condition oracle, the on-disk state file, and a separate checker (verifier) config.
+Distinguish the unit of work from the lifetime of the loop:
 
-The guiding rule: `/loop` and `/goal` run the loop; this skill decides whether the loop should exist and hands the harness a verifiable, bounded, portable spec to run.
+| Kind | Evidence and stopping behavior |
+| --- | --- |
+| Bounded task | Work toward an outcome, then stop when adequate evidence supports it. A command may cover part or all of acceptance; a judgment-based result can instead end with a supported conclusion or a reviewable proposal. |
+| Recurring monitor | Each run observes a defined scope, reports meaningful change, and ends. A healthy or unchanged sample is a successful run, not a reason to disable the schedule. Define unavailable/partial data, alert deduplication, and when the schedule expires or is cancelled. |
+| Iterative experiment | Compare candidates with a baseline under a bounded budget. Preserve negative and inconclusive results. Separate measurement, candidate selection, and permission to adopt or deploy. |
 
-**This skill builds *closed* loops.** A closed loop is bounded: a defined goal, a deterministic oracle at the stop, scoped credentials, and a point where it hands back to you. Its opposite is an *open* (exploratory) loop that roams a goal with no fixed stop — powerful, but it burns tokens fast and, pointed at loose standards, becomes a slop machine. Start closed; only open up once the gates below are trustworthy. Everything here assumes closed.
+Combine these only when the task needs it, keeping each stopping rule clear.
+Prefer a single invocation or an existing wait/notification tool when that
+already resolves the task. Don't turn an unclear request into indefinite work;
+resolve the missing outcome or bound the exploration.
 
-## When To Use
+## Set the contract at the uncertain boundaries
 
-Use this skill when:
-- setting up a recurring, unattended, or overnight agent loop (automation, cron, `/loop`, `/goal`, Ralph)
-- deciding whether a task is even loop-shaped, or should stay an interactive prompt
-- you want one loop definition that runs the same way in Claude Code and Codex
-- a previous loop burned tokens, declared victory early, or shipped unread code and you need guardrails
-- you are about to point a scheduler at a raw prompt with no stop condition
+Reuse decisions and authorization already established. Clarify only what would
+change execution:
 
-Skip this skill when:
-- the task is a single interactive turn (`write-plan` or just prompt directly)
-- you want to run one end-to-end feature cycle to a PR rather than a recurring loop
+- **Evidence:** what observation supports the outcome, from which target and
+  scope? Distinguish failed acceptance from a failed command or unavailable data.
+  When correctness matters, use evidence capable of contradicting the agent's
+  report. A separate reviewer helps with judgment gaps; it is not mandatory for
+  every run and does not establish isolation.
+- **Limits:** where must this run stop, pause, or hand back? Choose relevant
+  time, iteration, spend, or retry bounds and name their runtime enforcement.
+  A limit reached means incomplete or inconclusive, not success. Repeated
+  failure warrants retry only with a useful new approach or a known transient
+  condition; an unchanged monitoring sample can be entirely normal.
+- **Authority:** which reads, writes, credentials, and external effects are
+  allowed? Keep evaluation criteria from being weakened merely to improve a
+  result. Prompt constraints and Git diffs can reveal mistakes but cannot
+  restrict a process's permissions. Use actual runtime controls where a boundary
+  must hold, and verify them before relying on them unattended.
+- **Continuation:** where can the next run recover current state, remaining
+  budget, and in-flight operations? Reuse harness state or job records. After a
+  timeout, inspect whether a mutation completed before retrying it; use operation
+  IDs, idempotency, or reconciliation as the application permits.
 
-## The Go/No-Go Gate (do this first)
+## Fit the runtime
 
-A loop is only worth building when its progress can be checked without you. Before anything else, answer:
+Inspect available scheduling, task, waiting, cancellation, and notification
+capabilities before adding shell machinery. Confirm what survives an ended turn,
+what actually wakes an agent, and how overlapping runs are handled. Worktrees
+separate edits; they do not isolate credentials or shared services.
 
-1. **Is there an oracle?** Can "done" be expressed as a command that exits 0 (tests, lint, type-check, a metric threshold)? **If no → stop. This is not a loop. Keep prompting interactively.**
-2. **Is that oracle deterministic?** Run it ~10× on one unchanged state — same exit code every time? A flaky oracle is *worse* than none: it breaks the stop condition in both directions (the loop fixes what isn't broken, or stops on what is). **If flaky → fix the oracle first, then build the loop.** (`./verify.sh --selftest` does this check.)
-3. **Is the maker graded by something other than itself?** If no → the blueprint must add a fresh-context checker.
-4. **Are credentials scoped and spend capped?** If no → do not let it run unattended.
-5. **Will the diffs actually be read?** If no → the loop is buying comprehension debt at interest.
+Read `references/harness-bindings.md` when connecting the design to a runtime.
+It lists the properties to establish rather than assuming a particular slash
+command exists or has identical behavior across harnesses. Report unconfigured
+controls plainly. Do not infer enforcement from a budget or sandbox label in a
+JSON file.
 
-Gate 1 is hard. The scaffolder refuses to emit a bundle without a `done_when` command, by design. See `references/blueprint-spec.md` for the full rationale and failure modes.
+Retain a compact current checkpoint when existing state is insufficient: latest
+result and evidence, unresolved uncertainty, next action, and relevant operation
+references. Keep history in existing logs or linked artifacts. A fresh run
+shouldn't need to reconstruct its direction from an ever-growing diary.
 
-## Workflow
+## Optional scaffold
 
-1. **Gate.** Run the five go/no-go questions above. If gate 1 fails, report why this should not be a loop and stop.
-2. **Draft the blueprint.** Fill the schema in `references/blueprint-spec.md`: `name`, `goal`, `done_when` (the oracle), `constraints`, `protected_paths` (the cheap reward-hacking gate), `cadence`, `harness`, `checker`, and `sandbox` (mode / creds / budget). Reuse `test-strategy` to design the oracle and `verify-before-complete` for stop semantics.
-   - **Estimate the cost before launch.** Run the task by hand once and note the tokens/steps for one iteration; the upper bound is roughly `max_iterations × per-iteration cost` (stateless keeps this ~linear, not quadratic). If that number is alarming, lower `max_iterations` or split the task — don't launch and hope.
-3. **Scaffold the bundle.** Run the scaffolder to write the loop files:
+Directly edit the existing runtime prompt when sufficient. If a portable brief
+would help a future executor, read `references/blueprint-spec.md` and use:
 
-   ```bash
-   python3 <skill-dir>/scripts/scaffold_loop.py --blueprint <blueprint.json> --out-dir .loops/<name>
-   ```
+```bash
+python3 <skill-dir>/scripts/scaffold_loop.py --blueprint <blueprint.json> --out-dir .loops/<name>
+```
 
-   Or pass the essentials directly with `--name`, `--goal`, `--done-when`, `--harness`. The script writes `LOOP.md`, `verify.sh`, `guard.sh`, `progress.md`, `verifier.md`, `BINDINGS.md`, and a normalized `blueprint.json`.
-4. **Bind to the harness.** Wire the bundle into the chosen harness using `BINDINGS.md` (generated) and `references/harness-bindings.md`. Put the checker in `.claude/agents/` or `.codex/agents/*.toml`.
-5. **Dry-run once, attended.** First confirm the oracle is deterministic: `./verify.sh --selftest`. Then run a single iteration with you watching. Confirm `verify.sh` reports done correctly, `guard.sh` trips when you deliberately edit a protected path, and the checker actually rejects a bad result. Only then let it run unattended.
-6. **Hand off.** Point out the budget caps and where state lives. The loop owner reads diffs; the loop does not get to self-certify.
+Substitute the directory this skill was loaded from. The schema-2 scaffolder
+writes `LOOP.md` and `blueprint.json`, with opt-in `checkpoint.md` and `check.sh`.
+It refuses existing output paths and v1 blueprints. It executes no check and
+installs no scheduler, checker, hooks, or controls. Migration guidance is in the
+reference; preserve existing run state when changing a live loop.
 
-## Boundaries
+## Validate and deliver
 
-- Not a loop runtime. It does not re-invoke on a cadence or spawn a grader model — `/loop`, `/goal`, automations, and CI do that. This emits what they run.
-- Not a single-feature workflow. This designs the recurring/unattended loop around such work, not one plan→implement→review→PR cycle.
-- Not a test designer. Use `test-strategy` to build the oracle; this skill only requires that one exists.
-- Do not name the generated command or any artifact `/loop` or `/goal` — those collide with harness primitives.
-- Do not scaffold a loop with no `done_when`. A loop without an oracle is an unsupervised process with your credentials.
+Choose evidence for the risk introduced. For a new unattended mutation, exercise
+one bounded run and the relevant stopping, failure, and recovery behavior before
+relying on it. Reuse applicable runtime proof for an unchanged mechanism. A
+read-only monitor may need only a representative observation, an unavailable-data
+case, and confirmation that the result reaches its consumer. For noisy
+experiments, assess variation and comparison validity; repeating a command a
+fixed number of times does not prove determinism or correctness.
 
-## Output
-
-- A loop bundle under `.loops/<name>/` (or a chosen path):
-  - `LOOP.md` — the iteration prompt the agent reads every cycle (memory-on-disk, oracle, constraints, guardrails)
-  - `verify.sh` — the stop-condition oracle (exit 0 == done); the single source of truth for completion. `--selftest` checks it for flakiness.
-  - `guard.sh` — the cheap, always-on reward-hacking gate (fails if a protected path changed); run before the oracle each iteration
-  - `progress.md` — the on-disk state file (with a machine-readable `.loop_log.jsonl` companion for diagnosis)
-  - `verifier.md` — a separate-context checker config (maker ≠ checker)
-  - `BINDINGS.md` — concrete wiring for the chosen harness
-  - `blueprint.json` — the normalized, portable loop definition
-- A go/no-go verdict when a task is judged not loop-shaped, with the reason.
-
-## Verification
-
-- Gate 1 is enforced: `scaffold_loop.py` exits non-zero with a clear message when no `done_when` is provided.
-- The generated `verify.sh` is executable and runs the exact `done_when` command; `./verify.sh --selftest` confirms it is deterministic before the loop runs.
-- `guard.sh` exits non-zero when a protected path is modified, added, or deleted (tracked or untracked).
-- An attended dry-run shows `verify.sh` exits 0 only when the goal is genuinely met, and the checker rejects a deliberately weakened result.
-- `python3 skills/skill-evals/scripts/validate_skill_contract.py --skills loop-design --strict` passes.
-
-## Resources
-
-- `references/blueprint-spec.md` — the blueprint schema, the go/no-go gate rationale, guardrails (sandbox/creds/budget), the on-disk state schema, the reward-hacking gate vs. judge, the observability/circuit-breaker contract, and the maker/checker pattern.
-- `references/harness-bindings.md` — how one blueprint maps to Claude Code, Codex, GitHub Actions, and Ralph.
-- `scripts/scaffold_loop.py` — emits the loop bundle from a blueprint; enforces the oracle gate.
-- `assets/templates/` — the `LOOP.md`, `verify.sh`, `guard.sh`, `progress.md`, and `verifier.md` templates the scaffolder fills.
-- `commands/loop-design.md` — the `/loop-design` command wrapper.
-
-## Sibling skills
-
-- `test-strategy` — designs the oracle (tests) that the loop verifies against.
-- `verify-before-complete` — the evidence-based "done" semantics the oracle enforces.
-- `local-review` — what the checker (verifier) step calls.
-- `handoff` — the state-on-disk pattern this skill applies to the loop's `progress.md`.
+Return the useful design or requested implementation, where it runs, how it
+stops and resumes, and any unresolved control or evidence gap. Design work does
+not authorize launch, broader credentials, deployment, or publication. Consult
+`test-strategy` or `verify-before-complete` for a specific evidence gap without
+inheriting their entire workflow.

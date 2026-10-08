@@ -79,18 +79,12 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   with the same harness/repo controls. Assess outcomes, authority boundaries,
   unnecessary artifacts/stops, context cost, and time. Prioritize remaining
   skills from observed friction; do not infer low value from invocation counts.
-- **Deferred knowledge-capture follow-up, 2026-09-23**: `loop-design`'s progress
-  template and iteration instructions emphasize accumulating log entries. Consider
-  a compact current checkpoint (next action, unresolved failure, latest evidence)
-  alongside the existing history log. This affects generated runtime instructions
-  and needs a separate review and resumption check; do not infer a runtime failure
-  from the template review alone.
 - **Revisit when**: a candidate is selected, real usage exposes more friction,
   experimental results arrive, or model/tool changes warrant recalibration.
 
 ### Remaining command permission patterns hardcode dojo-relative paths
 
-- **What**: `local-review`, `repo-hardening`, and `loop-design`
+- **What**: `local-review` and `repo-hardening`
   command wrappers still declare literal `Bash(... skills/<name>/...)` prefixes.
   Their runnable bodies use installed absolute paths, which these matchers do not
   cover. Observed in source on 2026-10-03; effective behavior is harness-dependent.

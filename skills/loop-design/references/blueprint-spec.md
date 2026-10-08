@@ -1,111 +1,110 @@
-# Loop Blueprint Spec
+# Optional Loop Blueprint
 
-The blueprint is the portable, harness-agnostic definition of one loop. It is the thing you design; the scaffolder turns it into files a harness runs.
+Use a blueprint when a portable execution brief serves a consumer. An existing
+runtime prompt, task record, or scheduler configuration may already be sufficient.
+The scaffolder writes instructions, not an enforcement layer or a runtime.
 
-## Schema
+## Schema 2
+
+Required fields are `schema_version: 2`, `name`, `kind`, `goal`, `evidence`, and
+`stop_when`. Except for the integer version, these are nonempty strings. Unknown
+fields are rejected to catch typos and obsolete control declarations.
+
+| Field | Meaning |
+| --- | --- |
+| `name` | Lowercase letters/digits separated by single hyphens; at most 64 characters. Used for the default `.loops/<name>` directory. |
+| `kind` | `task`, `monitor`, or `experiment`. Selects the interpretation reminder in the generated prompt. |
+| `goal` | Intended outcome or useful observation. |
+| `evidence` | How to assess the result, including coverage, uncertainty, and any acceptance or review needed. |
+| `stop_when` | Relevant completion, run limits, cancellation, and escalation conditions. Text describing them does not enforce them. |
+| `authority` | Optional scope of authorized actions. Defaults to read-only, with no external writes, publication, or dispatch. Supply the actual previously authorized scope for mutating work. |
+| `runtime` | Optional runner, cadence, enforcement, state, and delivery wiring. Defaults explicitly to unconfigured. |
+| `constraints` | Optional array of task-specific instructions. Defaults to empty; project guidance still applies. |
+| `checkpoint` | Optional boolean, default false. Generates a compact `checkpoint.md` when existing runtime state is insufficient. |
+| `check` | Optional object containing exactly `command` and `cwd`, both nonempty strings. `cwd` must be an existing absolute directory on this host. Generates `check.sh`; shell text is intentional executable code, not validated as safe by the scaffolder. |
+
+Example: a monitor with a finite schedule, no completion command, and explicit
+unavailable-data handling. Replace the illustrative runtime with actual wiring
+before running it:
 
 ```json
 {
-  "name": "auth-test-fixer",
-  "goal": "All tests under test/auth pass and the linter is clean.",
-  "done_when": "pytest test/auth -q && ruff check .",
-  "cadence": "until-done",
-  "harness": "claude-code",
-  "constraints": [
-    "Never edit, delete, or skip tests to make the oracle pass.",
-    "Keep each iteration's diff under ~200 lines."
-  ],
-  "protected_paths": ["test/", "tests/"],
-  "state_file": "progress.md",
-  "checker": {
-    "enabled": true,
-    "model": "different",
-    "instructions": "Reject premature 'done', weakened tests, abstraction bloat, or dead code."
-  },
-  "sandbox": {
-    "mode": "container",
-    "creds": "staging-only / least-privilege",
-    "network": "none",
-    "budget": { "max_iterations": 20, "per_run_steps": 50, "daily_usd": 50 }
-  }
+  "schema_version": 2,
+  "name": "deployment-monitor",
+  "kind": "monitor",
+  "goal": "Track the selected deployment until the end of the observation window.",
+  "evidence": "Read the deployment's authoritative status by ID. Report transitions once. Treat denied, missing, or partial data as unavailable, never healthy.",
+  "stop_when": "End each observation after its result or 60 seconds. Expire the schedule after 30 minutes or on cancellation; report final coverage.",
+  "authority": "Read deployment state and report in the requesting session. No repairs or external messages.",
+  "runtime": "Not wired yet: select an available scheduler with per-run timeout, expiry, no overlapping runs, and delivery to the requesting session.",
+  "checkpoint": true
 }
 ```
 
-### Fields
+For a **task**, evidence might be a reproducer passing on the changed revision
+plus inspection of the affected behavior; a limit must still yield an incomplete
+report if acceptance is unmet. For an **experiment**, evidence might compare
+latency and correctness against a recorded baseline on the same workload; stopping
+after the trial budget preserves the best candidate without adopting it.
+These descriptions need concrete task details, not a universal pass/fail oracle.
 
-| Field | Required | Meaning |
-|---|---|---|
-| `name` | yes | Slug for the loop; names the bundle dir and artifacts. |
-| `goal` | yes | One sentence a fresh agent can act on. |
-| `done_when` | **yes** | The oracle: a shell command that exits 0 only when the goal is met. No field matters more. |
-| `cadence` | no | `until-done`, `interval:<dur>`, `cron:'<expr>'`, or `on-demand`. Default `until-done`. |
-| `harness` | no | `claude-code`, `codex`, `github-actions`, `ralph`, or `all`. Default `claude-code`. |
-| `constraints` | no | Hard rules the maker must not violate. Always include the "don't weaken tests" rule. |
-| `protected_paths` | no | Paths the maker must not touch — the cheap reward-hacking gate (`guard.sh`). Defaults to `test/`, `tests/`. Harmless if absent. |
-| `state_file` | no | On-disk memory the loop reads/writes each iteration. Default `progress.md`. |
-| `checker` | no | The verifier (a separate agent/context). Strongly recommended; on by default. |
-| `sandbox` | no | `mode` (container/codespace/host), `creds`, `network` (`none` for prompt-injection defense), and `budget` caps (`max_iterations`, `per_run_steps`, `daily_usd`). |
+## Invocation and output
 
-## The Go/No-Go Gate (why `done_when` is mandatory)
+```bash
+python3 <skill-dir>/scripts/scaffold_loop.py --blueprint <blueprint.json> --out-dir .loops/<name>
+```
 
-The single variable that decides whether a loop works is: **can the loop verify itself without you?** Across Willison, Anthropic, and Osmani the consensus is identical — agentic loops shine on problems with *clear success criteria where finding a solution requires trial-and-error*, and they fail without that signal.
+The brief can also be supplied through `--name`, `--kind`, `--goal`, `--evidence`,
+`--stop-when`, `--authority`, and `--runtime`; `--checkpoint` opts in to the state
+file. CLI fields override the JSON file. File input must declare schema 2; direct
+CLI input uses schema 2. `--help` describes the arguments.
 
-So the gate is five questions, in order:
+The default output is `LOOP.md` and the effective `blueprint.json`. Optional
+files are `checkpoint.md` and `check.sh`. The output path must be new, even if an
+existing directory is empty. There is no force-overwrite option: regenerating
+must not erase recovery state or leave obsolete executables next to new guidance.
 
-1. **Is there an oracle?** "Done" must be a command that exits 0. If you cannot write it, the task is not loop-shaped — keep prompting interactively. The scaffolder enforces this: no `done_when`, no bundle.
-2. **Is the oracle deterministic?** Run it ~10× on one unchanged state; every run must agree (`./verify.sh --selftest`). A flaky oracle is worse than none — it breaks the stop condition both ways: the loop "fixes" what isn't broken, or stops on what is. If it flakes, fix the oracle (quarantine the flaky test, pin the seed, stub the clock/network) *before* building the loop. This is the step almost everyone skips.
-3. **Maker ≠ checker?** The model that wrote the code grades its own homework too generously — its own output is a high-probability continuation, so it systematically overrates correctness. A fresh-context verifier (ideally a different model) is the only reason walking away is safe. This is the same maker/checker split `/goal` uses internally to decide its own stop condition.
-4. **Scoped creds + spend caps?** An unattended loop is also an unattended mistake-maker. Narrow credentials to staging, hard-cap spend, and (in container mode) cut outbound network (`--network none`) — the blast-radius defense if untrusted task text or code carries a prompt injection.
-5. **Will you read the diffs?** A smooth loop grows the gap between code that exists and code you understand (comprehension debt) faster, not slower.
+`check.sh` runs the supplied command **once** through POSIX `sh` in the declared
+absolute directory, preserving stdout, stderr, and exit status. It has no timeout
+or retry logic; the caller owns those. Missing working directories fail before
+the command executes. Commands requiring another shell must invoke it explicitly.
+Moving the bundle to another host requires revisiting its recorded paths.
+Scaffolding never executes the command. Inspect its effects and authorization
+before running it; a verification command can itself mutate data or incur cost.
 
-## Documented failure modes the blueprint defends against
+A zero exit means only what the command's contract establishes. The evidence
+criteria must distinguish task acceptance, a healthy monitoring sample, a valid
+measurement, and unavailable evidence. An identical failure message on two runs
+does not by itself establish a stall. More matching results do not by themselves
+establish determinism.
 
-| Failure | Cause | Blueprint defense |
-|---|---|---|
-| "Declare victory early" | No explicit oracle | `done_when` + `verify.sh`; agent may not self-certify |
-| Flaky stop condition (stops on red / loops on green) | Non-deterministic oracle | `verify.sh --selftest`; gate question 2 |
-| Weakened/deleted tests (reward hacking) | Oracle pressure | `protected_paths` + `guard.sh` (cheap, always-on) **plus** checker; not the prompt constraint alone |
-| The last 20% (assumption propagation, abstraction bloat, dead code) | Conceptual errors compound unattended | checker reads the diff; small per-iteration increments |
-| Runaway token spend | Loop left running | `budget` caps (`max_iterations`, per-run steps, daily USD) |
-| Stuck / random walk (spins, never converges) | No progress detection | repeat-detector: same first failure twice → stop for a human (see Observability) |
-| Lost context between runs | Memory in conversation, not on disk | `state_file` read first every iteration |
-| Silent death | Iteration hangs / context fills | heartbeat marker + structured log (see Observability) |
-| Exfiltration / destructive commands | YOLO auto-approve | `sandbox.mode` + scoped `creds` + `network: none` |
+## Migrating a v1 bundle
 
-## Reward hacking: the cheap gate vs. the judge
+Version 2 changes the workflow and generated-file contract. Existing v1 bundles
+continue to be files under their original runner; updating the skill does not
+migrate, stop, or reschedule them. Pause an affected runner before switching its
+inputs, preserve its current checkpoint and any in-flight operation references,
+and inspect its actual configuration.
 
-The model will try to fool the oracle — not from malice but from optimization. If the only goal is a green check, the cheapest path to green is often breaking the check, not fixing the code: delete an assert, mock the logic, hardcode the expected value. Defend in three layers, cheapest first:
+- Replace `done_when` with explicit `evidence` and `stop_when`; optionally move
+  its command into `check.command` with an explicit `check.cwd`. Do not reinterpret
+  a health check as whole-schedule completion.
+- Replace `cadence` and `harness` with the actual `runtime` wiring. Replace
+  `sandbox` declarations with real runtime controls and the `authority` scope;
+  a configured-looking label is not proof those controls were ever active.
+- Use `checkpoint: true` only if the runtime lacks sufficient state. Summarize
+  the old `state_file` into current facts and evidence references; retain useful
+  history without making the next run reread it all.
+- Move applicable checker criteria into `evidence` and retain an independently
+  wired reviewer when the task warrants one. There is no generated `verifier.md`.
+- `protected_paths`, `guard.sh`, `verify.sh --selftest`, and generated `BINDINGS.md`
+  are retired. A writable Git-status script was neither containment nor proof
+  of cheating. If path-change detection is needed, use a trusted baseline and
+  a check that reports detector errors; committed changes must also be covered.
+  Permissions belong to the runtime, not to an agent-editable gate.
 
-1. **The prompt constraint** ("never weaken the tests"). The *weakest* layer — the maker talks itself past it under pressure. Necessary, not sufficient.
-2. **`guard.sh` — a deterministic gate the maker does not control.** It fails the iteration if any `protected_paths` entry changed (tracked edit/delete or new untracked file, via `git status --porcelain`). Near-free, always-on, runs before the oracle. This is the layer that actually holds, because the maker cannot satisfy the goal by editing what it is forbidden to touch.
-3. **The judge (checker).** A different-model agent that reads the diff for *substance* — did the oracle go green because the code was fixed, not because its checks were gutted? Expensive (a second model per turn), so reserve it for that judgement and keep the deterministic gate always on.
-
-Keep the cheap gate on by default and spend the judge where a second opinion is worth paying for.
-
-## Observability and circuit breakers
-
-A loop running unattended is also a loop *failing* unattended. Budget caps stop a runaway but tell you nothing about *why* a loop died. Make every iteration leave a trace so a human can diagnose it in the morning:
-
-- **Structured log.** Each iteration appends one JSON line to `.loop_log.jsonl` (`ts`, `iter`, `event`, and the first failing check). After a dead loop you grep this and see the shape immediately.
-- **Heartbeat.** Write `iter=<n> ts=<unix>` to a liveness file at the top of each iteration. A stale heartbeat with no new events is a *silent death* (a hung step or a context that filled).
-- **Repeat-detector (circuit breaker).** If the oracle's first failure is identical to the previous iteration's, the loop is stuck / walking in circles. Stop and call a human rather than burning the budget retrying the same fix. Budget caps do not catch this — only progress detection does.
-
-The four ways loops die map onto these signals: **runaway** (many iterations, no green → iteration/budget cap), **silent death** (heartbeat stops → liveness marker), **random walk / stuck** (failure repeats or churns, never converges → repeat-detector + a real fixpoint oracle), and **understanding debt** (repo grows past what you've read — invisible in any log; the only defense is your discipline to read the diffs).
-
-The skill bakes the per-iteration log line, the stop-when-stuck rule, and the heartbeat reminder into `LOOP.md`. The *enforcement* (counting iterations, killing on a stale heartbeat) lives in the runner you wire up — `/loop`, `/goal`, an Action, or a Ralph `while` — not in this skill, which is not a runtime.
-
-## On-disk state schema
-
-The repo, not the conversation, is the loop's memory. Every iteration:
-
-1. Read `state_file` and `git log --oneline -10` to recover context.
-2. Do the smallest next increment; commit with a descriptive message.
-3. Run the oracle. If exit 0, append a final `DONE` entry and stop.
-4. Otherwise append `tried / passed / still-open` to `state_file` and end the iteration.
-
-Git commits are the checkpoints; the state file is the human-readable summary; the oracle is the truth.
-
-## Maker / checker pattern
-
-- **Maker**: one iteration of the loop. Writes code, runs `guard.sh` then the oracle, updates state.
-- **Checker (verifier)**: a separate agent with a clean context. Re-runs `guard.sh` and the oracle (does not trust a reported result), reads the diff for weakened tests / bloat / dead code, spot-reads the riskiest file, and returns `pass | reject` with evidence. Wire it as a Claude Code subagent (`.claude/agents/`, optionally `isolation: worktree`) or a Codex agent (`.codex/agents/*.toml`). The checker step can call `local-review`.
+Generate into a new directory, transfer the necessary current state, update all
+runner references, and check the changed behavior before resuming. Keep prior
+run evidence where it has a consumer; ordinary recoverable source need not be
+copied into backup directories. The scaffolder rejects v1 input rather than
+silently dropping old fields or pretending their controls were migrated.

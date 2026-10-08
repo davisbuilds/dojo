@@ -1,241 +1,145 @@
 #!/usr/bin/env python3
-"""Scaffold a loop bundle from a blueprint.
+"""Write an optional loop brief; never run commands or configure a runtime.
 
-This emits the concrete files a harness runs (LOOP.md, verify.sh, progress.md,
-verifier.md, BINDINGS.md, blueprint.json). It does NOT run the loop.
-
-The oracle gate is enforced here: a blueprint without a non-empty `done_when`
-is refused, because a loop without a verifiable stop condition is not a loop.
-
-Standard library only.
+Schema 2 supports bounded tasks, recurring monitors, and experiments. Evidence
+and stopping rules are separate; a successful check is not automatically done.
+Standard library only. Shell checks require POSIX sh on the execution host.
 """
 from __future__ import annotations
 
 import argparse
 import json
-import os
-import stat
-import sys
 from pathlib import Path
+import re
+import shlex
+import sys
 
-TEMPLATES = Path(__file__).resolve().parent.parent / "assets" / "templates"
-
-DEFAULTS = {
-    "cadence": "until-done",
-    "harness": "claude-code",
-    "state_file": "progress.md",
-    "constraints": ["Never edit, delete, or skip tests to make the oracle pass."],
-    # Cheap, always-on reward-hacking gate (guard.sh): the maker must not satisfy
-    # the oracle by editing these paths. Defaults to the usual test dirs; harmless
-    # if they do not exist (the gate is a no-op when nothing matches).
-    "protected_paths": ["test/", "tests/"],
-    "checker": {
-        "enabled": True,
-        "model": "different",
-        "instructions": (
-            "Review the diff against the goal, constraints, and oracle output. "
-            "Reject premature 'done', weakened tests, abstraction bloat, or dead code."
-        ),
-    },
-    "sandbox": {
-        "mode": "container",
-        "creds": "staging-only / least-privilege",
-        # network: "none" hard-cuts outbound traffic — the blast-radius defense
-        # against prompt injection in untrusted task text / code the loop reads.
-        "network": "none",
-        "budget": {"max_iterations": 20, "per_run_steps": 50, "daily_usd": 50},
-    },
+TEMPLATES = Path(__file__).resolve().parent.parent / 'assets' / 'templates'
+KINDS = {
+    'task': 'Finish only when the evidence supports the goal; report incomplete work at a limit.',
+    'monitor': 'A healthy sample ends this run, not the schedule. Distinguish no change from unavailable data.',
+    'experiment': 'Compare with the baseline and retain the result, including negative results. A better score alone does not authorize adoption.',
 }
-
-HARNESS_BINDINGS = {
-    "claude-code": (
-        "## Claude Code\n\n"
-        "- `until-done`: run `/goal` with the contents of `LOOP.md` as the objective and "
-        "\"stop when `./verify.sh` exits 0\" as the condition (a separate model grades the stop).\n"
-        "- `interval:<dur>`: `/loop <dur> \"read LOOP.md and run exactly one iteration\"`.\n"
-        "- `cron:'<expr>'`: a `/schedule` routine running the same one-iteration prompt.\n"
-        "- Checker: place `verifier.md` at `.claude/agents/{name}-verifier.md` with `isolation: worktree`.\n"
-        "- Isolation: run the maker with `--worktree` so parallel loops never collide.\n"
-    ),
-    "codex": (
-        "## Codex\n\n"
-        "- Scheduled: Automations tab -> project + prompt \"read LOOP.md, run one iteration\" + cadence, "
-        "running on a worktree. Findings go to the Triage inbox.\n"
-        "- `until-done`: `/goal` works across turns to a verifiable stop, with pause/resume.\n"
-        "- Reusable method: wrap the iteration prompt as a skill (`$skill`). Skills define the method, "
-        "automations define the schedule.\n"
-        "- Checker: `.codex/agents/{name}-verifier.toml` (instructions from `verifier.md`, optional stronger model).\n"
-    ),
-    "github-actions": (
-        "## GitHub Actions\n\n"
-        "- `on: schedule: cron` workflow checks out the repo and runs the agent headless:\n"
-        "  - Claude Code: `claude -p \"$(cat .loops/{name}/LOOP.md)\"`\n"
-        "  - Codex: `codex exec \"$(cat .loops/{name}/LOOP.md)\"`\n"
-        "- The job runs `verify.sh`; exit 0 -> open/label a PR, else commit progress and exit so the next run resumes.\n"
-        "- Use repository/environment secrets scoped to staging. Hard-cap spend.\n"
-    ),
-    "ralph": (
-        "## Ralph (bring your own runner)\n\n"
-        "```bash\n"
-        "# from inside .loops/{name}/\n"
-        "while :; do\n"
-        "  <agent> -p \"$(cat LOOP.md)\"   # fresh context each pass; memory is the repo\n"
-        "  ./verify.sh && break           # the oracle is the only exit\n"
-        "done\n"
-        "```\n\n"
-        "This skill does not ship the runner (that duplicates /loop and the ralph-wiggum plugin). "
-        "Only loop with a real oracle, and add the checker before running unattended.\n"
-    ),
+FIELDS = {
+    'schema_version', 'name', 'kind', 'goal', 'evidence', 'stop_when',
+    'authority', 'runtime', 'constraints', 'checkpoint', 'check',
 }
 
 
-def deep_merge(base: dict, over: dict) -> dict:
-    out = dict(base)
-    for k, v in over.items():
-        if isinstance(v, dict) and isinstance(out.get(k), dict):
-            out[k] = deep_merge(out[k], v)
-        elif v is not None:
-            out[k] = v
-    return out
+def require_text(data: dict, key: str) -> str:
+    value = data.get(key)
+    if not isinstance(value, str) or not value.strip() or '\x00' in value:
+        raise ValueError(f'{key} must be nonempty text without NUL characters')
+    return value
 
 
-def load_blueprint(args: argparse.Namespace) -> dict:
-    bp: dict = {}
-    if args.blueprint:
-        bp = json.loads(Path(args.blueprint).read_text(encoding="utf-8"))
-    # CLI overrides win over the file.
-    overrides = {
-        k: v
-        for k, v in {
-            "name": args.name,
-            "goal": args.goal,
-            "done_when": args.done_when,
-            "cadence": args.cadence,
-            "harness": args.harness,
-        }.items()
-        if v is not None
-    }
-    bp = deep_merge(DEFAULTS, deep_merge(bp, overrides))
+def validate(bp: object) -> dict:
+    if not isinstance(bp, dict):
+        raise ValueError('blueprint must be a JSON object')
+    if type(bp.get('schema_version')) is not int or bp['schema_version'] != 2:
+        raise ValueError('schema_version must be 2; see references/blueprint-spec.md for migration from v1')
+    unknown = bp.keys() - FIELDS
+    if unknown:
+        raise ValueError(f'unknown fields: {", ".join(sorted(unknown))}; see references/blueprint-spec.md for migration')
+    bp = dict(bp)
+    name = require_text(bp, 'name')
+    if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', name) or len(name) > 64:
+        raise ValueError('name must be a lowercase slug of at most 64 characters')
+    if require_text(bp, 'kind') not in KINDS:
+        raise ValueError('kind must be task, monitor, or experiment')
+    for key in ('goal', 'evidence', 'stop_when'):
+        require_text(bp, key)
+    bp.setdefault('authority', 'Read-only. No external writes, publication, or dispatch authorized by this brief.')
+    bp.setdefault('runtime', 'Unconfigured: choose the runner and wire its limits, cancellation, state, and reporting before execution.')
+    for key in ('authority', 'runtime'):
+        require_text(bp, key)
+    bp.setdefault('constraints', [])
+    if not isinstance(bp['constraints'], list):
+        raise ValueError('constraints must be an array of nonempty strings')
+    for constraint in bp['constraints']:
+        require_text({'constraint': constraint}, 'constraint')
+    bp.setdefault('checkpoint', False)
+    if type(bp['checkpoint']) is not bool:
+        raise ValueError('checkpoint must be true or false')
+    if 'check' in bp:
+        check = bp['check']
+        if not isinstance(check, dict) or check.keys() != {'command', 'cwd'}:
+            raise ValueError('check must contain exactly command and cwd')
+        require_text(check, 'command')
+        cwd = Path(require_text(check, 'cwd'))
+        if not cwd.is_absolute() or not cwd.is_dir():
+            raise ValueError('check.cwd must be an existing absolute directory on this host')
+        bp['check'] = {**check, 'cwd': str(cwd.resolve())}
     return bp
 
 
-def require(bp: dict, key: str) -> str:
-    val = bp.get(key)
-    if val is None or str(val).strip() == "":
-        raise SystemExit(
-            f"[loop-design] Missing required field '{key}'. "
-            "Provide it in the blueprint or via the matching flag."
-        )
-    return str(val).strip()
+def render(template: str, mapping: dict[str, str]) -> str:
+    # One pass: user text resembling a placeholder remains literal.
+    source = (TEMPLATES / template).read_text(encoding='utf-8')
+    return re.sub(r'\{\{([A-Z_]+)\}\}', lambda match: mapping[match[1]], source)
 
 
-def enforce_oracle(bp: dict) -> None:
-    dw = bp.get("done_when")
-    if dw is None or str(dw).strip() == "":
-        raise SystemExit(
-            "[loop-design] GATE FAILED: no `done_when` oracle.\n"
-            "A loop needs a verifiable stop condition: a command that exits 0 only when the goal is met.\n"
-            "If you cannot write one, this task is not loop-shaped -- keep prompting interactively.\n"
-            "Refusing to scaffold an unverifiable loop."
-        )
-
-
-def render(template_name: str, mapping: dict) -> str:
-    text = (TEMPLATES / template_name).read_text(encoding="utf-8")
-    for key, value in mapping.items():
-        text = text.replace("{{" + key + "}}", value)
-    return text
-
-
-def build_mapping(bp: dict) -> dict:
-    constraints = bp.get("constraints") or DEFAULTS["constraints"]
-    constraints_md = "\n".join(f"- {c}" for c in constraints)
-    budget = (bp.get("sandbox") or {}).get("budget") or {}
-    checker = bp.get("checker") or {}
-    protected = bp.get("protected_paths") or []
-    # Bash array literal, e.g.  "test/" "tests/"
-    protected_arr = " ".join(f'"{p}"' for p in protected)
-    return {
-        "NAME": require(bp, "name"),
-        "GOAL": require(bp, "goal"),
-        "DONE_WHEN": require(bp, "done_when"),
-        "CONSTRAINTS": constraints_md,
-        "STATE_FILE": str(bp.get("state_file", "progress.md")),
-        "CADENCE": str(bp.get("cadence", "until-done")),
-        "CHECKER_INSTRUCTIONS": str(checker.get("instructions", DEFAULTS["checker"]["instructions"])),
-        "PROTECTED_PATHS_ARR": protected_arr,
-        "MAX_ITER": str(budget.get("max_iterations", 20)),
-        "BUDGET_STEPS": str(budget.get("per_run_steps", 50)),
-        "BUDGET_USD": str(budget.get("daily_usd", 50)),
-        "SANDBOX_MODE": str((bp.get("sandbox") or {}).get("mode", "container")),
-        "CREDS": str((bp.get("sandbox") or {}).get("creds", "staging-only / least-privilege")),
-    }
-
-
-def build_bindings(bp: dict) -> str:
-    name = require(bp, "name")
-    harness = str(bp.get("harness", "claude-code"))
-    keys = list(HARNESS_BINDINGS) if harness in ("all", "any") else [harness]
-    unknown = [k for k in keys if k not in HARNESS_BINDINGS]
-    if unknown:
-        raise SystemExit(f"[loop-design] Unknown harness(es): {', '.join(unknown)}")
-    body = "\n".join(HARNESS_BINDINGS[k].format(name=name) for k in keys)
-    return (
-        f"# Bindings: {name}\n\n"
-        f"Cadence: `{bp.get('cadence', 'until-done')}`. "
-        "Full reference: `skills/loop-design/references/harness-bindings.md`.\n\n"
-        f"{body}"
-    )
-
-
-def write_file(path: Path, content: str, executable: bool = False) -> None:
-    path.write_text(content, encoding="utf-8")
-    if executable:
-        mode = path.stat().st_mode
-        path.chmod(mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+def build_files(bp: dict) -> dict[str, str]:
+    mapping = {key.upper(): bp[key] for key in
+               ('name', 'kind', 'goal', 'evidence', 'stop_when', 'authority', 'runtime')}
+    mapping.update({
+        'KIND_GUIDANCE': KINDS[bp['kind']],
+        'CONSTRAINTS': '\n'.join(f'- {c}' for c in bp['constraints']) or 'Use the owning project’s applicable constraints.',
+        'STATE': ('Keep checkpoint.md beside this brief current; replace stale state, link retained evidence.'
+                  if bp['checkpoint'] else
+                  'Use the runtime’s existing durable state. If none exists, choose a recovery location before execution.'),
+        'CHECK': ('Optional evidence command: run check.sh beside this brief. It runs once in the declared cwd, '
+                  'preserving stdout, stderr, and exit status. Interpret the result using the evidence criteria; '
+                  'failure can mean unavailable evidence, not unfinished work. Inspect the command before running it.'
+                  if 'check' in bp else 'No check script generated. Use the evidence criteria above.'),
+    })
+    files = {'LOOP.md': render('LOOP.md.tpl', mapping),
+             'blueprint.json': json.dumps(bp, indent=2, ensure_ascii=False) + '\n'}
+    if bp['checkpoint']:
+        files['checkpoint.md'] = render('checkpoint.md.tpl', mapping)
+    if 'check' in bp:
+        mapping.update({'CHECK_CWD': shlex.quote(bp['check']['cwd']),
+                        'CHECK_COMMAND': shlex.quote(bp['check']['command'])})
+        files['check.sh'] = render('check.sh.tpl', mapping)
+    return files
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="Scaffold a loop bundle from a blueprint.")
-    ap.add_argument("--blueprint", help="Path to a blueprint JSON file.")
-    ap.add_argument("--out-dir", help="Output directory (default: .loops/<name>).")
-    ap.add_argument("--name", help="Loop name (slug).")
-    ap.add_argument("--goal", help="One-sentence goal.")
-    ap.add_argument("--done-when", dest="done_when", help="Oracle command (exit 0 == done).")
-    ap.add_argument("--cadence", help="until-done | interval:<dur> | cron:'<expr>' | on-demand")
-    ap.add_argument("--harness", help="claude-code | codex | github-actions | ralph | all")
-    ap.add_argument("--force", action="store_true", help="Overwrite an existing bundle dir.")
-    args = ap.parse_args(argv)
-
-    bp = load_blueprint(args)
-    enforce_oracle(bp)
-    mapping = build_mapping(bp)
-
-    name = mapping["NAME"]
-    out_dir = Path(args.out_dir) if args.out_dir else Path(".loops") / name
-    if out_dir.exists() and any(out_dir.iterdir()) and not args.force:
-        raise SystemExit(f"[loop-design] {out_dir} is not empty. Use --force to overwrite.")
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    write_file(out_dir / "LOOP.md", render("LOOP.md.tpl", mapping))
-    write_file(out_dir / "verify.sh", render("verify.sh.tpl", mapping), executable=True)
-    write_file(out_dir / "guard.sh", render("guard.sh.tpl", mapping), executable=True)
-    write_file(out_dir / mapping["STATE_FILE"], render("progress.md.tpl", mapping))
-    write_file(out_dir / "verifier.md", render("verifier.md.tpl", mapping))
-    write_file(out_dir / "BINDINGS.md", build_bindings(bp))
-    write_file(out_dir / "blueprint.json", json.dumps(bp, indent=2) + "\n")
-
-    print(f"[loop-design] Scaffolded loop '{name}' -> {out_dir}")
-    for f in ("LOOP.md", "verify.sh", "guard.sh", mapping["STATE_FILE"], "verifier.md", "BINDINGS.md", "blueprint.json"):
-        print(f"  - {out_dir / f}")
-    print(
-        "\nNext: self-test the oracle (`./verify.sh --selftest`) to confirm it is deterministic,\n"
-        "then wire it via BINDINGS.md and DRY-RUN ONE ITERATION ATTENDED.\n"
-        "Confirm verify.sh exits 0 only when truly done and the checker rejects a weakened result\n"
-        "before letting it run unattended."
-    )
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--blueprint', help='Schema-2 JSON blueprint. CLI fields override the file.')
+    parser.add_argument('--out-dir', help='New output directory (default: .loops/<name>). Existing paths are refused.')
+    for key in ('name', 'kind', 'goal', 'evidence', 'stop_when', 'authority', 'runtime'):
+        parser.add_argument('--' + key.replace('_', '-'), choices=list(KINDS) if key == 'kind' else None)
+    parser.add_argument('--checkpoint', action='store_true', default=None,
+                        help='Add a compact checkpoint when the runtime does not already own one.')
+    args = parser.parse_args(argv)
+    try:
+        bp = json.loads(Path(args.blueprint).read_text(encoding='utf-8')) if args.blueprint else {'schema_version': 2}
+        if not isinstance(bp, dict):
+            raise ValueError('blueprint must be a JSON object')
+        for key in ('name', 'kind', 'goal', 'evidence', 'stop_when', 'authority', 'runtime', 'checkpoint'):
+            value = getattr(args, key)
+            if value is not None:
+                bp[key] = value
+        bp = validate(bp)
+        files = build_files(bp)
+        out = Path(args.out_dir) if args.out_dir else Path('.loops') / bp['name']
+        # Refuse even an empty directory or symlink: regeneration must not erase
+        # state or leave stale v1 executables beside a new brief.
+        out.mkdir(parents=True, exist_ok=False)
+        for name, content in files.items():
+            target = out / name
+            with target.open('x', encoding='utf-8') as stream:
+                stream.write(content)
+            if name == 'check.sh':
+                target.chmod(0o755)
+    except (ValueError, OSError) as error:
+        print(f'[loop-design] {error}', file=sys.stderr)
+        return 1
+    print(f'[loop-design] Wrote {out}: {", ".join(files)}')
+    print('Design only: no commands executed; scheduling, limits, permissions, and notifications are not configured.')
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     raise SystemExit(main())
