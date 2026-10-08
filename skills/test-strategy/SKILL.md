@@ -2,7 +2,7 @@
 name: test-strategy
 description: Guide agents to follow preferred testing methodology — red/green TDD, real dependencies over mocks, behavior-based tests, and effective-runtime authority-boundary probes. Use when writing tests, planning test coverage, deciding between TDD and test-after, correcting excessive mocking, or testing filesystem, credential, process, network, or remote-mutation permissions. Triggers on 'write tests', 'add test coverage', 'how should I test this', 'TDD', 'test strategy', 'test plan', 'test the permission boundary'.
 skill-type: reference
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Test Strategy
@@ -63,7 +63,8 @@ on a detector reporting nothing.
   perturb the fix in an isolated copy and check that the intended test fails.
   A passing mutation reveals a gap. Mutation probes are a targeted diagnostic,
   not a requirement for every changed line; a demonstrated pre-fix failure may
-  already answer the question.
+  already answer the question. Confirm a scripted mutation actually landed in
+  the artifact being tested before interpreting its result.
 - Keep the oracle independent enough to catch the defect. Compare against a
   trusted contract, reference result, or behavior invariant instead of
   restating the same implementation in the test.
@@ -98,7 +99,7 @@ justify it. Restore any temporary mutation and keep probes isolated.
 ## Resources
 
 - `references/verification-checklist.md` — optional review questions for uncertain
-  coverage or a test-review request; no mandatory second pass.
+  coverage, test review, or deciding whether to retire tests; no mandatory second pass.
 - `references/authority-boundary-testing.md` — conditional runtime proof guidance.
 - `evals/behavioral-scenarios.md` — intended behavior replay cases, not measured
   live-agent results.

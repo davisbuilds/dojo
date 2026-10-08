@@ -47,8 +47,24 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   contracts. Distinguish evaluation-runner unit tests from live agent evidence;
   deterministic green checks do not establish skill effectiveness. Research
   and authoring revisions resolve their local subsets; the broader suite pass is
-  deferred. The authoring validator no longer gates prose headings or length;
+  deferred. Conditional retirement criteria now live in
+  [test-strategy’s review reference](../../skills/test-strategy/references/verification-checklist.md).
+  The authoring validator no longer gates prose headings or length;
   remaining candidates above still need consumer-grounded review.
+
+### Check heading fragments in local Markdown links
+
+- **What**: extend the existing link checker to validate supported local heading
+  fragments, preserving its deliberate exclusions and reporting coverage limits.
+- **Why or evidence, 2026-10-07**: the source survey found that
+  `scripts/check_links.py` strips fragments and checks only file existence.
+  A renamed reference heading can therefore break a skill's navigation while
+  CI passes. No currently broken link was established.
+- **Next or revisit when**: a bounded tooling pass or missed heading link warrants
+  it; use fixtures for valid/stale headings, duplicates, inline formatting, and
+  fenced examples. Define supported Markdown anchors rather than claiming full
+  renderer equivalence. Addy's reference-link validator is implementation context,
+  not a reason to add another skill or runtime workflow.
 
 ### Isolate standardizer tests from process state
 

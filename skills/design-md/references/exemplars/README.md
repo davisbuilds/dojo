@@ -2,7 +2,7 @@
 
 Five opinionated, brand-extracted DESIGN.md files curated from [Refero](https://styles.refero.design). Each spans a different aesthetic pole so the agent has anchors to sample from when authoring or critiquing token systems.
 
-These are stored in Refero's *Style Reference* markdown export format (the same shape Refero exposes from each style detail page). It overlaps heavily with Google's `@google/design.md` v0.1 schema but is not byte-identical — Refero's export is richer (Surfaces / Elevation / Imagery / Layout / Similar Brands sections), and it omits the YAML frontmatter that the Google CLI lints against. When using these to write a new strict-spec DESIGN.md, treat them as tasteful templates and translate to the format-primer's frontmatter shape.
+These are stored in Refero's *Style Reference* markdown export format (the same shape Refero exposes from each style detail page). It overlaps heavily with Google's `@google/design.md` schema but is not byte-identical — Refero's export is richer (Surfaces / Elevation / Imagery / Layout / Similar Brands sections), and it omits the YAML frontmatter that the Google CLI lints against. When using these to write a new strict-spec DESIGN.md, treat them as taste references and translate to the format-primer's frontmatter shape.
 
 ## The Five
 
@@ -37,17 +37,20 @@ Cursor and Vercel are both light + roughly mono but differ on warmth (Cursor war
 
 ## How To Use
 
-1. **As anchors when authoring a new DESIGN.md** — pick the exemplar closest to the user's brief and customize tokens from there. Don't compose; pick one.
+1. **As optional anchors when authoring a new DESIGN.md** — consult relevant examples when visual direction is unresolved; the existing product and user brief take precedence.
 2. **As positive references during critique** — when `design-critique` flags a slop pattern, the exemplar named alternatives are often a more concrete fix than the catalog's prose.
 3. **As a forcing function for restraint** — note that none of the five uses more than three font families, and most use one accent color for primary action. If a generated DESIGN.md sprawls, return to the exemplars.
 
 ## Format Notes
 
-These files use Refero's export shape, not strict Google `@google/design.md` v0.1 frontmatter. See `../format-primer.md` for the strict format spec the CLI lints against.
+These files use Refero's export shape, not Google `@google/design.md` frontmatter. See `../format-primer.md` for the strict format spec the CLI lints against.
 
-Translation is *not* a faithful copy. The Refero exports are richer than the strict spec — they carry Surfaces, Elevation, Imagery, Layout, and Similar Brands sections that have no canonical mapping, and they list dozens of named palette tokens that go unreferenced by any component. A line-by-line lift of an exemplar's palette into the strict frontmatter will produce double-digit `orphaned-tokens` warnings on lint, because every color must be referenced from a `components.*` entry to count as "used."
-
-When translating an exemplar, treat it as a taste anchor — sample mood, voice, and section rationale — and rebuild the palette around the components you actually plan to define. The format-primer's "Before drafting" notes in the parent `SKILL.md` walk through the specific gotchas (orphaned-tokens scope, no `borderColor` key, alpha-color resolution, inverted-theme `primary`).
+Translation is selective. These exports include prose sections and palettes that
+need not become machine-readable tokens. Preserve the product's actual design;
+do not invent components or discard externally consumed tokens just to quiet
+orphan warnings. The parent skill and format primer describe the pinned CLI's
+color normalization, omission declarations, and diagnostic limits. Lint authored
+Google-format fixtures, not these unmodified Refero references.
 
 ## Substitutions And Sourcing
 

@@ -1,152 +1,158 @@
 # DESIGN.md Format Primer
 
-A self-contained reference for the `@google/design.md` format. Read this before authoring, linting, or diffing a DESIGN.md so the agent knows the schema, the canonical section order, and what the linter actually checks.
+Reference for **@google/design.md 0.4.0**, format `version: alpha`. Use the wrapper
+in the parent skill for commands. This describes the published package checked
+on 2026-10-07, including observed limits where upstream prose differs.
 
-Pinned to CLI version **0.1.1** (format `version: alpha`). The format is under active development; if `run_cli.sh` errors with unfamiliar fields or the lint output mentions rules not listed here, regenerate this primer (see Maintenance section in `SKILL.md`).
+## File shape and scope
 
-## File Shape
-
-A DESIGN.md is a two-layer document:
-
-1. **YAML frontmatter** — machine-readable tokens, delimited by `---`. This is what the linter parses and what `export` converts to other formats.
-2. **Markdown body** — human-readable rationale in `##` sections. The linter validates section order but not prose content.
-
-Minimal valid file:
+YAML frontmatter holds exportable tokens; Markdown `##` sections explain the
+system's intent. A small color-only design can intentionally omit other groups:
 
 ```markdown
 ---
 version: alpha
 name: example
 colors:
-  primary: "#1A1C1E"
-  on-primary: "#FFFFFF"
-typography:
-  body:
-    fontFamily: "Inter"
-    fontSize: 16px
-    lineHeight: 1.5
-components:
-  button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
+  primary: "oklch(60% 0.15 250)"
+  overlay: "rgba(0, 0, 0, 0.5)"
+omitted:
+  - typography
+  - section: spacing
+    reason: "Layout spacing belongs to the consuming application."
+  - rounded
+  - components
 ---
 
 ## Overview
 
-Short prose describing the system's intent.
+A color palette shared by existing components.
+
+## Colors
+
+Preserve the source colors; inspect normalization in exported formats.
 ```
 
-## Frontmatter Schema
+There is no minimum component count. The Refero exemplars are taste references,
+not schema templates or validation fixtures.
 
-| Key | Required | Notes |
-|-----|----------|-------|
-| `version` | optional | Currently `alpha`. Omit and the CLI assumes alpha. |
-| `name` | recommended | System identifier; surfaces in tooling. |
-| `description` | optional | One-line summary. |
-| `colors` | optional | Map of token name → `Color`. |
-| `typography` | optional | Map of token name → `Typography` object. |
-| `rounded` | optional | Map of scale level → `Dimension`. |
-| `spacing` | optional | Map of scale level → `Dimension` or number. |
-| `components` | optional | Map of component name → property bag. |
+## Recognized token fields
 
-All token sections are optional individually, but combinations trigger warnings (colors without typography, colors without a `primary`, etc. — see Linting Rules).
+| Key | Meaning |
+| --- | --- |
+| `version`, `name`, `description` | Format marker and descriptive metadata. |
+| `colors` | Named CSS colors; quote values in YAML. |
+| `typography` | Named objects with `fontFamily`, `fontSize`, `fontWeight`, `lineHeight`, `letterSpacing`, `fontFeature`, `fontVariation`. |
+| `spacing`, `rounded` | Named scales; dimensions use px, em, or rem; spacing also accepts numbers. |
+| `components` | Named property bags using `backgroundColor`, `textColor`, `typography`, `rounded`, `padding`, `size`, `height`, `width`. |
+| `omitted` | Intentionally absent groups: `colors`, `typography`, `spacing`, `rounded`, `components`. Each entry is a group name or `{section, reason}`. |
 
-## Token Types
+Token groups are optional. Omissions suppress applicable missing-group
+findings; they do not disable validation of tokens that are present. Unknown or
+redundant omission declarations have their own diagnostics. Do not use omissions
+to hide actual requirements or errors.
 
-| Type | Format | Examples |
-|------|--------|----------|
-| `Color` | `#` + hex sRGB | `"#1A1C1E"`, `"#FFFFFF"` |
-| `Dimension` | number + unit (`px`, `em`, `rem`) | `48px`, `1.5rem`, `-0.02em` |
-| `Token Reference` | `{path.to.token}` resolved against the same file | `{colors.primary}`, `{rounded.sm}` |
-| `Typography` | object with `fontFamily`, `fontSize`, `fontWeight`, `lineHeight`, `letterSpacing`, `fontFeature`, `fontVariation` | See below |
+Colors accept hex, named colors, rgb/rgba, hsl/hsla, hwb, oklch/oklab, lch/lab,
+and color-mix. Parsing support does not imply lossless round trips: despite the
+upstream spec's preservation claim, the verified CSS-variable exporter reads
+resolved sRGB hex. The fixture's `rgba(0, 0, 0, 0.5)` becomes `#00000080` and
+`oklch(60% 0.15 250)` becomes `#2784d5`. Keep the original source values and check
+whether normalization or gamut conversion is acceptable to the consumer.
 
-### Typography Object
+Typography fields are optional; `lineHeight` may be a unitless multiplier or a
+dimension. Support in the source model does not guarantee every exporter retains
+every property; inspect the output used by the application.
 
-```yaml
-typography:
-  display-lg:
-    fontFamily: "Söhne, system-ui, sans-serif"
-    fontSize: 48px
-    fontWeight: 600
-    lineHeight: 1.1
-    letterSpacing: -0.02em
-```
-
-All inner fields are optional but at least `fontFamily` and `fontSize` should be present for the typography token to be useful.
-
-## Component Tokens
-
-Component entries map a component name to a property bag. Variants (hover, active, pressed, disabled) live as separate top-level entries with related names — there is no nested variants block.
+References use `{path.to.token}`. Component typography may reference a composite
+token such as `{typography.body}`. Unsupported component properties (for example,
+`borderColor`) are not a way to extend the schema; inspect their diagnostics.
+Keep unsupported design concerns in prose or their existing implementation.
 
 ```yaml
 components:
-  button-primary:
-    backgroundColor: "{colors.tertiary}"
-    textColor: "{colors.on-tertiary}"
-    rounded: "{rounded.sm}"
-    padding: 12px
-  button-primary-hover:
-    backgroundColor: "{colors.tertiary-container}"
-    textColor: "{colors.on-tertiary-container}"
+  button:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.body}"
 ```
 
-Valid component property keys: `backgroundColor`, `textColor`, `typography`, `rounded`, `padding`, `size`, `height`, `width`. Anything else is silently ignored.
+This fragment assumes those referenced tokens are defined. Model state variants
+as named component entries when useful; there is no nested variants schema.
 
-Component values may be raw scalars (`12px`, `"#000000"`) or token references (`"{colors.primary}"`). Prefer references — they are what makes the file a system rather than a list of values.
+## Markdown sections
 
-## Section Order
+Recognized sections should occur in this relative order; irrelevant sections can
+be absent:
 
-The Markdown body uses `##` headings in this canonical order. Sections may be omitted, but their **relative order** must be preserved or the linter emits a `section-order` warning.
+1. Overview (alias: Brand & Style)
+2. Colors
+3. Typography
+4. Layout (alias: Layout & Spacing)
+5. Elevation & Depth (alias: Elevation)
+6. Shapes
+7. Components
+8. Do's and Don'ts
 
-1. `Overview` (alias: `Brand & Style`)
-2. `Colors`
-3. `Typography`
-4. `Layout` (alias: `Layout & Spacing`)
-5. `Elevation & Depth` (alias: `Elevation`)
-6. `Shapes`
-7. `Components`
-8. `Do's and Don'ts`
+Keep richer design rationale where it helps, but do not assume arbitrary prose or
+unknown token maps are included in exports. Motion, breakpoints, and theme-switching
+behavior need their existing implementation or prose reference.
 
-The exemplars in `references/exemplars/` follow this order — use them as a template when authoring a new DESIGN.md.
+## Diagnostics and exit behavior
 
-## Linting Rules
+`spec --rules-only --format json` lists these registered rules. Individual
+findings may use more specific IDs or severities; parser/model errors can also
+appear, so this table is not an exhaustive list of possible finding IDs.
 
-The linter runs seven rules. Each emits a finding at a fixed severity:
+| Registered rule | Default severity | Scope |
+| --- | --- | --- |
+| `broken-ref` | error | Broken/circular references and unknown component sub-tokens. |
+| `missing-primary` | warning | Colors without a `primary` entry. |
+| `contrast-ratio` | warning | Resolved component background/text pairs below the implemented 4.5:1 threshold. |
+| `orphaned-tokens` | warning | Unreferenced tokens under the rule's usage heuristics. |
+| `token-summary` | info | Counts of defined tokens. |
+| `missing-sections` | info | Absent spacing/rounded groups unless intentionally omitted. |
+| `missing-typography` | warning | Colors without typography unless intentionally omitted. |
+| `section-order` | warning | Recognized Markdown sections out of order. |
+| `unknown-key` | warning | Top-level keys resembling misspelled schema keys. |
+| `token-like-ignored` | warning | Token-like maps outside the recognized export schema. |
+| `omitted-rules` | info | Emits `declared-omission` (info), `unknown-omission` or `redundant-omission` (warnings). |
 
-| Rule | Severity | What it catches |
-|------|----------|-----------------|
-| `broken-ref` | error | A `{path.to.token}` reference that does not resolve. |
-| `missing-primary` | warning | Colors defined but no `primary` color present. |
-| `contrast-ratio` | warning | A component pairs `backgroundColor` and `textColor` whose ratio falls below WCAG AA (4.5:1 normal, 3:1 large). |
-| `orphaned-tokens` | warning | Color tokens never referenced by any component. |
-| `missing-typography` | warning | Colors defined but no typography section. |
-| `section-order` | warning | Markdown sections appear out of canonical order. |
-| `token-summary` | info | Count of tokens per section. |
-| `missing-sections` | info | Optional sections absent despite related tokens being present. |
+The contrast rule does not implement a separate large-text 3:1 threshold or
+validate the rendered page's compositing, focus states, or accessibility. An
+unreferenced token may still have a real CSS consumer outside this file; investigate
+before deleting it or inventing a component solely to silence a warning.
 
-Only `broken-ref` is an error; the rest are advisory. The CLI exit code is `0` when there are no errors, `1` when at least one error is present.
+| Operation | Exit interpretation |
+| --- | --- |
+| `lint` | 0: no errors, possibly warnings; 1: validation errors; 2: input-read failure. Inspect stderr for invocation failures. |
+| `diff` | 1: error or warning count increased; 0: counts did not increase, even if token values or individual findings changed; 2: input-read failure. |
+| `export` | 0: output produced, even with lint errors; 1: invalid format/emitter failure; 2: input-read failure. |
 
-## Export Formats
+Diff JSON exposes `tokens.<group>.added`, `.removed`, and `.modified`, plus
+before/after diagnostic summaries and count deltas. It is not a visual comparison.
+For stdin use `lint --format json -- -`; the bare `-` documented upstream is
+rejected by the published argument parser.
 
-`export` accepts three `--format` values:
+## Export formats
 
-- `json-tailwind` (alias `tailwind`) — Tailwind v3 `theme.extend` JSON object.
-- `css-tailwind` — Tailwind v4 `@theme { ... }` block with CSS custom properties.
-- `dtcg` — W3C Design Tokens Community Group `tokens.json`.
+| Format | Consumer and output |
+| --- | --- |
+| `json-tailwind` (alias `tailwind`) | Tailwind v3 theme configuration JSON. |
+| `css-tailwind` | Tailwind v4 `@theme` CSS. |
+| `dtcg` | DTCG JSON; verify compatibility with the actual consuming tool. |
+| `css-vars` | Plain `:root` CSS variables; optional `--prefix app` produces names such as `--app-color-primary`. |
 
-All three are deterministic transforms of the frontmatter; the Markdown body is ignored.
+Exports derive from parsed tokens, not Markdown rationale. Check the lint result
+separately, and validate exported values and names in the consuming application.
+An emitted artifact is not proof of source validity or fidelity.
 
-## What This Format Does Not Cover
+## Provenance and refresh
 
-- No animation, motion, or easing tokens.
-- No grid or breakpoint tokens.
-- No light/dark theme switching — a DESIGN.md is one theme. Author two files for two themes.
-- No semantic role tokens beyond what the user names (e.g., `colors.primary`, `colors.on-primary`).
+- [Upstream specification](https://github.com/google-labs-code/design.md/blob/9bf8eae67128b6cc55ad9bf86665767deb4c11cd/docs/spec.md)
+- [Exporter implementation](https://github.com/google-labs-code/design.md/blob/9bf8eae67128b6cc55ad9bf86665767deb4c11cd/packages/cli/src/commands/export.ts)
+- Published npm 0.4.0 reports the same `gitHead`; local integration tests verify
+  selected behaviors through the wrapper. Google source is Apache-2.0; Refero
+  exemplars retain their separate provenance.
 
-When the user needs any of the above, capture them in the Markdown body as prose rationale rather than trying to fit them into the frontmatter.
-
-## Maintenance Notes
-
-- The format is `version: alpha`. Field names and rule sets may change between minor releases.
-- The pinned CLI version is set in `scripts/run_cli.sh` (`DESIGN_MD_VERSION`).
-- When bumping that version, re-fetch the upstream README and the `npx @google/design.md spec --rules-only` output and reconcile any drift in this primer.
+When changing the pin, check `spec` and real fixture outputs rather than updating
+version strings alone. Reconcile this reference with observed package behavior.
