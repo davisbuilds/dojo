@@ -29,7 +29,10 @@ jq '.skills | length' skills.json
 | `theme-factory` | Apply preset or generated theme systems |
 | `web-design-guidelines` | Review UI against web interface guidelines |
 
-The four design skills above compose into a pipeline: `design-md` (token spec) → `frontend-design` (build) → `design-critique` (taste / AI-slop review), with `web-design-guidelines` as a parallel rule-compliance pass (Vercel WIG, accessibility, UX). Each skill's body carries a `Sibling skills` footer that names the adjacent stages and hand-off cues.
+These design skills cover complementary concerns: `design-md` maintains tokens,
+`frontend-design` builds interfaces, `design-critique` evaluates visual choices,
+and `web-design-guidelines` checks interface rules and accessibility. Consult the
+relevant concern; a token edit does not require the entire sequence.
 
 ### Development Workflows
 

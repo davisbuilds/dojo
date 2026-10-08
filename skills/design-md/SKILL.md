@@ -5,187 +5,120 @@ skill-type: workflow
 metadata:
   upstream:
     format: "https://github.com/google-labs-code/design.md"
-    cli: "@google/design.md@0.1.1 (npm)"
+    cli: "@google/design.md@0.4.0 (npm)"
     license: "Apache-2.0"
     exemplar-source: "https://styles.refero.design"
-version: 1.0.2
+version: 2.0.0
 ---
 
-# design-md
+# DESIGN.md
 
-Operates on DESIGN.md files — the Google Labs format that pairs a YAML token block with a Markdown rationale. The skill knows how to lint an existing file, diff two versions, export tokens to Tailwind or DTCG, and author a fresh DESIGN.md grounded in five Refero exemplars.
+Work with Google's YAML design tokens and Markdown rationale using the pinned
+CLI. Preserve the existing product's design intent and the consuming code's
+contracts. A token reference is useful when it serves that work; it is not a
+prerequisite for building every UI.
 
-## When To Use
+## Use the pinned interface
 
-Trigger this skill when the request involves any of the following:
-
-- The user mentions "DESIGN.md", "design tokens", "design system spec", or "@google/design.md".
-- The user asks to extract a design system from existing CSS, Tailwind config, or component code into a single source of truth.
-- The user wants to lint, validate, or diff a DESIGN.md file.
-- The user wants to export design tokens to Tailwind v3 (`json-tailwind`), Tailwind v4 (`css-tailwind`), or W3C DTCG (`dtcg`).
-- The user wants to author a fresh DESIGN.md and asks for examples or a starting point.
-
-## When Not To Use
-
-- Generating UI components or page layouts from scratch — DESIGN.md is a token spec, not a component library.
-- Auditing visuals for taste, polish, or AI-generation tells — that is `design-critique`.
-- Accessibility audits beyond contrast (axe / WCAG full-coverage). The DESIGN.md linter only checks `contrast-ratio` on declared component pairs.
-- Animation, motion, or breakpoint tokens — the format does not cover them.
-
-## Operations
-
-The skill exposes four operations. They share one entry point: `scripts/run_cli.sh`, which pins the CLI version in a single place. Always invoke through the wrapper.
-
-### lint
-
-Validate a DESIGN.md file's structure, references, and contrast.
+Substitute the directory this skill was loaded from for `<skill-dir>`. The wrapper
+requires Node.js 18+ and npm's `npx`; first use may download the pinned package.
+It forwards arguments and exit status without changing the caller's directory.
 
 ```bash
-bash <skill-dir>/scripts/run_cli.sh lint path/to/DESIGN.md
 bash <skill-dir>/scripts/run_cli.sh lint --format json path/to/DESIGN.md
-cat path/to/DESIGN.md | bash <skill-dir>/scripts/run_cli.sh lint -
-```
-
-Steps:
-
-1. Run `lint` against the file. Read the JSON findings.
-2. Group findings by rule. The seven rules and their meanings are in `references/format-primer.md`. Surface errors first, then warnings, then info.
-3. For each finding, suggest a concrete fix:
-   - `broken-ref` → fix the typo or define the missing token.
-   - `contrast-ratio` → propose a darker text color or a lighter background that lands above 4.5:1.
-   - `orphaned-tokens` → either reference the token from a component or remove it.
-   - `section-order` → reorder the Markdown sections to match canonical order.
-4. If exit code is non-zero, the file has at least one error. Do not move on to `export` or `diff` until errors clear.
-
-### diff
-
-Compare two DESIGN.md versions and summarize what changed.
-
-```bash
 bash <skill-dir>/scripts/run_cli.sh diff path/to/old/DESIGN.md path/to/new/DESIGN.md
+bash <skill-dir>/scripts/run_cli.sh spec --rules-only --format json
 ```
 
-Steps:
-
-1. Run `diff` and parse the JSON output.
-2. Separate **material** changes (token values, new components, removed tokens, contrast regressions) from **cosmetic** changes (renames, prose rewrites, section reordering).
-3. Report the material changes first with one-line consequences for downstream code (Tailwind config, component CSS, generated tokens).
-4. Exit code `1` means regressions were detected (more errors or warnings in the new version). Call this out explicitly.
-
-### export
-
-Convert tokens to Tailwind or DTCG.
+For stdin, put the `-` after the option terminator. The published 0.4.0 parser
+rejects a bare positional `-` without it:
 
 ```bash
-bash <skill-dir>/scripts/run_cli.sh export --format json-tailwind path/to/DESIGN.md > tailwind.theme.json
-bash <skill-dir>/scripts/run_cli.sh export --format css-tailwind path/to/DESIGN.md > theme.css
-bash <skill-dir>/scripts/run_cli.sh export --format dtcg path/to/DESIGN.md > tokens.json
+bash <skill-dir>/scripts/run_cli.sh lint --format json -- - < path/to/DESIGN.md
 ```
 
-Format selection:
+Read `references/format-primer.md` when authoring tokens or interpreting unfamiliar
+schema, diagnostics, or export behavior. Use actual diagnostics from the pinned
+release; a new field or unfamiliar error is reason to inspect the tool, not to
+invent syntax.
 
-- Tailwind v3 project → `json-tailwind`. Merge into `tailwind.config.{js,ts}` under `theme.extend`.
-- Tailwind v4 project → `css-tailwind`. Drop the output into the project's main stylesheet inside `@theme { ... }`.
-- Style-Dictionary, Token Studio, or any DTCG-aware tool → `dtcg`.
+## Author or revise faithfully
 
-Steps:
+Reuse the product brief, existing CSS/components, and settled design choices.
+Ask only about missing choices that materially change the result. Capture the
+actual tokens and useful rationale; there is no minimum component count or
+required exemplar selection. Use `omitted` for intentionally absent token groups
+where appropriate. Don't invent components or delete valid tokens solely to
+silence an advisory warning.
 
-1. Lint first. Never export an unlinted file — broken refs land in the output as raw `{path.to.token}` strings.
-2. Run `export` with the chosen format and write the output where the user's build expects it.
-3. After writing, show the user the diff against any prior token file so they can review before committing.
+Keep supported CSS colors such as `rgba()` and `oklch()` in the source rather than
+flattening them onto an assumed background. **Export is not lossless:** verified
+0.4.0 CSS-variable output normalizes colors to sRGB hex, including alpha. Inspect
+the chosen format's output before replacing existing styles, especially for
+wide-gamut palettes and transparency.
 
-### author
+`references/exemplars/README.md` indexes optional Refero taste references. They
+have separate provenance and are not Google-format fixtures: use their visual
+rationale where helpful, translate only what the product needs, and lint the
+resulting DESIGN.md. Do not lint the exemplars as a release gate or rewrite them
+as a side effect of ordinary use.
 
-Write a fresh DESIGN.md from scratch when the project does not yet have one.
+## Interpret lint and diff
 
-Inputs the agent should gather first:
+- `lint` exits 0 with no errors, 1 with validation errors, and 2 for input-read
+  failures. Warnings can remain at exit 0. A failed invocation or unreadable input
+  is not a design finding; inspect stderr and parsed output.
+- `diff` reports added/removed/modified tokens and changes in diagnostic counts.
+  Exit 1 means the error or warning count increased; 0 does not mean identical
+  designs or no visual regression. Equal counts can hide different findings.
+  Read the changed tokens and relevant lint findings, and account for consumers.
+- Contrast lint checks declared component color pairs. It does not establish
+  accessibility or visual correctness in the rendered application.
 
-- The product's mood and audience (technical-studio, marketing, consumer, internal tool, etc.).
-- Color preferences (warm/cool, light/dark, brand hex if known).
-- Typography constraints (system fonts only, custom face available, monospace required for code surfaces).
-- Existing CSS / Tailwind config the system should align with.
+Resolve errors relevant to the requested validity claim. Explain consequential
+warnings and limitations without requiring a report template, blanket warning
+cleanup, or approval for each ordinary correction. Investigation can finish with
+findings; it does not require rewriting the design first.
 
-**Before drafting — format gotchas the linter will surface loudly:**
+## Export for the consumer
 
-- **`orphaned-tokens` is the dominant warning.** Every color token must be referenced by a component (`{colors.foo}` from a `components.bar.backgroundColor` or similar) or it fires `orphaned-tokens`. Plan your component set up front so muted-text tokens, border tokens, hover-state tokens, and link tokens all have a component slot to land on. Fabricating a `prose-body` component (with `textColor` + `typography` refs) is a legitimate way to anchor global text colors.
-- **Components have no `borderColor` key.** Valid keys are `backgroundColor`, `textColor`, `typography`, `rounded`, `padding`, `size`, `height`, `width`. Border colors will be perma-orphaned no matter what; either accept the warning or document the border color in prose only and skip the token.
-- **Source CSS using `rgba()` must be resolved to hex before tokenizing.** The Color type is `#`-prefix sRGB hex only. For dark themes, resolve `rgba(255,255,255,0.6)` to its solid equivalent on the canvas color (≈ `#999999` on `#000`). Document the original alpha value in the Markdown rationale if it matters.
-- **Inverted themes (white CTA on black canvas) should still set `colors.primary`.** The `missing-primary` rule fires whenever colors are defined without a `primary` entry, regardless of whether `primary` is a brand color or a CTA-fill role. For dark-first sites, set `primary` to the CTA fill (often `#FFFFFF`) and document the inversion in the Overview prose.
-
-Steps:
-
-1. Read `references/exemplars/README.md` and pick the exemplar that anchors the closest aesthetic pole. The five exemplars cover warm-technical (Cursor), dark-geometric (Linear), clean-blue (Stripe), monochrome-minimal (Vercel), and colorful-playful (Figma).
-2. Read the chosen exemplar for **voice, taste, and depth of rationale** — not for structural shape. The exemplars use Refero's Style Reference export format, which has richer prose sections and no YAML frontmatter. Treat them as taste anchors, not as structural templates.
-3. Read `references/format-primer.md` for the **canonical structure** the linter expects: frontmatter schema, token types, and section order. The output must conform to the primer, not the exemplar.
-4. Draft the frontmatter first. Define `colors`, `typography`, and at least three components — one interactive (a button), one surface (a card or container), and one prose role (e.g. `prose-body` with `textColor` and `typography` refs to anchor global body styles). "Text style" here means a component entry, not a typography token. Use token references rather than raw values wherever possible.
-5. Draft the Markdown body in canonical section order. Each section is short — a paragraph of rationale, not an essay.
-6. Lint the draft via stdin: `printf '%s' "<draft>" | bash <skill-dir>/scripts/run_cli.sh lint -`. Stdin is the canonical path for in-context drafts; reserve a temp file for iterative editing across multiple turns. Resolve any errors before showing it to the user. Surface warnings as discussion points rather than fixing them silently — the orphaned-tokens warnings on global text/border/hover tokens are often the right tradeoff to accept.
-7. Save the file as `DESIGN.md` at the project root unless the user specifies a different path.
-
-## Inputs The Skill Accepts
-
-- A path to an existing DESIGN.md file (lint, diff, export).
-- Two paths for `diff`.
-- A path to a project root and a description of its aesthetic for `author`.
-- Pasted DESIGN.md content piped through stdin (use `-` as the file argument).
-
-## Output Shape
-
-For `lint` and `diff`, return a structured summary:
-
-```
-## Findings
-
-### Errors
-- broken-ref at colors.brand: undefined token referenced by components.button-primary.backgroundColor
-  Fix: define `colors.brand` or change the reference to `{colors.primary}`.
-
-### Warnings
-- contrast-ratio on button-secondary: 3.1:1 (AA fails for body)
-  Fix: darken textColor toward #0F172A or lighten background toward #F8FAFC.
-
-### Info
-- token-summary: 12 colors, 6 typography, 3 spacing, 8 components
+```bash
+bash <skill-dir>/scripts/run_cli.sh export --format json-tailwind path/to/DESIGN.md
+bash <skill-dir>/scripts/run_cli.sh export --format css-tailwind path/to/DESIGN.md
+bash <skill-dir>/scripts/run_cli.sh export --format dtcg path/to/DESIGN.md
+bash <skill-dir>/scripts/run_cli.sh export --format css-vars --prefix app path/to/DESIGN.md
 ```
 
-For `export`, write the file and print the path plus a one-line summary of token counts.
+Use `json-tailwind` (alias `tailwind`) for Tailwind v3, `css-tailwind` for v4,
+`dtcg` for a compatible token consumer, or `css-vars` for a plain `:root` stylesheet.
+The optional `--prefix` applies to `css-vars` names.
 
-For `author`, return the drafted file path plus the lint result.
+**Export success only means serialization succeeded.** Version 0.4.0 can emit
+output and exit 0 despite source lint errors. Keep lint evidence separate when
+claiming valid tokens. A requested diagnostic export may still be useful; label
+its unresolved input problems rather than refusing to investigate.
 
-## References
+Before integrating output, check relevant lint findings, exported names/values,
+and the consuming build or styles. Write to a temporary destination first when
+an existing artifact would otherwise be truncated by a failing command. Preserve
+unrelated configuration when merging tokens. Do not silently introduce Tailwind
+or another dependency merely to consume the export.
 
-- `references/format-primer.md` — DESIGN.md schema, token types, linting rules, export formats.
-- `references/exemplars/README.md` — index of the five Refero-sourced exemplars.
-- `references/exemplars/{cursor,linear,stripe,vercel,figma}.md` — full DESIGN.md exemplars covering distinct aesthetic poles.
+## Deliver and maintain
 
-## Maintenance
+Return the requested file, export, or findings with relevant verification and
+material limitations. Consult `frontend-design`, `design-critique`, or
+`web-design-guidelines` for the specific build, taste, or accessibility question;
+this does not require a spec/build/review pipeline or additional artifacts.
 
-The format is `version: alpha` and the CLI is at 0.1.1. Both may move. Two signals indicate this skill needs a refresh:
+When updating the pin, reconcile the wrapper, metadata, primer, and actual package
+behavior together. Dojo's opt-in integration tests use the published CLI against
+small original fixtures, not the Refero exemplars. From a Dojo checkout:
 
-1. The user reports lint findings that mention rules not listed in `format-primer.md`.
-2. `npx @google/design.md@latest --version` returns a version newer than 0.1.1 and a smoke run produces unfamiliar output.
+```bash
+DOJO_TEST_DESIGN_MD_CLI=1 uv run --locked pytest tests/test_design_md_cli.py -q
+```
 
-To refresh:
-
-1. Bump `DESIGN_MD_VERSION` in `scripts/run_cli.sh`.
-2. Re-fetch the upstream README from `github.com/google-labs-code/design.md`.
-3. Run `bash scripts/run_cli.sh spec --rules-only --format json` and reconcile any rule additions, removals, or severity changes against the table in `format-primer.md`.
-4. Run `bash scripts/run_cli.sh lint` against each of the five exemplars to confirm none of them regressed under the new version.
-
-## Verification
-
-A run is complete when:
-
-- [ ] The intended subcommand (`lint`, `diff`, `export`, `spec`) has been invoked via `scripts/run_cli.sh` (not bare `npx`) so the pinned `DESIGN_MD_VERSION` is honored.
-- [ ] For `lint`: every reported finding has either been resolved in the DESIGN.md or annotated with the rule ID and a justification comment.
-- [ ] For `diff`: the changed token surface has been reported back to the user and the consuming skill (typically `frontend-design`) has been told what moved.
-- [ ] For `export`: the produced artifact (Tailwind config / DTCG JSON) is referenced from the consumer and lints clean against its own validator.
-- [ ] No edits were made directly to the exemplars under `references/exemplars/` unless the user explicitly asked.
-
-## Sibling skills
-
-The four design skills compose into a pipeline: **spec → build → review**. Hand off when the request crosses an axis.
-
-- `frontend-design` — generative UI builder. If a fresh DESIGN.md is being authored alongside a build, draft tokens here and consume them there.
-- `design-critique` — visual taste audit against a closed 37-pattern slop catalog. Orthogonal to token-spec linting; run it on the *built* UI, not on the DESIGN.md.
-- `web-design-guidelines` — accessibility / UX rule-compliance review (Vercel WIG, fetched live). Orthogonal to token-spec linting.
+This needs Node/npm and may populate the npm cache; the default Python suite skips
+these network-dependent checks. Reuse fresh results for the same pin. Passing
+fixtures establish those contracts, not general design quality or agent efficacy.

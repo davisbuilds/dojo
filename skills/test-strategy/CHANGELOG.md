@@ -1,3 +1,11 @@
+# Changelog
+
+## 2.1.0 - 2026-10-07
+
+- Add conditional test-retirement guidance: preserve distinct contracts, inspect
+  relevant history and replacement coverage, and verify affected production consumers.
+- Confirm scripted mutations reached the tested artifact before interpreting results.
+
 ## 2.0.0 - 2026-09-23
 
 - Retain behavioral tests, meaningful red/green evidence, dependency fidelity, and conditional runtime authority probes. Replace blanket mutation/reporting requirements and latency rankings with targeted controls; scope network proof to the claim.
