@@ -656,6 +656,7 @@ See `docs/system/skill-contract-v1.md` for the contract checklist and `docs/syst
 
 | Skill | Extra Packages | Env Vars |
 |-------|---------------|----------|
+| `atlas-imagen` | None (Python standard library only) | `ATLASCLOUD_API_KEY` |
 | `gemini-imagen` | `google-genai>=1.0.0`, `Pillow>=10.0.0` | `GEMINI_API_KEY` |
 | `gpt-imagen` | `openai>=1.0.0`, `Pillow>=10.0.0` | `OPENAI_API_KEY` |
 | `design-md` | `npx` on PATH; pulls `@google/design.md@0.4.0` on first invocation via `scripts/run_cli.sh` | — |
