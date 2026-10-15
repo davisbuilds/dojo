@@ -1,6 +1,77 @@
 # Operations
 
+## Using a skill
+
+The [README first task](../../README.md#try-a-code-review) installs one skill and
+shows how to use it. The GitHub installer needs Python 3.11+ and uses only its
+standard library; it does not require `uv sync`, the development CLI, or Dojo's
+hooks. Run it from a Dojo checkout:
+
+```bash
+python3 skills/skill-installer/scripts/install-skill-from-github.py \
+  --agent codex --repo davisbuilds/dojo --path skills/local-review
+```
+
+Use `--agent claude` for Claude Code. Defaults are `~/.codex/skills` and
+`~/.claude/skills`, overridden by `CODEX_HOME` and `CLAUDE_HOME` respectively
+(the installer appends `/skills`). `--dest /absolute/path/to/skills` overrides
+the destination root; choose one your harness discovers. The command prints
+`Installed local-review to <destination>/local-review` on success.
+
+The source is GitHub, even when run from a locally edited checkout. It defaults
+to `main`; use `--ref <tag-or-commit>` with `--method download` for a pinned
+archive. `--help` lists options. The default download can fall back to Git for
+some HTTP failures; `--method download` limits it to the archive path. Public
+Dojo downloads need no API key. Existing `GITHUB_TOKEN` / `GH_TOKEN` environment
+variables are used by the downloader if present.
+
+The complete selected directory is copied, including references and scripts.
+It is a snapshot, not a live link or an automatic update subscription. An existing
+destination causes an error; the installer does not merge or upgrade it. Compare
+and preserve any local edits before deliberately replacing an installed copy.
+For uninstalling a manually installed skill, remove only its directory at the
+reported destination, then start a fresh session. If another tool manages that
+copy, use that tool's update/removal procedure.
+
+### Skill troubleshooting
+
+| Symptom | What to check |
+| --- | --- |
+| `Destination already exists` | Inspect the named directory first; an existing installation may already be usable. Compare its `SKILL.md` version and bundle before replacing it. |
+| The agent cannot find the skill | Check the printed destination and your harness's configured skill roots, then start a fresh session and name the skill explicitly. Installing into a directory does not prove discovery. |
+| The agent sees an old or unexpected copy | Check for another copy with the same name and confirm which path the session actually loads. For Codex, use the diagnostic below. |
+| `dojo` says its environment is unavailable | The optional CLI needs `uv sync --locked` in the checkout holding its executable. This is separate from installing a skill. |
+| A skill needs an unavailable tool or service | Read that skill's dependencies and setup instructions; install or configure only what the task needs. |
+
+With the [development environment](#setup) prepared, diagnose Codex exposure
+from the Dojo checkout, substituting your target project's absolute path:
+
+```bash
+uv run --locked bin/dojo inspect local-review --harness codex --cwd /absolute/path/to/project
+```
+
+This compares candidate copies with this checkout and probes a fresh Codex prompt
+catalog. It may find content drift when an installation intentionally follows a
+different revision. It does not inspect an existing session's state or prove body
+loading. A disabled, unavailable, or clipped probe is a limitation, not proof of
+absence. See [CLI scope and exit codes](#dojo-development-cli) for interpretation.
+Claude Code and other harnesses require their own discovery/session diagnostics.
+
+### Optional skill dependencies
+
+These are separate from repository development dependencies. Each skill owns
+its setup instructions and any service-access requirements.
+
+| Skill | Extra packages or tools | Env vars |
+| --- | --- | --- |
+| [gpt-imagen](../../skills/gpt-imagen/SKILL.md) | `openai>=1.0.0`, `Pillow>=10.0.0` | `OPENAI_API_KEY` |
+| [gemini-imagen](../../skills/gemini-imagen/SKILL.md) | `google-genai>=1.0.0`, `Pillow>=10.0.0` | `GEMINI_API_KEY` |
+| [design-md](../../skills/design-md/SKILL.md) | `npx` on PATH; pulls `@google/design.md@0.4.0` on first invocation | — |
+
 ## Setup
+
+This section prepares a checkout for developing Dojo or running its optional CLI.
+For installation into a coding agent, use [Using a skill](#using-a-skill).
 
 ### System Dependencies
 
@@ -23,7 +94,7 @@ uv run --locked pytest
 hashes. `.python-version` selects Python 3.12 for development and CI; supported
 Python starts at 3.11. Runtime dependencies are PyYAML, Typer, and Rich. The default
 dev group adds pytest; `uv sync --locked --no-dev` omits it. Optional per-skill
-packages remain documented in the [README](../../README.md#install) and their skills.
+packages remain documented under [optional skill dependencies](#optional-skill-dependencies) and in their skills.
 
 Use `uv add` / `uv add --dev`, or edit the manifest and run `uv lock`, then commit
 both manifest and lockfile. CI uses `uv sync --locked`, which fails on drift.
