@@ -35,6 +35,8 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 HOOKS = REPO_ROOT / "hooks"
 WORKFLOW = REPO_ROOT / ".github" / "workflows" / "skill-contract-pilot.yml"
+# CI delegates its checks to the repository gate, so both files are CI source.
+CI_SOURCES = (WORKFLOW, REPO_ROOT / "scripts" / "check")
 AUDIT = REPO_ROOT / "skills" / "skill-standardizer" / "scripts" / "audit.py"
 
 # Entrypoints and flags that can change installed skill state. Matched as whole
@@ -122,15 +124,22 @@ def test_audit_imports_only_read_only_symbols():
 def test_ci_never_creates_the_whole_catalog_links():
     """`gen_harness_adapters.py` without `--skip-symlinks` links the whole catalog
     into project scope — the defect that put a dojo session at 177% of budget."""
-    text = WORKFLOW.read_text()
-    for line in text.splitlines():
-        if "gen_harness_adapters.py" in line:
-            assert "--skip-symlinks" in line, f"CI may create catalog links: {line.strip()}"
-            assert "--check" in line, f"CI invocation is not read-only: {line.strip()}"
+    invocations = [
+        line.strip()
+        for source in CI_SOURCES
+        for line in source.read_text().splitlines()
+        if "gen_harness_adapters.py" in line
+    ]
+    # A scan that finds no invocation proves nothing about how CI calls it.
+    assert invocations, "no gen_harness_adapters.py invocation found in CI sources"
+    for line in invocations:
+        assert "--skip-symlinks" in line, f"CI may create catalog links: {line}"
+        assert "--check" in line, f"CI invocation is not read-only: {line}"
 
 
 def test_ci_holds_no_mutating_entrypoint():
-    assert mutating_tokens_in(WORKFLOW.read_text()) == []
+    for source in CI_SOURCES:
+        assert mutating_tokens_in(source.read_text()) == [], source
 
 
 # --------------------------------------------------------------------------

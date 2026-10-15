@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# The repository gate: every deterministic check CI runs, as one command.
+# AGENTS.md "Pre-push" and .github/workflows/skill-contract-pilot.yml both call
+# this, so a check added here is added to both. It only checks; it never writes
+# tracked files. Every check runs, and the summary names each one that failed.
+#
+#   scripts/check          the full gate
+#   scripts/check --fast   skips the test suites (for a pre-push hook)
+#
+# CHECK_BASE is the version-bump comparison base (default origin/main).
+set -uo pipefail
+
+fast=0
+case "${1:-}" in
+  "") ;;
+  --fast) fast=1 ;;
+  *) echo "usage: scripts/check [--fast]" >&2; exit 2 ;;
+esac
+
+cd "$(git rev-parse --show-toplevel)" || exit 2
+base="${CHECK_BASE:-origin/main}"
+failed=()
+
+run() {
+  local label=$1 status
+  shift
+  if [ "${GITHUB_ACTIONS:-}" = true ]; then echo "::group::$label"; else echo "==> $label"; fi
+  "$@"
+  status=$?
+  if [ "${GITHUB_ACTIONS:-}" = true ]; then echo "::endgroup::"; fi
+  if [ "$status" -ne 0 ]; then
+    failed+=("$label")
+    if [ "${GITHUB_ACTIONS:-}" = true ]; then echo "::error::$label failed"; fi
+  fi
+}
+
+py() { uv run --locked python3 "$@"; }
+
+run "Strict skill contract" py skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
+run "Skill version bumps" py skills/skill-evals/scripts/check_skill_versions.py --base "$base" --no-untracked
+run "Generated skill docs" py scripts/gen_skill_docs.py --check
+run "Generated skills manifest" py scripts/generate_skills_manifest.py --check
+run "Generated harness adapters" py scripts/gen_harness_adapters.py --check --skip-symlinks
+run "Generated catalog" py scripts/gen_catalog.py --check
+run "Distribution profiles" py scripts/profiles/ci_check.py
+run "Dangling links and skill references" py scripts/check_links.py
+run "AI-slop prose scan" py scripts/slop_scan.py
+if [ "$fast" -eq 0 ]; then
+  run "Regression tests" py -m pytest tests/ -q
+  # Ships its own runner beside the skill, so `pytest tests/` does not collect it.
+  run "Skill-standardizer regression tests" py skills/skill-standardizer/scripts/test_skill_standardizer.py
+fi
+
+if [ "${#failed[@]}" -ne 0 ]; then
+  printf 'Failed checks:\n' >&2
+  printf '  - %s\n' "${failed[@]}" >&2
+  exit 1
+fi
+echo "All checks passed"
