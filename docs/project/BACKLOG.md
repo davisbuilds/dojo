@@ -262,6 +262,18 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   (`skill-contract-pilot.yml` pins 3.12) so the regression cannot return silently.
 - **Revisit when**: moving CI to Python 3.14, or the failure appears in isolation.
 
+### Scan-timeout test races scanner startup under load
+- **What**: `tests/test_audit_skill.py::test_scan_timeout_stops_scanner_and_its_child`
+  gives `run_scan` a 1 s timeout, in which `scan.sh` must start a fake Python
+  engine that writes its PID file. When startup is slower than that, the
+  "Scanner never started" assertion fails without any cleanup defect.
+- **Why or evidence**: failed once in a full `scripts/check` run on 2026-10-15
+  (MacBook, Python 3.12), then passed in isolation five times and in two further
+  full runs.
+- **Next**: have the fake engine write its PID file before any other work, or
+  raise the timeout enough to cover cold interpreter startup; revisit if it
+  fails in CI.
+
 ### Revalidate earlier catalog improvement candidates before selecting work
 
 - **What**: the March 2026 roadmap proposed combining Vercel deploy/preview skills,

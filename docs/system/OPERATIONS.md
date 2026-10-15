@@ -622,21 +622,20 @@ the next session to re-report current drift, delete that file.
 
 ## CI
 
-GitHub Actions enforces strict contract compliance, generated-artifact sync, and an AI-slop prose scan on the manifest-backed skill catalog via:
-
-- `.github/workflows/skill-contract-pilot.yml`
+GitHub Actions runs the repository gate, `scripts/check`, in
+`.github/workflows/skill-contract-pilot.yml`. Run the same command before
+pushing:
 
 ```bash
-python -m pytest tests/ -q
-python3 skills/skill-standardizer/scripts/test_skill_standardizer.py
-python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
-python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
-python3 scripts/gen_skill_docs.py --check
-python3 scripts/generate_skills_manifest.py --check
-python3 scripts/gen_harness_adapters.py --check --skip-symlinks
-python3 scripts/gen_catalog.py --check
-python3 scripts/slop_scan.py
+scripts/check          # every deterministic CI check; exit 1 names each failure
+scripts/check --fast   # skips pytest and the skill-standardizer runner (~0.5 s)
 ```
+
+The gate covers the strict contract, skill version bumps against `CHECK_BASE`
+(default `origin/main`; CI sets the PR base), the four generated-artifact
+`--check`s, distribution profiles, links, the AI-slop scan, and both test suites.
+It only checks. The workflow keeps commit-subject release classification and
+the strict-set report upload as separate steps.
 
 The strict validator gates metadata validity, matching directory/name identity,
 and an explicit `workflow` or `reference` type. Recognizable headings, trigger
