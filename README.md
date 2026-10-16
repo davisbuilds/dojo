@@ -1,268 +1,134 @@
+<p align="center">
+  <img src="docs/assets/dojo-header.svg" width="880" alt="Dojo — reusable skills for coding agents. A dojo entrance framed by code brackets." />
+</p>
+
 # Dojo
 
-This repository contains **Agent Skills**: markdown-first packages that extend AI agents with specialized knowledge, workflows, and tool integrations. Skills are agent-agnostic by default, with lifecycle hooks and a generated manifest keeping the catalog usable across Claude Code, Codex, and similar harnesses.
+Reusable skills for developers working with coding agents. Add a focused capability
+to Claude Code, Codex, or another harness that reads `SKILL.md`.
 
-## Agent Setup
+Each skill bundles instructions and, where useful, tools or specialist references.
+Dojo favors scoped guidance that leaves room for the agent's judgment. Start with
+one skill for a task you already have; the catalog is a menu, not a required workflow.
 
-New here? Paste the prompt below into your coding agent (Claude Code, Codex, etc.) and it will install the toolchain, validate the skills, and tell you how to install a skill into your agent.
+## Start with your agent
+
+Open your coding agent in the project you want to work on and paste this:
 
 ```text
-Set up the `dojo` repo for me. It's a collection of agent-agnostic Skills (markdown
-`SKILL.md` files) and lifecycle hooks for coding agents like Claude Code and Codex.
-It's markdown-first with small Python helper scripts.
+Help me get started with Dojo: https://github.com/davisbuilds/dojo
 
-Do this, in order:
+Read its README and consumer installation instructions. Use my current task to
+suggest a useful starting skill; if the task is unclear, ask what I want to do.
+Install the complete skill bundle for this agent using the documented installer,
+preserving any existing customizations. Set up only what the selected skill needs.
+Check whether this harness can discover it, tell me if I need a fresh session,
+and show me how to invoke it on my task.
 
-1. Check system tools. These must be on PATH (the hooks use them): git, jq,
-   python3, sed, grep. Run:
-   for cmd in git jq python3 sed grep; do command -v "$cmd" >/dev/null && echo "$cmd: ok" || echo "$cmd: MISSING"; done
-   If any are MISSING, tell me which and how to install (e.g. `brew install jq`).
-
-2. Install uv if needed (e.g. `brew install uv`), then run `uv sync --locked`.
-   This installs the Python version in `.python-version` and locked dependencies
-   in `.venv`. No secrets are required for the core tools. Optional image skills
-   need their own dependencies and API keys only when used.
-
-3. Verify WITHOUT any secrets: run the skill-contract validator —
-   `uv run --locked python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict`.
-   It should pass. If it fails, show me the output and stop.
-
-4. Apply harness adapters: `uv run --locked python3 scripts/gen_harness_adapters.py`. This
-   exposes the project additions in `config/project-skills.json` through
-   `.agents/skills` and `.claude/skills`, and generates Codex sidecars for the
-   full canonical catalog. General skills come from your separate global
-   installation; source files remain readable without installing every skill.
-
-5. Report back: confirm tools present + deps installed + validator passed, and show
-   me how to install a skill into my agent, e.g.
-   `uv run --locked python3 skills/skill-installer/scripts/install-skill-from-github.py --agent claude --repo davisbuilds/dojo --path skills/<skill-name>`.
-
-Don't commit anything.
+Do not set up Dojo's contributor tooling or repository hooks unless I ask to
+work on Dojo itself.
 ```
 
-Prefer to do it yourself? The manual steps are below.
+Your agent handles skill selection, installation, and setup checks. You don't
+need to clone Dojo or run its development commands yourself. If you already know
+which skill you want, name it in the request. Prefer the terminal? Use
+[manual installation](#manual-installation).
 
-## Documentation
+## Some starting points
 
-- **Agent guidance**: [`AGENTS.md`](AGENTS.md)
-- **Architecture and skill structure**: [`docs/system/ARCHITECTURE.md`](docs/system/ARCHITECTURE.md)
-- **Skill catalog and command wrappers**: [`docs/system/FEATURES.md`](docs/system/FEATURES.md)
-- **Setup and operations**: [`docs/system/OPERATIONS.md`](docs/system/OPERATIONS.md)
-- **Skill authoring guidance**: [`docs/system/SKILL-BEST-PRACTICES.md`](docs/system/SKILL-BEST-PRACTICES.md)
-- **Strict skill contract**: [`docs/system/skill-contract-v1.md`](docs/system/skill-contract-v1.md)
-- **Vision, roadmap, and backlog**: [`docs/project/VISION.md`](docs/project/VISION.md), [`docs/project/ROADMAP.md`](docs/project/ROADMAP.md), [`docs/project/BACKLOG.md`](docs/project/BACKLOG.md)
-- **Git history policy**: [`docs/project/GIT_HISTORY_POLICY.md`](docs/project/GIT_HISTORY_POLICY.md)
+| What you need | Start with |
+| --- | --- |
+| Review a code change | [local-review](skills/local-review/SKILL.md) |
+| Find the cause of a bug or slowdown | [diagnose](skills/diagnose/SKILL.md) |
+| Design or review an API contract | [api-design](skills/api-design/SKILL.md) |
+| Explore an idea with unclear requirements | [brainstorming](skills/brainstorming/SKILL.md) |
+| Continue ongoing work in another session | [handoff](skills/handoff/SKILL.md) |
 
-The generated [`skills.json`](skills.json) manifest is the runtime inventory source of truth.
+Browse the [full catalog](docs/system/FEATURES.md), or open the
+[searchable catalog](docs/catalog/index.html) locally in a browser. Read the
+chosen skill's `SKILL.md` for scope and dependencies.
 
-## Development checks
+## Use it in your project
 
-With repository dependencies installed, use `uv run --locked bin/dojo check <skill> --base origin/main`
-for focused packaging/release checks, or `uv run --locked bin/dojo inspect <skill> --harness codex`
-for installed-copy and fresh catalog evidence. `dojo list [query]` searches the
-canonical catalog; `dojo info` identifies the running checkout and environment.
-All commands support `--json` and `-h` / `--help`. `dojo -v` / `--version` prints
-the CLI version from `pyproject.toml`, independently of individual skill versions.
-See [operations](docs/system/OPERATIONS.md#dojo-development-cli) for scope and limits.
+After setup, follow any restart instructions and ask your agent to use the chosen
+skill **in the project you want to work on**, with the task's scope and context.
+For example:
 
-## Prerequisites
+```text
+Use local-review to review my uncommitted changes relative to HEAD.
+Do not edit files or post comments.
+```
 
-The hooks require `git`, `jq`, `python3`, `sed`, and `grep`. These ship with most systems. Verify with:
+A useful review explains **what triggers a defect, what breaks, and where**.
+It can also report no supported findings. A handoff should give the next session
+the decisions, relevant files, completed work, and remaining work needed to
+continue. These describe the skills' intended behavior, not measured gains over
+your agent's existing abilities.
+
+Name the skill explicitly for the first attempt. Ask your agent to confirm it
+read the installed `SKILL.md` if you're unsure whether it used the skill.
+A harness's native review command is a separate entrypoint from this example.
+If the skill is missing or stale, point your agent to
+[consumer troubleshooting](docs/system/OPERATIONS.md#skill-troubleshooting).
+
+Installation, discovery, actual use, and useful outcomes are separate checks. See
+[evaluation guidance](skills/skill-creator/references/evaluation.md) for comparing
+a skill against your agent's ordinary baseline.
+
+## Manual installation
+
+With Git and Python 3.11+ available, clone Dojo and run its installer. This example
+installs `local-review`; replace that name with any skill from the table above:
 
 ```bash
-for cmd in git jq python3 sed grep; do command -v "$cmd" >/dev/null && echo "$cmd: ok" || echo "$cmd: MISSING"; done
+git clone https://github.com/davisbuilds/dojo.git
+cd dojo
+python3 skills/skill-installer/scripts/install-skill-from-github.py \
+  --agent codex --repo davisbuilds/dojo --path skills/local-review
 ```
 
-If everything prints `ok`, install the Python dependencies. Otherwise install the missing tool(s) via your package manager, for example `brew install jq`.
+For **Claude Code**, replace `--agent codex` with `--agent claude`. The installer
+copies the complete skill from GitHub's `main` into `~/.codex/skills/local-review`
+or `~/.claude/skills/local-review` by default, and prints the destination.
+It honors `CODEX_HOME` / `CLAUDE_HOME` and refuses to overwrite an existing directory.
+The installed bundle is a snapshot; pulling this checkout does not update it.
+See [installation options](docs/system/OPERATIONS.md#using-a-skill) for pinned
+revisions, other destinations, updates, and removal.
 
-## Install
+This installer uses Python's standard library. Repository development dependencies,
+hooks, adapters, and the `dojo` CLI are optional for using these skills. Some skills
+need additional tools or service access; configure those only when needed.
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then:
+## Work on Dojo
+
+To change skills or use the development CLI, install
+[uv](https://docs.astral.sh/uv/getting-started/installation/) and run from this checkout:
 
 ```bash
 uv sync --locked
+uv run --locked bin/dojo list review
+uv run --locked bin/dojo check local-review
 ```
 
-[`pyproject.toml`](pyproject.toml) declares the runtime dependencies (PyYAML,
-Typer, Rich) and the dev group (pytest). [`uv.lock`](uv.lock) pins the resolved
-versions and hashes. `.python-version` selects Python 3.12 for local work and CI;
-the tools support Python 3.11+. This is a checkout-based project, not a published
-Python package. Its version and [root changelog](CHANGELOG.md) cover the CLI and
-tooling; skills retain their own versions. [Release Please](docs/system/OPERATIONS.md#cli-and-tooling-releases)
-proposes version/changelog PRs and creates `dojo-cli-v…` tags after merge and CI.
+`list` searches canonical names and descriptions; `check` validates the selected
+skill's packaging and Markdown links. Neither runs a code review. Use
+[Operations](docs/system/OPERATIONS.md#setup) for hook prerequisites, adapters,
+regression tests, full-catalog validation, and the optional `dojo` PATH setup.
 
-Use `uv run --locked <command>` for repo tools. Configured Python hooks select
-this checkout's `.venv` explicitly, including in already-running agents. `uv run` can
-prepare the environment but refuses a stale lockfile. To change dependencies, use
-`uv add` / `uv add --dev`, or edit `pyproject.toml` and run `uv lock`; commit both
-files. `uv sync --locked --no-dev` installs only runtime dependencies.
+Focused fixes, documentation improvements, and supported proposals are welcome.
+Start with [Contributing](CONTRIBUTING.md) and [agent guidance](AGENTS.md).
+Skill authors should read [best practices](docs/system/SKILL-BEST-PRACTICES.md)
+and the [skill contract](docs/system/skill-contract-v1.md). Changes to skill
+instructions use per-skill versions and changelogs; the root
+[changelog](CHANGELOG.md) covers CLI/tooling releases.
 
-To make the checkout available as `dojo` from any directory:
+## Documentation
 
-```bash
-mkdir -p "$HOME/.local/bin"
-ln -s "$PWD/bin/dojo" "$HOME/.local/bin/dojo"
-dojo -h
-dojo --version
-dojo list research
-dojo info
-```
-
-Run this from the checkout you want the command to follow, and ensure
-`~/.local/bin` is on PATH. The launcher resolves the link and uses that checkout's
-`.venv`; it preserves your working directory and never installs dependencies.
-Run `uv sync --locked` after dependency updates. A missing environment produces
-a setup error.
-
-Some skills bundle optional dependencies:
-
-| Skill | Extra packages | Env vars |
-|-------|----------------|----------|
-| `skills/gpt-imagen/` | `openai>=1.0.0`, `Pillow>=10.0.0` | `OPENAI_API_KEY` |
-| `skills/gemini-imagen/` | `google-genai>=1.0.0`, `Pillow>=10.0.0` | `GEMINI_API_KEY` |
-| `skills/design-md/` | `npx` on PATH; pulls `@google/design.md@0.4.0` on first invocation | — |
-
-## Quick Start
-
-```bash
-# Validate the full skill catalog against the strict contract.
-uv run --locked python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
-
-# Inspect the runtime skill count.
-jq '.skills | length' skills.json
-
-# Regenerate the manifest after skill metadata changes.
-uv run --locked python3 scripts/generate_skills_manifest.py
-
-# Install a skill into an agent.
-uv run --locked python3 skills/skill-installer/scripts/install-skill-from-github.py \
-  --agent claude \
-  --repo davisbuilds/dojo \
-  --path skills/<skill-name>
-```
-
-## Skill Model
-
-A skill is a self-contained directory that provides:
-
-- **Instructions**: task-specific guidance in `SKILL.md`.
-- **Context**: specialized references or best practices.
-- **Workflow**: a structured approach to complex problems.
-
-Each skill follows this structure:
-
-```
-skill-name/
-├── SKILL.md           # Required: Frontmatter (YAML) + Instructions (Markdown)
-├── commands/          # Optional: command-wrapper docs for slash-style entrypoints
-├── scripts/           # Optional: Executable scripts (Python/Bash)
-├── references/        # Optional: Documentation files
-└── assets/            # Optional: Templates, images, or other assets
-```
-
-The `SKILL.md` file contains the "brain" of the skill—the prompt instructions that are loaded into the agent's context when the skill is triggered.
-
-`SKILL.md` frontmatter declares a per-skill SemVer `version` used by `skills.json`, the catalog, and release-bump checks. New stable skills start at `1.0.0`.
-
-`SKILL.md` frontmatter should also declare a `skill-type` for new or updated skills:
-- `workflow` for procedural, review, audit, remediation, or planning skills
-- `reference` for best-practice indexes and reference routers
-
-Context loading follows progressive disclosure: manifest metadata is always available, `SKILL.md` loads only when triggered, and bundled resources are read on demand.
-
-Skills may also declare an optional `triggers:` list of literal trigger phrases. These are machine-checkable by the trigger evals (`run_trigger_evals.py --from-triggers`) and stay optional — absence changes nothing.
-
-### Multi-harness support
-
-The agent-agnostic claim is backed by generated adapters, not duplicated content. `scripts/gen_harness_adapters.py` derives adapters from the canonical catalog and the project selection:
-
-- **Selected project links** in `.agents/skills` and `.claude/skills`, owned by `config/project-skills.json`. The default additions are `audit-skill` and `skill-evals`; general skills stay in the user's global catalog. These gitignored links are regenerated per clone. The generator retires its legacy whole-catalog links, including `.agent/skills`, while preserving and reporting foreign content.
-- **Command links** in `.claude/commands` for only the selected skills. Stale generated links are pruned; hand-authored commands are preserved.
-- **Codex sidecars** (`skills/<name>/agents/openai.yaml`) for every canonical skill, independent of project exposure. Generated sidecars follow frontmatter; hand-curated sidecars are preserved.
-
-Run `uv run --locked python3 scripts/gen_harness_adapters.py` to regenerate everything locally. CI enforces the committed sidecars with `gen_harness_adapters.py --check --skip-symlinks`.
-
-## Available Skills
-
-Skills span GitHub workflows, code review, content creation, dev workflows, platform integrations, knowledge management, and meta/skill tooling. Use `jq '.skills | length' skills.json` for the current runtime count, and see [docs/system/FEATURES.md](docs/system/FEATURES.md) for the catalog snapshot.
-
-For a searchable view, open [`docs/catalog/index.html`](docs/catalog/index.html) — a self-contained page generated from `skills.json` by `scripts/gen_catalog.py` (rebuilt automatically when skill metadata changes).
-
-## Hooks
-
-Hooks in `hooks/` enforce skill quality, inject session context, and nudge agents to capture learnings (skill catalog, frontmatter validation, manifest regeneration, git checks, structure checks, session retro reminder). Configured in `.claude/settings.json` and `.agents/settings.json`. See [docs/system/ARCHITECTURE.md](docs/system/ARCHITECTURE.md) for details.
-
-## Creating and Shipping Skills
-
-You can use the `skill-creator` scripts to scaffold a new skill:
-
-```bash
-# Create a new skill directory
-uv run --locked python3 skills/skill-creator/scripts/init_skill.py <skill-name> --path ./ \
-  --resources scripts,references --examples
-
-# Validate your skill structure (works with both `python` and `python3`)
-uv run --locked python3 skills/skill-creator/scripts/quick_validate.py <skill-name>
-
-# Package a skill for distribution
-uv run --locked python3 skills/skill-creator/scripts/package_skill.py <skill-name> ./dist
-
-# Optional: generate OpenAI/Codex metadata add-on
-uv run --locked python3 skills/skill-creator/scripts/generate_openai_yaml.py <skill-name> \
-  --interface default_prompt="Use $<skill-name> to help with this task."
-```
-
-The validator uses a polyglot shebang so it can also be run directly and will work in environments that provide either `python` or `python3`.
-
-For new or updated skills, set `skill-type` before validating so the contract enforces the right structure.
-
-## Agent Usage
-
-When working with an agent that supports these skills:
-
-1. **Trigger**: The agent will select a skill based on its `description` in `SKILL.md` when it matches your request.
-2. **Follow Instructions**: The agent will then follow the specific protocols defined in the skill's body.
-3. **Tools**: Some skills may require specific tools (like `gh` CLI or `python`) to be installed in your environment.
-
-### Skill Installer Targets
-
-`skills/skill-installer` supports both Codex and Claude Code destinations:
-
-```bash
-# Install to Claude Code skills (~/.claude/skills by default)
-uv run --locked python3 skills/skill-installer/scripts/install-skill-from-github.py \
-  --agent claude \
-  --repo openai/skills \
-  --path skills/.curated/create-cli
-```
-
-### Command Wrappers
-
-Some skills include optional `commands/*.md` wrappers for slash-style entrypoints. See [docs/system/FEATURES.md](docs/system/FEATURES.md) for the full list.
-
-## Code Layout
-
-```text
-skills/                   skill directories; each skill is anchored by SKILL.md
-hooks/                    lifecycle hooks for validation, manifest updates, and session checks
-scripts/                  manifest generation and helper scripts
-tests/                    regression tests for repository scripts
-spec/                     agent skills specification
-docs/system/              architecture, operations, catalog, contract, and authoring references
-docs/project/             project vision, backlog, and git history policy
-docs/design/              brainstorm design summaries (WHAT — chosen direction)
-docs/specs/               contracts (WHAT must be true — falsifiable target)
-docs/plans/               implementation plans (HOW — task sequencing)
-docs/downloads/           pre-packaged .skill files
-docs/archive/             historical analyses and completed plans
-```
-
-## Current Boundaries
-
-- `skills.json` is generated from `skills/*/SKILL.md`; do not hand-edit it as the primary source.
-- Hooks are configured for supported local harnesses, but CI currently enforces the strict skill contract only.
-- Optional image and design skills can require external CLIs or API keys; the core repo validation does not.
-- `commands/*.md` wrappers are part of the skill surface even when a harness does not expose command files.
+- [Architecture](docs/system/ARCHITECTURE.md): skill structure, progressive loading, hooks, and generated adapters.
+- [Operations](docs/system/OPERATIONS.md): installation, diagnostics, development, and distribution tooling.
+- [Vision](docs/project/VISION.md): what belongs in Dojo and why.
+- [Roadmap](docs/project/ROADMAP.md) and [Backlog](docs/project/BACKLOG.md): selected direction and unresolved work.
+- [Git history policy](docs/project/GIT_HISTORY_POLICY.md): contribution and merge conventions.
 
 ## Acknowledgements
 
