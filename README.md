@@ -1,23 +1,34 @@
+<p align="center">
+  <img src="docs/assets/dojo-header.svg" width="880" alt="Dojo — reusable skills for coding agents. A dojo entrance framed by code brackets." />
+</p>
+
 # Dojo
 
 Reusable skills for developers working with coding agents. Add a focused capability
-to Claude Code, Codex, or another harness that reads `SKILL.md`: review a change,
-diagnose a bug, design an API, or carry task context into a fresh session.
+to Claude Code, Codex, or another harness that reads `SKILL.md`.
 
 Each skill bundles instructions and, where useful, tools or specialist references.
 Dojo favors scoped guidance that leaves room for the agent's judgment. Start with
 one skill for a task you already have; the catalog is a menu, not a required workflow.
 
-## Try a code review
+## Choose a task
 
-[`local-review`](skills/local-review/SKILL.md) is a small first task if you have a
-Git repository with an uncommitted change. It asks the agent to trace affected
-callers and contracts, then return actionable findings with evidence. Review is
-read-only unless you separately request a fix or publication.
+| What you need | Start with |
+| --- | --- |
+| Review a code change | [local-review](skills/local-review/SKILL.md) |
+| Find the cause of a bug or slowdown | [diagnose](skills/diagnose/SKILL.md) |
+| Design or review an API contract | [api-design](skills/api-design/SKILL.md) |
+| Explore an idea with unclear requirements | [brainstorming](skills/brainstorming/SKILL.md) |
+| Continue ongoing work in another session | [handoff](skills/handoff/SKILL.md) |
 
-### Install
+Browse the [full catalog](docs/system/FEATURES.md), or open the
+[searchable catalog](docs/catalog/index.html) locally in a browser. Read the
+chosen skill's `SKILL.md` for scope and dependencies.
 
-With Git and Python 3.11+ available, run:
+## Install one skill
+
+With Git and Python 3.11+ available, clone Dojo and run its installer. This example
+installs `local-review`; replace that name with any skill from the table above:
 
 ```bash
 git clone https://github.com/davisbuilds/dojo.git
@@ -28,73 +39,43 @@ python3 skills/skill-installer/scripts/install-skill-from-github.py \
 
 For **Claude Code**, replace `--agent codex` with `--agent claude`. The installer
 copies the complete skill from GitHub's `main` into `~/.codex/skills/local-review`
-or `~/.claude/skills/local-review` by default, and prints the destination. It
-honors `CODEX_HOME` / `CLAUDE_HOME` and refuses to overwrite an existing directory.
-See [installation options and troubleshooting](docs/system/OPERATIONS.md#using-a-skill)
-for other destinations, pinned revisions, and existing copies.
+or `~/.claude/skills/local-review` by default, and prints the destination.
+It honors `CODEX_HOME` / `CLAUDE_HOME` and refuses to overwrite an existing directory.
+The installed bundle is a snapshot; pulling this checkout does not update it.
+See [installation options](docs/system/OPERATIONS.md#using-a-skill) for pinned
+revisions, other destinations, updates, and removal.
 
-This path uses Python's standard library. Repository development dependencies,
-hooks, adapters, and the `dojo` CLI are optional for using this skill.
+This installer uses Python's standard library. Repository development dependencies,
+hooks, adapters, and the `dojo` CLI are optional for using these skills. Some skills
+need additional tools or service access; configure those only when needed.
 
-### Use it on your change
+## Use it in your project
 
-Start a fresh agent session **in the repository you want reviewed**, then ask:
+Start a fresh agent session **in the repository you want to work on**. Ask it to
+use the chosen skill, with your task's scope and context. For example:
 
 ```text
 Use local-review to review my uncommitted changes relative to HEAD.
-Trace affected callers and contracts. Return actionable findings with file and
-line references, and state any material verification limits. Do not edit files
-or post comments.
+Do not edit files or post comments.
 ```
 
-Use the skill's name explicitly for the first attempt. Check the session's tool
-activity or skill-loading indicator to confirm it read the installed
-`local-review/SKILL.md`; the skill being present on disk alone does not establish
-that it was used. This prompt uses the skill in an ordinary agent conversation;
-a harness's native `/review` is a separate entrypoint.
+A useful review explains **what triggers a defect, what breaks, and where**.
+It can also report no supported findings. A handoff should give the next session
+the decisions, relevant files, completed work, and remaining work needed to
+continue. These describe the skills' intended behavior, not measured gains over
+your agent's existing abilities.
 
-A useful result explains **what triggers a defect, what breaks, and where**.
-For example, one [authored review case](skills/local-review/evals/behavioral-scenarios.md)
-renames a producer's field while an unchanged consumer still reads the old key.
-The intended finding traces that mismatch beyond the diff. If there are no
-supported findings, the agent should say so and state material limits. These
-are expected behaviors, not a measured success story or proof that every review
-will find every bug.
-
-## Choose another task
-
-| What you need | Start with |
-| --- | --- |
-| Find the cause of a failing behavior or slowdown | [diagnose](skills/diagnose/SKILL.md) |
-| Design or review an API contract | [api-design](skills/api-design/SKILL.md) |
-| Explore an idea whose requirements are still unclear | [brainstorming](skills/brainstorming/SKILL.md) |
-| Preserve ongoing work for another session | [handoff](skills/handoff/SKILL.md) |
-
-Replace `skills/local-review` in the install command with the skill you choose.
-Read its `SKILL.md` for scope and dependencies. Some skills need external tools
-or service access; [optional dependencies](docs/system/OPERATIONS.md#optional-skill-dependencies)
-are separate from the basic installation.
-
-Browse the [skill catalog](docs/system/FEATURES.md), or open the generated
-[searchable catalog](docs/catalog/index.html) locally in a browser. The generated
-[`skills.json`](skills.json) manifest supplies the inventory. Installing a skill
-copies its bundle; it does not install the whole catalog or Dojo's repository hooks.
-
-## Check installation and evidence
-
-If the skill is missing, stale, or not being selected, start with
+Name the skill explicitly for the first attempt. Confirm the installed
+`SKILL.md` was read using your harness's tool activity or skill-loading indicator.
+A harness's native review command is a separate entrypoint from this example.
+If the skill is missing or stale, use
 [consumer troubleshooting](docs/system/OPERATIONS.md#skill-troubleshooting).
-For Codex, the optional `dojo inspect` command compares installed content and a
-fresh harness catalog against this checkout. It reports incomplete evidence when
-it cannot establish exposure; it does not prove that a running session loaded
-the skill body.
 
-Packaging checks establish structure and links. Routing probes, observed loading,
-and useful task outcomes are separate evidence. For the review example, see the
-[review basis and limits](skills/local-review/references/review-basis.md) and
-[authored scenarios](skills/local-review/evals/behavioral-scenarios.md). For comparing
-a skill with your agent's existing baseline, see the
-[evaluation guidance](skills/skill-creator/references/evaluation.md).
+For Codex, the optional `dojo inspect` command compares installed content and a
+fresh harness catalog against this checkout. Installation, discovery, actual use,
+and useful outcomes are separate checks. See
+[evaluation guidance](skills/skill-creator/references/evaluation.md) for comparing
+a skill against your agent's ordinary baseline.
 
 ## Work on Dojo
 

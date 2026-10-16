@@ -2,7 +2,7 @@
 
 ## Using a skill
 
-The [README first task](../../README.md#try-a-code-review) installs one skill and
+The [README quick start](../../README.md#install-one-skill) installs one skill and
 shows how to use it. The GitHub installer needs Python 3.11+ and uses only its
 standard library; it does not require `uv sync`, the development CLI, or Dojo's
 hooks. Run it from a Dojo checkout:
