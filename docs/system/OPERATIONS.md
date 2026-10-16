@@ -2,10 +2,14 @@
 
 ## Using a skill
 
-The [README quick start](../../README.md#install-one-skill) installs one skill and
-shows how to use it. The GitHub installer needs Python 3.11+ and uses only its
-standard library; it does not require `uv sync`, the development CLI, or Dojo's
-hooks. Run it from a Dojo checkout:
+The default consumer path is [agent-led setup](../../README.md#start-with-your-agent):
+the coding agent helps choose a skill for the current task, installs its complete
+bundle, checks discovery, and explains how to use it. The instructions below are
+for that agent or anyone who prefers manual installation.
+
+The GitHub installer needs Python 3.11+ and uses only its standard library; it
+does not require `uv sync`, the development CLI, or Dojo's hooks. Run it from a
+Dojo checkout:
 
 ```bash
 python3 skills/skill-installer/scripts/install-skill-from-github.py \

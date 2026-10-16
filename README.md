@@ -11,7 +11,30 @@ Each skill bundles instructions and, where useful, tools or specialist reference
 Dojo favors scoped guidance that leaves room for the agent's judgment. Start with
 one skill for a task you already have; the catalog is a menu, not a required workflow.
 
-## Choose a task
+## Start with your agent
+
+Open your coding agent in the project you want to work on and paste this:
+
+```text
+Help me get started with Dojo: https://github.com/davisbuilds/dojo
+
+Read its README and consumer installation instructions. Use my current task to
+suggest a useful starting skill; if the task is unclear, ask what I want to do.
+Install the complete skill bundle for this agent using the documented installer,
+preserving any existing customizations. Set up only what the selected skill needs.
+Check whether this harness can discover it, tell me if I need a fresh session,
+and show me how to invoke it on my task.
+
+Do not set up Dojo's contributor tooling or repository hooks unless I ask to
+work on Dojo itself.
+```
+
+Your agent handles skill selection, installation, and setup checks. You don't
+need to clone Dojo or run its development commands yourself. If you already know
+which skill you want, name it in the request. Prefer the terminal? Use
+[manual installation](#manual-installation).
+
+## Some starting points
 
 | What you need | Start with |
 | --- | --- |
@@ -25,7 +48,34 @@ Browse the [full catalog](docs/system/FEATURES.md), or open the
 [searchable catalog](docs/catalog/index.html) locally in a browser. Read the
 chosen skill's `SKILL.md` for scope and dependencies.
 
-## Install one skill
+## Use it in your project
+
+After setup, follow any restart instructions and ask your agent to use the chosen
+skill **in the project you want to work on**, with the task's scope and context.
+For example:
+
+```text
+Use local-review to review my uncommitted changes relative to HEAD.
+Do not edit files or post comments.
+```
+
+A useful review explains **what triggers a defect, what breaks, and where**.
+It can also report no supported findings. A handoff should give the next session
+the decisions, relevant files, completed work, and remaining work needed to
+continue. These describe the skills' intended behavior, not measured gains over
+your agent's existing abilities.
+
+Name the skill explicitly for the first attempt. Ask your agent to confirm it
+read the installed `SKILL.md` if you're unsure whether it used the skill.
+A harness's native review command is a separate entrypoint from this example.
+If the skill is missing or stale, point your agent to
+[consumer troubleshooting](docs/system/OPERATIONS.md#skill-troubleshooting).
+
+Installation, discovery, actual use, and useful outcomes are separate checks. See
+[evaluation guidance](skills/skill-creator/references/evaluation.md) for comparing
+a skill against your agent's ordinary baseline.
+
+## Manual installation
 
 With Git and Python 3.11+ available, clone Dojo and run its installer. This example
 installs `local-review`; replace that name with any skill from the table above:
@@ -48,34 +98,6 @@ revisions, other destinations, updates, and removal.
 This installer uses Python's standard library. Repository development dependencies,
 hooks, adapters, and the `dojo` CLI are optional for using these skills. Some skills
 need additional tools or service access; configure those only when needed.
-
-## Use it in your project
-
-Start a fresh agent session **in the repository you want to work on**. Ask it to
-use the chosen skill, with your task's scope and context. For example:
-
-```text
-Use local-review to review my uncommitted changes relative to HEAD.
-Do not edit files or post comments.
-```
-
-A useful review explains **what triggers a defect, what breaks, and where**.
-It can also report no supported findings. A handoff should give the next session
-the decisions, relevant files, completed work, and remaining work needed to
-continue. These describe the skills' intended behavior, not measured gains over
-your agent's existing abilities.
-
-Name the skill explicitly for the first attempt. Confirm the installed
-`SKILL.md` was read using your harness's tool activity or skill-loading indicator.
-A harness's native review command is a separate entrypoint from this example.
-If the skill is missing or stale, use
-[consumer troubleshooting](docs/system/OPERATIONS.md#skill-troubleshooting).
-
-For Codex, the optional `dojo inspect` command compares installed content and a
-fresh harness catalog against this checkout. Installation, discovery, actual use,
-and useful outcomes are separate checks. See
-[evaluation guidance](skills/skill-creator/references/evaluation.md) for comparing
-a skill against your agent's ordinary baseline.
 
 ## Work on Dojo
 
