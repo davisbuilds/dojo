@@ -96,8 +96,11 @@ names, trigger phrases, or length, and does not establish behavioral quality.
 Uses a polyglot shebang — works with both `python` and `python3`.
 
 `scripts/check_links.py` fails on references that point at something which no longer
-exists: relative markdown links that do not resolve, `skills/<name>/` paths naming a
-skill that is gone, and `## Sibling skills` entries naming a retired skill. Added
+exists: relative markdown links that do not resolve, heading fragments (`foo.md#usage`
+or same-file `#usage`) that name no anchor in the local Markdown target, `skills/<name>/`
+paths naming a skill that is gone, and `## Sibling skills` entries naming a retired
+skill. The checker's module docstring defines the supported anchor contract and the
+cases it skips rather than guesses. Added
 2026-07-31 after two cleanups each left stale pointers behind — a retirement left
 sibling sections across sixteen files, and a reference cut left three separate indexes
 listing deleted files. Fenced code blocks, `assets/` templates, URLs, and documented

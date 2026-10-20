@@ -73,9 +73,9 @@ def test_sibling_section_ignores_non_skill_words(tmp_path: Path) -> None:
     assert all("`git`" not in p and "`main`" not in p for p in problems)
 
 
-def test_external_and_anchor_links_are_skipped(tmp_path: Path) -> None:
+def test_external_links_are_skipped(tmp_path: Path) -> None:
     root = tmp_path / "skills"
-    make_skill(root, "alpha", "[docs](https://example.com/x.md) and [top](#heading).\n")
+    make_skill(root, "alpha", "[docs](https://example.com/x.md) and [mail](mailto:a@example.com).\n")
     assert MODULE.check(root, []) == []
 
 
@@ -157,3 +157,240 @@ def test_clean_checkout_matches_working_tree() -> None:
     for path in MODULE.markdown_files(MODULE.SKILLS_ROOT, MODULE.LIVING_DOCS):
         rel = path.relative_to(MODULE.REPO_ROOT).as_posix()
         assert rel in tracked, f"{rel} is scanned by the gate but not tracked in git"
+
+
+# --- Heading fragments -------------------------------------------------------
+#
+# Expected anchors below are written out by hand from GitHub's documented
+# heading-id behavior, not derived from the checker's slug function.
+
+
+def write_doc(root: Path, rel: str, text: str) -> Path:
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
+def fragment_problems(problems: list[str]) -> list[str]:
+    return [p for p in problems if "missing heading anchor" in p]
+
+
+def test_fragment_into_existing_heading_passes(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "See [setup](references/guide.md#install-and-run).\n")
+    write_doc(a, "references/guide.md", "# Guide\n\n## Install and run\n\nSteps.\n")
+    assert MODULE.check(root, []) == []
+
+
+def test_fragment_into_renamed_heading_is_reported(tmp_path: Path) -> None:
+    """The motivating failure: a reference heading is renamed, the file stays."""
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "See [setup](references/guide.md#install-and-run).\n")
+    write_doc(a, "references/guide.md", "# Guide\n\n## Installation\n\nSteps.\n")
+    problems = MODULE.check(root, [])
+    assert len(problems) == 1
+    assert "missing heading anchor" in problems[0]
+    assert "references/guide.md#install-and-run" in problems[0]
+
+
+def test_same_file_fragments_are_checked(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", "Jump to [usage](#usage) or [gone](#removed-section).\n\n## Usage\n\nx\n")
+    problems = MODULE.check(root, [])
+    assert len(problems) == 1
+    assert "#removed-section" in problems[0] and "missing heading anchor" in problems[0]
+
+
+def test_duplicate_headings_get_numbered_anchors(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#example) [b](#example-1) [c](#example-2) [d](#example-3)\n\n"
+        "## Example\n\nx\n\n### Example\n\ny\n\n## Example\n\nz\n",
+    )
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#example-3" in problems[0]
+
+
+def test_numbered_slug_collisions_follow_github_slugger(tmp_path: Path) -> None:
+    """A literal heading can already own the suffixed slug a duplicate would take.
+
+    github-slugger skips taken slugs: "a", "a", "a-1" -> a, a-1, a-1-1; and
+    "b-1", "b", "b" -> b-1, b, b-2.
+    """
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[1](#a) [2](#a-1) [3](#a-1-1) [4](#b-1) [5](#b) [6](#b-2)\n\n"
+        "## a\n\n## a\n\n## a-1\n\n## b-1\n\n## b\n\n## b\n",
+    )
+    assert MODULE.check(root, []) == []
+    make_skill(root, "beta", "[x](#a-2)\n\n## a\n\n## a\n\n## a-1\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#a-2" in problems[0]
+
+
+def test_inline_formatting_in_headings_is_slugged_like_rendered_text(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    headings = {
+        "## `run_task` — **Fast** _mode_ & [Docs](other.md)": "run_task--fast-mode--docs",
+        "## Claude Code harness (WebFetch/WebSearch) — as of 2026-07-12": "claude-code-harness-webfetchwebsearch--as-of-2026-07-12",
+        "### 1.1 Defer `await` Until Needed": "11-defer-await-until-needed",
+        "## snake_case_name stays": "snake_case_name-stays",
+        "## Closing hashes ##": "closing-hashes",
+        "## Escaped \\*stars\\* and ~~strike~~": "escaped-stars-and-strike",
+        "## Unicode Café Ünïcode": "unicode-café-ünïcode",
+    }
+    body = "\n".join(f"[x](#{slug})" for slug in headings.values()) + "\n\n" + "\n\n".join(headings) + "\n"
+    make_skill(root, "alpha", body)
+    write_doc(root / "alpha", "other.md", "x\n")
+    assert MODULE.check(root, []) == []
+    # Positive control: the same document with one heading renamed must fail.
+    make_skill(root, "alpha", body.replace("## snake_case_name stays", "## renamed"))
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#snake_case_name-stays" in problems[0]
+
+
+def test_percent_encoded_and_mixed_case_fragments_match(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", "[x](#caf%C3%A9-menu) [y](#Usage-Notes)\n\n## Café menu\n\n## Usage notes\n")
+    assert MODULE.check(root, []) == []
+
+
+def test_headings_inside_fences_are_not_anchors(tmp_path: Path) -> None:
+    """Shell comments and Markdown examples in fences are not document headings."""
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "[cmd](references/guide.md#install-deps) [ex](references/guide.md#example-title)\n")
+    write_doc(
+        a, "references/guide.md",
+        "# Guide\n\n```bash\n# install deps\nnpm ci\n```\n\n"
+        "1. Step\n\n   ~~~~markdown\n   ## Example title\n   ```\n   still fenced\n   ```\n   ~~~~\n",
+    )
+    problems = fragment_problems(MODULE.check(root, []))
+    assert sorted(p.split("-> ")[1] for p in problems) == [
+        "references/guide.md#example-title",
+        "references/guide.md#install-deps",
+    ]
+
+
+def test_fragment_links_inside_fences_are_not_checked(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "Example:\n\n```markdown\nSee [usage](#usage) and [ref](REFERENCE.md#api)\n```\n\n"
+        "  ~~~\n  [nested](#nowhere)\n  ~~~\n",
+    )
+    assert MODULE.check(root, []) == []
+
+
+def test_frontmatter_is_not_a_setext_heading_but_setext_headings_are(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    # make_skill frontmatter ends "version: 1.0.0\n---"; that is not a heading.
+    make_skill(root, "alpha", "[a](#overview) [b](#details) [c](#version-100)\n\nOverview\n========\n\nDetails\n-------\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#version-100" in problems[0]
+
+
+def test_explicit_html_anchors_are_targets(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", '[x](#custom-spot) [y](#named)\n\n<a id="custom-spot"></a>\n<a name="named"></a>\n')
+    assert MODULE.check(root, []) == []
+
+
+def test_fragment_exclusions_are_retained(tmp_path: Path, monkeypatch) -> None:
+    """External URLs, archive links, and asset templates stay unchecked."""
+    repo = tmp_path
+    (repo / "docs" / "project").mkdir(parents=True)
+    (repo / "docs" / "project" / "ROADMAP.md").write_text(
+        "From the [analysis](../archive/old.md#gone) and "
+        "[spec](https://example.com/spec.md#missing) or [mail](mailto:a@b.c#x).\n",
+        encoding="utf-8",
+    )
+    root = repo / "skills"
+    d = make_skill(root, "alpha", "Nothing.\n")
+    write_doc(d, "assets/template.md", "See [section](#placeholder-section) and [other](../SKILL.md#nope).\n")
+    monkeypatch.setattr(MODULE, "REPO_ROOT", repo)
+    assert MODULE.check(root, [repo / "docs" / "project"]) == []
+
+
+def test_fragments_into_non_markdown_targets_check_existence_only(tmp_path: Path) -> None:
+    """Unsupported boundary: line anchors and other file types are not parsed."""
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "[code](scripts/run.py#L10) [dir](references/#top) [gone](scripts/missing.py#L1)\n")
+    write_doc(a, "scripts/run.py", "print()\n")
+    write_doc(a, "references/x.md", "x\n")
+    problems = MODULE.check(root, [])
+    assert len(problems) == 1
+    assert "broken link" in problems[0] and "missing.py" in problems[0]
+
+
+def test_targets_with_unsupported_heading_markup_are_not_reported(tmp_path: Path) -> None:
+    """Unsupported boundary: raw HTML or images in a heading make its anchor
+    renderer-dependent, so misses into that file are not reported at all."""
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "[x](references/html.md#anything) [y](references/img.md#whatever)\n")
+    write_doc(a, "references/html.md", "## Press <kbd>Ctrl</kbd> twice\n")
+    write_doc(a, "references/img.md", "## ![logo](logo.png) Brand\n")
+    write_doc(a, "references/logo.png", "")
+    assert MODULE.check(root, []) == []
+
+
+def test_custom_id_and_emoji_headings_make_target_unsupported(tmp_path: Path) -> None:
+    """`{#custom-id}` and `:emoji:` render differently across renderers, so the
+    checker must neither validate a guessed slug nor report a miss."""
+    root = tmp_path / "skills"
+    a = make_skill(
+        root, "alpha",
+        "[a](references/custom.md#custom-id) [b](references/custom.md#title-custom-id) "
+        "[c](references/custom.md#stale) [d](references/emoji.md#smile-hello) "
+        "[e](references/emoji.md#stale)\n",
+    )
+    write_doc(a, "references/custom.md", "# Title {#custom-id}\n")
+    write_doc(a, "references/emoji.md", "## :smile: Hello\n")
+    assert MODULE.anchors("# Title {#custom-id}\n") is None
+    assert MODULE.anchors("## :smile: Hello\n") is None
+    assert MODULE.check(root, []) == []
+    # Positive control: plain headings in the same files are checked again.
+    write_doc(a, "references/custom.md", "# Title\n")
+    write_doc(a, "references/emoji.md", "## Hello\n")
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == [
+        "references/custom.md#custom-id",
+        "references/custom.md#stale",
+        "references/custom.md#title-custom-id",
+        "references/emoji.md#smile-hello",
+        "references/emoji.md#stale",
+    ]
+
+
+def test_user_content_prefixed_fragments_resolve_to_the_heading(tmp_path: Path) -> None:
+    """GitHub renders heading ids as `user-content-<slug>`; both forms link."""
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", "[x](#user-content-usage) [y](#user-content-gone)\n\n## Usage\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#user-content-gone" in problems[0]
+
+
+def test_html_ids_inside_inline_code_are_not_anchors(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[x](#not-real) [y](#real) [z](#--flag-usage)\n\n"
+        'Write `<a id="not-real"></a>` to add one.\n\n<a id="real"></a>\n\n## `--flag` usage\n',
+    )
+    assert MODULE.anchors('`<a id="not-real"></a>`\n') == set()
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#not-real" in problems[0]
+
+
+def test_headings_inside_html_comments_are_not_anchors(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[x](#ghost) [y](#after) [z](#kept)\n\n<!--\n# Ghost\n-->\n\n"
+        "<!-- INCLUDE: rules/example -->\n## After\n\n## Kept <!-- note -->\n",
+    )
+    assert MODULE.anchors("<!--\n# Ghost\n-->\n") == set()
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#ghost" in problems[0]
