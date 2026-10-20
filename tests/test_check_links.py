@@ -506,3 +506,77 @@ def test_reference_style_links_in_headings_are_skipped(tmp_path: Path) -> None:
     write_doc(a, "references/plain.md", "## API\n")
     problems = fragment_problems(MODULE.check(root, []))
     assert len(problems) == 1 and "references/plain.md#stale" in problems[0]
+
+
+def test_links_inside_html_comments_are_not_checked(tmp_path: Path) -> None:
+    """A closed comment is not rendered, so links in it are not links. Real
+    links beside it are checked, and comment delimiters inside code spans do
+    not open or close a comment."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "<!-- [example](#placeholder) -->\n"
+        "<!--\n[relative](references/missing.md) and [same](#gone-too)\n-->[adjacent](adjacent-gone.md)\n\n"
+        "Write `<!--` then [opened](opened-gone.md) and close with `-->`; [after](#after-gone).\n\n"
+        "Run `python3 skills/removed-thing/go.py`. <!-- skills/also-removed/x -->\n\n"
+        "[real](#real)\n\n## Real\n",
+    )
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> adjacent-gone.md",
+        "broken link -> opened-gone.md",
+        "missing heading anchor -> #after-gone",
+        "references skills/also-removed/ which does not exist",
+        "references skills/removed-thing/ which does not exist",
+    ]
+
+
+def test_top_level_four_space_fence_lookalikes_do_not_hide_later_content(tmp_path: Path) -> None:
+    """Four spaces before ``` at top level make indented code, not a fence; in
+    a list item a fence may sit up to three spaces past the item's content
+    column. Real fences, list fences and unclosed fences stay excluded."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "Intro.\n\n    ```\n[top](missing-top.md) and [frag](#gone-top)\n\n"
+        "    ~~~~\n## After pseudo\n\n[ok](#after-pseudo)\n\n"
+        "   ```\n[hidden](hidden.md)\n   ```\n\n"
+        "- item\n\n  ```markdown\n  [listed](#list-example)\n  ```\n\n"
+        "1. Step\n\n   ~~~~markdown\n   ## Example title\n   ```\n   [inner](inner.md)\n   ```\n   ~~~~\n\n"
+        "- deep\n\n      ```\n[deep](missing-deep.md) [x](#example-title)\n\n"
+        "````\n[eof](eof-hidden.md)\n```\n",
+    )
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> missing-deep.md",
+        "broken link -> missing-top.md",
+        "missing heading anchor -> #example-title",
+        "missing heading anchor -> #gone-top",
+    ]
+
+
+def test_escaped_opening_brackets_are_not_links(tmp_path: Path) -> None:
+    """An odd number of backslashes escapes `[`; an even number escapes only
+    themselves, leaving a real link."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "\\[example](#placeholder) and \\\\[even](missing-even.md) and "
+        "\\\\\\[odd](#odd-gone) then [real](missing-real.md)\\[lit](#lit)[adjacent](#adjacent-gone)\n",
+    )
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> missing-even.md",
+        "broken link -> missing-real.md",
+        "missing heading anchor -> #adjacent-gone",
+    ]
+
+
+def test_escaped_opening_brackets_in_headings_are_not_links() -> None:
+    # Escaped: literal `[API](...)` text, which this checker does not guess.
+    assert MODULE.anchors("## \\[API](https://e.test/x)\n") is None
+    # Even backslashes and plain links are real links: the label is the text.
+    assert MODULE.anchors("## \\\\[API](https://e.test/x)\n") == {"api"}
+    assert MODULE.anchors("## [API](https://e.test/x)\n") == {"api"}
+    # An escaped bracket beside a real link stays literal text.
+    assert MODULE.anchors("## \\[a [b](https://e.test) c\n") == {"a-b-c"}

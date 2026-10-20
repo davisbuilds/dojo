@@ -19,15 +19,18 @@ unambiguous target:
 Supported anchors approximate GitHub's heading ids (github-slugger); this is
 not a full Markdown renderer. Anchors come from ATX headings (`## Title`),
 single-line setext headings, and explicit `id=`/`name=` attributes on HTML
-tags outside inline code. A heading's slug is its rendered text lowercased, with characters other
-than letters, digits, `_`, `-` and space removed and each space turned into
-`-`; inline code, emphasis, link text, backslash escapes and HTML entities are
+tags outside inline code. A heading's slug is its rendered text lowercased,
+with characters other than letters, digits, `_`, `-` and space removed and each
+space turned into `-`; inline code, emphasis, link text, backslash escapes and HTML entities are
 reduced to their text first. Repeated slugs get `-1`, `-2`, ... skipping any
 slug already taken. Fragments are percent-decoded and compared
 case-insensitively; GitHub's `#user-content-` id prefix is accepted. Headings
 and IDs inside fenced code blocks, closed HTML comments and YAML frontmatter are
-not anchors, and links inside fences or inline code spans are not checked
-(`skills/<name>/` paths in inline code still are).
+not anchors, and links inside fences, inline code spans or closed HTML comments
+are not checked (`skills/<name>/` paths in inline code and comments still are),
+nor is link syntax after an escaped `\\[`. A fence opener may be indented at most
+three spaces past the margin, or past its list item's content column; anything
+deeper is indented code, which is scanned like prose.
 
 Deliberately unsupported, so never reported:
 - fragments on non-Markdown targets (`run.py#L10`) and directories: only the
@@ -35,8 +38,9 @@ Deliberately unsupported, so never reported:
 - any target file with a heading containing raw HTML, an image, a
   `{#custom-id}` attribute, an `:emoji:` shortcode, a private-use character
   (literal or from an entity), a reference-style link (`[x][ref]` or `[x][]`,
-  defined or not), or a link it cannot parse, or a setext heading
-  spanning several lines, because its anchors depend on the renderer. Heading
+  defined or not), escaped link syntax (`\\[x](y)`), or a link it cannot parse,
+  or a setext heading spanning several lines, because its anchors depend on
+  the renderer. Heading
   link destinations may contain one level of balanced parentheses
   (`guide_(v2).md`); deeper nesting (`a_((b)).md`) is skipped;
 - reference-style links (`[x][ref]`), links with titles, and HTML `href`s,
@@ -65,7 +69,9 @@ LIVING_DOCS = [
     REPO_ROOT / "docs" / "project",
 ]
 
-MD_LINK = re.compile(r"\[[^\]]*\]\((?!https?://|mailto:)([^)\s]+)\)")
+# An odd run of backslashes before `[` escapes it; an even run escapes only
+# itself and leaves a real link.
+MD_LINK = re.compile(r"(?<!\\)(?:\\\\)*\[[^\]]*\]\((?!https?://|mailto:)([^)\s]+)\)")
 SKILL_PATH = re.compile(r"(?<!/)\bskills/([a-z0-9][a-z0-9-]*)/")
 # Sibling entries are list heads: "- `name` — description". Matching only that
 # position keeps model names and inline mentions out of the check.
@@ -73,6 +79,7 @@ SIBLING_ENTRY = re.compile(r"^\s*[-*]\s+`([a-z0-9][a-z0-9-]{2,})`", re.M)
 SIBLING_HEADING = re.compile(r"^#{1,4}\s+Sibling skills\s*$", re.M)
 # A backtick fence's info string cannot contain backticks (```x``` is inline code).
 FENCE_OPEN = re.compile(r"^\s*(`{3,}(?=[^`]*$)|~{3,})")
+LIST_ITEM = re.compile(r"^( *)([-*+]|\d{1,9}[.)])( +|$)")
 FRONTMATTER = re.compile(r"---[ \t]*\r?\n.*?^---[ \t]*$", re.M | re.S)
 ATX_HEADING = re.compile(r"^ {0,3}#{1,6}(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$")
 SETEXT_UNDERLINE = re.compile(r"^ {0,3}(?:=+|-+)[ \t]*$")
@@ -83,8 +90,8 @@ HTML_ID = re.compile(r"<[A-Za-z][^>]*?\s(?:id|name)=[\"']?([^\"'\s>]+)")
 # wrap lines but not cross a blank line; an unmatched opener is literal text.
 CODE_SPAN = re.compile(r"(?<![`\\])(`+)(?!`)((?:(?!\n[ \t]*\n)[\s\S])+?)(?<!`)\1(?!`)")
 # Link destinations may hold one level of balanced parentheses; deeper nesting
-# leaves a `](` behind and marks the heading unsupported.
-INLINE_LINK = re.compile(r"\[([^\]]*)\]\((?:[^()]|\([^()]*\))*\)")
+# or an escaped `\[` leaves a `](` behind and marks the heading unsupported.
+INLINE_LINK = re.compile(r"(?<!\\)((?:\\\\)*)\[([^\]]*)\]\((?:[^()]|\([^()]*\))*\)")
 UNDERSCORE_EMPHASIS = re.compile(r"(?<![\w\\])(_{1,3})(?=\S)(.+?)(?<=[^\s\\])\1(?!\w)")
 BACKSLASH_ESCAPE = re.compile(r"\\([!-/:-@\[-`{-~])")
 # Raw HTML, images, custom-id attributes, emoji shortcodes and reference-style
@@ -113,11 +120,16 @@ def strip_fences(text: str) -> str:
     skill-creator shows a PDF skill linking to FORMS.md and REFERENCE.md that
     were never meant to exist -- so checking inside them produces noise only.
     Shell comments and Markdown examples inside them are not headings either.
-    Fences may be indented (list items) and use backticks or tildes; a fence
-    closes on a line of the same character at least as long, or at end of file.
+    Fences use backticks or tildes and may be indented up to three spaces past
+    the content column of the list item they sit in (zero at top level); four
+    spaces more is indented code, not a fence. A fence closes on a line of the
+    same character at least as long, or at end of file. List items are tracked
+    by indentation only: a non-blank line indented less than an item's content
+    ends it, so lazy continuation lines and block quotes are not modelled.
     """
     out: list[str] = []
     fence = ""
+    items: list[int] = []  # content columns of the enclosing list items
     for line in text.splitlines():
         m = FENCE_OPEN.match(line)
         if fence:
@@ -125,11 +137,21 @@ def strip_fences(text: str) -> str:
                     and not line.strip().lstrip(fence[0]):
                 fence = ""
             out.append("")
-        elif m:
+            continue
+        expanded = line.expandtabs(4)
+        indent = len(expanded) - len(expanded.lstrip(" "))
+        if expanded.strip():
+            while items and indent < items[-1]:
+                items.pop()
+        if m and indent - (items[-1] if items else 0) <= 3:
             fence = m.group(1)
             out.append("")
-        else:
-            out.append(line)
+            continue
+        item = LIST_ITEM.match(expanded)
+        if item:
+            gap = len(item.group(3))
+            items.append(item.start(3) + (gap if 1 <= gap <= 4 else 1))
+        out.append(line)
     return "\n".join(out)
 
 
@@ -153,9 +175,9 @@ def heading_text(raw: str) -> str | None:
     text = CODE_SPAN.sub(hold, raw)
     if UNSUPPORTED_HEADING_MARKUP.search(text):
         return None
-    text = INLINE_LINK.sub(r"\1", text)
+    text = INLINE_LINK.sub(r"\1\2", text)
     if "](" in text:
-        return None  # a link this checker could not parse
+        return None  # a link this checker could not parse, or escaped link syntax
     while (reduced := UNDERSCORE_EMPHASIS.sub(r"\2", text)) != text:
         text = reduced  # nested emphasis: `_outer __inner__ end_`
     text = html.unescape(BACKSLASH_ESCAPE.sub(r"\1", text))
@@ -256,9 +278,10 @@ def check(skills_root: Path = SKILLS_ROOT, living_docs: list[Path] | None = None
         if "assets" in path.parts:
             continue
         text = strip_fences(text)
-        # Link syntax inside a code span is an example; a space keeps the
-        # neighbours from joining into a link that is not in the source.
-        link_text = CODE_SPAN.sub(lambda m: re.sub(r"[^\n]+", " ", m.group()), text)
+        # Link syntax inside a code span is an example and inside a comment is
+        # not rendered; a space keeps the neighbours from joining into a link
+        # that is not in the source.
+        link_text = CODE_OR_COMMENT.sub(lambda m: re.sub(r"[^\n]+", " ", m.group()), text)
 
         for link in MD_LINK.findall(link_text):
             target_part, _, fragment = link.partition("#")
