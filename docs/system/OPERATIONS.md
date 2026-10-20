@@ -110,8 +110,8 @@ Configured Python hooks use `hooks/run-python.sh` to select this checkout's
 `.venv` regardless of the harness's inherited PATH. This hook helper performs no
 installation or network access; missing setup produces stderr and exit 1 from
 `hooks/run-python.sh`. The separate `dojo` CLI launcher uses exit 2 for missing
-setup, as described below. Bare `pytest` selects `tests/` through `pyproject.toml`;
-the skill-standardizer suite remains a separate direct-script check.
+setup, as described below. Bare `pytest` selects `tests/` through `pyproject.toml`,
+which also runs the skill-standardizer suite; that suite keeps its direct-script runner.
 
 ## Dojo development CLI
 
@@ -501,8 +501,10 @@ DOJO_BEHAVIORAL_EVALS=1 python scripts/behavioral_evals.py --json
 
 ### Run skill-standardizer regression tests
 
-This suite ships beside the skill rather than in `tests/`, so `pytest tests/` does
-not collect it. CI runs it as its own step; invoke it directly to run it locally:
+This suite ships beside the skill with a stdlib-only runner that needs no pytest.
+`pytest tests/` runs each of its tests through `tests/test_skill_standardizer_suite.py`,
+which also checks that every test restores cwd and the harness-home variables.
+CI also runs the runner as its own step; invoke it directly to run it locally:
 
 ```bash
 python3 skills/skill-standardizer/scripts/test_skill_standardizer.py

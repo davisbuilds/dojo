@@ -1,3 +1,7 @@
+## 2.0.1 - 2026-10-20
+
+- Restore cwd and the harness-home variables after every regression test, including on failure, before removing its temporary directory; the suite also runs under pytest from `tests/`.
+
 ## 2.0.0 - 2026-10-06
 
 - Replace count-based backup retention with exact Git recovery proofs and recorded symlink targets; preserve unique or uncertain contents indefinitely. Remove `--keep-backups`.
