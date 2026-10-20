@@ -26,14 +26,16 @@ reduced to their text first. Repeated slugs get `-1`, `-2`, ... skipping any
 slug already taken. Fragments are percent-decoded and compared
 case-insensitively; GitHub's `#user-content-` id prefix is accepted. Headings
 and IDs inside fenced code blocks, closed HTML comments and YAML frontmatter are
-not anchors, and links inside fences are not checked.
+not anchors, and links inside fences or inline code spans are not checked
+(`skills/<name>/` paths in inline code still are).
 
 Deliberately unsupported, so never reported:
 - fragments on non-Markdown targets (`run.py#L10`) and directories: only the
   file's existence is checked;
 - any target file with a heading containing raw HTML, an image, a
   `{#custom-id}` attribute, an `:emoji:` shortcode, a private-use character
-  (literal or from an entity), or a link it cannot parse, or a setext heading
+  (literal or from an entity), a reference-style link (`[x][ref]` or `[x][]`,
+  defined or not), or a link it cannot parse, or a setext heading
   spanning several lines, because its anchors depend on the renderer. Heading
   link destinations may contain one level of balanced parentheses
   (`guide_(v2).md`); deeper nesting (`a_((b)).md`) is skipped;
@@ -77,17 +79,20 @@ SETEXT_UNDERLINE = re.compile(r"^ {0,3}(?:=+|-+)[ \t]*$")
 # Lines that cannot be setext heading text: list items, quotes, headings, HTML.
 NOT_SETEXT_TEXT = re.compile(r"^(?: {4}|\s*(?:[-*+>#<]|\d+[.)])(?:\s|$))")
 HTML_ID = re.compile(r"<[A-Za-z][^>]*?\s(?:id|name)=[\"']?([^\"'\s>]+)")
-CODE_SPAN = re.compile(r"(`+)(.+?)\1")
+# A code span closes on a backtick run of exactly the opener's length and may
+# wrap lines but not cross a blank line; an unmatched opener is literal text.
+CODE_SPAN = re.compile(r"(?<![`\\])(`+)(?!`)((?:(?!\n[ \t]*\n)[\s\S])+?)(?<!`)\1(?!`)")
 # Link destinations may hold one level of balanced parentheses; deeper nesting
 # leaves a `](` behind and marks the heading unsupported.
-INLINE_LINK = re.compile(r"\[([^\]]*)\](?:\((?:[^()]|\([^()]*\))*\)|\[[^\]]*\])")
+INLINE_LINK = re.compile(r"\[([^\]]*)\]\((?:[^()]|\([^()]*\))*\)")
 UNDERSCORE_EMPHASIS = re.compile(r"(?<![\w\\])(_{1,3})(?=\S)(.+?)(?<=[^\s\\])\1(?!\w)")
 BACKSLASH_ESCAPE = re.compile(r"\\([!-/:-@\[-`{-~])")
-# Raw HTML, images, custom-id attributes and emoji shortcodes make a heading's
-# anchor renderer-dependent.
-UNSUPPORTED_HEADING_MARKUP = re.compile(r"<[A-Za-z/!]|!\[|\{#|:[a-z0-9_+-]+:")
+# Raw HTML, images, custom-id attributes, emoji shortcodes and reference-style
+# links (`[x][ref]`, whose text depends on whether `ref` is defined) make a
+# heading's anchor renderer-dependent.
+UNSUPPORTED_HEADING_MARKUP = re.compile(r"<[A-Za-z/!]|!\[|\{#|:[a-z0-9_+-]+:|\]\[")
 # A closed HTML comment, unless it sits inside an inline code span.
-CODE_OR_COMMENT = re.compile(r"(`+)[^\n]+?\1|<!--(?s:.*?)-->")
+CODE_OR_COMMENT = re.compile(CODE_SPAN.pattern + r"|<!--(?s:.*?)-->")
 
 # Documentation placeholders that stand in for "whatever skill you are working
 # on". Kept explicit and small rather than loosening the path check, which would
@@ -251,8 +256,11 @@ def check(skills_root: Path = SKILLS_ROOT, living_docs: list[Path] | None = None
         if "assets" in path.parts:
             continue
         text = strip_fences(text)
+        # Link syntax inside a code span is an example; a space keeps the
+        # neighbours from joining into a link that is not in the source.
+        link_text = CODE_SPAN.sub(lambda m: re.sub(r"[^\n]+", " ", m.group()), text)
 
-        for link in MD_LINK.findall(text):
+        for link in MD_LINK.findall(link_text):
             target_part, _, fragment = link.partition("#")
             target = (path.parent / target_part).resolve() if target_part else path.resolve()
             try:

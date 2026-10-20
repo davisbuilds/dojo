@@ -462,3 +462,47 @@ def test_private_use_characters_in_headings_are_unsupported_not_a_crash(tmp_path
     write_doc(a, "references/pua.md", "## Entity &#xE000;\n")
     problems = fragment_problems(MODULE.check(root, []))
     assert len(problems) == 1 and "#gone" in problems[0]
+
+
+def test_inline_code_link_examples_are_not_checked(tmp_path: Path) -> None:
+    """Link syntax inside a code span is an example, not a link. Real links
+    beside or after one, and skills/ paths in code, are still checked."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "Write `[example](#placeholder)` or ``[a `tick` b](missing-a.md)``, "
+        "then [real](missing-real.md).\n\n"
+        "`[x](gone.md)`[adjacent](#adjacent-gone)\n\n"
+        "Multi `line\n[ex](multi.md) span` then [after](#after-gone).\n\n"
+        "Unmatched `` opener [still](unmatched-gone.md) checked.\n\n"
+        "Run `python3 skills/removed-thing/go.py`. [ok](#heading-cfg-code)\n\n"
+        "## Heading [`cfg`](cfg.md) code\n",
+    )
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> cfg.md",
+        "broken link -> missing-real.md",
+        "broken link -> unmatched-gone.md",
+        "missing heading anchor -> #adjacent-gone",
+        "missing heading anchor -> #after-gone",
+        "references skills/removed-thing/ which does not exist",
+    ]
+
+
+def test_reference_style_links_in_headings_are_skipped(tmp_path: Path) -> None:
+    """`[API][ref]` renders as a link only if `ref` is defined (slug `api`),
+    otherwise literally (slug `apiref`). Definitions are not resolved, so such
+    headings make the target unsupported rather than guessed."""
+    for text in ("## [API][undefined]\n", "[api]: x.md\n\n## [API][api]\n", "## [API][]\n"):
+        assert MODULE.anchors(text) is None, text
+    assert MODULE.anchors("## API\n") == {"api"}
+    root = tmp_path / "skills"
+    a = make_skill(
+        root, "alpha",
+        "[a](references/ref.md#api) [b](references/ref.md#apiundefined) [c](references/ref.md#stale)\n"
+        "[d](references/plain.md#api) [e](references/plain.md#stale)\n",
+    )
+    write_doc(a, "references/ref.md", "## [API][undefined]\n")
+    write_doc(a, "references/plain.md", "## API\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "references/plain.md#stale" in problems[0]
