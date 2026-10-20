@@ -19,7 +19,7 @@ unambiguous target:
 Supported anchors approximate GitHub's heading ids (github-slugger); this is
 not a full Markdown renderer. Anchors come from ATX headings (`## Title`),
 single-line setext headings, and explicit `id=`/`name=` attributes on HTML
-tags outside inline code. A heading's slug is its rendered text lowercased,
+tags outside inline code (entity-decoded, so `id="a&amp;b"` answers `#a%26b`). A heading's slug is its rendered text lowercased,
 with characters other than letters, digits, `_`, `-` and space removed and each
 space turned into `-`; inline code, emphasis, link text, backslash escapes and
 HTML entities are reduced to their text first. Repeated slugs get `-1`, `-2`, ... skipping any
@@ -31,7 +31,8 @@ are not checked (`skills/<name>/` paths in inline code and comments still are),
 nor is link syntax after an escaped `\\[`. A fence opener or closer may be
 indented at most three spaces past the margin, or past its list item's content
 column; anything deeper is indented code, which is scanned like prose. Fence
-markers inside an HTML comment block do not open fences.
+markers inside an HTML comment block do not open fences. Fences inside block
+quotes are masked too; quoted prose is checked like any other text.
 
 Deliberately unsupported, so never reported:
 - fragments on non-Markdown targets (`run.py#L10`) and directories: only the
@@ -43,8 +44,8 @@ Deliberately unsupported, so never reported:
   or a setext heading spanning several lines, because its anchors depend on
   the renderer. Headings in list items are read only when indented at most
   three spaces in total (`- item` then `  ## Title`); a target with a heading
-  deeper in a list item (`10. Item` then `    ## Title`) or on the marker line
-  (`- ## Title`) is skipped too. Heading link destinations may contain one
+  deeper in a list item (`10. Item` then `    ## Title`), on the marker line
+  (`- ## Title`) or in a block quote (`> ## Title`) is skipped too. Heading link destinations may contain one
   level of balanced parentheses (`guide_(v2).md`); deeper nesting
   (`a_((b)).md`) is skipped;
 - reference-style links (`[x][ref]`), links with titles, and HTML `href`s,
@@ -84,6 +85,9 @@ SIBLING_HEADING = re.compile(r"^#{1,4}\s+Sibling skills\s*$", re.M)
 # A backtick fence's info string cannot contain backticks (```x``` is inline code).
 FENCE_OPEN = re.compile(r"^\s*(`{3,}(?=[^`]*$)|~{3,})")
 LIST_ITEM = re.compile(r"^( *)([-*+]|\d{1,9}[.)])( +|$)")
+QUOTE_MARKER = re.compile(r" {0,3}>[ \t]?")
+# A heading inside a block quote, possibly nested, is rendered but not parsed.
+QUOTED_HEADING = re.compile(r"^(?: {0,3}>[ \t]?)+ {0,3}#{1,6}(?:[ \t]|$)")
 FRONTMATTER = re.compile(r"---[ \t]*\r?\n.*?^---[ \t]*$", re.M | re.S)
 ATX_HEADING = re.compile(r"^ {0,3}#{1,6}(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$")
 SETEXT_UNDERLINE = re.compile(r"^ {0,3}(?:=+|-+)[ \t]*$")
@@ -130,48 +134,73 @@ def strip_fences(text: str, margins: list[int] | None = None) -> str:
     closes on a line of the same character at least as long, when a non-blank
     line outdents past its margin (ending the list item), or at end of file.
     A line starting an HTML comment block (`<!--`) keeps fence detection off
-    through the line holding `-->`. List items are tracked by indentation
-    only: a non-blank line indented less than an item's content ends it, so
-    lazy continuation lines and block quotes are not modelled.
+    through the line holding `-->`. Fences inside block quotes (`> ```) are
+    read after the quote markers and end with the line that has fewer of them.
+    List items are tracked by indentation only: a non-blank line indented less
+    than an item's content ends it, so lazy continuation lines and lists inside
+    block quotes are not modelled.
 
     If `margins` is given, each output line's list margin is appended to it.
     """
     out: list[str] = []
     fence = ""
-    fence_margin = 0
+    fence_margin = fence_depth = 0
     in_comment = False
     items: list[int] = []  # content columns of the enclosing list items
     for line in text.splitlines():
-        m = FENCE_OPEN.match(line)
         expanded = line.expandtabs(4)
         indent = len(expanded) - len(expanded.lstrip(" "))
         if fence and expanded.strip() and indent < fence_margin:
             fence = ""  # outdent ended the list item, and the fence with it
         if fence:
-            if m and m.group(1)[0] == fence[0] and len(m.group(1)) >= len(fence) \
-                    and not line.strip().lstrip(fence[0]) and indent - fence_margin <= 3:
-                fence = ""
+            depth, body = _unquote(expanded[fence_margin:], fence_depth)
+            if depth < fence_depth:
+                fence = ""  # the block quote holding the fence ended
+            else:
+                m = FENCE_OPEN.match(body)
+                if m and m.group(1)[0] == fence[0] and len(m.group(1)) >= len(fence) \
+                        and not body.strip().lstrip(fence[0]) and _indent(body) <= 3:
+                    fence = ""
+                out.append("")
+                if margins is not None:
+                    margins.append(items[-1] if items else 0)
+                continue
+        if expanded.strip():
+            while items and indent < items[-1]:
+                items.pop()
+        margin = items[-1] if items else 0
+        depth, body = _unquote(expanded[margin:], None)
+        m = FENCE_OPEN.match(body)
+        if in_comment or (_indent(body) <= 3 and body.lstrip().startswith("<!--")):
+            in_comment = "-->" not in line
+            out.append(line)
+        elif m and _indent(body) <= 3:
+            fence, fence_margin, fence_depth = m.group(1), margin, depth
             out.append("")
         else:
-            if expanded.strip():
-                while items and indent < items[-1]:
-                    items.pop()
-            margin = items[-1] if items else 0
-            if in_comment or (indent - margin <= 3 and expanded.lstrip().startswith("<!--")):
-                in_comment = "-->" not in line
-                out.append(line)
-            elif m and indent - margin <= 3:
-                fence, fence_margin = m.group(1), margin
-                out.append("")
-            else:
-                item = LIST_ITEM.match(expanded)
-                if item:
-                    gap = len(item.group(3))
-                    items.append(item.start(3) + (gap if 1 <= gap <= 4 else 1))
-                out.append(line)
+            item = LIST_ITEM.match(expanded)
+            if item:
+                gap = len(item.group(3))
+                items.append(item.start(3) + (gap if 1 <= gap <= 4 else 1))
+            out.append(line)
         if margins is not None:
             margins.append(items[-1] if items else 0)
     return "\n".join(out)
+
+
+def _indent(text: str) -> int:
+    return len(text) - len(text.lstrip(" "))
+
+
+def _unquote(text: str, depth: int | None) -> tuple[int, str]:
+    """Strip up to `depth` block-quote markers (all if None); return how many."""
+    n = 0
+    while depth is None or n < depth:
+        m = QUOTE_MARKER.match(text)
+        if not m:
+            break
+        text, n = text[m.end() :], n + 1
+    return n, text
 
 
 def heading_text(raw: str) -> str | None:
@@ -227,11 +256,12 @@ def anchors(text: str) -> set[str] | None:
         lambda m: m.group() if m.group(1) else "\n" * m.group().count("\n"), strip_fences(text, margins))
     lines = text.splitlines()
     seen: dict[str, int] = {}
-    found = {a.lower() for a in HTML_ID.findall(CODE_SPAN.sub("", text))}
+    found = {html.unescape(a).lower() for a in HTML_ID.findall(CODE_SPAN.sub("", text))}
     for i, line in enumerate(lines):
         m = ATX_HEADING.match(line)
-        if not m and margins[i] and ATX_HEADING.match(line.expandtabs(4)[margins[i]:]):
-            return None  # heading inside a list item past column 3, or on its marker line
+        body = line.expandtabs(4)[margins[i]:]
+        if not m and (margins[i] and ATX_HEADING.match(body) or QUOTED_HEADING.match(body)):
+            return None  # heading in a block quote, past column 3 of a list item, or on its marker
         if m:
             raw = (m.group(1) or "").strip()
         elif i and SETEXT_UNDERLINE.match(line) and lines[i - 1].strip() \

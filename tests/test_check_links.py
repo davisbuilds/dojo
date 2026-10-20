@@ -646,3 +646,58 @@ def test_headings_nested_in_wide_list_items_make_target_unsupported(tmp_path: Pa
     write_doc(a, "references/plain.md", "## Plain heading\n\n- item\n\n  ## Shallow nested\n")
     problems = fragment_problems(MODULE.check(root, []))
     assert len(problems) == 1 and "references/plain.md#stale" in problems[0]
+
+
+QUOTED_FENCE_FIXTURE = (
+    "[before](missing-before.md)\n\n"
+    "> **Example:**\n>\n> ```markdown\n> [example](#placeholder) [file](FORMS.md)\n> ```\n>\n"
+    "> See [quoted](missing-quoted.md).\n\n[after](missing-after.md)\n\n"
+    "> ~~~~\n> ```\n> [inner](hidden-inner.md)\n> ```\n> ~~~~\n\n"
+    "> ```\n> [open](hidden-open.md)\n\n[next](missing-next.md)\n\n"
+    "> ```\n> [lazy-code](hidden-lazy.md)\n[lazy](missing-lazy.md)\n\n"
+    "> > ```\n> > [deep](hidden-deep.md)\n> [shallow](missing-shallow.md)\n\n"
+    "> ```html\n> <!--\n> ```\n\n[after-comment](missing-after-comment.md)\n\n<!-- closed -->\n"
+)
+
+
+def test_fences_inside_block_quotes_are_masked(tmp_path: Path) -> None:
+    """A fence in a block quote is an example. Quoted prose and links outside
+    are still checked; the fence ends when its quote does."""
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", QUOTED_FENCE_FIXTURE)
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> missing-after-comment.md",
+        "broken link -> missing-after.md",
+        "broken link -> missing-before.md",
+        "broken link -> missing-lazy.md",
+        "broken link -> missing-next.md",
+        "broken link -> missing-quoted.md",
+        "broken link -> missing-shallow.md",
+    ]
+
+
+def test_quoted_headings_make_target_unsupported(tmp_path: Path) -> None:
+    """Block-quote headings are rendered but not parsed: the target is skipped,
+    while headings inside a quoted fence are simply not anchors."""
+    assert MODULE.anchors("> ## Quoted heading\n") is None
+    assert MODULE.anchors("> ```\n> ## Example\n> ```\n\n## Real\n") == {"real"}
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "[a](references/q.md#quoted-heading) [b](references/q.md#stale) [c](#example)\n\n"
+                   "> ```\n> ## Example\n> ```\n")
+    write_doc(a, "references/q.md", "> ## Quoted heading\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#example" in problems[0]
+
+
+def test_html_anchor_ids_are_entity_decoded(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#foo%26bar) [b](#x%26y) [c](#foo%26amp%3Bbar) [d](#x%26%2338%3By) "
+        "[e](#code%26id) [f](#comment%26id)\n\n"
+        '<a id="foo&amp;bar"></a>\n<a name="x&#38;y"></a>\n'
+        '`<a id="code&amp;id"></a>`\n<!-- <a id="comment&amp;id"></a> -->\n',
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#code%26id", "#comment%26id", "#foo%26amp%3Bbar", "#x%26%2338%3By"]
