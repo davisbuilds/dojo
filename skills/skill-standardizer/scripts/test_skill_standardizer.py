@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 import json
 import os
 from pathlib import Path
@@ -40,6 +42,32 @@ def assert_true(condition: bool, message: str) -> None:
         raise AssertionError(message)
 
 
+HOME_ENV_NAMES = ("AGENTS_HOME", "CODEX_HOME", "CLAUDE_HOME")
+
+
+@contextmanager
+def isolated_tempdir() -> Iterator[str]:
+    """A temporary directory that restores cwd and the harness-home variables.
+
+    Tests point the harness homes at fixtures and chdir into them. Both are
+    process-global, so each test restores them on exit, including on failure.
+    Restoring inside the directory's context leaves it before removing it, so
+    a later test never starts in a deleted cwd.
+    """
+    original_cwd = os.getcwd()
+    original_env = {name: os.environ.get(name) for name in HOME_ENV_NAMES}
+    with tempfile.TemporaryDirectory() as td:
+        try:
+            yield td
+        finally:
+            for name, value in original_env.items():
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
+            os.chdir(original_cwd)
+
+
 def test_a_project_root_linking_to_canonical_is_not_a_duplicate() -> None:
     """Project scope links to canonical, and that is the correct state.
 
@@ -52,7 +80,7 @@ def test_a_project_root_linking_to_canonical_is_not_a_duplicate() -> None:
     would break the case project scope is for, and leave the correct wiring
     reported as a duplicate on every run.
     """
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         repo = base / "repo"
         skills = repo / "skills"
@@ -98,7 +126,7 @@ def test_a_project_root_linking_to_canonical_is_not_a_duplicate() -> None:
 
 def test_a_project_root_holding_a_copy_is_still_reported() -> None:
     """The control. Accepting a link must not accept a copy along with it."""
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         repo = base / "repo"
         skills = repo / "skills"
@@ -141,7 +169,7 @@ def test_a_project_root_holding_a_copy_is_still_reported() -> None:
 
 
 def test_invalid_entries_do_not_emit_missing_actions() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         repo = base / "repo"
         skills = repo / "skills"
@@ -198,60 +226,48 @@ def test_review_lenses_consolidate_with_only_primary_local_review() -> None:
 
 
 def check_review_lens_consolidation(existing_roots: str) -> None:
-    original_cwd = Path.cwd()
-    env_names = ["AGENTS_HOME", "CODEX_HOME", "CLAUDE_HOME"]
-    original_env = {name: os.environ.get(name) for name in env_names}
-    try:
-        with tempfile.TemporaryDirectory() as td:
-            base = Path(td)
-            repo = base / "repo"
-            canonical = repo / "skills"
-            source = write_skill(canonical, "local-review")
-            roots = [base / name / "skills" for name in [".agents", ".codex", ".claude"]]
-            for env_name, root in zip(env_names, roots):
-                os.environ[env_name] = str(root.parent)
-                if existing_roots == "all" or (existing_roots == "primary" and root == roots[0]):
-                    existing = write_skill(root, "local-review")
-                    (existing / "SKILL.md").write_text((existing / "SKILL.md").read_text().replace("1.0.0", "0.9.0"))
-                for old_name in ["error-handling-review", "type-design-review"]:
-                    old = write_skill(root, old_name)
-                    (old / "local-note.md").write_text(old_name)
-            os.chdir(repo)
+    with isolated_tempdir() as td:
+        base = Path(td)
+        repo = base / "repo"
+        canonical = repo / "skills"
+        source = write_skill(canonical, "local-review")
+        roots = [base / name / "skills" for name in [".agents", ".codex", ".claude"]]
+        for env_name, root in zip(HOME_ENV_NAMES, roots):
+            os.environ[env_name] = str(root.parent)
+            if existing_roots == "all" or (existing_roots == "primary" and root == roots[0]):
+                existing = write_skill(root, "local-review")
+                (existing / "SKILL.md").write_text((existing / "SKILL.md").read_text().replace("1.0.0", "0.9.0"))
+            for old_name in ["error-handling-review", "type-design-review"]:
+                old = write_skill(root, old_name)
+                (old / "local-note.md").write_text(old_name)
+        os.chdir(repo)
 
-            def audit():
-                return build_audit_report(
-                    context=resolve_context(str(canonical), [], False),
-                    local_policy="prefer-global-link", global_policy="prefer-primary-link",
-                    keep_local_skills=set(), enforce_mirror=False,
-                    codex_agents_dedupe=True, only_existing=True,
-                    selected_skills={"local-review"},
-                )
+        def audit():
+            return build_audit_report(
+                context=resolve_context(str(canonical), [], False),
+                local_policy="prefer-global-link", global_policy="prefer-primary-link",
+                keep_local_skills=set(), enforce_mirror=False,
+                codex_agents_dedupe=True, only_existing=True,
+                selected_skills={"local-review"},
+            )
 
-            report = audit()
-            replacements = [a for a in report["actions"] if a["action"] in {"replace_deprecated_skill", "remove_deprecated_skill"}]
-            assert_true(len(replacements) == 6, "both old lenses must migrate in all three roots")
-            backup_root = base / "backups"
-            for _ in range(2):
-                result = apply_actions(audit(), apply=True, backup_root=str(backup_root))
-                assert_true(not result["errors"], f"migration failed: {result}")
-                for root in roots:
-                    assert_true((root / "local-review" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "replacement missing or stale after apply")
-                    for old_name in ["error-handling-review", "type-design-review"]:
-                        assert_true(not (root / old_name).exists(), "old lens survived a successful apply")
+        report = audit()
+        replacements = [a for a in report["actions"] if a["action"] in {"replace_deprecated_skill", "remove_deprecated_skill"}]
+        assert_true(len(replacements) == 6, "both old lenses must migrate in all three roots")
+        backup_root = base / "backups"
+        for _ in range(2):
+            result = apply_actions(audit(), apply=True, backup_root=str(backup_root))
+            assert_true(not result["errors"], f"migration failed: {result}")
             for root in roots:
-                assert_true((root / "local-review" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "replacement differs from canonical")
+                assert_true((root / "local-review" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "replacement missing or stale after apply")
                 for old_name in ["error-handling-review", "type-design-review"]:
-                    assert_true(not (root / old_name).exists(), "old lens survived")
-            assert_true(len(list(backup_root.rglob("local-note.md"))) == 6, "old lenses not preserved")
-            assert_true(not audit()["actions"], "consolidation did not converge")
-            os.chdir(original_cwd)
-    finally:
-        os.chdir(original_cwd)
-        for name, value in original_env.items():
-            if value is None:
-                os.environ.pop(name, None)
-            else:
-                os.environ[name] = value
+                    assert_true(not (root / old_name).exists(), "old lens survived a successful apply")
+        for root in roots:
+            assert_true((root / "local-review" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "replacement differs from canonical")
+            for old_name in ["error-handling-review", "type-design-review"]:
+                assert_true(not (root / old_name).exists(), "old lens survived")
+        assert_true(len(list(backup_root.rglob("local-note.md"))) == 6, "old lenses not preserved")
+        assert_true(not audit()["actions"], "consolidation did not converge")
 
 
 def test_obsidian_format_skills_consolidate_into_obsidian() -> None:
@@ -263,119 +279,95 @@ def test_obsidian_format_skills_consolidate_into_obsidian() -> None:
 
 
 def check_obsidian_consolidation(selection: set[str], linked_secondaries: bool = False) -> None:
-    original_cwd = Path.cwd()
-    env_names = ["AGENTS_HOME", "CODEX_HOME", "CLAUDE_HOME"]
-    original_env = {name: os.environ.get(name) for name in env_names}
     old_names = ["obsidian-markdown", "obsidian-bases", "obsidian-canvas", "json-canvas"]
-    try:
-        with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
+        base = Path(td)
+        repo = base / "repo"
+        canonical = repo / "skills"
+        source = write_skill(canonical, "obsidian")
+        roots = [base / name / "skills" for name in [".agents", ".codex", ".claude"]]
+        for env_name, root in zip(HOME_ENV_NAMES, roots):
+            os.environ[env_name] = str(root.parent)
+            for old_name in old_names:
+                if linked_secondaries and root != roots[0]:
+                    root.mkdir(parents=True, exist_ok=True)
+                    (root / old_name).symlink_to(roots[0] / old_name, target_is_directory=True)
+                else:
+                    old = write_skill(root, old_name)
+                    (old / "local-note.md").write_text(old_name)
+        os.chdir(repo)
+
+        def audit():
+            return build_audit_report(
+                context=resolve_context(str(canonical), [], False),
+                local_policy="prefer-global-link", global_policy="prefer-primary-link",
+                keep_local_skills=set(), enforce_mirror=False,
+                codex_agents_dedupe=True, only_existing=True,
+                selected_skills=selection,
+            )
+
+        report = audit()
+        migrations = [a for a in report["actions"] if a["action"] in {"replace_deprecated_skill", "remove_deprecated_skill"}]
+        assert_true(len(migrations) == len(old_names) * len(roots), f"every old Obsidian skill must migrate in every root for selection {selection}: {migrations}")
+        backup_root = base / "backups"
+        for _ in range(2):
+            result = apply_actions(audit(), apply=True, backup_root=str(backup_root))
+            assert_true(not result["errors"], f"migration failed: {result}")
+        for root in roots:
+            assert_true((root / "obsidian" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "consolidated skill missing or differs from canonical")
+            for old_name in old_names:
+                assert_true(not os.path.lexists(root / old_name), f"{old_name} survived consolidation for selection {selection}")
+        assert_true(len(list(backup_root.rglob("local-note.md"))) == len(old_names) * (1 if linked_secondaries else len(roots)), "old installations were not backed up")
+        assert_true(not audit()["actions"], "consolidation did not converge")
+
+
+def test_agent_native_rename_migrates_existing_installations() -> None:
+    for selection in [set(), {"agent-native-architecture"}, {"agent-native-design"}]:
+        with isolated_tempdir() as td:
             base = Path(td)
             repo = base / "repo"
             canonical = repo / "skills"
-            source = write_skill(canonical, "obsidian")
+            source = write_skill(canonical, "agent-native-design")
+            write_skill(canonical, "unrelated")
             roots = [base / name / "skills" for name in [".agents", ".codex", ".claude"]]
-            for env_name, root in zip(env_names, roots):
+            for env_name, root in zip(HOME_ENV_NAMES, roots):
                 os.environ[env_name] = str(root.parent)
-                for old_name in old_names:
-                    if linked_secondaries and root != roots[0]:
-                        root.mkdir(parents=True, exist_ok=True)
-                        (root / old_name).symlink_to(roots[0] / old_name, target_is_directory=True)
-                    else:
-                        old = write_skill(root, old_name)
-                        (old / "local-note.md").write_text(old_name)
+                old = write_skill(root, "agent-native-architecture")
+                (old / "local-note.md").write_text("preserve this old installation")
             os.chdir(repo)
 
             def audit():
                 return build_audit_report(
                     context=resolve_context(str(canonical), [], False),
-                    local_policy="prefer-global-link", global_policy="prefer-primary-link",
+                    local_policy="prefer-global-link",
+                    global_policy="prefer-primary-link",
                     keep_local_skills=set(), enforce_mirror=False,
                     codex_agents_dedupe=True, only_existing=True,
                     selected_skills=selection,
                 )
 
             report = audit()
-            migrations = [a for a in report["actions"] if a["action"] in {"replace_deprecated_skill", "remove_deprecated_skill"}]
-            assert_true(len(migrations) == len(old_names) * len(roots), f"every old Obsidian skill must migrate in every root for selection {selection}: {migrations}")
+            replacements = [a for a in report["actions"] if a["action"] == "replace_deprecated_skill"]
+            assert_true(len(replacements) == 3, f"old installs must migrate for selection {selection}: {report}")
             backup_root = base / "backups"
-            for _ in range(2):
-                result = apply_actions(audit(), apply=True, backup_root=str(backup_root))
-                assert_true(not result["errors"], f"migration failed: {result}")
+            result = apply_actions(report, apply=True, backup_root=str(backup_root))
+            assert_true(not result["errors"], f"migration failed: {result}")
             for root in roots:
-                assert_true((root / "obsidian" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "consolidated skill missing or differs from canonical")
-                for old_name in old_names:
-                    assert_true(not os.path.lexists(root / old_name), f"{old_name} survived consolidation for selection {selection}")
-            assert_true(len(list(backup_root.rglob("local-note.md"))) == len(old_names) * (1 if linked_secondaries else len(roots)), "old installations were not backed up")
-            assert_true(not audit()["actions"], "consolidation did not converge")
-            os.chdir(original_cwd)
-    finally:
-        os.chdir(original_cwd)
-        for name, value in original_env.items():
-            if value is None:
-                os.environ.pop(name, None)
-            else:
-                os.environ[name] = value
-
-
-def test_agent_native_rename_migrates_existing_installations() -> None:
-    original_cwd = Path.cwd()
-    env_names = ["AGENTS_HOME", "CODEX_HOME", "CLAUDE_HOME"]
-    original_env = {name: os.environ.get(name) for name in env_names}
-    try:
-        for selection in [set(), {"agent-native-architecture"}, {"agent-native-design"}]:
-            with tempfile.TemporaryDirectory() as td:
-                base = Path(td)
-                repo = base / "repo"
-                canonical = repo / "skills"
-                source = write_skill(canonical, "agent-native-design")
-                write_skill(canonical, "unrelated")
-                roots = [base / name / "skills" for name in [".agents", ".codex", ".claude"]]
-                for env_name, root in zip(env_names, roots):
-                    os.environ[env_name] = str(root.parent)
-                    old = write_skill(root, "agent-native-architecture")
-                    (old / "local-note.md").write_text("preserve this old installation")
-                os.chdir(repo)
-
-                def audit():
-                    return build_audit_report(
-                        context=resolve_context(str(canonical), [], False),
-                        local_policy="prefer-global-link",
-                        global_policy="prefer-primary-link",
-                        keep_local_skills=set(), enforce_mirror=False,
-                        codex_agents_dedupe=True, only_existing=True,
-                        selected_skills=selection,
-                    )
-
-                report = audit()
-                replacements = [a for a in report["actions"] if a["action"] == "replace_deprecated_skill"]
-                assert_true(len(replacements) == 3, f"old installs must migrate for selection {selection}: {report}")
-                backup_root = base / "backups"
-                result = apply_actions(report, apply=True, backup_root=str(backup_root))
-                assert_true(not result["errors"], f"migration failed: {result}")
-                for root in roots:
-                    assert_true(not (root / "agent-native-architecture").exists(), "old name survived migration")
-                    assert_true((root / "agent-native-design" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "replacement differs from canonical")
-                    assert_true(not (root / "unrelated").exists(), "migration installed an unrelated skill")
-                saved_notes = list(backup_root.rglob("local-note.md"))
-                assert_true(len(saved_notes) == 3, "old installations were not backed up")
-                assert_true(all(p.read_text() == "preserve this old installation" for p in saved_notes), "backup content changed")
-                # Existing-name migration may first create independent copies;
-                # the ordinary follow-up sync must normalize them and converge.
-                followup = apply_actions(audit(), apply=True, backup_root=str(backup_root))
-                assert_true(not followup["errors"], f"normalization failed: {followup}")
-                assert_true(not audit()["actions"], "migration did not converge")
-                os.chdir(original_cwd)
-    finally:
-        os.chdir(original_cwd)
-        for name, value in original_env.items():
-            if value is None:
-                os.environ.pop(name, None)
-            else:
-                os.environ[name] = value
+                assert_true(not (root / "agent-native-architecture").exists(), "old name survived migration")
+                assert_true((root / "agent-native-design" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "replacement differs from canonical")
+                assert_true(not (root / "unrelated").exists(), "migration installed an unrelated skill")
+            saved_notes = list(backup_root.rglob("local-note.md"))
+            assert_true(len(saved_notes) == 3, "old installations were not backed up")
+            assert_true(all(p.read_text() == "preserve this old installation" for p in saved_notes), "backup content changed")
+            # Existing-name migration may first create independent copies;
+            # the ordinary follow-up sync must normalize them and converge.
+            followup = apply_actions(audit(), apply=True, backup_root=str(backup_root))
+            assert_true(not followup["errors"], f"normalization failed: {followup}")
+            assert_true(not audit()["actions"], "migration did not converge")
 
 
 def test_deprecated_replacement_uses_real_source() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         repo = base / "repo"
         skills = repo / "skills"
@@ -416,7 +408,7 @@ def test_deprecated_replacement_uses_real_source() -> None:
 
 
 def test_apply_orders_copy_before_link() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         source = write_skill(base / "canonical", "brainstorming")
         global_root = base / "globals"
@@ -450,7 +442,7 @@ def test_apply_orders_copy_before_link() -> None:
 
 
 def test_apply_copy_ignores_generated_files() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         source = write_skill(base / "canonical", "brainstorming")
         (source / ".DS_Store").write_text("mac metadata", encoding="utf-8")
@@ -481,7 +473,7 @@ def test_apply_copy_ignores_generated_files() -> None:
 
 
 def test_selected_skill_limits_mirror_scope_and_invalid_reports() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         repo = base / "repo"
         skills = repo / "skills"
@@ -528,7 +520,7 @@ def test_selected_skill_limits_mirror_scope_and_invalid_reports() -> None:
 
 
 def test_selected_skill_apply_creates_only_requested_global_mirror() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         repo = base / "repo"
         skills = repo / "skills"
@@ -578,7 +570,7 @@ def test_selected_skill_apply_creates_only_requested_global_mirror() -> None:
 
 
 def test_selected_missing_skill_reports_typo() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         repo = base / "repo"
         skills = repo / "skills"
@@ -615,7 +607,7 @@ def test_selected_missing_skill_reports_typo() -> None:
 
 
 def test_underscore_dirs_are_not_invalid_in_full_scan() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         repo = base / "repo"
         skills = repo / "skills"
@@ -656,7 +648,7 @@ def test_underscore_dirs_are_not_invalid_in_full_scan() -> None:
 
 
 def test_audit_exit_code_tracks_drift_not_warnings() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         repo = base / "repo"
         skills = repo / "skills"
@@ -698,7 +690,7 @@ def test_audit_exit_code_tracks_drift_not_warnings() -> None:
 
 
 def test_audit_exit_code_reports_real_drift() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         repo = base / "repo"
         skills = repo / "skills"
@@ -762,7 +754,7 @@ def _invalid_for(report: dict, path: Path) -> list[str]:
 
 
 def test_known_non_skill_dir_ignored_in_owning_root() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         skills = _audit_fixture(base)
         (base / ".codex" / "skills" / "codex-primary-runtime").mkdir()
@@ -787,7 +779,7 @@ def test_known_non_skill_dir_ignored_in_owning_root() -> None:
 
 
 def test_known_non_skill_dir_still_reported_in_other_roots() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         skills = _audit_fixture(base)
         # Same name, wrong root: the allowlist is scoped, so this is still odd.
@@ -809,7 +801,7 @@ def test_known_non_skill_dir_still_reported_in_other_roots() -> None:
 
 
 def test_claude_synced_skills_dir_ignored_in_claude_root() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         skills = _audit_fixture(base)
         # Claude Code keeps account-synced skills one level down, in bucket dirs.
@@ -836,7 +828,7 @@ def test_claude_synced_skills_dir_ignored_in_claude_root() -> None:
 
 
 def test_claude_synced_dir_still_reported_in_the_primary_root() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         skills = _audit_fixture(base)
         (base / ".agents" / "skills" / "synced").mkdir()
@@ -857,7 +849,7 @@ def test_claude_synced_dir_still_reported_in_the_primary_root() -> None:
 
 
 def test_mirror_never_targets_a_tool_owned_dir() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         skills = _audit_fixture(base)
         # A canonical skill whose name collides with Claude Code's synced cache.
@@ -888,7 +880,7 @@ def test_mirror_never_targets_a_tool_owned_dir() -> None:
 
 
 def test_ignore_dir_flag_suppresses_custom_dir() -> None:
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         skills = _audit_fixture(base)
         (base / ".agents" / "skills" / "vendor-runtime").mkdir()
@@ -924,7 +916,7 @@ def test_stale_secondary_link_is_removed_not_relinked() -> None:
     primary global root is the operator's expressed intent, and reinstalling from
     canonical would quietly undo a deliberate cut.
     """
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         repo = base / "repo"
         skills = repo / "skills"
@@ -991,7 +983,7 @@ def test_a_broken_primary_entry_is_still_restored_from_canonical() -> None:
     skill that is meant to be there, so canonical restores it. Only a *secondary*
     root naming a skill absent from primary is stale.
     """
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         repo = base / "repo"
         skills = repo / "skills"
@@ -1030,7 +1022,7 @@ def test_a_broken_primary_entry_is_still_restored_from_canonical() -> None:
 
 def test_sync_preserves_unknown_backup_history() -> None:
     """Sync never ages out backups whose recovery has not been established."""
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         repo = base / "repo"
         skills = repo / "skills"
@@ -1089,7 +1081,7 @@ def test_mirror_copy_repairs_a_secondary_entry_instead_of_removing_it() -> None:
     intent at all -- so a damaged secondary entry is repaired from canonical, as
     it always was.
     """
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         repo = base / "repo"
         skills = repo / "skills"
@@ -1136,7 +1128,7 @@ def test_mirror_copy_repairs_a_secondary_entry_instead_of_removing_it() -> None:
 
 def test_a_failed_apply_does_not_prune_backup_history() -> None:
     """Failed sync preserves all earlier recovery points."""
-    with tempfile.TemporaryDirectory() as td:
+    with isolated_tempdir() as td:
         base = Path(td)
         backup_root = base / "backups"
         for old in ["20260101-000000", "20260102-000000", "20260103-000000"]:
@@ -1160,39 +1152,42 @@ def test_a_failed_apply_does_not_prune_backup_history() -> None:
         assert_true(len(surviving) == 3, f"all runs must survive a failure: {surviving}")
 
 
-def main() -> int:
-    tests = [
-        test_review_lenses_consolidate_without_local_review,
-        test_review_lenses_consolidate_with_only_primary_local_review,
-        test_review_lenses_consolidate_into_existing_local_review,
-        test_obsidian_format_skills_consolidate_into_obsidian,
-        test_agent_native_rename_migrates_existing_installations,
-        test_invalid_entries_do_not_emit_missing_actions,
-        test_underscore_dirs_are_not_invalid_in_full_scan,
-        test_known_non_skill_dir_ignored_in_owning_root,
-        test_known_non_skill_dir_still_reported_in_other_roots,
-        test_claude_synced_skills_dir_ignored_in_claude_root,
-        test_claude_synced_dir_still_reported_in_the_primary_root,
-        test_mirror_never_targets_a_tool_owned_dir,
-        test_ignore_dir_flag_suppresses_custom_dir,
-        test_audit_exit_code_tracks_drift_not_warnings,
-        test_audit_exit_code_reports_real_drift,
-        test_deprecated_replacement_uses_real_source,
-        test_apply_orders_copy_before_link,
-        test_apply_copy_ignores_generated_files,
-        test_selected_skill_limits_mirror_scope_and_invalid_reports,
-        test_selected_skill_apply_creates_only_requested_global_mirror,
-        test_selected_missing_skill_reports_typo,
-        test_a_project_root_linking_to_canonical_is_not_a_duplicate,
-        test_a_project_root_holding_a_copy_is_still_reported,
-        test_stale_secondary_link_is_removed_not_relinked,
-        test_a_broken_primary_entry_is_still_restored_from_canonical,
-        test_sync_preserves_unknown_backup_history,
-        test_mirror_copy_repairs_a_secondary_entry_instead_of_removing_it,
-        test_a_failed_apply_does_not_prune_backup_history,
-    ]
+# The direct runner's order; tests/test_skill_standardizer_suite.py also runs
+# each entry under pytest and checks that it restores process state.
+TESTS = (
+    test_review_lenses_consolidate_without_local_review,
+    test_review_lenses_consolidate_with_only_primary_local_review,
+    test_review_lenses_consolidate_into_existing_local_review,
+    test_obsidian_format_skills_consolidate_into_obsidian,
+    test_agent_native_rename_migrates_existing_installations,
+    test_invalid_entries_do_not_emit_missing_actions,
+    test_underscore_dirs_are_not_invalid_in_full_scan,
+    test_known_non_skill_dir_ignored_in_owning_root,
+    test_known_non_skill_dir_still_reported_in_other_roots,
+    test_claude_synced_skills_dir_ignored_in_claude_root,
+    test_claude_synced_dir_still_reported_in_the_primary_root,
+    test_mirror_never_targets_a_tool_owned_dir,
+    test_ignore_dir_flag_suppresses_custom_dir,
+    test_audit_exit_code_tracks_drift_not_warnings,
+    test_audit_exit_code_reports_real_drift,
+    test_deprecated_replacement_uses_real_source,
+    test_apply_orders_copy_before_link,
+    test_apply_copy_ignores_generated_files,
+    test_selected_skill_limits_mirror_scope_and_invalid_reports,
+    test_selected_skill_apply_creates_only_requested_global_mirror,
+    test_selected_missing_skill_reports_typo,
+    test_a_project_root_linking_to_canonical_is_not_a_duplicate,
+    test_a_project_root_holding_a_copy_is_still_reported,
+    test_stale_secondary_link_is_removed_not_relinked,
+    test_a_broken_primary_entry_is_still_restored_from_canonical,
+    test_sync_preserves_unknown_backup_history,
+    test_mirror_copy_repairs_a_secondary_entry_instead_of_removing_it,
+    test_a_failed_apply_does_not_prune_backup_history,
+)
 
-    for test in tests:
+
+def main() -> int:
+    for test in TESTS:
         test()
         print(f"PASS {test.__name__}")
 

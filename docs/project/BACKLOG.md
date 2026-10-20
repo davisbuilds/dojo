@@ -66,18 +66,6 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   renderer equivalence. Addy's reference-link validator is implementation context,
   not a reason to add another skill or runtime workflow.
 
-### Isolate standardizer tests from process state
-
-- **What**: several standalone standardizer tests leave cwd and harness-home
-  environment variables pointing into deleted temporary directories.
-- **Why or evidence**: on 2026-10-02, bare `pytest -q` collected these tests and
-  subsequent tests failed at `Path.cwd()`. CI deliberately runs `pytest tests/`
-  and the standardizer script in separate processes; `pyproject.toml` now also
-  scopes default pytest discovery to `tests/`. Explicitly collecting the standalone
-  suite still needs isolation.
-- **Next**: restore cwd and environment per test before unifying test discovery;
-  preserve direct-script execution without adding a runtime pytest dependency.
-
 ### Evaluate workflow revisions and extend the composition audit
 
 - **What**: measure the marginal value of the compact workflow guidance and audit
@@ -193,13 +181,12 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   `tests/test_bump_skill_version.py` covers `skills/skill-evals/scripts/`
   via `importlib.spec_from_file_location`, and skill-evals ships no tests of its
   own. The standardizer is the sole outlier.
-- **The leak**: the suite mutates process-global state (`os.chdir`, and
-  `AGENTS_HOME`/`CODEX_HOME`/`CLAUDE_HOME`) with no teardown, and leaves `cwd`
-  pointing at a deleted tempdir. Verified this collides with nothing today —
-  nothing in `tests/` or `scripts/` reads `cwd` or those vars — so the risk is
-  latent, not active. `monkeypatch.setenv`/`monkeypatch.chdir` auto-restore and
-  would remove it. (An earlier note here called this an active pollution risk;
-  that was overstated.)
+- **Interim state**: each test restores cwd and
+  `AGENTS_HOME`/`CODEX_HOME`/`CLAUDE_HOME` through `isolated_tempdir()`, and
+  `tests/test_skill_standardizer_suite.py` loads the file with `importlib` to run
+  every test under pytest, check that restoration, and run the direct runner
+  without pytest. What remains is shipped test code, the dedicated CI step, and
+  two ways to invoke one file.
 - **No longer blocked**: an earlier version of this entry said the port needed a
   call on whether the skill should keep shipping its own tests, since sync copies
   them to `~/.agents/skills/skill-standardizer/scripts/`. Settled — the Test
@@ -208,17 +195,19 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   there (stdlib-only, hermetic tempdir fixtures — verified passing from `/tmp`),
   but "can run" is not "has a consumer". Losing it from the global copy costs
   nothing, so the port is plain conformance.
-- **Next**: port ~13 tests to `tests/test_skill_standardizer.py` with
-  `tmp_path`/`monkeypatch`, delete the original, drop the dedicated CI step, and
-  update both the `Run skill-standardizer regression tests` section of
-  `docs/system/OPERATIONS.md` and the "known exception" paragraph under Test
-  Tiers in `docs/system/ARCHITECTURE.md`.
+- **Next**: port the tests into `tests/test_skill_standardizer_suite.py` with
+  `tmp_path`/`monkeypatch` while keeping the stdlib-only direct runner and its
+  pytest-free check, which are a current contract. Deleting the original,
+  dropping the dedicated CI step, and updating the `Run skill-standardizer
+  regression tests` section of `docs/system/OPERATIONS.md` and the "known
+  exception" paragraph under Test Tiers in `docs/system/ARCHITECTURE.md` retire
+  that contract, so they need their own decision first.
 - **Rejected alternative**: symlinking `tests/test_skill_standardizer.py` to the
   skill's copy so pytest collects it while the skill still ships it. It would
   work (pytest collects module-level `test_*` functions; `assert_true` raises
-  `AssertionError`), but it moves the `os.chdir`/`os.environ` leak into the
-  shared 184-test run and leaves a dead `main()` plus two ways to invoke one
-  file. It preserves the anomaly instead of resolving it.
+  `AssertionError`), but it leaves a dead `main()` plus two ways to invoke one
+  file. It preserves the anomaly instead of resolving it; the interim `importlib`
+  wrapper shares that cost until the port lands.
 
 ### Shared SemVer helper
 - **What**: SemVer parsing/validation now exists in multiple scripts.
