@@ -10,9 +10,9 @@ in a deleted cwd or reads another test's fixture homes.
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 from pathlib import Path
-import shutil
 import subprocess
 import sys
 
@@ -116,19 +116,71 @@ def test_isolated_tempdir_restores_after_a_failure(tmp_path, monkeypatch):
     assert not Path(td).exists()
 
 
-def test_isolated_tempdir_leaves_the_directory_before_removing_it(tmp_path, monkeypatch):
-    before = arrange(tmp_path, monkeypatch, STATES)
-    removals = []
-    real_rmtree = shutil.rmtree
+# Records the cwd at every directory and file removal through the public
+# os.rmdir/os.remove audit events, however the temporary directory deletes
+# itself. Audit hooks cannot be removed, so this runs in a child process.
+REMOVAL_OBSERVER = r"""
+import contextlib, importlib.util, json, os, sys, tempfile
 
-    def recording_rmtree(path, *args, **kwargs):
-        removals.append((os.fspath(path), snapshot()["cwd"]))
-        return real_rmtree(path, *args, **kwargs)
+spec = importlib.util.spec_from_file_location("skill_standardizer_suite", sys.argv[1])
+suite = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(suite)
 
-    monkeypatch.setattr(shutil, "rmtree", recording_rmtree)
-    with suite.isolated_tempdir() as td:
-        enter_and_repoint(td)
-    assert removals == [(td, before["cwd"])]
+events = None
+
+def hook(event, args):
+    if events is not None and event in ("os.rmdir", "os.remove"):
+        events.append([event, os.fsdecode(args[0]), os.getcwd()])
+
+sys.addaudithook(hook)
+
+@contextlib.contextmanager
+def restore_after_removal():
+    original = os.getcwd()
+    try:
+        with tempfile.TemporaryDirectory() as td:
+            yield td
+    finally:
+        os.chdir(original)
+
+report = {"start": os.getcwd()}
+for label, scope in (("helper", suite.isolated_tempdir), ("control", restore_after_removal)):
+    events = []
+    with scope() as td:
+        os.chdir(td)
+        open("fixture.txt", "w").close()
+    report[label] = {"td": os.path.realpath(td), "events": events}
+    events = None
+print(json.dumps(report))
+"""
+
+
+def test_isolated_tempdir_leaves_the_directory_before_removing_it(tmp_path):
+    home = tmp_path / "home"
+    home.mkdir()
+    env = {name: value for name, value in os.environ.items() if name not in HOME_ENV_NAMES}
+    env["HOME"] = str(home)
+    result = subprocess.run(
+        [sys.executable, "-I", "-c", REMOVAL_OBSERVER, str(SCRIPT_PATH)],
+        cwd=tmp_path, env=env, capture_output=True, text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    report = json.loads(result.stdout)
+
+    def removals(label):
+        td = report[label]["td"]
+        events = report[label]["events"]
+        # The observer must see the directory itself go, or it proves nothing.
+        assert any(event == "os.rmdir" and os.path.basename(path) == os.path.basename(td)
+                   for event, path, _ in events), events
+        return td, [os.path.realpath(cwd) for _, _, cwd in events]
+
+    # Positive control: restoring only after the context exits is caught.
+    td, cwds = removals("control")
+    assert td in cwds
+
+    td, cwds = removals("helper")
+    assert set(cwds) == {os.path.realpath(report["start"])}
 
 
 def test_direct_runner_needs_no_pytest(tmp_path):

@@ -196,10 +196,12 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   but "can run" is not "has a consumer". Losing it from the global copy costs
   nothing, so the port is plain conformance.
 - **Next**: port the tests into `tests/test_skill_standardizer_suite.py` with
-  `tmp_path`/`monkeypatch`, delete the original, drop the dedicated CI step, and
-  update both the `Run skill-standardizer regression tests` section of
-  `docs/system/OPERATIONS.md` and the "known exception" paragraph under Test
-  Tiers in `docs/system/ARCHITECTURE.md`.
+  `tmp_path`/`monkeypatch` while keeping the stdlib-only direct runner and its
+  pytest-free check, which are a current contract. Deleting the original,
+  dropping the dedicated CI step, and updating the `Run skill-standardizer
+  regression tests` section of `docs/system/OPERATIONS.md` and the "known
+  exception" paragraph under Test Tiers in `docs/system/ARCHITECTURE.md` retire
+  that contract, so they need their own decision first.
 - **Rejected alternative**: symlinking `tests/test_skill_standardizer.py` to the
   skill's copy so pytest collects it while the skill still ships it. It would
   work (pytest collects module-level `test_*` functions; `assert_true` raises
