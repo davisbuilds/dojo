@@ -166,8 +166,9 @@ see `tests/test_bump_skill_version.py`, which covers a script owned by
 
 Known exception: `skills/skill-standardizer/scripts/test_skill_standardizer.py`
 is skill-local code tests — a third category that predates this rule. It is the
-only test file outside `tests/`, needs its own CI step because `pytest tests/`
-cannot see it, and ships to globals as dead weight. Porting it is tracked in
+only test file outside `tests/`, keeps a stdlib-only direct runner with its own
+CI step, and ships to globals as dead weight. `tests/test_skill_standardizer_suite.py`
+runs each of its tests under pytest. Porting it is tracked in
 `docs/project/BACKLOG.md`; do not use it as a pattern for new skills.
 
 ## Directory Map

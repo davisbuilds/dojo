@@ -47,7 +47,7 @@ run "Dangling links and skill references" py scripts/check_links.py
 run "AI-slop prose scan" py scripts/slop_scan.py
 if [ "$fast" -eq 0 ]; then
   run "Regression tests" py -m pytest tests/ -q
-  # Ships its own runner beside the skill, so `pytest tests/` does not collect it.
+  # The suite's stdlib-only direct runner; `pytest tests/` runs the same tests in-process.
   run "Skill-standardizer regression tests" py skills/skill-standardizer/scripts/test_skill_standardizer.py
 fi
 
