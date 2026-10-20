@@ -32,8 +32,11 @@ Deliberately unsupported, so never reported:
 - fragments on non-Markdown targets (`run.py#L10`) and directories: only the
   file's existence is checked;
 - any target file with a heading containing raw HTML, an image, a
-  `{#custom-id}` attribute or an `:emoji:` shortcode, or a setext heading
-  spanning several lines, because its anchors depend on the renderer;
+  `{#custom-id}` attribute, an `:emoji:` shortcode, a private-use character
+  (literal or from an entity), or a link it cannot parse, or a setext heading
+  spanning several lines, because its anchors depend on the renderer. Heading
+  link destinations may contain one level of balanced parentheses
+  (`guide_(v2).md`); deeper nesting (`a_((b)).md`) is skipped;
 - reference-style links (`[x][ref]`), links with titles, and HTML `href`s,
   which are not scanned at all.
 
@@ -66,7 +69,8 @@ SKILL_PATH = re.compile(r"(?<!/)\bskills/([a-z0-9][a-z0-9-]*)/")
 # position keeps model names and inline mentions out of the check.
 SIBLING_ENTRY = re.compile(r"^\s*[-*]\s+`([a-z0-9][a-z0-9-]{2,})`", re.M)
 SIBLING_HEADING = re.compile(r"^#{1,4}\s+Sibling skills\s*$", re.M)
-FENCE_OPEN = re.compile(r"^\s*(`{3,}|~{3,})")
+# A backtick fence's info string cannot contain backticks (```x``` is inline code).
+FENCE_OPEN = re.compile(r"^\s*(`{3,}(?=[^`]*$)|~{3,})")
 FRONTMATTER = re.compile(r"---[ \t]*\r?\n.*?^---[ \t]*$", re.M | re.S)
 ATX_HEADING = re.compile(r"^ {0,3}#{1,6}(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$")
 SETEXT_UNDERLINE = re.compile(r"^ {0,3}(?:=+|-+)[ \t]*$")
@@ -74,8 +78,10 @@ SETEXT_UNDERLINE = re.compile(r"^ {0,3}(?:=+|-+)[ \t]*$")
 NOT_SETEXT_TEXT = re.compile(r"^(?: {4}|\s*(?:[-*+>#<]|\d+[.)])(?:\s|$))")
 HTML_ID = re.compile(r"<[A-Za-z][^>]*?\s(?:id|name)=[\"']?([^\"'\s>]+)")
 CODE_SPAN = re.compile(r"(`+)(.+?)\1")
-INLINE_LINK = re.compile(r"\[([^\]]*)\](?:\([^)]*\)|\[[^\]]*\])")
-UNDERSCORE_EMPHASIS = re.compile(r"(?<![\w\\])(_{1,2})(?=\S)(.+?)(?<=[^\s\\])\1(?!\w)")
+# Link destinations may hold one level of balanced parentheses; deeper nesting
+# leaves a `](` behind and marks the heading unsupported.
+INLINE_LINK = re.compile(r"\[([^\]]*)\](?:\((?:[^()]|\([^()]*\))*\)|\[[^\]]*\])")
+UNDERSCORE_EMPHASIS = re.compile(r"(?<![\w\\])(_{1,3})(?=\S)(.+?)(?<=[^\s\\])\1(?!\w)")
 BACKSLASH_ESCAPE = re.compile(r"\\([!-/:-@\[-`{-~])")
 # Raw HTML, images, custom-id attributes and emoji shortcodes make a heading's
 # anchor renderer-dependent.
@@ -123,24 +129,34 @@ def strip_fences(text: str) -> str:
 
 
 def heading_text(raw: str) -> str | None:
-    """Reduce heading Markdown to its rendered text, or None if unsupported."""
-    if UNSUPPORTED_HEADING_MARKUP.search(CODE_SPAN.sub("", raw)):
+    """Reduce heading Markdown to its rendered text, or None if unsupported.
+
+    Code spans are swapped for lone-surrogate placeholders first, so their
+    contents stay literal while links and emphasis around them are still
+    reduced. Strict UTF-8 text cannot hold lone surrogates and html.unescape
+    maps surrogate references to U+FFFD, so no input can forge a placeholder.
+    """
+    if re.search(r"[\ud800-\udfff]", raw):
         return None
-    parts: list[str] = []
-    pos = 0
-    for m in CODE_SPAN.finditer(raw):
-        parts.append(_inline_text(raw[pos : m.start()]))
+    codes: list[str] = []
+
+    def hold(m: re.Match[str]) -> str:
         code = m.group(2)
-        parts.append(code[1:-1] if code.startswith(" ") and code.endswith(" ") and code.strip() else code)
-        pos = m.end()
-    parts.append(_inline_text(raw[pos:]))
-    return "".join(parts)
+        codes.append(code[1:-1] if code.startswith(" ") and code.endswith(" ") and code.strip() else code)
+        return chr(0xD800 + len(codes) - 1)  # past 2048 spans this lands in PUA: unsupported
 
-
-def _inline_text(text: str) -> str:
+    text = CODE_SPAN.sub(hold, raw)
+    if UNSUPPORTED_HEADING_MARKUP.search(text):
+        return None
     text = INLINE_LINK.sub(r"\1", text)
-    text = UNDERSCORE_EMPHASIS.sub(r"\2", text)
-    return html.unescape(BACKSLASH_ESCAPE.sub(r"\1", text))
+    if "](" in text:
+        return None  # a link this checker could not parse
+    while (reduced := UNDERSCORE_EMPHASIS.sub(r"\2", text)) != text:
+        text = reduced  # nested emphasis: `_outer __inner__ end_`
+    text = html.unescape(BACKSLASH_ESCAPE.sub(r"\1", text))
+    text = re.sub(r"[\ud800-\udfff]", lambda m: codes[ord(m.group()) - 0xD800], text)
+    # Private-use glyphs, literal or from entities, slug differently per renderer.
+    return None if re.search(r"[\ue000-\uf8ff]", text) else text
 
 
 def slugify(text: str, seen: dict[str, int]) -> str:

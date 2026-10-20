@@ -394,3 +394,71 @@ def test_headings_inside_html_comments_are_not_anchors(tmp_path: Path) -> None:
     assert MODULE.anchors("<!--\n# Ghost\n-->\n") == set()
     problems = fragment_problems(MODULE.check(root, []))
     assert len(problems) == 1 and "#ghost" in problems[0]
+
+
+def test_invalid_backtick_fence_openers_do_not_hide_later_content(tmp_path: Path) -> None:
+    """A backtick fence's info string cannot contain backticks, so ```x``` and
+    ``` a`b are inline text, not unclosed fences that swallow the file."""
+    root = tmp_path / "skills"
+    for name, opener in (("alpha", "```literal```"), ("beta", "``` info`tick")):
+        make_skill(
+            root, name,
+            f"{opener}\n\n[gone](missing.md) [frag](#nowhere) [ok](#real)\n\n## Real\n\n"
+            "```markdown\n[example](FORMS.md) [example](#example-only)\n```\n\n"
+            "~~~ tilde`info is valid\n[tilde](TILDE.md)\n~~~\n",
+        )
+    problems = sorted(p.split("/skills/")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "alpha/SKILL.md: broken link -> missing.md",
+        "alpha/SKILL.md: missing heading anchor -> #nowhere",
+        "beta/SKILL.md: broken link -> missing.md",
+        "beta/SKILL.md: missing heading anchor -> #nowhere",
+    ]
+
+
+def test_heading_links_with_balanced_parentheses(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    a = make_skill(
+        root, "alpha",
+        "[a](references/ref.md#api) [b](references/ref.md#cfg-file) [c](references/ref.md#guide)\n"
+        "[d](references/deep.md#anything)\n",
+    )
+    write_doc(a, "references/ref.md", "## [API](https://example.test/guide_(v2).md)\n\n## [`cfg`](https://example.test/c) file\n")
+    write_doc(a, "references/deep.md", "## [Deep](https://example.test/a_((b)).md)\n")
+    assert MODULE.anchors("## [API](https://example.test/guide_(v2).md)\n") == {"api"}
+    # Deeper nesting is outside the supported subset: skipped, not guessed.
+    assert MODULE.anchors("## [Deep](https://example.test/a_((b)).md)\n") is None
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "references/ref.md#guide" in problems[0]
+
+
+def test_combined_and_nested_underscore_emphasis(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#important) [b](#strong-and-em) [c](#outer-inner-end) "
+        "[d](#snake_case_name-and-__dunder__) [e](#_important_)\n\n"
+        "## ___Important___\n\n## __Strong__ and _em_\n\n## _outer __inner__ end_\n\n"
+        "## snake_case_name and `__dunder__`\n",
+    )
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#_important_" in problems[0]
+
+
+def test_private_use_characters_in_headings_are_unsupported_not_a_crash(tmp_path: Path) -> None:
+    """Code spans are held as placeholder characters while a heading is reduced;
+    neither literal nor entity-produced private-use characters may be mistaken
+    for one. Their slugging is renderer-dependent, so the file is skipped."""
+    for heading in ("## Entity &#xE000;\n", "## `x` &#xE000;\n", "## Glyph  here\n", "## ``\n"):
+        assert MODULE.anchors(heading) is None, heading
+    # A surrogate reference unescapes to U+FFFD, never to a code placeholder.
+    assert MODULE.heading_text("`x` &#xD800;") == "x �"
+    # Controls: real code spans and ordinary entities are still reduced; code stays literal.
+    assert MODULE.anchors("## `a_b` &amp; `c`\n") == {"a_b--c"}
+    assert MODULE.anchors("## Fish &amp; Chips\n## Caf&eacute;\n") == {"fish--chips", "café"}
+    assert MODULE.anchors("## `&amp;` op\n") == {"amp-op"}
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "[x](references/pua.md#stale) [y](#gone)\n\n## Fish &amp; Chips\n")
+    write_doc(a, "references/pua.md", "## Entity &#xE000;\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#gone" in problems[0]
