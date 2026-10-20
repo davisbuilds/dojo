@@ -580,3 +580,69 @@ def test_escaped_opening_brackets_in_headings_are_not_links() -> None:
     assert MODULE.anchors("## [API](https://e.test/x)\n") == {"api"}
     # An escaped bracket beside a real link stays literal text.
     assert MODULE.anchors("## \\[a [b](https://e.test) c\n") == {"a-b-c"}
+
+
+CLOSER_FIXTURE = (
+    "```\n    ```\n[hidden](hidden-a.md)\n```\n[after](missing-after-a.md)\n\n"
+    "- item\n\n  ```\n      ```\n  [hidden](hidden-b.md)\n  ```\n[after](missing-after-b.md)\n\n"
+    "- item\n\n  ```\n\n  [still](hidden-c.md)\n  ```\n\n"
+    "- item\n\n  ```\n  code\n[outer](missing-outer.md) [o](#outer)\n\n## Outer\n"
+)
+
+
+def test_fence_closers_obey_the_container_indent_rule(tmp_path: Path) -> None:
+    """A closer four spaces past its container margin is code, not a closer;
+    a non-blank line outdented past a list fence's margin ends the item and
+    the fence with it. Blank lines inside a list fence do not."""
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", CLOSER_FIXTURE)
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> missing-after-a.md",
+        "broken link -> missing-after-b.md",
+        "broken link -> missing-outer.md",
+    ]
+
+
+COMMENT_FENCE_FIXTURE = (
+    "<!--\n```\n-->\n[real](missing-c1.md)\n\n"
+    "<!--\n~~~\n-->\n[real](missing-c2.md) [h](#real-heading)\n\n## Real heading\n\n"
+    "```\n<!--\n```\n[after-fence](missing-c3.md)\n-->\n\n"
+    "`<!--`\n\n```\n[in-fence](hidden-c4.md)\n```\n\n`-->` [real](missing-c4.md)\n"
+)
+
+
+def test_comment_and_fence_masking_order(tmp_path: Path) -> None:
+    """Fence markers inside an HTML comment block do not open fences; comment
+    markers inside a fence or a code span are literal and mask nothing."""
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", COMMENT_FENCE_FIXTURE)
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> missing-c1.md",
+        "broken link -> missing-c2.md",
+        "broken link -> missing-c3.md",
+        "broken link -> missing-c4.md",
+    ]
+
+
+def test_headings_nested_in_wide_list_items_make_target_unsupported(tmp_path: Path) -> None:
+    """`10. Item` puts content at column 4, so `    ## Nested` is a real heading,
+    as is `- ## Inline`. Container headings are not parsed: such targets are
+    skipped rather than reported. Shallow list headings remain supported."""
+    assert MODULE.anchors("10. Item\n\n    ## Nested heading\n") is None
+    assert MODULE.anchors("- ## Inline item heading\n") is None
+    # Controls: top-level indented code is not a heading; shallow nesting parses.
+    assert MODULE.anchors("Text.\n\n    ## not a heading\n") == set()
+    assert MODULE.anchors("## Plain heading\n\n- item\n\n  ## Shallow nested\n") == {"plain-heading", "shallow-nested"}
+    root = tmp_path / "skills"
+    a = make_skill(
+        root, "alpha",
+        "[a](references/nested.md#nested-heading) [b](references/nested.md#stale)\n"
+        "[c](references/plain.md#plain-heading) [d](references/plain.md#shallow-nested) "
+        "[e](references/plain.md#stale)\n",
+    )
+    write_doc(a, "references/nested.md", "10. Item\n\n    ## Nested heading\n")
+    write_doc(a, "references/plain.md", "## Plain heading\n\n- item\n\n  ## Shallow nested\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "references/plain.md#stale" in problems[0]

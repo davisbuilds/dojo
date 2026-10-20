@@ -21,16 +21,17 @@ not a full Markdown renderer. Anchors come from ATX headings (`## Title`),
 single-line setext headings, and explicit `id=`/`name=` attributes on HTML
 tags outside inline code. A heading's slug is its rendered text lowercased,
 with characters other than letters, digits, `_`, `-` and space removed and each
-space turned into `-`; inline code, emphasis, link text, backslash escapes and HTML entities are
-reduced to their text first. Repeated slugs get `-1`, `-2`, ... skipping any
+space turned into `-`; inline code, emphasis, link text, backslash escapes and
+HTML entities are reduced to their text first. Repeated slugs get `-1`, `-2`, ... skipping any
 slug already taken. Fragments are percent-decoded and compared
 case-insensitively; GitHub's `#user-content-` id prefix is accepted. Headings
 and IDs inside fenced code blocks, closed HTML comments and YAML frontmatter are
 not anchors, and links inside fences, inline code spans or closed HTML comments
 are not checked (`skills/<name>/` paths in inline code and comments still are),
-nor is link syntax after an escaped `\\[`. A fence opener may be indented at most
-three spaces past the margin, or past its list item's content column; anything
-deeper is indented code, which is scanned like prose.
+nor is link syntax after an escaped `\\[`. A fence opener or closer may be
+indented at most three spaces past the margin, or past its list item's content
+column; anything deeper is indented code, which is scanned like prose. Fence
+markers inside an HTML comment block do not open fences.
 
 Deliberately unsupported, so never reported:
 - fragments on non-Markdown targets (`run.py#L10`) and directories: only the
@@ -40,9 +41,12 @@ Deliberately unsupported, so never reported:
   (literal or from an entity), a reference-style link (`[x][ref]` or `[x][]`,
   defined or not), escaped link syntax (`\\[x](y)`), or a link it cannot parse,
   or a setext heading spanning several lines, because its anchors depend on
-  the renderer. Heading
-  link destinations may contain one level of balanced parentheses
-  (`guide_(v2).md`); deeper nesting (`a_((b)).md`) is skipped;
+  the renderer. Headings in list items are read only when indented at most
+  three spaces in total (`- item` then `  ## Title`); a target with a heading
+  deeper in a list item (`10. Item` then `    ## Title`) or on the marker line
+  (`- ## Title`) is skipped too. Heading link destinations may contain one
+  level of balanced parentheses (`guide_(v2).md`); deeper nesting
+  (`a_((b)).md`) is skipped;
 - reference-style links (`[x][ref]`), links with titles, and HTML `href`s,
   which are not scanned at all.
 
@@ -113,45 +117,60 @@ PLACEHOLDERS = {"my-skill", "your-skill", "example-skill", "skill-name", "some-s
 LOCAL_ONLY_PREFIXES = ("docs/archive/",)
 
 
-def strip_fences(text: str) -> str:
+def strip_fences(text: str, margins: list[int] | None = None) -> str:
     """Blank out fenced code blocks, keeping line structure.
 
     They routinely illustrate hypothetical skills with placeholder filenames --
     skill-creator shows a PDF skill linking to FORMS.md and REFERENCE.md that
     were never meant to exist -- so checking inside them produces noise only.
     Shell comments and Markdown examples inside them are not headings either.
-    Fences use backticks or tildes and may be indented up to three spaces past
-    the content column of the list item they sit in (zero at top level); four
-    spaces more is indented code, not a fence. A fence closes on a line of the
-    same character at least as long, or at end of file. List items are tracked
-    by indentation only: a non-blank line indented less than an item's content
-    ends it, so lazy continuation lines and block quotes are not modelled.
+    Fence openers and closers use backticks or tildes and may be indented up
+    to three spaces past their margin: the content column of the enclosing list
+    item, or zero at top level. Four spaces more is indented code. A fence
+    closes on a line of the same character at least as long, when a non-blank
+    line outdents past its margin (ending the list item), or at end of file.
+    A line starting an HTML comment block (`<!--`) keeps fence detection off
+    through the line holding `-->`. List items are tracked by indentation
+    only: a non-blank line indented less than an item's content ends it, so
+    lazy continuation lines and block quotes are not modelled.
+
+    If `margins` is given, each output line's list margin is appended to it.
     """
     out: list[str] = []
     fence = ""
+    fence_margin = 0
+    in_comment = False
     items: list[int] = []  # content columns of the enclosing list items
     for line in text.splitlines():
         m = FENCE_OPEN.match(line)
-        if fence:
-            if m and m.group(1)[0] == fence[0] and len(m.group(1)) >= len(fence) \
-                    and not line.strip().lstrip(fence[0]):
-                fence = ""
-            out.append("")
-            continue
         expanded = line.expandtabs(4)
         indent = len(expanded) - len(expanded.lstrip(" "))
-        if expanded.strip():
-            while items and indent < items[-1]:
-                items.pop()
-        if m and indent - (items[-1] if items else 0) <= 3:
-            fence = m.group(1)
+        if fence and expanded.strip() and indent < fence_margin:
+            fence = ""  # outdent ended the list item, and the fence with it
+        if fence:
+            if m and m.group(1)[0] == fence[0] and len(m.group(1)) >= len(fence) \
+                    and not line.strip().lstrip(fence[0]) and indent - fence_margin <= 3:
+                fence = ""
             out.append("")
-            continue
-        item = LIST_ITEM.match(expanded)
-        if item:
-            gap = len(item.group(3))
-            items.append(item.start(3) + (gap if 1 <= gap <= 4 else 1))
-        out.append(line)
+        else:
+            if expanded.strip():
+                while items and indent < items[-1]:
+                    items.pop()
+            margin = items[-1] if items else 0
+            if in_comment or (indent - margin <= 3 and expanded.lstrip().startswith("<!--")):
+                in_comment = "-->" not in line
+                out.append(line)
+            elif m and indent - margin <= 3:
+                fence, fence_margin = m.group(1), margin
+                out.append("")
+            else:
+                item = LIST_ITEM.match(expanded)
+                if item:
+                    gap = len(item.group(3))
+                    items.append(item.start(3) + (gap if 1 <= gap <= 4 else 1))
+                out.append(line)
+        if margins is not None:
+            margins.append(items[-1] if items else 0)
     return "\n".join(out)
 
 
@@ -203,13 +222,16 @@ def anchors(text: str) -> set[str] | None:
     m = FRONTMATTER.match(text)
     if m:
         text = text[m.end() :]
+    margins: list[int] = []
     text = CODE_OR_COMMENT.sub(
-        lambda m: m.group() if m.group(1) else "\n" * m.group().count("\n"), strip_fences(text))
+        lambda m: m.group() if m.group(1) else "\n" * m.group().count("\n"), strip_fences(text, margins))
     lines = text.splitlines()
     seen: dict[str, int] = {}
     found = {a.lower() for a in HTML_ID.findall(CODE_SPAN.sub("", text))}
     for i, line in enumerate(lines):
         m = ATX_HEADING.match(line)
+        if not m and margins[i] and ATX_HEADING.match(line.expandtabs(4)[margins[i]:]):
+            return None  # heading inside a list item past column 3, or on its marker line
         if m:
             raw = (m.group(1) or "").strip()
         elif i and SETEXT_UNDERLINE.match(line) and lines[i - 1].strip() \
