@@ -300,7 +300,11 @@ def _compare_prerelease(left: tuple[str, ...], right: tuple[str, ...]) -> int:
         if a == b:
             continue
         if a.isdigit() and b.isdigit():
-            return -1 if _numeric_key(a) < _numeric_key(b) else 1
+            # Distinct spellings can share a value, so equal keys move on.
+            a_key, b_key = _numeric_key(a), _numeric_key(b)
+            if a_key == b_key:
+                continue
+            return -1 if a_key < b_key else 1
         if a.isdigit() or b.isdigit():
             return -1 if a.isdigit() else 1
         return -1 if a < b else 1

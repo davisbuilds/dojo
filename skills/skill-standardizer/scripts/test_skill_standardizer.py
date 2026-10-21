@@ -1444,6 +1444,31 @@ def test_version_precedence_follows_semver_ordering() -> None:
         version_delta("1.21.0", "1.2٠.0", False) == ("behind", None),
         "non-ASCII digits must compare by value",
     )
+    # Distinct spellings of one value are equal precedence, so comparison moves
+    # on to the next identifier, then to identifier count.
+    for left, right in (("1.0.0-11", "1.0.0-1١"), ("1.0.0-1١", "1.0.0-11")):
+        assert_true(
+            version_delta(left, right, True) == ("equal", None),
+            f"{right} must equal {left} in precedence",
+        )
+        assert_true(
+            version_delta(left, right, False)[0] == "divergent",
+            f"{right} over different content must be divergent from {left}",
+        )
+    for lower, higher in (
+        ("1.0.0-1١.alpha", "1.0.0-11.beta"),
+        ("1.0.0-11.alpha", "1.0.0-1١.beta"),
+        ("1.0.0-1١", "1.0.0-11.1"),
+        ("1.0.0-11", "1.0.0-1١.1"),
+    ):
+        assert_true(
+            version_delta(higher, lower, False) == ("behind", None),
+            f"{lower} must be behind {higher}",
+        )
+        assert_true(
+            version_delta(lower, higher, False) == ("ahead", None),
+            f"{higher} must be ahead of {lower}",
+        )
 
 
 def test_huge_numeric_versions_compare_without_crashing_the_audit() -> None:
@@ -1465,6 +1490,10 @@ def test_huge_numeric_versions_compare_without_crashing_the_audit() -> None:
             "huge-prerelease": (f"1.0.0-rc.{huge}", f"1.0.0-rc.{huge_plus_one}", "ahead"),
             "huge-prerelease-vs-alpha": (f"1.0.0-rc.{huge}", "1.0.0-rc.a", "ahead"),
             "huge-prerelease-vs-release": ("1.0.0", f"1.0.0-{huge}", "behind"),
+            # The same value spelled with a non-ASCII digit: equal precedence
+            # over different content.
+            "huge-prerelease-respelled": (f"1.0.0-rc.{huge}", f"1.0.0-rc.{huge[:-1]}٠", "divergent"),
+            "prerelease-respelled": ("1.0.0-11", "1.0.0-1١", "divergent"),
             "ordinary": ("1.2.0", "1.10.0", "ahead"),
         }
         for name, (source_version, current_version, _) in pairs.items():
