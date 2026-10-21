@@ -796,3 +796,181 @@ def test_setext_heading_after_a_prior_block_is_single_line(tmp_path: Path) -> No
     )
     problems = fragment_problems(MODULE.check(root, []))
     assert len(problems) == 1 and "#stale" in problems[0]
+
+
+# --- Review follow-ups (PR120 review 5593453927, F1-F6) -----------------------
+#
+# Expected anchors are hand-written from CommonMark block/inline rules and
+# GitHub's slugging, not derived from the checker.
+
+
+def test_equals_setext_heading_ends_the_paragraph_before_indented_code(tmp_path: Path) -> None:
+    """F1: a `===` underline closes its paragraph like `---` does, so a line
+    four spaces in after it is indented code. `===` after an ATX heading, or
+    lazily outdented from a list item or quote, is paragraph text, which the
+    indented line then continues."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#title) [b](#ghost) [c](#real) [d](#continued) [e](#lazy-text) [f](#after-atx) "
+        "[g](#shallow) [h](#list-ghost) [i](#lazy-list) [j](#lazy-quote)\n\n"
+        "Title\n===\n    <a id=\"ghost\"></a>\n\n<a id=\"real\"></a>\n\n"
+        "Paragraph text\n    <a id=\"continued\"></a>\n\n"
+        "## Lazy text\n===\n    <a id=\"after-atx\"></a>\n\n"
+        "- item\n\n  Shallow\n  ===\n      <a id=\"list-ghost\"></a>\n\n"
+        "- item\n===\n    <a id=\"lazy-list\"></a>\n\n"
+        "> Para\n===\n    <a id=\"lazy-quote\"></a>\n",
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#ghost", "#list-ghost"]
+
+
+def test_indented_code_inside_block_quotes_is_measured_past_the_markers(tmp_path: Path) -> None:
+    """F2: indentation inside a block quote counts from after its `>` markers,
+    and a quoted blank line (`>`) ends the quoted paragraph. Quoted HTML and
+    paragraph continuations, including lazy ones, are still rendered."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#ghost) [b](#quoted) [c](#continued) [d](#lazy) [e](#deep-ghost) "
+        "[f](#new-quote-ghost) [g](#after-break-ghost)\n\n"
+        "> Quote\n>\n>     <a id=\"ghost\"></a>\n\n"
+        "> <a id=\"quoted\"></a>\n\n"
+        "> Para\n>     <a id=\"continued\"></a>\n\n"
+        "> Para\n    <a id=\"lazy\"></a>\n\n"
+        "> > Deep\n> >\n> >     <a id=\"deep-ghost\"></a>\n\n"
+        "Para\n>     <a id=\"new-quote-ghost\"></a>\n\n"
+        "> ***\n>     <a id=\"after-break-ghost\"></a>\n",
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#after-break-ghost", "#deep-ghost", "#ghost", "#new-quote-ghost"]
+
+
+def test_escaped_entities_in_headings_stay_literal(tmp_path: Path) -> None:
+    """F3: `\\&amp;` renders as the literal text `&amp;`, so it is not decoded
+    again. Unescaped entities decode exactly once; an even backslash run
+    escapes only itself and leaves the entity live."""
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", "[valid](#amp-thing) [invented](#-thing)\n\n## \\&amp; thing\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#-thing" in problems[0]
+    assert MODULE.anchors("## Fish &amp; Chips\n") == {"fish--chips"}
+    assert MODULE.anchors("## &amp;amp; once\n") == {"amp-once"}
+    assert MODULE.anchors("## \\\\&amp; even\n") == {"-even"}
+    assert MODULE.anchors("## \\\\\\&amp; odd\n") == {"amp-odd"}
+    assert MODULE.anchors("## \\&#35; num\n") == {"35-num"}
+    assert MODULE.anchors("## `\\&amp;` code\n") == {"amp-code"}
+
+
+def test_escaped_markup_in_headings_is_literal_text(tmp_path: Path) -> None:
+    """F4: escaped `<` or `!` cannot open raw HTML or an image, so the heading
+    is ordinary text and fragments into the file are still checked. Unescaped
+    markup, or an even backslash run before it, stays unsupported."""
+    root = tmp_path / "skills"
+    a = make_skill(
+        root, "alpha",
+        "[a](references/kbd.md#kbdctrl) [b](references/kbd.md#stale) "
+        "[c](references/img.md#api) [d](references/img.md#stale)\n",
+    )
+    write_doc(a, "references/kbd.md", "## \\<kbd>Ctrl\n")
+    write_doc(a, "references/img.md", "## \\![API](guide.md)\n")
+    write_doc(a, "references/guide.md", "x\n")
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["references/img.md#stale", "references/kbd.md#stale"]
+    assert MODULE.anchors("## \\<span>x\\</span>\n") == {"spanxspan"}
+    # Escapes and code spans resolve left to right: `\\` before a span leaves it
+    # a span, so its markup is literal; `\`` is a literal backtick instead.
+    assert MODULE.anchors("## \\\\`<kbd>` x\n") == {"kbd-x"}
+    for text in (
+        "## <kbd>Ctrl</kbd>\n", "## ![API](guide.md)\n", "## \\\\<kbd>Ctrl\n", "## \\\\![API](guide.md)\n",
+        "## \\`<kbd>` x\n",
+        # Shortcodes are read from rendered text, where an escape still spells one.
+        "## \\:smile: Hello\n", "## Title \\{#custom}\n",
+    ):
+        assert MODULE.anchors(text) is None, text
+
+
+def test_processing_instructions_in_headings_are_unsupported_raw_html(tmp_path: Path) -> None:
+    """F5: `<?target?>` is raw HTML, so the target is skipped rather than
+    guessed. Escaped or entity-written, it is literal text and is slugged."""
+    assert MODULE.anchors("## <?target?> Hello\n") is None
+    assert MODULE.anchors("## \\<?target?> Hello\n") == {"target-hello"}
+    assert MODULE.anchors("## &lt;?target?&gt; Hello\n") == {"target-hello"}
+    root = tmp_path / "skills"
+    a = make_skill(
+        root, "alpha",
+        "[a](references/pi.md#target-hello) [b](references/pi.md#stale) "
+        "[c](references/lit.md#target-hello) [d](references/lit.md#stale)\n",
+    )
+    write_doc(a, "references/pi.md", "## <?target?> Hello\n")
+    write_doc(a, "references/lit.md", "## \\<?target?> Hello\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "references/lit.md#stale" in problems[0]
+
+
+def test_private_use_characters_in_any_plane_make_target_unsupported(tmp_path: Path) -> None:
+    """F6: private use spans U+E000-U+F8FF and planes 15-16; every one, literal
+    or from an entity, makes the heading unsupported. Other astral characters
+    are ordinary text."""
+    for heading in (
+        "## Glyph \U000F0000\n", "## Entity &#xF0000;\n", "## Glyph \U0010FFFD\n",
+        "## Entity &#1114109;\n", "## Code `\U00100000`\n",
+    ):
+        assert MODULE.anchors(heading) is None, heading
+    assert MODULE.anchors("## Glyph \U00020000\n") == {"glyph-\U00020000"}
+    assert MODULE.anchors("## Smile &#x1F600;\n") == {"smile-"}
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "[x](references/pua.md#stale) [y](references/ok.md#stale)\n")
+    write_doc(a, "references/pua.md", "## Entity &#xF0000;\n")
+    write_doc(a, "references/ok.md", "## Entity &#x20000;\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "references/ok.md#stale" in problems[0]
+
+
+# --- PR121 review follow-ups (R1, R2) -----------------------------------------
+
+
+def test_reference_definitions_are_not_setext_heading_text(tmp_path: Path) -> None:
+    """R1: a link reference definition is its own block, so an underline after
+    it is not setext and a `===` there starts an ordinary paragraph that the
+    indented line continues. Bracketed text that is not a definition still
+    forms a setext heading, after which the indented line is code."""
+    assert MODULE.anchors("[ref]: /url\n===\n    <a id=\"real\"></a>\n") == {"real"}
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#real) [b](#titled) [c](#two) [d](#ref-url) [e](#ghost) [f](#not-a-def-text) "
+        "[g](#ghost-four) [h](#quoted-real) [i](#listed-real) [j](#l-url)\n\n"
+        "[ref]: /url\n===\n    <a id=\"real\"></a>\n\n"
+        "[t]: /url \"Title\"\n===\n    <a id=\"titled\"></a>\n\n"
+        "[a1]: /a\n[b1]: <b c>\n===\n    <a id=\"two\"></a>\n\n"
+        "[x]: /url\n---\n    <a id=\"ghost\"></a>\n\n"
+        "[not a def] text\n===\n    <a id=\"ghost-four\"></a>\n\n"
+        "> [q]: /url\n> ===\n>     <a id=\"quoted-real\"></a>\n\n"
+        "- item\n\n  [l]: /url\n  ===\n      <a id=\"listed-real\"></a>\n",
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#ghost", "#ghost-four", "#l-url", "#ref-url"]
+    assert MODULE.anchors("[ref]: /url\n---\n") == set()
+    # `[ref]:` takes the next line as its destination, so `===` is no underline.
+    assert MODULE.anchors("[ref]:\n===\n    <a id=\"code\"></a>\n") == set()
+
+
+def test_underscore_runs_beside_escapes_stay_whole(tmp_path: Path) -> None:
+    """R2: a delimiter run is used whole, so `\\____` is four literal
+    underscores rather than emphasis cut out of the trailing `___`. Genuine
+    emphasis beside escapes is still reduced."""
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", "[valid](#____) [invented](#__)\n\n## \\____\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#__" in problems[0] and "#____" not in problems[0]
+    assert MODULE.anchors("## ____\n") == {"____"}
+    assert MODULE.anchors("## \\___x___\n") == {"_x_"}
+    assert MODULE.anchors("## \\__a_\n") == {"_a"}
+    assert MODULE.anchors("## _a\\_\n") == {"_a_"}
+    assert MODULE.anchors("## \\_not em\\_\n") == {"_not-em_"}
+    assert MODULE.anchors("## \\\\__strong__\n") == {"strong"}
+    # A run opens only when followed by a non-space and closes only when
+    # preceded by one; part of a run may still pair with a shorter one.
+    assert MODULE.anchors("## ___ a_\n## _a ___\n## x ___ y\n") == {"___-a_", "_a-___", "x-___-y"}
+    assert MODULE.anchors("## __a_\n## _a__\n## ___a_\n") == {"_a", "a_", "__a"}
