@@ -701,3 +701,66 @@ def test_html_anchor_ids_are_entity_decoded(tmp_path: Path) -> None:
     )
     problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
     assert problems == ["#code%26id", "#comment%26id", "#foo%26amp%3Bbar", "#x%26%2338%3By"]
+
+
+def test_atx_heading_above_a_thematic_break_is_not_setext_text(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#heading) [b](#-heading) [c](#level-two) [d](#-level-two) [e](#true-setext)\n\n"
+        "## Heading\n---\n\n### Level two\n===\n\nTrue setext\n---\n",
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#-heading", "#-level-two"]
+
+
+def test_setext_headings_in_containers_make_target_unsupported(tmp_path: Path) -> None:
+    """Setext headings nested in a wide list item, a block quote, or under a
+    list marker line are rendered but not parsed, like their ATX forms."""
+    for text in ("10. Item\n\n    Nested heading\n    --------------\n", "> Nested heading\n> ----\n", "- Foo\n  ---\n"):
+        assert MODULE.anchors(text) is None, text
+    # Controls: plain and shallow setext still parse; thematic breaks are not headings.
+    assert MODULE.anchors("Plain\n-----\n\n- item\n\n  Shallow\n  ---\n") == {"plain", "shallow"}
+    assert MODULE.anchors("- item\n---\n\n> quote\n>\n> ---\n\n10. Item\n\n    ---\n") == set()
+    root = tmp_path / "skills"
+    a = make_skill(
+        root, "alpha",
+        "[a](references/wide.md#nested-heading) [b](references/wide.md#stale) "
+        "[c](references/plain.md#shallow) [d](references/plain.md#stale)\n",
+    )
+    write_doc(a, "references/wide.md", "10. Item\n\n    Nested heading\n    --------------\n")
+    write_doc(a, "references/plain.md", "Plain\n-----\n\n- item\n\n  Shallow\n  ---\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "references/plain.md#stale" in problems[0]
+
+
+def test_fences_opened_on_list_marker_lines_are_masked(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "- ```markdown\n  [example](#placeholder) [file](FORMS.md)\n  ```\n[after](missing-after.md)\n\n"
+        "1. ~~~~\n   [tilde](TILDE.md)\n   ```\n   [still](still.md)\n   ~~~~\n2. [real](missing-real.md) [frag](#gone)\n\n"
+        "- ```\n  [x](x.md)\n      ```\n  [deep](deep.md)\n  ```\n\n[end](missing-end.md)\n",
+    )
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> missing-after.md",
+        "broken link -> missing-end.md",
+        "broken link -> missing-real.md",
+        "missing heading anchor -> #gone",
+    ]
+
+
+def test_html_anchor_attribute_names_are_case_insensitive(tmp_path: Path) -> None:
+    """Attribute names match in any case; values are entity-decoded exactly once."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#custom-spot) [b](#named) [c](#single) [d](#foo%26bar) [e](#x%26y) [f](#lit%26amp%3Bz) "
+        "[g](#after-gt) [h](#lit%26z) [i](#code-id) [j](#comment-id)\n\n"
+        '<a ID="custom-spot"></a>\n<A NAME="named"></A>\n<span Id=\'single\'>x</span>\n'
+        '<a id="foo&amp;bar"></a>\n<a name="x&#38;y"></a>\n<a id="lit&amp;amp;z"></a>\n'
+        '<a title="x>y" id="after-gt"></a>\n`<a ID="code-id">`\n<!-- <A ID="comment-id"> -->\n',
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#code-id", "#comment-id", "#lit%26z"]

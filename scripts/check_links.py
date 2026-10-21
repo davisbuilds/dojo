@@ -18,12 +18,14 @@ unambiguous target:
 
 Supported anchors approximate GitHub's heading ids (github-slugger); this is
 not a full Markdown renderer. Anchors come from ATX headings (`## Title`),
-single-line setext headings, and explicit `id=`/`name=` attributes on HTML
-tags outside inline code (entity-decoded, so `id="a&amp;b"` answers `#a%26b`). A heading's slug is its rendered text lowercased,
-with characters other than letters, digits, `_`, `-` and space removed and each
-space turned into `-`; inline code, emphasis, link text, backslash escapes and
-HTML entities are reduced to their text first. Repeated slugs get `-1`, `-2`, ... skipping any
-slug already taken. Fragments are percent-decoded and compared
+single-line setext headings (an ATX heading above `---` is not setext text),
+and explicit `id`/`name` attributes, in any case, on HTML tags outside inline
+code (entity-decoded once, so `id="a&amp;b"` answers `#a%26b`). A heading's
+slug is its rendered text lowercased, with characters other than letters,
+digits, `_`, `-` and space removed and each space turned into `-`; inline
+code, emphasis, link text, backslash escapes and HTML entities are reduced to
+their text first. Repeated slugs get `-1`, `-2`, ... skipping any slug already
+taken. Fragments are percent-decoded and compared
 case-insensitively; GitHub's `#user-content-` id prefix is accepted. Headings
 and IDs inside fenced code blocks, closed HTML comments and YAML frontmatter are
 not anchors, and links inside fences, inline code spans or closed HTML comments
@@ -31,8 +33,9 @@ are not checked (`skills/<name>/` paths in inline code and comments still are),
 nor is link syntax after an escaped `\\[`. A fence opener or closer may be
 indented at most three spaces past the margin, or past its list item's content
 column; anything deeper is indented code, which is scanned like prose. Fence
-markers inside an HTML comment block do not open fences. Fences inside block
-quotes are masked too; quoted prose is checked like any other text.
+markers inside an HTML comment block do not open fences. Fences opened on a
+list marker line (`- ```lang`) or inside block quotes are masked too; quoted
+prose is checked like any other text.
 
 Deliberately unsupported, so never reported:
 - fragments on non-Markdown targets (`run.py#L10`) and directories: only the
@@ -42,12 +45,13 @@ Deliberately unsupported, so never reported:
   (literal or from an entity), a reference-style link (`[x][ref]` or `[x][]`,
   defined or not), escaped link syntax (`\\[x](y)`), or a link it cannot parse,
   or a setext heading spanning several lines, because its anchors depend on
-  the renderer. Headings in list items are read only when indented at most
-  three spaces in total (`- item` then `  ## Title`); a target with a heading
-  deeper in a list item (`10. Item` then `    ## Title`), on the marker line
-  (`- ## Title`) or in a block quote (`> ## Title`) is skipped too. Heading link destinations may contain one
-  level of balanced parentheses (`guide_(v2).md`); deeper nesting
-  (`a_((b)).md`) is skipped;
+  the renderer. Headings in list items, ATX or setext, are read only when
+  indented at most three spaces in total (`- item` then `  ## Title`); a
+  target with a heading deeper in a list item (`10. Item` then `    ## Title`),
+  on or under the marker line (`- ## Title`, `- Title` then `  ---`) or in a
+  block quote (`> ## Title`, `> Title` then `> ---`) is skipped too. Heading
+  link destinations may contain one level of balanced parentheses
+  (`guide_(v2).md`); deeper nesting (`a_((b)).md`) is skipped;
 - reference-style links (`[x][ref]`), links with titles, and HTML `href`s,
   which are not scanned at all.
 
@@ -59,6 +63,7 @@ from __future__ import annotations
 import html
 import re
 import sys
+from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote
 
@@ -93,7 +98,8 @@ ATX_HEADING = re.compile(r"^ {0,3}#{1,6}(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$")
 SETEXT_UNDERLINE = re.compile(r"^ {0,3}(?:=+|-+)[ \t]*$")
 # Lines that cannot be setext heading text: list items, quotes, headings, HTML.
 NOT_SETEXT_TEXT = re.compile(r"^(?: {4}|\s*(?:[-*+>#<]|\d+[.)])(?:\s|$))")
-HTML_ID = re.compile(r"<[A-Za-z][^>]*?\s(?:id|name)=[\"']?([^\"'\s>]+)")
+# A start tag, allowing `>` inside quoted attribute values.
+HTML_TAG = re.compile(r"<[A-Za-z](?:[^<>\"']|\"[^\"]*\"|'[^']*')*>")
 # A code span closes on a backtick run of exactly the opener's length and may
 # wrap lines but not cross a blank line; an unmatched opener is literal text.
 CODE_SPAN = re.compile(r"(?<![`\\])(`+)(?!`)((?:(?!\n[ \t]*\n)[\s\S])+?)(?<!`)\1(?!`)")
@@ -182,6 +188,10 @@ def strip_fences(text: str, margins: list[int] | None = None) -> str:
             if item:
                 gap = len(item.group(3))
                 items.append(item.start(3) + (gap if 1 <= gap <= 4 else 1))
+                m = FENCE_OPEN.match(expanded[items[-1]:])
+                if m and _indent(expanded[items[-1]:]) <= 3:  # `- ```lang` opens a fence
+                    fence, fence_margin, fence_depth = m.group(1), items[-1], 0
+                    line = ""
             out.append(line)
         if margins is not None:
             margins.append(items[-1] if items else 0)
@@ -201,6 +211,26 @@ def _unquote(text: str, depth: int | None) -> tuple[int, str]:
             break
         text, n = text[m.end() :], n + 1
     return n, text
+
+
+class _AnchorAttrs(HTMLParser):
+    """Collect `id`/`name` values from start tags. HTMLParser lowercases
+    attribute names and entity-decodes values, so they are used as given."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.found: set[str] = set()
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self.found.update(v.lower() for k, v in attrs if k in ("id", "name") and v)
+
+
+def html_anchors(text: str) -> set[str]:
+    parser = _AnchorAttrs()
+    for tag in HTML_TAG.findall(text):
+        parser.reset()
+        parser.feed(tag)
+    return parser.found
 
 
 def heading_text(raw: str) -> str | None:
@@ -256,19 +286,22 @@ def anchors(text: str) -> set[str] | None:
         lambda m: m.group() if m.group(1) else "\n" * m.group().count("\n"), strip_fences(text, margins))
     lines = text.splitlines()
     seen: dict[str, int] = {}
-    found = {html.unescape(a).lower() for a in HTML_ID.findall(CODE_SPAN.sub("", text))}
+    found = html_anchors(CODE_SPAN.sub("", text))
     for i, line in enumerate(lines):
         m = ATX_HEADING.match(line)
         body = line.expandtabs(4)[margins[i]:]
+        depth, inner = _unquote(body, None)
         if not m and (margins[i] and ATX_HEADING.match(body) or QUOTED_HEADING.match(body)):
             return None  # heading in a block quote, past column 3 of a list item, or on its marker
         if m:
             raw = (m.group(1) or "").strip()
-        elif i and SETEXT_UNDERLINE.match(line) and lines[i - 1].strip() \
-                and not NOT_SETEXT_TEXT.match(lines[i - 1]):
+        elif i and SETEXT_UNDERLINE.match(line) and _setext_text(lines[i - 1]):
             if i > 1 and lines[i - 2].strip():
                 return None  # multi-line setext heading text
             raw = lines[i - 1].strip()
+        elif i and (margins[i] or depth) and SETEXT_UNDERLINE.match(inner) \
+                and _setext_text(_unquote(lines[i - 1].expandtabs(4)[margins[i - 1]:], None)[1]):
+            return None  # setext heading in a list item or block quote
         else:
             continue
         rendered = heading_text(raw)
@@ -276,6 +309,11 @@ def anchors(text: str) -> set[str] | None:
             return None
         found.add(slugify(rendered, seen))
     return found
+
+
+def _setext_text(line: str) -> bool:
+    """Whether a line can be the text of a setext heading underlined below it."""
+    return bool(line.strip()) and not NOT_SETEXT_TEXT.match(line) and not ATX_HEADING.match(line)
 
 
 def known_skills(skills_root: Path) -> set[str]:
