@@ -17,7 +17,13 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from audit import main as audit_main
-from skill_standardizer_lib import apply_actions, build_audit_report, resolve_context, summarize_report
+from skill_standardizer_lib import (
+    apply_actions,
+    build_audit_report,
+    resolve_context,
+    summarize_report,
+    version_delta,
+)
 
 
 SKILL_TEMPLATE = """---
@@ -44,6 +50,17 @@ def write_versioned_skill(root: Path, name: str, version: str | None, body: str 
     version_line = f"version: {version}\n" if version is not None else ""
     (skill_dir / "SKILL.md").write_text(
         f"---\nname: {name}\ndescription: test skill\n{version_line}---\n\n# {name}\n{body}",
+        encoding="utf-8",
+    )
+    return skill_dir
+
+
+def write_frontmatter_skill(root: Path, name: str, frontmatter: str) -> Path:
+    """A skill whose frontmatter ends with `frontmatter` verbatim, one line or several."""
+    skill_dir = root / name
+    skill_dir.mkdir(parents=True, exist_ok=True)
+    (skill_dir / "SKILL.md").write_text(
+        f"---\nname: {name}\ndescription: test skill\n{frontmatter}\n---\n\n# {name}\n",
         encoding="utf-8",
     )
     return skill_dir
@@ -1335,6 +1352,136 @@ def test_missing_and_malformed_versions_are_unknown_not_zero() -> None:
         )
 
 
+def test_version_key_spellings_follow_yaml() -> None:
+    """Any spelling YAML reads as the top-level `version` key is the version.
+
+    A nested `version` belongs to its parent mapping, and a near-miss key is
+    another key, so neither stands in for a missing top-level version.
+    """
+    with isolated_tempdir() as td:
+        skills, agents, _, _ = _version_fixture(Path(td))
+        copies = {
+            "plain": "version: 1.2.3",
+            "spaced": 'version : "1.2.3"',
+            "double-quoted-key": '"version": "1.2.3"',
+            "single-quoted-key": "'version': 1.2.3",
+            "spaced-quoted-key": "\"version\" : '1.2.3'  # pinned",
+            "after-nested": "metadata:\n  version: 9.9.9\nversion: 1.2.3",
+            "nested": "metadata:\n  version: 9.9.9",
+            "nested-quoted": 'metadata:\n  "version": 9.9.9',
+            "near-miss": "versions: 9.9.9\nVersion: 9.9.9\n\"version': 9.9.9",
+            "tab-before-colon": "version\t: 9.9.9",
+            "quoted-key-junk-value": '"version": "1.2.3" trailing-junk',
+        }
+        for name, frontmatter in copies.items():
+            write_versioned_skill(skills, name, "1.0.0")
+            write_frontmatter_skill(agents, name, frontmatter)
+
+        rows = _version_rows(_version_audit(skills))
+        agents_root = str(agents.resolve())
+        expected = {
+            "plain": ("1.2.3", "ahead", None),
+            "spaced": ("1.2.3", "ahead", None),
+            "double-quoted-key": ("1.2.3", "ahead", None),
+            "single-quoted-key": ("1.2.3", "ahead", None),
+            "spaced-quoted-key": ("1.2.3", "ahead", None),
+            "after-nested": ("1.2.3", "ahead", None),
+            "nested": (None, "unknown", "missing"),
+            "nested-quoted": (None, "unknown", "missing"),
+            "near-miss": (None, "unknown", "missing"),
+            # PyYAML rejects a tab between key and colon.
+            "tab-before-colon": (None, "unknown", "missing"),
+            "quoted-key-junk-value": ('"1.2.3" trailing-junk', "unknown", "SemVer"),
+        }
+        for name, (current_version, delta, reason) in expected.items():
+            row = rows.get((name, agents_root))
+            assert_true(row is not None, f"missing version row for {name}: {sorted(rows)}")
+            actual = (row["current_version"], row["version_delta"])
+            assert_true(
+                actual == (current_version, delta),
+                f"{name}: expected {(current_version, delta)}, got {actual}: {copies[name]!r}",
+            )
+            assert_true(
+                reason is None or reason in (row["version_note"] or ""),
+                f"{name}: unknown delta must say why: {row}",
+            )
+
+
+def test_version_precedence_follows_semver_ordering() -> None:
+    """Numeric parts compare as numbers, prereleases rank below their release."""
+    # The precedence example from the SemVer 2.0.0 specification, plus core
+    # components whose string order differs from their numeric order.
+    ascending = (
+        "1.0.0-alpha",
+        "1.0.0-alpha.1",
+        "1.0.0-alpha.beta",
+        "1.0.0-beta",
+        "1.0.0-beta.2",
+        "1.0.0-beta.11",
+        "1.0.0-rc.1",
+        "1.0.0",
+        "1.9.0",
+        "1.10.0",
+        "2.0.0",
+        "10.0.0",
+    )
+    for lower, higher in zip(ascending, ascending[1:]):
+        assert_true(
+            version_delta(higher, lower, False) == ("behind", None),
+            f"{lower} must be behind {higher}",
+        )
+        assert_true(
+            version_delta(lower, higher, False) == ("ahead", None),
+            f"{higher} must be ahead of {lower}",
+        )
+    assert_true(
+        version_delta("1.0.0+build.1", "1.0.0+build.2", True) == ("equal", None),
+        "build metadata has no precedence",
+    )
+    # The grammar's `\d` admits non-ASCII decimal digits; they compare by value
+    # (20 < 21), not by code point (U+0660 sorts after "1").
+    assert_true(
+        version_delta("1.21.0", "1.2٠.0", False) == ("behind", None),
+        "non-ASCII digits must compare by value",
+    )
+
+
+def test_huge_numeric_versions_compare_without_crashing_the_audit() -> None:
+    """SemVer sets no digit limit, so neither may the comparison.
+
+    Python's int() refuses strings past its digit limit (4300 by default). A
+    copy declaring a longer numeric part is still valid SemVer: it must compare
+    by value, and every other skill must still be reported.
+    """
+    huge = "1" + "0" * 5000
+    huge_plus_one = "1" + "0" * 4999 + "1"
+    with isolated_tempdir() as td:
+        skills, agents, _, _ = _version_fixture(Path(td))
+        pairs = {
+            "huge-major": ("1.0.0", f"{huge}.0.0", "ahead"),
+            "huge-minor": (f"1.{huge_plus_one}.0", f"1.{huge}.0", "behind"),
+            "huge-patch-shorter": (f"1.0.{huge}", f"1.0.9{'9' * 4000}", "behind"),
+            "huge-equal": (f"{huge}.0.0", f"{huge}.0.0", "equal"),
+            "huge-prerelease": (f"1.0.0-rc.{huge}", f"1.0.0-rc.{huge_plus_one}", "ahead"),
+            "huge-prerelease-vs-alpha": (f"1.0.0-rc.{huge}", "1.0.0-rc.a", "ahead"),
+            "huge-prerelease-vs-release": ("1.0.0", f"1.0.0-{huge}", "behind"),
+            "ordinary": ("1.2.0", "1.10.0", "ahead"),
+        }
+        for name, (source_version, current_version, _) in pairs.items():
+            write_versioned_skill(skills, name, source_version)
+            write_versioned_skill(agents, name, current_version)
+
+        rows = _version_rows(_version_audit(skills))
+        agents_root = str(agents.resolve())
+        for name, (_, _, delta) in pairs.items():
+            row = rows.get((name, agents_root))
+            assert_true(row is not None, f"missing version row for {name}: {sorted(rows)}")
+            assert_true(
+                row["version_delta"] == delta,
+                f"{name}: expected {delta}, got {row['version_delta']}: {row['version_note']}",
+            )
+
+
 def test_version_rows_follow_skill_selection() -> None:
     with isolated_tempdir() as td:
         skills, agents, _, _ = _version_fixture(Path(td))
@@ -1396,6 +1543,9 @@ TESTS = (
     test_a_failed_apply_does_not_prune_backup_history,
     test_version_deltas_report_behind_ahead_equal_and_divergent,
     test_missing_and_malformed_versions_are_unknown_not_zero,
+    test_version_key_spellings_follow_yaml,
+    test_version_precedence_follows_semver_ordering,
+    test_huge_numeric_versions_compare_without_crashing_the_audit,
     test_version_rows_follow_skill_selection,
     test_version_source_is_the_preferred_global_without_canonical,
 )

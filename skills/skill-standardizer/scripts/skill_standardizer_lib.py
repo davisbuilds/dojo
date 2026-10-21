@@ -48,6 +48,9 @@ SEMVER_RE = re.compile(
     r"(?:-((?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?"
     r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
 )
+# A top-level `version` key, bare or quoted; YAML allows spaces, not tabs, before
+# the colon. Indented lines belong to a nested mapping.
+VERSION_KEY_RE = re.compile(r"""^(?:version|'version'|"version") *:(.*)$""")
 
 
 @dataclass
@@ -237,11 +240,12 @@ def hash_directory(path: Path) -> str:
 
 
 def read_skill_version(skill_md: Path) -> str | None:
-    """The frontmatter `version` of a SKILL.md as written, or None when absent.
+    """The top-level frontmatter `version` of a SKILL.md as written, or None when absent.
 
     A line reader rather than YAML, since this skill runs without third-party
-    packages. It strips quotes and trailing comments as YAML would and leaves
-    anything else verbatim, so a malformed value is reported rather than guessed.
+    packages. It reads the key bare or quoted, strips value quotes and trailing
+    comments as YAML would, and leaves anything else verbatim, so a malformed
+    value is reported rather than guessed.
     """
     try:
         lines = skill_md.read_text(encoding="utf-8").splitlines()
@@ -253,10 +257,10 @@ def read_skill_version(skill_md: Path) -> str | None:
     for line in lines[1:]:
         if line.rstrip() == "---":
             return version
-        key, sep, value = line.partition(":")
-        if not sep or key != "version":
+        match = VERSION_KEY_RE.match(line)
+        if not match:
             continue
-        value = value.strip()
+        value = match.group(1).strip()
         end = value.find(value[0], 1) if value[:1] in ("'", '"') else -1
         # Only spaces, then optionally a comment, may follow a closing quote;
         # PyYAML rejects anything else, tabs included.
@@ -268,11 +272,23 @@ def read_skill_version(skill_md: Path) -> str | None:
     return None
 
 
-def _parse_semver(version: str | None) -> tuple[tuple[int, int, int], tuple[str, ...]] | None:
+def _numeric_key(digits: str) -> tuple[int, str]:
+    """Orders a SemVer numeric part by value, at any length.
+
+    Not int(): it refuses strings past the interpreter's digit limit, and SemVer
+    sets none. The grammar forbids leading zeros, so a longer string is larger.
+    """
+    # `\d` also matches non-ASCII decimal digits; map them so string order is value order.
+    if not digits.isascii():
+        digits = "".join(str(int(c)) for c in digits)
+    return len(digits), digits
+
+
+def _parse_semver(version: str | None) -> tuple[tuple[tuple[int, str], ...], tuple[str, ...]] | None:
     match = SEMVER_RE.match(version) if version else None
     if not match:
         return None
-    core = (int(match.group(1)), int(match.group(2)), int(match.group(3)))
+    core = tuple(_numeric_key(match.group(i)) for i in (1, 2, 3))
     return core, tuple(match.group(4).split(".")) if match.group(4) else ()
 
 
@@ -284,7 +300,7 @@ def _compare_prerelease(left: tuple[str, ...], right: tuple[str, ...]) -> int:
         if a == b:
             continue
         if a.isdigit() and b.isdigit():
-            return -1 if int(a) < int(b) else 1
+            return -1 if _numeric_key(a) < _numeric_key(b) else 1
         if a.isdigit() or b.isdigit():
             return -1 if a.isdigit() else 1
         return -1 if a < b else 1

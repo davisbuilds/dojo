@@ -46,9 +46,10 @@ version of their target. Each row gives `source_version`, `current_version`,
 - `unknown`: either version is missing or not valid SemVer (for example
   `v1.0.0` or `1.0`). Missing is never read as `0.0.0`; `version_note` says which.
 
-Versions come from SKILL.md frontmatter as written, without quotes or trailing
-comments. Versions never replace content hashes: drift issues, planned actions,
-and exit codes are unchanged. The text summary lists every delta except
+Versions come from the top-level `version` key of SKILL.md frontmatter, bare or
+quoted, as written without quotes or trailing comments; a nested `version` does
+not count. Numeric parts compare by value at any length. Versions never replace
+content hashes: drift issues, planned actions, and exit codes are unchanged. The text summary lists every delta except
 `equal`.
 
 ## Resolution Defaults
