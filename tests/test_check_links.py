@@ -764,3 +764,35 @@ def test_html_anchor_attribute_names_are_case_insensitive(tmp_path: Path) -> Non
     )
     problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
     assert problems == ["#code-id", "#comment-id", "#lit%26z"]
+
+
+def test_html_ids_in_indented_code_are_not_anchors(tmp_path: Path) -> None:
+    """Four spaces past the margin after a block boundary is indented code; the
+    same indentation continuing a paragraph is still rendered inline HTML."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#ghost) [b](#real) [c](#continued) [d](#listed) [e](#list-ghost) "
+        "[f](#item-continued) [g](#after-heading-ghost)\n\n"
+        "Intro.\n\n    <a id=\"ghost\"></a>\n\n<a id=\"real\"></a>\n\n"
+        "Paragraph text\n    <a id=\"continued\"></a>\n\n"
+        "- item\n\n  <a id=\"listed\"></a>\n\n      <a id=\"list-ghost\"></a>\n\n"
+        "- second\n      <a id=\"item-continued\"></a>\n\n"
+        "## Heading\n    <a id=\"after-heading-ghost\"></a>\n",
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#after-heading-ghost", "#ghost", "#list-ghost"]
+
+
+def test_setext_heading_after_a_prior_block_is_single_line(tmp_path: Path) -> None:
+    """An ATX heading, thematic break or fence above setext text is a separate
+    block, so the heading is checked; genuine multi-line text stays skipped."""
+    assert MODULE.anchors("Line one\nLine two\n---\n") is None
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#title) [b](#second) [c](#third) [d](#previous) [e](#stale)\n\n"
+        "# Previous\nTitle\n---\n\n***\nSecond\n---\n\n```\ncode\n```\nThird\n---\n",
+    )
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#stale" in problems[0]

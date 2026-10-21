@@ -28,9 +28,11 @@ their text first. Repeated slugs get `-1`, `-2`, ... skipping any slug already
 taken. Fragments are percent-decoded and compared
 case-insensitively; GitHub's `#user-content-` id prefix is accepted. Headings
 and IDs inside fenced code blocks, closed HTML comments and YAML frontmatter are
-not anchors, and links inside fences, inline code spans or closed HTML comments
-are not checked (`skills/<name>/` paths in inline code and comments still are),
-nor is link syntax after an escaped `\\[`. A fence opener or closer may be
+not anchors, nor are IDs in indented code (four spaces past the margin after a
+blank line, heading or thematic break, not continuing a paragraph). Links
+inside fences, inline code spans or closed HTML comments are not checked
+(`skills/<name>/` paths in inline code and comments still are), nor is link
+syntax after an escaped `\\[`. A fence opener or closer may be
 indented at most three spaces past the margin, or past its list item's content
 column; anything deeper is indented code, which is scanned like prose. Fence
 markers inside an HTML comment block do not open fences. Fences opened on a
@@ -43,13 +45,15 @@ Deliberately unsupported, so never reported:
 - any target file with a heading containing raw HTML, an image, a
   `{#custom-id}` attribute, an `:emoji:` shortcode, a private-use character
   (literal or from an entity), a reference-style link (`[x][ref]` or `[x][]`,
-  defined or not), escaped link syntax (`\\[x](y)`), or a link it cannot parse,
-  or a setext heading spanning several lines, because its anchors depend on
-  the renderer. Headings in list items, ATX or setext, are read only when
-  indented at most three spaces in total (`- item` then `  ## Title`); a
-  target with a heading deeper in a list item (`10. Item` then `    ## Title`),
-  on or under the marker line (`- ## Title`, `- Title` then `  ---`) or in a
-  block quote (`> ## Title`, `> Title` then `> ---`) is skipped too. Heading
+  defined or not), escaped link syntax (`\\[x](y)`) or a link it cannot parse;
+  or with setext heading text spanning several lines or following a line it
+  may continue (anything but a blank line, ATX heading, thematic break or
+  fence), because its anchors depend on the renderer. Headings in list items,
+  ATX or setext, are read only when indented at most three spaces in total
+  (`- item` then `  ## Title`); a target with a heading deeper in a list item
+  (`10. Item` then `    ## Title`), on or under the marker line (`- ## Title`,
+  `- Title` then `  ---`) or in a block quote (`> ## Title`, `> Title` then
+  `> ---`) is skipped too. Heading
   link destinations may contain one level of balanced parentheses
   (`guide_(v2).md`); deeper nesting (`a_((b)).md`) is skipped;
 - reference-style links (`[x][ref]`), links with titles, and HTML `href`s,
@@ -96,6 +100,7 @@ QUOTED_HEADING = re.compile(r"^(?: {0,3}>[ \t]?)+ {0,3}#{1,6}(?:[ \t]|$)")
 FRONTMATTER = re.compile(r"---[ \t]*\r?\n.*?^---[ \t]*$", re.M | re.S)
 ATX_HEADING = re.compile(r"^ {0,3}#{1,6}(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$")
 SETEXT_UNDERLINE = re.compile(r"^ {0,3}(?:=+|-+)[ \t]*$")
+THEMATIC_BREAK = re.compile(r"^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$")
 # Lines that cannot be setext heading text: list items, quotes, headings, HTML.
 NOT_SETEXT_TEXT = re.compile(r"^(?: {4}|\s*(?:[-*+>#<]|\d+[.)])(?:\s|$))")
 # A start tag, allowing `>` inside quoted attribute values.
@@ -286,7 +291,8 @@ def anchors(text: str) -> set[str] | None:
         lambda m: m.group() if m.group(1) else "\n" * m.group().count("\n"), strip_fences(text, margins))
     lines = text.splitlines()
     seen: dict[str, int] = {}
-    found = html_anchors(CODE_SPAN.sub("", text))
+    code = _indented_code_lines(lines, margins)
+    found = html_anchors(CODE_SPAN.sub("", "\n".join("" if i in code else ln for i, ln in enumerate(lines))))
     for i, line in enumerate(lines):
         m = ATX_HEADING.match(line)
         body = line.expandtabs(4)[margins[i]:]
@@ -296,8 +302,8 @@ def anchors(text: str) -> set[str] | None:
         if m:
             raw = (m.group(1) or "").strip()
         elif i and SETEXT_UNDERLINE.match(line) and _setext_text(lines[i - 1]):
-            if i > 1 and lines[i - 2].strip():
-                return None  # multi-line setext heading text
+            if i > 1 and lines[i - 2].strip() and not _ends_block(lines[i - 2]):
+                return None  # multi-line, or possibly continued, setext heading text
             raw = lines[i - 1].strip()
         elif i and (margins[i] or depth) and SETEXT_UNDERLINE.match(inner) \
                 and _setext_text(_unquote(lines[i - 1].expandtabs(4)[margins[i - 1]:], None)[1]):
@@ -309,6 +315,29 @@ def anchors(text: str) -> set[str] | None:
             return None
         found.add(slugify(rendered, seen))
     return found
+
+
+def _ends_block(line: str) -> bool:
+    """Whether a line is a whole block that a following line cannot continue."""
+    return bool(ATX_HEADING.match(line) or THEMATIC_BREAK.match(line))
+
+
+def _indented_code_lines(lines: list[str], margins: list[int]) -> set[int]:
+    """Indices of indented-code lines: four or more spaces past the list margin,
+    after a blank line or a whole block rather than continuing a paragraph."""
+    code: set[int] = set()
+    in_code = in_paragraph = False
+    for i, line in enumerate(lines):
+        if not line.strip():
+            in_paragraph = False  # blank lines may sit inside an indented code block
+            continue
+        if _indent(line.expandtabs(4)) - margins[i] >= 4 and (in_code or not in_paragraph):
+            code.add(i)
+            in_code = True
+        else:
+            in_code = False
+            in_paragraph = not _ends_block(line)
+    return code
 
 
 def _setext_text(line: str) -> bool:
