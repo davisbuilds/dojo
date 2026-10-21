@@ -925,3 +925,52 @@ def test_private_use_characters_in_any_plane_make_target_unsupported(tmp_path: P
     write_doc(a, "references/ok.md", "## Entity &#x20000;\n")
     problems = fragment_problems(MODULE.check(root, []))
     assert len(problems) == 1 and "references/ok.md#stale" in problems[0]
+
+
+# --- PR121 review follow-ups (R1, R2) -----------------------------------------
+
+
+def test_reference_definitions_are_not_setext_heading_text(tmp_path: Path) -> None:
+    """R1: a link reference definition is its own block, so an underline after
+    it is not setext and a `===` there starts an ordinary paragraph that the
+    indented line continues. Bracketed text that is not a definition still
+    forms a setext heading, after which the indented line is code."""
+    assert MODULE.anchors("[ref]: /url\n===\n    <a id=\"real\"></a>\n") == {"real"}
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#real) [b](#titled) [c](#two) [d](#ref-url) [e](#ghost) [f](#not-a-def-text) "
+        "[g](#ghost-four) [h](#quoted-real) [i](#listed-real) [j](#l-url)\n\n"
+        "[ref]: /url\n===\n    <a id=\"real\"></a>\n\n"
+        "[t]: /url \"Title\"\n===\n    <a id=\"titled\"></a>\n\n"
+        "[a1]: /a\n[b1]: <b c>\n===\n    <a id=\"two\"></a>\n\n"
+        "[x]: /url\n---\n    <a id=\"ghost\"></a>\n\n"
+        "[not a def] text\n===\n    <a id=\"ghost-four\"></a>\n\n"
+        "> [q]: /url\n> ===\n>     <a id=\"quoted-real\"></a>\n\n"
+        "- item\n\n  [l]: /url\n  ===\n      <a id=\"listed-real\"></a>\n",
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#ghost", "#ghost-four", "#l-url", "#ref-url"]
+    assert MODULE.anchors("[ref]: /url\n---\n") == set()
+    # `[ref]:` takes the next line as its destination, so `===` is no underline.
+    assert MODULE.anchors("[ref]:\n===\n    <a id=\"code\"></a>\n") == set()
+
+
+def test_underscore_runs_beside_escapes_stay_whole(tmp_path: Path) -> None:
+    """R2: a delimiter run is used whole, so `\\____` is four literal
+    underscores rather than emphasis cut out of the trailing `___`. Genuine
+    emphasis beside escapes is still reduced."""
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", "[valid](#____) [invented](#__)\n\n## \\____\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#__" in problems[0] and "#____" not in problems[0]
+    assert MODULE.anchors("## ____\n") == {"____"}
+    assert MODULE.anchors("## \\___x___\n") == {"_x_"}
+    assert MODULE.anchors("## \\__a_\n") == {"_a"}
+    assert MODULE.anchors("## _a\\_\n") == {"_a_"}
+    assert MODULE.anchors("## \\_not em\\_\n") == {"_not-em_"}
+    assert MODULE.anchors("## \\\\__strong__\n") == {"strong"}
+    # A run opens only when followed by a non-space and closes only when
+    # preceded by one; part of a run may still pair with a shorter one.
+    assert MODULE.anchors("## ___ a_\n## _a ___\n## x ___ y\n") == {"___-a_", "_a-___", "x-___-y"}
+    assert MODULE.anchors("## __a_\n## _a__\n## ___a_\n") == {"_a", "a_", "__a"}

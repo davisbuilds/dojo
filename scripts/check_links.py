@@ -18,20 +18,23 @@ unambiguous target:
 
 Supported anchors approximate GitHub's heading ids (github-slugger); this is
 not a full Markdown renderer. Anchors come from ATX headings (`## Title`),
-single-line setext headings (an ATX heading above `---` is not setext text),
-and explicit `id`/`name` attributes, in any case, on HTML tags outside inline
-code (entity-decoded once, so `id="a&amp;b"` answers `#a%26b`). A heading's
-slug is its rendered text lowercased, with characters other than letters,
-digits, `_`, `-` and space removed and each space turned into `-`; inline
-code, emphasis, link text, backslash escapes and HTML entities are reduced to
-their text first. Backslash-escaped punctuation is literal: it forms no markup
-and starts no entity (`\\&amp;` slugs as `amp`). Repeated slugs get `-1`,
-`-2`, ... skipping any slug already taken. Fragments are percent-decoded and
-compared case-insensitively; GitHub's `#user-content-` id prefix is accepted. Headings
+single-line setext headings (an ATX heading or a link reference definition
+above `---` or `===` is not setext text), and explicit `id`/`name`
+attributes, in any case, on HTML tags outside inline code (entity-decoded
+once, so `id="a&amp;b"` answers `#a%26b`). A heading's slug is its rendered
+text lowercased, with characters other than letters, digits, `_`, `-` and
+space removed and each space turned into `-`; inline code, emphasis, link
+text, backslash escapes and HTML entities are reduced to their text first.
+Backslash-escaped punctuation is literal: it forms no markup and starts no
+entity (`\\&amp;` slugs as `amp`). Underscore emphasis is judged on whole
+delimiter runs, so `\\____` is literal. Repeated slugs get `-1`, `-2`, ...
+skipping any slug already taken. Fragments are percent-decoded and compared
+case-insensitively; GitHub's `#user-content-` id prefix is accepted. Headings
 and IDs inside fenced code blocks, closed HTML comments and YAML frontmatter are
 not anchors, nor are IDs in indented code (four spaces past the list margin
 and any block-quote markers, after a blank line, heading -- setext underline
-included -- or thematic break, not continuing a paragraph). Links
+included --, thematic break or one-line link reference definition, not
+continuing a paragraph). Links
 inside fences, inline code spans or closed HTML comments are not checked
 (`skills/<name>/` paths in inline code and comments still are), nor is link
 syntax after an escaped `\\[`. A fence opener or closer may be
@@ -48,17 +51,17 @@ Deliberately unsupported, so never reported:
   instructions included; escaped `\\<kbd>` is text), an image, a
   `{#custom-id}` attribute, an `:emoji:` shortcode, a private-use character
   in any plane (literal or from an entity), a reference-style link
-  (`[x][ref]` or `[x][]`, defined or not), escaped link syntax (`\\[x](y)`) or a link it cannot parse;
-  or with setext heading text spanning several lines or following a line it
-  may continue (anything but a blank line, ATX heading, thematic break or
-  fence), because its anchors depend on the renderer. Headings in list items,
-  ATX or setext, are read only when indented at most three spaces in total
-  (`- item` then `  ## Title`); a target with a heading deeper in a list item
-  (`10. Item` then `    ## Title`), on or under the marker line (`- ## Title`,
-  `- Title` then `  ---`) or in a block quote (`> ## Title`, `> Title` then
-  `> ---`) is skipped too. Heading
-  link destinations may contain one level of balanced parentheses
-  (`guide_(v2).md`); deeper nesting (`a_((b)).md`) is skipped;
+  (`[x][ref]` or `[x][]`, defined or not), escaped link syntax (`\\[x](y)`)
+  or a link it cannot parse; or with setext heading text spanning several
+  lines or following a line it may continue (anything but a blank line, ATX
+  heading, thematic break or fence), because its anchors depend on the
+  renderer. Headings in list items, ATX or setext, are read only when
+  indented at most three spaces in total (`- item` then `  ## Title`); a
+  target with a heading deeper in a list item (`10. Item` then
+  `    ## Title`), on or under the marker line (`- ## Title`, `- Title` then
+  `  ---`) or in a block quote (`> ## Title`, `> Title` then `> ---`) is
+  skipped too. Heading link destinations may contain one level of balanced
+  parentheses (`guide_(v2).md`); deeper nesting (`a_((b)).md`) is skipped;
 - reference-style links (`[x][ref]`), links with titles, and HTML `href`s,
   which are not scanned at all.
 
@@ -107,6 +110,13 @@ SETEXT_UNDERLINE = re.compile(r"^ {0,3}(?:=+|-+)[ \t]*$")
 THEMATIC_BREAK = re.compile(r"^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$")
 # Lines that cannot be setext heading text: list items, quotes, headings, HTML.
 NOT_SETEXT_TEXT = re.compile(r"^(?: {4}|\s*(?:[-*+>#<]|\d+[.)])(?:\s|$))")
+# A link reference definition is its own block, never setext heading text: one
+# whole on a line (`[ref]: /url "title"`), or one whose destination is the
+# next line (`[ref]:`), which an underline below it would be.
+REF_DEF_LABEL = r"^ {0,3}\[(?=\s*[^\s\]])(?:[^\\\[\]]|\\.)+\]:[ \t]*"
+REF_DEF = re.compile(REF_DEF_LABEL + r"(?:<[^<>\n]*>|[^\s<]\S*)"
+                     r"(?:[ \t]+(?:\"[^\"]*\"|'[^']*'|\([^()]*\)))?[ \t]*$")
+REF_DEF_OPEN = re.compile(REF_DEF_LABEL + "$")
 # A start tag, allowing `>` inside quoted attribute values.
 HTML_TAG = re.compile(r"<[A-Za-z](?:[^<>\"']|\"[^\"]*\"|'[^']*')*>")
 # A code span closes on a backtick run of exactly the opener's length and may
@@ -120,7 +130,11 @@ HEADING_LITERAL = re.compile(r"\\(?P<esc>[!-/:-@\[-`{-~])|(?<!`)" + CODE_SPAN_BO
 # Link destinations may hold one level of balanced parentheses; deeper nesting
 # or an escaped `\[` leaves a `](` behind and marks the heading unsupported.
 INLINE_LINK = re.compile(r"\[([^\]]*)\]\((?:[^()]|\([^()]*\))*\)")
-UNDERSCORE_EMPHASIS = re.compile(r"(?<!\w)(_{1,3})(?=\S)(.+?)(?<=\S)\1(?!\w)")
+# Flanking is judged on the whole underscore run: it opens only if the run is
+# followed by a non-space, and closes only if the run is preceded by one, so
+# `\____` leaves a `___` that neither opens nor closes.
+UNDERSCORE_EMPHASIS = re.compile(r"(?<!\w)(?=_+[^\s_])(_{1,3})(?=\S)(.+?)"
+                                 r"(?:(?<=[^\s_])|(?<=[^\s_]_)|(?<=[^\s_]__))\1(?!\w)")
 # Raw HTML (tags, comments, declarations, processing instructions), images and
 # reference-style links (`[x][ref]`, whose text depends on whether `ref` is
 # defined) make a heading's anchor renderer-dependent. Escaped punctuation
@@ -355,7 +369,9 @@ def _indented_code_lines(lines: list[str], margins: list[int]) -> set[int]:
 
     A paragraph ends at a blank line (a bare `>` inside a quote), a heading or
     thematic break, or the setext underline below it in the same container. A
-    deeper quote starts afresh; a shallower line continues it lazily.
+    one-line link reference definition is a block of its own, so an underline
+    after it starts a paragraph instead. A deeper quote starts afresh; a
+    shallower line continues it lazily.
     """
     code: set[int] = set()
     para: tuple[int, int] | None = None  # quote depth and list margin of the open paragraph
@@ -368,7 +384,8 @@ def _indented_code_lines(lines: list[str], margins: list[int]) -> set[int]:
         if fresh and _indent(body) >= 4:
             code.add(i)
             para = None
-        elif _ends_block(body) or (depth, margins[i]) == para and SETEXT_UNDERLINE.match(body):
+        elif _ends_block(body) or fresh and REF_DEF.match(body) \
+                or (depth, margins[i]) == para and SETEXT_UNDERLINE.match(body):
             para = None
         elif fresh:
             para = (depth, margins[i])
@@ -377,7 +394,8 @@ def _indented_code_lines(lines: list[str], margins: list[int]) -> set[int]:
 
 def _setext_text(line: str) -> bool:
     """Whether a line can be the text of a setext heading underlined below it."""
-    return bool(line.strip()) and not NOT_SETEXT_TEXT.match(line) and not ATX_HEADING.match(line)
+    return bool(line.strip()) and not NOT_SETEXT_TEXT.match(line) and not ATX_HEADING.match(line) \
+        and not REF_DEF.match(line) and not REF_DEF_OPEN.match(line)
 
 
 def known_skills(skills_root: Path) -> set[str]:
