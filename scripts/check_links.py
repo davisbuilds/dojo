@@ -24,12 +24,14 @@ code (entity-decoded once, so `id="a&amp;b"` answers `#a%26b`). A heading's
 slug is its rendered text lowercased, with characters other than letters,
 digits, `_`, `-` and space removed and each space turned into `-`; inline
 code, emphasis, link text, backslash escapes and HTML entities are reduced to
-their text first. Repeated slugs get `-1`, `-2`, ... skipping any slug already
-taken. Fragments are percent-decoded and compared
-case-insensitively; GitHub's `#user-content-` id prefix is accepted. Headings
+their text first. Backslash-escaped punctuation is literal: it forms no markup
+and starts no entity (`\\&amp;` slugs as `amp`). Repeated slugs get `-1`,
+`-2`, ... skipping any slug already taken. Fragments are percent-decoded and
+compared case-insensitively; GitHub's `#user-content-` id prefix is accepted. Headings
 and IDs inside fenced code blocks, closed HTML comments and YAML frontmatter are
-not anchors, nor are IDs in indented code (four spaces past the margin after a
-blank line, heading or thematic break, not continuing a paragraph). Links
+not anchors, nor are IDs in indented code (four spaces past the list margin
+and any block-quote markers, after a blank line, heading -- setext underline
+included -- or thematic break, not continuing a paragraph). Links
 inside fences, inline code spans or closed HTML comments are not checked
 (`skills/<name>/` paths in inline code and comments still are), nor is link
 syntax after an escaped `\\[`. A fence opener or closer may be
@@ -42,10 +44,11 @@ prose is checked like any other text.
 Deliberately unsupported, so never reported:
 - fragments on non-Markdown targets (`run.py#L10`) and directories: only the
   file's existence is checked;
-- any target file with a heading containing raw HTML, an image, a
+- any target file with a heading containing raw HTML (processing
+  instructions included; escaped `\\<kbd>` is text), an image, a
   `{#custom-id}` attribute, an `:emoji:` shortcode, a private-use character
-  (literal or from an entity), a reference-style link (`[x][ref]` or `[x][]`,
-  defined or not), escaped link syntax (`\\[x](y)`) or a link it cannot parse;
+  in any plane (literal or from an entity), a reference-style link
+  (`[x][ref]` or `[x][]`, defined or not), escaped link syntax (`\\[x](y)`) or a link it cannot parse;
   or with setext heading text spanning several lines or following a line it
   may continue (anything but a blank line, ATX heading, thematic break or
   fence), because its anchors depend on the renderer. Headings in list items,
@@ -67,6 +70,7 @@ from __future__ import annotations
 import html
 import re
 import sys
+import unicodedata
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote
@@ -107,16 +111,24 @@ NOT_SETEXT_TEXT = re.compile(r"^(?: {4}|\s*(?:[-*+>#<]|\d+[.)])(?:\s|$))")
 HTML_TAG = re.compile(r"<[A-Za-z](?:[^<>\"']|\"[^\"]*\"|'[^']*')*>")
 # A code span closes on a backtick run of exactly the opener's length and may
 # wrap lines but not cross a blank line; an unmatched opener is literal text.
-CODE_SPAN = re.compile(r"(?<![`\\])(`+)(?!`)((?:(?!\n[ \t]*\n)[\s\S])+?)(?<!`)\1(?!`)")
+CODE_SPAN_BODY = r"(?P<ticks>`+)(?!`)(?P<code>(?:(?!\n[ \t]*\n)[\s\S])+?)(?<!`)(?P=ticks)(?!`)"
+CODE_SPAN = re.compile(r"(?<![`\\])" + CODE_SPAN_BODY)
+# In heading text, backslash escapes and code spans are read together left to
+# right, so `\`` cannot open a span, `\\` before one leaves it open, and a
+# backslash inside one is literal.
+HEADING_LITERAL = re.compile(r"\\(?P<esc>[!-/:-@\[-`{-~])|(?<!`)" + CODE_SPAN_BODY)
 # Link destinations may hold one level of balanced parentheses; deeper nesting
 # or an escaped `\[` leaves a `](` behind and marks the heading unsupported.
-INLINE_LINK = re.compile(r"(?<!\\)((?:\\\\)*)\[([^\]]*)\]\((?:[^()]|\([^()]*\))*\)")
-UNDERSCORE_EMPHASIS = re.compile(r"(?<![\w\\])(_{1,3})(?=\S)(.+?)(?<=[^\s\\])\1(?!\w)")
-BACKSLASH_ESCAPE = re.compile(r"\\([!-/:-@\[-`{-~])")
-# Raw HTML, images, custom-id attributes, emoji shortcodes and reference-style
-# links (`[x][ref]`, whose text depends on whether `ref` is defined) make a
-# heading's anchor renderer-dependent.
-UNSUPPORTED_HEADING_MARKUP = re.compile(r"<[A-Za-z/!]|!\[|\{#|:[a-z0-9_+-]+:|\]\[")
+INLINE_LINK = re.compile(r"\[([^\]]*)\]\((?:[^()]|\([^()]*\))*\)")
+UNDERSCORE_EMPHASIS = re.compile(r"(?<!\w)(_{1,3})(?=\S)(.+?)(?<=\S)\1(?!\w)")
+# Raw HTML (tags, comments, declarations, processing instructions), images and
+# reference-style links (`[x][ref]`, whose text depends on whether `ref` is
+# defined) make a heading's anchor renderer-dependent. Escaped punctuation
+# cannot form them, so this runs after escapes are set aside.
+HEADING_MARKUP = re.compile(r"<[A-Za-z/!?]|!\[|\]\[")
+# Custom-id attributes and emoji shortcodes are read from the rendered text, so
+# one spelled with escapes or entities is still caught.
+HEADING_TEXT_MARKUP = re.compile(r"\{#|:[a-z0-9_+-]+:")
 # A closed HTML comment, unless it sits inside an inline code span.
 CODE_OR_COMMENT = re.compile(CODE_SPAN.pattern + r"|<!--(?s:.*?)-->")
 
@@ -241,32 +253,47 @@ def html_anchors(text: str) -> set[str]:
 def heading_text(raw: str) -> str | None:
     """Reduce heading Markdown to its rendered text, or None if unsupported.
 
-    Code spans are swapped for lone-surrogate placeholders first, so their
-    contents stay literal while links and emphasis around them are still
-    reduced. Strict UTF-8 text cannot hold lone surrogates and html.unescape
+    Backslash escapes and code spans are swapped for lone-surrogate
+    placeholders first, so their text stays literal -- it neither forms markup
+    nor starts an entity -- while links and emphasis around them are still
+    reduced. Escapes are restored before the rendered-text checks, code spans
+    after them. Strict UTF-8 text cannot hold lone surrogates and html.unescape
     maps surrogate references to U+FFFD, so no input can forge a placeholder.
     """
     if re.search(r"[\ud800-\udfff]", raw):
         return None
-    codes: list[str] = []
+    held: list[str] = []
+    escapes: set[int] = set()
 
     def hold(m: re.Match[str]) -> str:
-        code = m.group(2)
-        codes.append(code[1:-1] if code.startswith(" ") and code.endswith(" ") and code.strip() else code)
-        return chr(0xD800 + len(codes) - 1)  # past 2048 spans this lands in PUA: unsupported
+        if m.group("esc"):
+            escapes.add(len(held))
+            held.append(m.group("esc"))
+        else:
+            code = m.group("code")
+            held.append(code[1:-1] if code.startswith(" ") and code.endswith(" ") and code.strip() else code)
+        return chr(0xD800 + len(held) - 1)  # past 2048 this lands in private use: unsupported
 
-    text = CODE_SPAN.sub(hold, raw)
-    if UNSUPPORTED_HEADING_MARKUP.search(text):
+    def restore(text: str, only: set[int] | None = None) -> str:
+        def put(m: re.Match[str]) -> str:
+            i = ord(m.group()) - 0xD800
+            return held[i] if only is None or i in only else m.group()
+        return re.sub(r"[\ud800-\udfff]", put, text)
+
+    text = HEADING_LITERAL.sub(hold, raw)
+    if HEADING_MARKUP.search(text):
         return None
-    text = INLINE_LINK.sub(r"\1\2", text)
+    text = INLINE_LINK.sub(r"\1", text)
     if "](" in text:
         return None  # a link this checker could not parse, or escaped link syntax
     while (reduced := UNDERSCORE_EMPHASIS.sub(r"\2", text)) != text:
         text = reduced  # nested emphasis: `_outer __inner__ end_`
-    text = html.unescape(BACKSLASH_ESCAPE.sub(r"\1", text))
-    text = re.sub(r"[\ud800-\udfff]", lambda m: codes[ord(m.group()) - 0xD800], text)
-    # Private-use glyphs, literal or from entities, slug differently per renderer.
-    return None if re.search(r"[\ue000-\uf8ff]", text) else text
+    text = restore(html.unescape(text), escapes)
+    if HEADING_TEXT_MARKUP.search(text):
+        return None
+    text = restore(text)
+    # Private-use glyphs (any plane), literal or from entities, slug differently per renderer.
+    return None if any(unicodedata.category(ch) == "Co" for ch in text) else text
 
 
 def slugify(text: str, seen: dict[str, int]) -> str:
@@ -323,20 +350,28 @@ def _ends_block(line: str) -> bool:
 
 
 def _indented_code_lines(lines: list[str], margins: list[int]) -> set[int]:
-    """Indices of indented-code lines: four or more spaces past the list margin,
-    after a blank line or a whole block rather than continuing a paragraph."""
+    """Indices of indented-code lines: four or more spaces past the list margin
+    and any block-quote markers, where no paragraph is open to continue.
+
+    A paragraph ends at a blank line (a bare `>` inside a quote), a heading or
+    thematic break, or the setext underline below it in the same container. A
+    deeper quote starts afresh; a shallower line continues it lazily.
+    """
     code: set[int] = set()
-    in_code = in_paragraph = False
+    para: tuple[int, int] | None = None  # quote depth and list margin of the open paragraph
     for i, line in enumerate(lines):
-        if not line.strip():
-            in_paragraph = False  # blank lines may sit inside an indented code block
+        depth, body = _unquote(line.expandtabs(4)[margins[i]:], None)
+        if not body.strip():
+            para = None  # blank lines may sit inside an indented code block
             continue
-        if _indent(line.expandtabs(4)) - margins[i] >= 4 and (in_code or not in_paragraph):
+        fresh = para is None or depth > para[0]
+        if fresh and _indent(body) >= 4:
             code.add(i)
-            in_code = True
-        else:
-            in_code = False
-            in_paragraph = not _ends_block(line)
+            para = None
+        elif _ends_block(body) or (depth, margins[i]) == para and SETEXT_UNDERLINE.match(body):
+            para = None
+        elif fresh:
+            para = (depth, margins[i])
     return code
 
 
