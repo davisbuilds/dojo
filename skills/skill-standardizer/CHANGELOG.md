@@ -1,3 +1,7 @@
+## 2.1.0 - 2026-10-21
+
+- Report each installed copy's version against its source (`behind`, `ahead`, `equal`, `divergent`, or `unknown`) in audit and sync reports. Missing or invalid versions stay `unknown`, and an equal version with different content is `divergent`. Planning and exit codes are unchanged.
+
 ## 2.0.1 - 2026-10-20
 
 - Restore cwd and the harness-home variables after every regression test, including on failure, before removing its temporary directory; the suite also runs under pytest from `tests/`.

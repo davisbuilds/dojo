@@ -17,7 +17,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from audit import main as audit_main
-from skill_standardizer_lib import apply_actions, build_audit_report, resolve_context
+from skill_standardizer_lib import apply_actions, build_audit_report, resolve_context, summarize_report
 
 
 SKILL_TEMPLATE = """---
@@ -34,6 +34,18 @@ def write_skill(root: Path, name: str) -> Path:
     skill_dir = root / name
     skill_dir.mkdir(parents=True, exist_ok=True)
     (skill_dir / "SKILL.md").write_text(SKILL_TEMPLATE.format(name=name), encoding="utf-8")
+    return skill_dir
+
+
+def write_versioned_skill(root: Path, name: str, version: str | None, body: str = "") -> Path:
+    """A skill whose frontmatter declares `version` verbatim, or omits it when None."""
+    skill_dir = root / name
+    skill_dir.mkdir(parents=True, exist_ok=True)
+    version_line = f"version: {version}\n" if version is not None else ""
+    (skill_dir / "SKILL.md").write_text(
+        f"---\nname: {name}\ndescription: test skill\n{version_line}---\n\n# {name}\n{body}",
+        encoding="utf-8",
+    )
     return skill_dir
 
 
@@ -1152,6 +1164,205 @@ def test_a_failed_apply_does_not_prune_backup_history() -> None:
         assert_true(len(surviving) == 3, f"all runs must survive a failure: {surviving}")
 
 
+def _version_fixture(base: Path, with_canonical: bool = True) -> tuple[Path, Path, Path, Path]:
+    repo = base / "repo"
+    skills = repo / "skills"
+    if with_canonical:
+        skills.mkdir(parents=True)
+        (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+    homes = [base / ".agents", base / ".codex", base / ".claude"]
+    for home in homes:
+        (home / "skills").mkdir(parents=True)
+    os.environ["AGENTS_HOME"] = str(homes[0])
+    os.environ["CODEX_HOME"] = str(homes[1])
+    os.environ["CLAUDE_HOME"] = str(homes[2])
+    os.chdir(repo if with_canonical else base)
+    return skills, homes[0] / "skills", homes[1] / "skills", homes[2] / "skills"
+
+
+def _version_audit(skills: Path | None, selected: set[str] | None = None) -> dict:
+    return build_audit_report(
+        context=resolve_context(str(skills) if skills else None, None, False),
+        local_policy="prefer-global-link",
+        global_policy="prefer-primary-link",
+        keep_local_skills=set(),
+        enforce_mirror=False,
+        selected_skills=selected,
+    )
+
+
+def _version_rows(report: dict) -> dict[tuple[str, str], dict]:
+    return {(row["skill"], row["root"]): row for row in report.get("versions", [])}
+
+
+def test_version_deltas_report_behind_ahead_equal_and_divergent() -> None:
+    """Versions say which way a copy moved; content says whether it moved at all.
+
+    Release-relevant changes must bump the version, so an equal version over
+    different content is divergence, not equality, and the content drift it
+    already raises must survive alongside it.
+    """
+    with isolated_tempdir() as td:
+        skills, agents, codex, _ = _version_fixture(Path(td))
+        write_versioned_skill(skills, "alpha", "1.2.0")
+        write_versioned_skill(skills, "beta", "1.0.0")
+        write_versioned_skill(skills, "gamma", "1.0.0")
+        write_versioned_skill(skills, "delta", "1.0.0")
+        write_versioned_skill(skills, "rc", "1.2.0")
+        write_versioned_skill(agents, "alpha", "1.0.0")
+        write_versioned_skill(agents, "beta", "2.0.0")
+        write_versioned_skill(agents, "gamma", "1.0.0", body="local edit\n")
+        write_versioned_skill(agents, "delta", "1.0.0")
+        write_versioned_skill(agents, "rc", "1.2.0-rc.1")
+        # A secondary global that already links to the primary copy: no planned
+        # action, but its version is still read through the link.
+        os.symlink(str(agents / "alpha"), codex / "alpha")
+
+        report = _version_audit(skills)
+        rows = _version_rows(report)
+        canonical = str(skills.resolve())
+        agents_root = str(agents.resolve())
+        codex_root = str(codex.resolve())
+
+        expected = {
+            ("alpha", agents_root): ("1.2.0", "1.0.0", "behind", True),
+            ("alpha", codex_root): ("1.2.0", "1.0.0", "behind", True),
+            ("beta", agents_root): ("1.0.0", "2.0.0", "ahead", True),
+            ("gamma", agents_root): ("1.0.0", "1.0.0", "divergent", True),
+            ("delta", agents_root): ("1.0.0", "1.0.0", "equal", False),
+            ("rc", agents_root): ("1.2.0", "1.2.0-rc.1", "behind", True),
+        }
+        for key, (source_version, current_version, delta, drift) in expected.items():
+            row = rows.get(key)
+            assert_true(row is not None, f"missing version row {key}: {sorted(rows)}")
+            actual = (row["source_version"], row["current_version"], row["version_delta"], row["content_drift"])
+            assert_true(
+                actual == (source_version, current_version, delta, drift),
+                f"{key}: expected {(source_version, current_version, delta, drift)}, got {actual}",
+            )
+            assert_true(row["source_root"] == canonical, f"{key}: source must be canonical: {row}")
+        assert_true(rows[("alpha", codex_root)]["is_symlink"], "linked entry must be marked as a symlink")
+        assert_true(
+            all(row["root"] != canonical for row in report["versions"]),
+            "the source copy is not compared with itself",
+        )
+        assert_true(
+            any(
+                issue["code"] == "CONTENT_DRIFT" and issue["skill"] == "gamma"
+                for issue in report["issues"]
+            ),
+            f"an equal version must not hide content drift: {report['issues']}",
+        )
+
+        summary = summarize_report(report)
+        assert_true("Version deltas:" in summary, f"text summary lacks version deltas:\n{summary}")
+        assert_true(
+            any("alpha" in line and "behind" in line and "1.0.0" in line and "1.2.0" in line
+                for line in summary.splitlines()),
+            f"text summary lacks alpha's delta:\n{summary}",
+        )
+        assert_true(
+            any("gamma" in line and "divergent" in line for line in summary.splitlines()),
+            f"text summary lacks gamma's divergence:\n{summary}",
+        )
+        assert_true(
+            not any(line.startswith("- delta ") for line in summary.splitlines()),
+            f"equal, identical copies need no version line:\n{summary}",
+        )
+
+
+def test_missing_and_malformed_versions_are_unknown_not_zero() -> None:
+    with isolated_tempdir() as td:
+        skills, agents, _, _ = _version_fixture(Path(td))
+        write_versioned_skill(skills, "alpha", "1.0.0")
+        write_versioned_skill(skills, "beta", "v2.0.0")
+        write_versioned_skill(skills, "gamma", None)
+        write_versioned_skill(skills, "delta", '"1.0.0"')
+        write_versioned_skill(skills, "epsilon", "1.0.0")
+        for name in ("zeta", "eta", "theta"):
+            write_versioned_skill(skills, name, "1.2.4")
+        write_versioned_skill(agents, "alpha", None)
+        write_versioned_skill(agents, "beta", "0.0.0")
+        # Were a missing source read as 0.0.0, this would report "ahead".
+        write_versioned_skill(agents, "gamma", "0.1.0")
+        write_versioned_skill(agents, "delta", "'1.1.0'  # pinned")
+        write_versioned_skill(agents, "epsilon", "1.0")
+        # Text after a closing quote is a YAML error, not a comment; read as the
+        # quoted value, each of these would report "behind".
+        write_versioned_skill(agents, "zeta", '"1.2.3" trailing-junk')
+        write_versioned_skill(agents, "eta", "'1.2.3' x")
+        write_versioned_skill(agents, "theta", '"1.2.3"\t# tab')
+
+        report = _version_audit(skills)
+        rows = _version_rows(report)
+        agents_root = str(agents.resolve())
+
+        expected = {
+            "alpha": ("1.0.0", None, "unknown", "missing"),
+            "beta": ("v2.0.0", "0.0.0", "unknown", "SemVer"),
+            "gamma": (None, "0.1.0", "unknown", "missing"),
+            "epsilon": ("1.0.0", "1.0", "unknown", "SemVer"),
+            "zeta": ("1.2.4", '"1.2.3" trailing-junk', "unknown", "SemVer"),
+            "eta": ("1.2.4", "'1.2.3' x", "unknown", "SemVer"),
+            "theta": ("1.2.4", '"1.2.3"\t# tab', "unknown", "SemVer"),
+        }
+        for skill, (source_version, current_version, delta, reason) in expected.items():
+            row = rows.get((skill, agents_root))
+            assert_true(row is not None, f"missing version row for {skill}: {sorted(rows)}")
+            actual = (row["source_version"], row["current_version"], row["version_delta"])
+            assert_true(
+                actual == (source_version, current_version, delta),
+                f"{skill}: expected {(source_version, current_version, delta)}, got {actual}",
+            )
+            assert_true(
+                reason in row.get("version_note", ""),
+                f"{skill}: unknown delta must say why: {row}",
+            )
+        # YAML quoting is not part of the version.
+        quoted = rows.get(("delta", agents_root))
+        assert_true(
+            quoted is not None
+            and (quoted["source_version"], quoted["current_version"], quoted["version_delta"])
+            == ("1.0.0", "1.1.0", "ahead"),
+            f"quoted versions must parse like YAML strings: {quoted}",
+        )
+
+        summary = summarize_report(report)
+        assert_true(
+            any("alpha" in line and "unknown" in line and "missing" in line
+                for line in summary.splitlines()),
+            f"text summary must show the unknown delta:\n{summary}",
+        )
+
+
+def test_version_rows_follow_skill_selection() -> None:
+    with isolated_tempdir() as td:
+        skills, agents, _, _ = _version_fixture(Path(td))
+        for name in ("alpha", "beta"):
+            write_versioned_skill(skills, name, "1.1.0")
+            write_versioned_skill(agents, name, "1.0.0")
+
+        report = _version_audit(skills, selected={"alpha"})
+        skills_reported = {row["skill"] for row in report.get("versions", [])}
+        assert_true(skills_reported == {"alpha"}, f"selection must scope version rows: {skills_reported}")
+
+
+def test_version_source_is_the_preferred_global_without_canonical() -> None:
+    with isolated_tempdir() as td:
+        _, agents, _, claude = _version_fixture(Path(td), with_canonical=False)
+        write_versioned_skill(agents, "alpha", "2.0.0")
+        write_versioned_skill(claude, "alpha", "1.0.0")
+
+        report = _version_audit(None)
+        assert_true(report["canonical_root"] is None, f"fixture must have no canonical: {report['canonical_root']}")
+        row = _version_rows(report).get(("alpha", str(claude.resolve())))
+        assert_true(row is not None, f"missing global-only version row: {report.get('versions')}")
+        assert_true(
+            (row["source_root"], row["version_delta"]) == (str(agents.resolve()), "behind"),
+            f"preferred global is the source without canonical: {row}",
+        )
+
+
 # The direct runner's order; tests/test_skill_standardizer_suite.py also runs
 # each entry under pytest and checks that it restores process state.
 TESTS = (
@@ -1183,6 +1394,10 @@ TESTS = (
     test_sync_preserves_unknown_backup_history,
     test_mirror_copy_repairs_a_secondary_entry_instead_of_removing_it,
     test_a_failed_apply_does_not_prune_backup_history,
+    test_version_deltas_report_behind_ahead_equal_and_divergent,
+    test_missing_and_malformed_versions_are_unknown_not_zero,
+    test_version_rows_follow_skill_selection,
+    test_version_source_is_the_preferred_global_without_canonical,
 )
 
 

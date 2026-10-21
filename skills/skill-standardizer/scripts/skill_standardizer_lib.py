@@ -39,6 +39,15 @@ DEPRECATED_SKILL_REPLACEMENTS = {
     "obsidian-canvas": "obsidian",
     "imagegen": "gpt-imagen",
 }
+# Same grammar and precedence as skills/skill-evals/scripts/check_skill_versions.py.
+# Duplicated because this skill installs on its own and runs stdlib-only.
+SEMVER_RE = re.compile(
+    r"^(0|[1-9]\d*)\."
+    r"(0|[1-9]\d*)\."
+    r"(0|[1-9]\d*)"
+    r"(?:-((?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?"
+    r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
+)
 
 
 @dataclass
@@ -57,6 +66,8 @@ class SkillEntry:
     is_symlink: bool
     link_target: str | None
     dir_hash: str
+    # As declared in SKILL.md frontmatter; None when absent. Not validated here.
+    version: str | None = None
 
 
 @dataclass
@@ -225,6 +236,94 @@ def hash_directory(path: Path) -> str:
     return digest.hexdigest()
 
 
+def read_skill_version(skill_md: Path) -> str | None:
+    """The frontmatter `version` of a SKILL.md as written, or None when absent.
+
+    A line reader rather than YAML, since this skill runs without third-party
+    packages. It strips quotes and trailing comments as YAML would and leaves
+    anything else verbatim, so a malformed value is reported rather than guessed.
+    """
+    try:
+        lines = skill_md.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError):
+        return None
+    if not lines or lines[0].rstrip() != "---":
+        return None
+    version: str | None = None
+    for line in lines[1:]:
+        if line.rstrip() == "---":
+            return version
+        key, sep, value = line.partition(":")
+        if not sep or key != "version":
+            continue
+        value = value.strip()
+        end = value.find(value[0], 1) if value[:1] in ("'", '"') else -1
+        # Only spaces, then optionally a comment, may follow a closing quote;
+        # PyYAML rejects anything else, tabs included.
+        if end > 0 and value[end + 1:].lstrip(" ")[:1] in ("", "#"):
+            value = value[1:end].strip()
+        else:
+            value = value.split(" #", 1)[0].strip()
+        version = None if value in ("", "~", "null") else value
+    return None
+
+
+def _parse_semver(version: str | None) -> tuple[tuple[int, int, int], tuple[str, ...]] | None:
+    match = SEMVER_RE.match(version) if version else None
+    if not match:
+        return None
+    core = (int(match.group(1)), int(match.group(2)), int(match.group(3)))
+    return core, tuple(match.group(4).split(".")) if match.group(4) else ()
+
+
+def _compare_prerelease(left: tuple[str, ...], right: tuple[str, ...]) -> int:
+    if not left or not right:
+        # A release outranks any of its prereleases.
+        return (not left) - (not right)
+    for a, b in zip(left, right):
+        if a == b:
+            continue
+        if a.isdigit() and b.isdigit():
+            return -1 if int(a) < int(b) else 1
+        if a.isdigit() or b.isdigit():
+            return -1 if a.isdigit() else 1
+        return -1 if a < b else 1
+    return (len(left) > len(right)) - (len(left) < len(right))
+
+
+def version_delta(
+    source_version: str | None, current_version: str | None, same_content: bool,
+) -> tuple[str, str | None]:
+    """Classify a copy's version against its source, with a note when needed.
+
+    Returns `behind`, `ahead`, `equal`, `divergent`, or `unknown`. Equal
+    precedence over different content is `divergent`: release-relevant changes
+    must bump the version, so one side changed without a release. A missing or
+    malformed version is `unknown`, never read as 0.0.0.
+    """
+    problems = []
+    for side, version in (("source", source_version), ("current", current_version)):
+        if version is None:
+            problems.append(f"{side} version missing")
+        elif _parse_semver(version) is None:
+            problems.append(f"{side} version {version!r} is not valid SemVer")
+    source, current = _parse_semver(source_version), _parse_semver(current_version)
+    if problems or source is None or current is None:
+        return "unknown", "; ".join(problems)
+    (source_core, source_pre), (current_core, current_pre) = source, current
+    if current_core != source_core:
+        order = -1 if current_core < source_core else 1
+    else:
+        order = _compare_prerelease(current_pre, source_pre)
+    if order < 0:
+        return "behind", None
+    if order > 0:
+        return "ahead", None
+    if same_content:
+        return "equal", None
+    return "divergent", "same version, different content"
+
+
 def scan_root(root: RootSpec, ignore_dirs: set[str] | None = None) -> RootInventory:
     skills: dict[str, SkillEntry] = {}
     invalid_entries: list[str] = []
@@ -264,6 +363,7 @@ def scan_root(root: RootSpec, ignore_dirs: set[str] | None = None) -> RootInvent
             is_symlink=child.is_symlink(),
             link_target=link_target,
             dir_hash=hash_directory(resolved_path),
+            version=read_skill_version(resolved_path / "SKILL.md"),
         )
 
     return RootInventory(root=root, skills=skills, invalid_entries=invalid_entries)
@@ -1097,6 +1197,38 @@ def build_audit_report(
         seen_keys.add(key)
         deduped_actions.append(action)
 
+    # Informational: each copy's version against its source (canonical, else the
+    # preferred global). Planning above never reads versions.
+    versions: list[dict[str, Any]] = []
+    for skill in sorted(all_skill_names):
+        if skill in DEPRECATED_SKILL_REPLACEMENTS or not skill_in_scope(skill):
+            continue
+        if canonical_inventory and skill in canonical_inventory.skills:
+            source_root, source_entry = canonical_inventory.root, canonical_inventory.skills[skill]
+        elif (preferred := preferred_global_for_skill(skill, inventories)) is not None:
+            source_root, source_entry = preferred
+        else:
+            continue
+        for inv in inventories:
+            entry = inv.skills.get(skill)
+            if entry is None or inv.root.path == source_root.path:
+                continue
+            delta, note = version_delta(
+                source_entry.version, entry.version, entry.dir_hash == source_entry.dir_hash,
+            )
+            versions.append({
+                "skill": skill,
+                "root": str(inv.root.path),
+                "root_kind": inv.root.kind,
+                "is_symlink": entry.is_symlink,
+                "source_root": str(source_root.path),
+                "source_version": source_entry.version,
+                "current_version": entry.version,
+                "version_delta": delta,
+                "version_note": note,
+                "content_drift": entry.dir_hash != source_entry.dir_hash,
+            })
+
     report = {
         "generated_at": utc_now_iso(),
         "cwd": str(Path.cwd()),
@@ -1122,6 +1254,7 @@ def build_audit_report(
         "enforce_mirror": enforce_mirror,
         "issues": [_to_jsonable_issue(issue) for issue in issues],
         "actions": [_to_jsonable_issue(action) for action in deduped_actions],
+        "versions": versions,
     }
     return report
 
@@ -1154,6 +1287,20 @@ def summarize_report(report: dict[str, Any]) -> str:
             lines.append(f"- [{code}] {skill}: {msg}")
         if issue_count > 20:
             lines.append(f"- ... ({issue_count - 20} more)")
+
+    deltas = [row for row in report.get("versions", []) if row["version_delta"] != "equal"]
+    if deltas:
+        lines.append("Version deltas:")
+        for row in deltas[:20]:
+            current = row["current_version"] or "missing"
+            source = row["source_version"] or "missing"
+            note = f"; {row['version_note']}" if row["version_note"] else ""
+            lines.append(
+                f"- {row['skill']} @ {row['root_kind']}: {row['version_delta']} "
+                f"(current {current}, source {source}{note})"
+            )
+        if len(deltas) > 20:
+            lines.append(f"- ... ({len(deltas) - 20} more)")
 
     return "\n".join(lines)
 

@@ -213,12 +213,14 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   `## 1.2.3 - YYYY-MM-DD` plus at least one bullet under the heading.
 
 ### Install/update workflows should understand skill versions
-- **What**: The manifest and catalog now expose skill versions, but installer and
-  standardizer workflows do not yet report available/current version deltas.
-- **Why it matters**: Version metadata is most useful when sync and install tools
-  can say whether a local copy is behind, ahead, or divergent.
-- **Next**: Extend skill install/standardization reports to show source and
-  destination versions alongside existing drift information.
+- **What**: `skill-standardizer` audit/sync reports now show source and current
+  versions with a behind/ahead/equal/divergent/unknown delta (2026-10-21), but
+  `skill-installer` still does not report available/current version deltas.
+- **Why it matters**: `list-skills.py` marks a skill only "already installed",
+  so an available update looks the same as an up-to-date copy.
+- **Next**: Show installed and available versions in `skill-installer` listings,
+  reusing the standardizer's semantics in
+  `skills/skill-standardizer/references/policy.md#version-deltas`.
 
 ### Test isolation: a test leaves the process cwd deleted under Python 3.14
 - **What**: some test in `pytest tests/` deletes the process working directory
