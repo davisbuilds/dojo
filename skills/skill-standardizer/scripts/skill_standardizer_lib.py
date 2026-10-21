@@ -48,9 +48,19 @@ SEMVER_RE = re.compile(
     r"(?:-((?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?"
     r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
 )
-# A top-level `version` key, bare or quoted; YAML allows spaces, not tabs, before
-# the colon. Indented lines belong to a nested mapping.
-VERSION_KEY_RE = re.compile(r"""^(?:version|'version'|"version") *:(.*)$""")
+# A top-level bare `version` key; quoted keys are read by _read_quoted. YAML
+# allows spaces, not tabs, before the colon. Indented lines belong to a nested mapping.
+VERSION_KEY_RE = re.compile(r"^version *:(.*)$")
+KEY_COLON_RE = re.compile(r"^ *:(.*)$")
+# YAML double-quoted escapes that stay on one line: a single character, or a hex
+# code point of fixed width.
+YAML_ESCAPES = {
+    "0": "\0", "a": "\a", "b": "\b", "t": "\t", "\t": "\t", "n": "\n", "v": "\v",
+    "f": "\f", "r": "\r", "e": "\x1b", " ": " ", '"': '"', "/": "/", "\\": "\\",
+    "N": "\x85", "_": "\xa0", "L": chr(0x2028), "P": chr(0x2029),
+}
+YAML_HEX_ESCAPE_WIDTHS = {"x": 2, "u": 4, "U": 8}
+HEX_DIGITS = frozenset("0123456789abcdefABCDEF")
 
 
 @dataclass
@@ -239,13 +249,65 @@ def hash_directory(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _read_quoted(text: str) -> tuple[str, str] | None:
+    """Split a quoted YAML scalar at the start of `text` from the rest of the line.
+
+    Returns the scalar's value and what follows its closing quote. Single quotes
+    read `''` as `'`; double quotes decode escapes. None when the scalar does not
+    close on this line or an escape is malformed. An escape naming a surrogate or
+    a code point past U+10FFFF is malformed too: chr() refuses the latter, and a
+    lone surrogate cannot be printed in the report.
+    """
+    quote = text[:1]
+    if quote not in ("'", '"'):
+        return None
+    chars: list[str] = []
+    i = 1
+    while i < len(text):
+        char = text[i]
+        if char == quote and quote == "'" and text[i + 1:i + 2] == "'":
+            chars.append("'")
+            i += 2
+        elif char == quote:
+            return "".join(chars), text[i + 1:]
+        elif char == "\\" and quote == '"':
+            code = text[i + 1:i + 2]
+            width = YAML_HEX_ESCAPE_WIDTHS.get(code, 0)
+            digits = text[i + 2:i + 2 + width]
+            if code in YAML_ESCAPES:
+                chars.append(YAML_ESCAPES[code])
+            # Checked by hand: int(..., 16) also accepts underscores and spaces.
+            elif width and len(digits) == width and HEX_DIGITS.issuperset(digits):
+                point = int(digits, 16)
+                if point > 0x10FFFF or 0xD800 <= point <= 0xDFFF:
+                    return None
+                chars.append(chr(point))
+            else:
+                return None
+            i += 2 + width
+        else:
+            chars.append(char)
+            i += 1
+    return None
+
+
+def _version_key_value(line: str) -> str | None:
+    """The text after the colon of a top-level `version` key, or None for any other line."""
+    if line[:1] in ("'", '"'):
+        key = _read_quoted(line)
+        match = KEY_COLON_RE.match(key[1]) if key and key[0] == "version" else None
+    else:
+        match = VERSION_KEY_RE.match(line)
+    return match.group(1) if match else None
+
+
 def read_skill_version(skill_md: Path) -> str | None:
     """The top-level frontmatter `version` of a SKILL.md as written, or None when absent.
 
     A line reader rather than YAML, since this skill runs without third-party
-    packages. It reads the key bare or quoted, strips value quotes and trailing
-    comments as YAML would, and leaves anything else verbatim, so a malformed
-    value is reported rather than guessed.
+    packages. It reads the key bare or quoted, reads a quoted value as a
+    single-line YAML scalar, strips trailing comments as YAML would, and leaves
+    anything else verbatim, so a malformed value is reported rather than guessed.
     """
     try:
         lines = skill_md.read_text(encoding="utf-8").splitlines()
@@ -257,15 +319,15 @@ def read_skill_version(skill_md: Path) -> str | None:
     for line in lines[1:]:
         if line.rstrip() == "---":
             return version
-        match = VERSION_KEY_RE.match(line)
-        if not match:
+        value = _version_key_value(line)
+        if value is None:
             continue
-        value = match.group(1).strip()
-        end = value.find(value[0], 1) if value[:1] in ("'", '"') else -1
+        value = value.strip()
+        quoted = _read_quoted(value)
         # Only spaces, then optionally a comment, may follow a closing quote;
         # PyYAML rejects anything else, tabs included.
-        if end > 0 and value[end + 1:].lstrip(" ")[:1] in ("", "#"):
-            value = value[1:end].strip()
+        if quoted and quoted[1].lstrip(" ")[:1] in ("", "#"):
+            value = quoted[0].strip()
         else:
             value = value.split(" #", 1)[0].strip()
         version = None if value in ("", "~", "null") else value

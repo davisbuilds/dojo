@@ -1407,6 +1407,74 @@ def test_version_key_spellings_follow_yaml() -> None:
             )
 
 
+def test_quoted_versions_read_as_yaml_scalars() -> None:
+    """A quoted version or key means what YAML reads it as, escapes included.
+
+    Double quotes decode `x`, `u`, and `U` hex escapes, so they can spell a
+    version; backslashes elsewhere are literal. A malformed escape, or one naming
+    a surrogate or a code point past U+10FFFF, is reported as written: a lone
+    surrogate would break printing the summary.
+    """
+    bs = "\\"
+    with isolated_tempdir() as td:
+        skills, agents, _, _ = _version_fixture(Path(td))
+        # name: (frontmatter, current_version, delta, note reason)
+        cases = {
+            "x-escape": (f'version: "{bs}x31.2.3"', "1.2.3", "ahead", None),
+            "u-escape": (f'version: "{bs}u0031.2.3"', "1.2.3", "ahead", None),
+            "big-u-escape": (f'version: "{bs}U00000031.2.3"', "1.2.3", "ahead", None),
+            "uppercase-hex": (f'version: "1{bs}u002E2.3"', "1.2.3", "ahead", None),
+            "mixed": (f'version: "1.{bs}x32.3-rc.{bs}u0031"', "1.2.3-rc.1", "ahead", None),
+            # The checker strips a decoded version as it strips any other.
+            "escaped-space": (f'version: "{bs}x201.2.3"', "1.2.3", "ahead", None),
+            "escaped-quote-in-comment": (f'version: "{bs}x31.2.3" # {bs}"', "1.2.3", "ahead", None),
+            "escaped-key": (f'"{bs}x76ersion": 1.2.3', "1.2.3", "ahead", None),
+            "escaped-key-and-value": (f'"{bs}u0076ersion": "{bs}u0031.2.3"', "1.2.3", "ahead", None),
+            "escaped-backslash": (f'version: "{bs}{bs}u0031.2.3"', f"{bs}u0031.2.3", "unknown", "SemVer"),
+            "escaped-trailing-backslash": (f'version: "1.2.3{bs}{bs}" # c', f"1.2.3{bs}", "unknown", "SemVer"),
+            "single-quoted": (f"version: '{bs}u0031.2.3'", f"{bs}u0031.2.3", "unknown", "SemVer"),
+            "single-quoted-quote": ("version: '1.2''3'", "1.2'3", "unknown", "SemVer"),
+            "plain": (f"version: {bs}u0031.2.3", f"{bs}u0031.2.3", "unknown", "SemVer"),
+            "decoded-then-junk": (f'version: "{bs}u0031.2.3" junk', f'"{bs}u0031.2.3" junk', "unknown", "SemVer"),
+            "truncated-u": (f'version: "{bs}u003"', f'"{bs}u003"', "unknown", "SemVer"),
+            "truncated-x": (f'version: "1.2.3{bs}x3"', f'"1.2.3{bs}x3"', "unknown", "SemVer"),
+            "non-hex": (f'version: "{bs}u00zz.2.3"', f'"{bs}u00zz.2.3"', "unknown", "SemVer"),
+            # int(..., 16) would accept the underscore and read 1.2.3.
+            "underscore-hex": (f'version: "{bs}u0_31.2.3"', f'"{bs}u0_31.2.3"', "unknown", "SemVer"),
+            "unknown-escape": (f'version: "{bs}q1.2.3"', f'"{bs}q1.2.3"', "unknown", "SemVer"),
+            "unterminated": (f'version: "1.2.3{bs}"', f'"1.2.3{bs}"', "unknown", "SemVer"),
+            "surrogate": (f'version: "{bs}uD800"', f'"{bs}uD800"', "unknown", "SemVer"),
+            "big-u-surrogate": (f'version: "{bs}U0000DFFF1.2.3"', f'"{bs}U0000DFFF1.2.3"', "unknown", "SemVer"),
+            "past-unicode": (f'version: "{bs}U00110000"', f'"{bs}U00110000"', "unknown", "SemVer"),
+            "single-quoted-escaped-key": (f"'{bs}x76ersion': 9.9.9", None, "unknown", "missing"),
+            "malformed-key": (f'"{bs}x7version": 9.9.9', None, "unknown", "missing"),
+            "surrogate-key": (f'"{bs}uD800ersion": 9.9.9', None, "unknown", "missing"),
+            "nested-escaped-key": (f'metadata:\n  "{bs}x76ersion": 9.9.9', None, "unknown", "missing"),
+        }
+        for name, (frontmatter, _, _, _) in cases.items():
+            write_versioned_skill(skills, name, "1.0.0")
+            write_frontmatter_skill(agents, name, frontmatter)
+
+        report = _version_audit(skills)
+        rows = _version_rows(report)
+        agents_root = str(agents.resolve())
+        for name, (frontmatter, current_version, delta, reason) in cases.items():
+            row = rows.get((name, agents_root))
+            assert_true(row is not None, f"missing version row for {name}: {sorted(rows)}")
+            actual = (row["current_version"], row["version_delta"])
+            assert_true(
+                actual == (current_version, delta),
+                f"{name}: expected {(current_version, delta)}, got {actual}: {frontmatter!r}",
+            )
+            assert_true(
+                reason is None or reason in (row["version_note"] or ""),
+                f"{name}: unknown delta must say why: {row}",
+            )
+        # Both report formats must still encode.
+        summarize_report(report).encode("utf-8")
+        json.dumps(report, ensure_ascii=False).encode("utf-8")
+
+
 def test_version_precedence_follows_semver_ordering() -> None:
     """Numeric parts compare as numbers, prereleases rank below their release."""
     # The precedence example from the SemVer 2.0.0 specification, plus core
@@ -1573,6 +1641,7 @@ TESTS = (
     test_version_deltas_report_behind_ahead_equal_and_divergent,
     test_missing_and_malformed_versions_are_unknown_not_zero,
     test_version_key_spellings_follow_yaml,
+    test_quoted_versions_read_as_yaml_scalars,
     test_version_precedence_follows_semver_ordering,
     test_huge_numeric_versions_compare_without_crashing_the_audit,
     test_version_rows_follow_skill_selection,

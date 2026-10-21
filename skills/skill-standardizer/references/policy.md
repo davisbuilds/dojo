@@ -48,7 +48,11 @@ version of their target. Each row gives `source_version`, `current_version`,
 
 Versions come from the top-level `version` key of SKILL.md frontmatter, bare or
 quoted, as written without quotes or trailing comments; a nested `version` does
-not count. Numeric parts compare by value at any length. Versions never replace
+not count. A quoted key or value is read as YAML reads a scalar that closes on
+its line: double quotes decode escapes, so `"\x31.2.3"` is `1.2.3`, and single
+quotes read `''` as `'`. A malformed escape, a surrogate or out-of-range code
+point, or a quote left open is reported as written. Multi-line scalars are not
+read. Numeric parts compare by value at any length. Versions never replace
 content hashes: drift issues, planned actions, and exit codes are unchanged. The text summary lists every delta except
 `equal`.
 
