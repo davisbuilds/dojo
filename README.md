@@ -102,7 +102,8 @@ need additional tools or service access; configure those only when needed.
 ## Work on Dojo
 
 To change skills or use the development CLI, install
-[uv](https://docs.astral.sh/uv/getting-started/installation/) and run from this checkout:
+[uv](https://docs.astral.sh/uv/getting-started/installation/) 0.9.17 or later (the 7-day `exclude-newer` release quarantine needs it) and run
+from this checkout:
 
 ```bash
 uv sync --locked
