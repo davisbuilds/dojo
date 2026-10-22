@@ -87,7 +87,7 @@ git jq python3 sed grep
 
 ### Python Dependencies
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) 0.9.17 or later (the 7-day `exclude-newer` release quarantine needs it), then:
 
 ```bash
 uv sync --locked
