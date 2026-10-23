@@ -2,7 +2,7 @@
 name: skill-standardizer
 description: Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.
 skill-type: workflow
-version: 2.0.1
+version: 2.1.0
 ---
 
 # Skill Standardizer
@@ -86,6 +86,9 @@ Run from anywhere; scripts auto-discover repo root when possible.
   - Resolves canonical root, target roots, and discovered skills.
 - `scripts/audit.py`
   - Detects drift and emits a JSON report plus readable summary.
+  - Reports each copy's version against its source as `behind`, `ahead`, `equal`,
+    `divergent`, or `unknown`. These deltas are informational: they never plan
+    actions or change the exit code. See [version deltas](references/policy.md#version-deltas).
   - Use `--skill <name>` to limit planning to one skill; repeat for multiple skills.
   - Exit codes: `0` no drift, `2` drift found (one or more actions planned), `1` error.
   - Warning-level issues that plan no action (for example an unrecognized non-skill directory) are reported but do not change the exit code.
@@ -250,7 +253,7 @@ See `references/policy.md` for policy details and tradeoffs.
 
 ## Output
 
-- A drift audit report (text or JSON) listing all discovered skills and their sync status
+- A drift audit report (text or JSON) listing all discovered skills, their sync status, and version deltas
 - Recovery records for applied changes, plus preserved copies of unique or uncertain prior contents
 - Symlinks replacing duplicate copies to point at the canonical or primary source
 

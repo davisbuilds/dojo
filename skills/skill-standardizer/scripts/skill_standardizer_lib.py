@@ -39,6 +39,28 @@ DEPRECATED_SKILL_REPLACEMENTS = {
     "obsidian-canvas": "obsidian",
     "imagegen": "gpt-imagen",
 }
+# Same grammar and precedence as skills/skill-evals/scripts/check_skill_versions.py.
+# Duplicated because this skill installs on its own and runs stdlib-only.
+SEMVER_RE = re.compile(
+    r"^(0|[1-9]\d*)\."
+    r"(0|[1-9]\d*)\."
+    r"(0|[1-9]\d*)"
+    r"(?:-((?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?"
+    r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
+)
+# A top-level bare `version` key; quoted keys are read by _read_quoted. YAML
+# allows spaces, not tabs, before the colon. Indented lines belong to a nested mapping.
+VERSION_KEY_RE = re.compile(r"^version *:(.*)$")
+KEY_COLON_RE = re.compile(r"^ *:(.*)$")
+# YAML double-quoted escapes that stay on one line: a single character, or a hex
+# code point of fixed width.
+YAML_ESCAPES = {
+    "0": "\0", "a": "\a", "b": "\b", "t": "\t", "\t": "\t", "n": "\n", "v": "\v",
+    "f": "\f", "r": "\r", "e": "\x1b", " ": " ", '"': '"', "/": "/", "\\": "\\",
+    "N": "\x85", "_": "\xa0", "L": chr(0x2028), "P": chr(0x2029),
+}
+YAML_HEX_ESCAPE_WIDTHS = {"x": 2, "u": 4, "U": 8}
+HEX_DIGITS = frozenset("0123456789abcdefABCDEF")
 
 
 @dataclass
@@ -57,6 +79,8 @@ class SkillEntry:
     is_symlink: bool
     link_target: str | None
     dir_hash: str
+    # As declared in SKILL.md frontmatter; None when absent. Not validated here.
+    version: str | None = None
 
 
 @dataclass
@@ -225,6 +249,163 @@ def hash_directory(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _read_quoted(text: str) -> tuple[str, str] | None:
+    """Split a quoted YAML scalar at the start of `text` from the rest of the line.
+
+    Returns the scalar's value and what follows its closing quote. Single quotes
+    read `''` as `'`; double quotes decode escapes. None when the scalar does not
+    close on this line or an escape is malformed. An escape naming a surrogate or
+    a code point past U+10FFFF is malformed too: chr() refuses the latter, and a
+    lone surrogate cannot be printed in the report.
+    """
+    quote = text[:1]
+    if quote not in ("'", '"'):
+        return None
+    chars: list[str] = []
+    i = 1
+    while i < len(text):
+        char = text[i]
+        if char == quote and quote == "'" and text[i + 1:i + 2] == "'":
+            chars.append("'")
+            i += 2
+        elif char == quote:
+            return "".join(chars), text[i + 1:]
+        elif char == "\\" and quote == '"':
+            code = text[i + 1:i + 2]
+            width = YAML_HEX_ESCAPE_WIDTHS.get(code, 0)
+            digits = text[i + 2:i + 2 + width]
+            if code in YAML_ESCAPES:
+                chars.append(YAML_ESCAPES[code])
+            # Checked by hand: int(..., 16) also accepts underscores and spaces.
+            elif width and len(digits) == width and HEX_DIGITS.issuperset(digits):
+                point = int(digits, 16)
+                if point > 0x10FFFF or 0xD800 <= point <= 0xDFFF:
+                    return None
+                chars.append(chr(point))
+            else:
+                return None
+            i += 2 + width
+        else:
+            chars.append(char)
+            i += 1
+    return None
+
+
+def _version_key_value(line: str) -> str | None:
+    """The text after the colon of a top-level `version` key, or None for any other line."""
+    if line[:1] in ("'", '"'):
+        key = _read_quoted(line)
+        match = KEY_COLON_RE.match(key[1]) if key and key[0] == "version" else None
+    else:
+        match = VERSION_KEY_RE.match(line)
+    return match.group(1) if match else None
+
+
+def read_skill_version(skill_md: Path) -> str | None:
+    """The top-level frontmatter `version` of a SKILL.md as written, or None when absent.
+
+    A line reader rather than YAML, since this skill runs without third-party
+    packages. It reads the key bare or quoted, reads a quoted value as a
+    single-line YAML scalar, strips trailing comments as YAML would, and leaves
+    anything else verbatim, so a malformed value is reported rather than guessed.
+    """
+    try:
+        lines = skill_md.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError):
+        return None
+    if not lines or lines[0].rstrip() != "---":
+        return None
+    version: str | None = None
+    for line in lines[1:]:
+        if line.rstrip() == "---":
+            return version
+        value = _version_key_value(line)
+        if value is None:
+            continue
+        value = value.strip()
+        quoted = _read_quoted(value)
+        # Only spaces, then optionally a comment, may follow a closing quote;
+        # PyYAML rejects anything else, tabs included.
+        if quoted and quoted[1].lstrip(" ")[:1] in ("", "#"):
+            value = quoted[0].strip()
+        else:
+            value = value.split(" #", 1)[0].strip()
+        version = None if value in ("", "~", "null") else value
+    return None
+
+
+def _numeric_key(digits: str) -> tuple[int, str]:
+    """Orders a SemVer numeric part by value, at any length.
+
+    Not int(): it refuses strings past the interpreter's digit limit, and SemVer
+    sets none. The grammar forbids leading zeros, so a longer string is larger.
+    """
+    # `\d` also matches non-ASCII decimal digits; map them so string order is value order.
+    if not digits.isascii():
+        digits = "".join(str(int(c)) for c in digits)
+    return len(digits), digits
+
+
+def _parse_semver(version: str | None) -> tuple[tuple[tuple[int, str], ...], tuple[str, ...]] | None:
+    match = SEMVER_RE.match(version) if version else None
+    if not match:
+        return None
+    core = tuple(_numeric_key(match.group(i)) for i in (1, 2, 3))
+    return core, tuple(match.group(4).split(".")) if match.group(4) else ()
+
+
+def _compare_prerelease(left: tuple[str, ...], right: tuple[str, ...]) -> int:
+    if not left or not right:
+        # A release outranks any of its prereleases.
+        return (not left) - (not right)
+    for a, b in zip(left, right):
+        if a == b:
+            continue
+        if a.isdigit() and b.isdigit():
+            # Distinct spellings can share a value, so equal keys move on.
+            a_key, b_key = _numeric_key(a), _numeric_key(b)
+            if a_key == b_key:
+                continue
+            return -1 if a_key < b_key else 1
+        if a.isdigit() or b.isdigit():
+            return -1 if a.isdigit() else 1
+        return -1 if a < b else 1
+    return (len(left) > len(right)) - (len(left) < len(right))
+
+
+def version_delta(
+    source_version: str | None, current_version: str | None, same_content: bool,
+) -> tuple[str, str | None]:
+    """Classify a copy's version against its source, with a note when needed.
+
+    Returns `behind`, `ahead`, `equal`, `divergent`, or `unknown`. Equal
+    precedence over different content is `divergent`: release-relevant changes
+    must bump the version, so one side changed without a release. A missing or
+    malformed version is `unknown`, never read as 0.0.0.
+    """
+    problems = []
+    for side, version in (("source", source_version), ("current", current_version)):
+        if version is None:
+            problems.append(f"{side} version missing")
+        elif _parse_semver(version) is None:
+            problems.append(f"{side} version {version!r} is not valid SemVer")
+    source, current = _parse_semver(source_version), _parse_semver(current_version)
+    if problems or source is None or current is None:
+        return "unknown", "; ".join(problems)
+    (source_core, source_pre), (current_core, current_pre) = source, current
+    if current_core != source_core:
+        order = -1 if current_core < source_core else 1
+    else:
+        order = _compare_prerelease(current_pre, source_pre)
+    if order < 0:
+        return "behind", None
+    if order > 0:
+        return "ahead", None
+    if same_content:
+        return "equal", None
+    return "divergent", "same version, different content"
+
+
 def scan_root(root: RootSpec, ignore_dirs: set[str] | None = None) -> RootInventory:
     skills: dict[str, SkillEntry] = {}
     invalid_entries: list[str] = []
@@ -264,6 +445,7 @@ def scan_root(root: RootSpec, ignore_dirs: set[str] | None = None) -> RootInvent
             is_symlink=child.is_symlink(),
             link_target=link_target,
             dir_hash=hash_directory(resolved_path),
+            version=read_skill_version(resolved_path / "SKILL.md"),
         )
 
     return RootInventory(root=root, skills=skills, invalid_entries=invalid_entries)
@@ -1097,6 +1279,38 @@ def build_audit_report(
         seen_keys.add(key)
         deduped_actions.append(action)
 
+    # Informational: each copy's version against its source (canonical, else the
+    # preferred global). Planning above never reads versions.
+    versions: list[dict[str, Any]] = []
+    for skill in sorted(all_skill_names):
+        if skill in DEPRECATED_SKILL_REPLACEMENTS or not skill_in_scope(skill):
+            continue
+        if canonical_inventory and skill in canonical_inventory.skills:
+            source_root, source_entry = canonical_inventory.root, canonical_inventory.skills[skill]
+        elif (preferred := preferred_global_for_skill(skill, inventories)) is not None:
+            source_root, source_entry = preferred
+        else:
+            continue
+        for inv in inventories:
+            entry = inv.skills.get(skill)
+            if entry is None or inv.root.path == source_root.path:
+                continue
+            delta, note = version_delta(
+                source_entry.version, entry.version, entry.dir_hash == source_entry.dir_hash,
+            )
+            versions.append({
+                "skill": skill,
+                "root": str(inv.root.path),
+                "root_kind": inv.root.kind,
+                "is_symlink": entry.is_symlink,
+                "source_root": str(source_root.path),
+                "source_version": source_entry.version,
+                "current_version": entry.version,
+                "version_delta": delta,
+                "version_note": note,
+                "content_drift": entry.dir_hash != source_entry.dir_hash,
+            })
+
     report = {
         "generated_at": utc_now_iso(),
         "cwd": str(Path.cwd()),
@@ -1122,6 +1336,7 @@ def build_audit_report(
         "enforce_mirror": enforce_mirror,
         "issues": [_to_jsonable_issue(issue) for issue in issues],
         "actions": [_to_jsonable_issue(action) for action in deduped_actions],
+        "versions": versions,
     }
     return report
 
@@ -1154,6 +1369,20 @@ def summarize_report(report: dict[str, Any]) -> str:
             lines.append(f"- [{code}] {skill}: {msg}")
         if issue_count > 20:
             lines.append(f"- ... ({issue_count - 20} more)")
+
+    deltas = [row for row in report.get("versions", []) if row["version_delta"] != "equal"]
+    if deltas:
+        lines.append("Version deltas:")
+        for row in deltas[:20]:
+            current = row["current_version"] or "missing"
+            source = row["source_version"] or "missing"
+            note = f"; {row['version_note']}" if row["version_note"] else ""
+            lines.append(
+                f"- {row['skill']} @ {row['root_kind']}: {row['version_delta']} "
+                f"(current {current}, source {source}{note})"
+            )
+        if len(deltas) > 20:
+            lines.append(f"- ... ({len(deltas) - 20} more)")
 
     return "\n".join(lines)
 
