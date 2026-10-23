@@ -36,7 +36,7 @@ from profiles.resolve import (  # noqa: E402
     resolve_for_harness,
 )
 
-OVERLAYS = ("design", "engineering", "knowledge", "research", "shipping", "skill-authoring")
+OVERLAYS = ("design", "engineering", "knowledge", "research", "skill-authoring")
 
 
 @pytest.fixture
@@ -68,10 +68,10 @@ def example_suppression():
 # --------------------------------------------------------------------------
 
 
-def test_all_720_permutations_resolve_identically(defs, catalog):
+def test_all_overlay_permutations_resolve_identically(defs, catalog):
     """EV-CON-02, at full strength.
 
-    Six overlays give 720 orderings. A sample would not satisfy this: order
+    Exercise every ordering of the current overlays. Order
     dependence is exactly the kind of bug that hides in whichever orderings a
     sample happens to miss.
     """
@@ -122,6 +122,7 @@ def test_full_tracks_the_catalog_rather_than_a_list(defs, catalog):
     "selection, code",
     [
         (("core", "nonexistent"), SelectionErrorCode.UNKNOWN_PROFILE),
+        (("core", "shipping"), SelectionErrorCode.UNKNOWN_PROFILE),
         (("engineering",), SelectionErrorCode.MISSING_CORE),
         (("core",), SelectionErrorCode.NO_OVERLAY),
         (("core", "engineering", "engineering"), SelectionErrorCode.REPEATED_TOKEN),

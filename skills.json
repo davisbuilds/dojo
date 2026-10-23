@@ -196,7 +196,7 @@
       "name": "skill-evals",
       "description": "Check skill packaging, release versions, and lexical routing fixtures, and choose evidence appropriate to a skill-quality claim. Use when validating a skill edit, investigating trigger collisions, or assessing what an evaluation establishes.",
       "path": "skills/skill-evals",
-      "version": "2.1.0"
+      "version": "2.1.1"
     },
     {
       "name": "skill-installer",
@@ -228,25 +228,6 @@
       "path": "skills/theme-factory",
       "version": "1.0.0",
       "license": "Complete terms in LICENSE.txt"
-    },
-    {
-      "name": "vercel-deploy",
-      "description": "Create and push new Vercel deployments. Use when the user wants to deploy, ship, go live, or create a preview \u2014 e.g. \"deploy my app\", \"push this live\", \"ship it\".",
-      "path": "skills/vercel-deploy",
-      "version": "1.0.2"
-    },
-    {
-      "name": "vercel-preview-logs",
-      "description": "Retrieve and diagnose Vercel build/runtime logs. Use when the user asks to check errors, inspect logs, debug a failed build, or correlate a PR/commit with log output from an existing environment.",
-      "path": "skills/vercel-preview-logs",
-      "version": "1.0.2"
-    },
-    {
-      "name": "vercel-react-best-practices",
-      "description": "React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when writing, reviewing, or refactoring React/Next.js code to ensure optimal performance patterns. Triggers on tasks involving React components, Next.js pages, data fetching, bundle optimization, or performance improvements.",
-      "path": "skills/vercel-react-best-practices",
-      "version": "1.0.2",
-      "license": "MIT"
     },
     {
       "name": "verify-before-complete",

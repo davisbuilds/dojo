@@ -341,4 +341,4 @@ def test_dirty_state_covers_only_the_selected_definitions(tmp_path):
     (tmp_path / "profiles" / "research.yaml").write_text("y")
 
     assert dirty_state(tmp_path, (), ("core", "research")) == ["profiles/research.yaml"]
-    assert dirty_state(tmp_path, (), ("core", "shipping")) == []
+    assert dirty_state(tmp_path, (), ("core", "engineering")) == []

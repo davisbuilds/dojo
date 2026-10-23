@@ -68,14 +68,6 @@ accessibility compliance.
 | `secure-code` | Security investigation with scan evidence, flow tracing, and agent authority review |
 | `audit-skill` | Investigate skill instructions, scripts, provenance, and effective authority; collect indicators without trust grades |
 
-### Platform Integrations
-
-| Skill | Purpose |
-|-------|---------|
-| `vercel-deploy` | Deploy to Vercel |
-| `vercel-preview-logs` | Debug Vercel preview deployments |
-| `vercel-react-best-practices` | React/Next.js performance optimization |
-
 ### UI Automation
 
 | Skill | Purpose |

@@ -253,8 +253,8 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 
 ### Revalidate earlier catalog improvement candidates before selecting work
 
-- **What**: the March 2026 roadmap proposed combining Vercel deploy/preview skills,
-  sharing image-provider plumbing, bundling fetched web guidelines, research caching,
+- **What**: the March 2026 roadmap proposed sharing image-provider plumbing,
+  bundling fetched web guidelines, research caching,
   example specs, semantic trigger scoring, and broader hook/validator tests.
 - **Why or evidence**: these were source-review suggestions, not evidence that a
   capability was missing from today's model/harness or that a merger would help.
@@ -263,25 +263,3 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 - **Revisit when**: observed user friction or a selected catalog review supplies a
   current need. Check existing skills, tools, examples, and tests before adopting
   any candidate; preserve distinct triggers when they serve different tasks.
-
-### Reassess the retained React performance reference
-- **What**: Decide whether `vercel-react-best-practices` still earns a standalone
-  skill or should retire in favor of project guidance and current documentation.
-- **Evidence (2026-10-10 frontend audit)**: Broad write/refactor triggers and a
-  blanket no-barrel-import verification rule conflict with the bundled reference's
-  optimized-import exception. No task-outcome comparison was run.
-- **Next**: Review the useful remainder and its consumers before retirement; do
-  not replace the collection with another generic reference just to preserve it.
-
-### Repair or retire the Vercel deployment fallback
-- **What**: Decide whether the claimable-deployment fallback is needed, then repair
-  its authority and completion semantics or remove it.
-- **Evidence (2026-10-10 source audit)**: `vercel-deploy` falls back on an auth error
-  to a separate upload endpoint. `scripts/deploy.sh` packages the project with a
-  small exclusion list, calls 4xx responses ready, and can exit successfully after
-  its readiness timeout. The skill also prohibits fetching the deployed page.
-  No deployment or external upload was performed in the audit.
-- **Next**: Resolve before relying on this fallback. Prefer the project's existing
-  deployment route; if retained, make upload destination/scope explicit and
-  distinguish accepted, ready, failed, and unverified outcomes. Review the paired
-  `vercel-preview-logs` wrapper's runtime assumptions in the same bounded pass.
