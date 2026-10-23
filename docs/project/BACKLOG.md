@@ -263,17 +263,3 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 - **Revisit when**: observed user friction or a selected catalog review supplies a
   current need. Check existing skills, tools, examples, and tests before adopting
   any candidate; preserve distinct triggers when they serve different tasks.
-
-### Complete downstream Vercel skill retirement migration
-
-- **What**: remove managed project links and selection declarations for the three
-  retired Vercel skills before syncing the canonical removal to consumers.
-- **Why / evidence, 2026-10-23**: read-only workspace inspection found project
-  links to the React reference and preview-log wrapper, with corresponding
-  deployment declarations owned outside Dojo. The isolated Dojo branch does not
-  change those installed links. See the [retirement decision](DECISIONS.md#vercel-skills-and-shipping-profile-retirement).
-- **Next**: coordinate the owning project/deployment edits on each managed host;
-  preserve unrelated skills and project deployment conventions. Reject or revise
-  saved selections naming `shipping`, then check for dangling links and effective
-  discovery after sync. Historical captures are evidence, not installations to
-  rewrite. Do not merge the canonical removal before that migration is ready.

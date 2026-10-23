@@ -49,8 +49,8 @@ gap that project guidance and current tools do not address.
 
 ### Distribution boundary
 
-Managed consumers have project links and deployment declarations outside this repo.
-Coordinate their removal before merging and syncing the canonical deletion, while
-preserving unrelated selections and project deployment behavior. The
-[backlog](BACKLOG.md#complete-downstream-vercel-skill-retirement-migration) owns the
-remaining migration work. Historical evidence is not an installation to rewrite.
+Managed consumers own project links and deployment declarations outside this repo.
+Remove references to the retired skills before syncing the canonical deletion,
+while preserving unrelated selections and project deployment behavior. Deployment
+owners keep their migration receipts; historical evidence is not an installation
+to rewrite.
