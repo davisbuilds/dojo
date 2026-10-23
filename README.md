@@ -138,7 +138,7 @@ instructions use per-skill versions and changelogs; the root
 - [agent-scripts](https://github.com/steipete/agent-scripts)
 - [anthropics/skills](https://github.com/anthropics/skills)
 - [compound-engineering-plugin](https://github.com/everyinc/compound-engineering-plugin) — source of the original agent-native-architecture skill (now rewritten as agent-native-design) and the retired compound-docs skill
-- [Vercel skills](https://github.com/vercel/next.js) — React, Next.js, React Native best-practice rules and composition patterns, plus preview deployment debugging workflows
+- Vercel skill contributions — retired React/Next.js references and deployment workflows remain available in Git history; see the [retirement decision](docs/project/DECISIONS.md#vercel-skills-and-shipping-profile-retirement).
 - [Kepano's Obsidian skills](https://github.com/kepano) — Obsidian Markdown, Bases, and JSON Canvas skill references
 - [skills.sh](https://skills.sh) — community skill registry and discovery
 - [Google Labs `@google/design.md`](https://github.com/google-labs-code/design.md) — DESIGN.md format and CLI wrapped by the `design-md` skill (Apache-2.0)

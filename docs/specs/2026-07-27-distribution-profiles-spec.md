@@ -357,7 +357,7 @@ catalog as conformant.
   intentional exclusion, not an implicit installation request.
 - **SC-02 — Composable profiles:** The public profile vocabulary consists of a
   `core` baseline, the capability overlays `engineering`, `research`, `design`,
-  `knowledge`, `shipping`, and `skill-authoring`, plus a `full` inspection
+  `knowledge` and `skill-authoring`, plus a `full` inspection
   profile. Overlay order cannot change resolved membership, member overlap
   across overlays collapses deterministically, and every resolved member must
   exist in the canonical catalog. Each capability overlay adds at least two
@@ -365,8 +365,7 @@ catalog as conformant.
   includes `create-cli` and `secure-code`; `research` includes `deep-research`
   and `research-architect`; `design` includes `design-critique` and
   `frontend-design`; `knowledge` includes `obsidian` and
-  `session-retro`; `shipping` includes `vercel-deploy` and `vercel-preview-logs`;
-  and `skill-authoring` includes `skill-creator` and `skill-standardizer`.
+  `session-retro`; and `skill-authoring` includes `skill-creator` and `skill-standardizer`.
   `full` resolves to every canonical skill at the selected revision. Complete
   overlay membership is explicit profile evidence, not inferred from category
   names or installed state. **Anchors constrain the profile definition, not the
@@ -902,6 +901,13 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-10-23 (revision 20). Retire Vercel skills and the shipping overlay.**
+  SC-02 removes `shipping` from the public vocabulary; selections naming it fail
+  explicitly rather than silently losing deployment capabilities. The other
+  overlay contracts remain unchanged. Historical captures and measurements keep
+  their original catalog. See the [decision](../project/DECISIONS.md#vercel-skills-and-shipping-profile-retirement)
+  for rationale and downstream migration requirements.
 
 - **2026-10-07 (revision 19). Retain Dojo's standalone creator.** SC-02 and
   the harness-resolution assumptions now distinguish a native alternative from

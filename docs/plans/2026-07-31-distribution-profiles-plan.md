@@ -12,6 +12,12 @@ spec: docs/specs/2026-07-27-distribution-profiles-spec.md
 
 # Distribution Profiles Plan
 
+Historical implementation plan. SC-02 revision 20 (2026-10-23) retires the
+`shipping` overlay and its Vercel skills. The file roster, six-overlay counts,
+and shipping anchors below describe the original implementation; current
+selection is owned by the [spec](../specs/2026-07-27-distribution-profiles-spec.md#success-criteria)
+and `profiles/`. Do not recreate retired members from this plan.
+
 ## Goal
 
 Deliver the distribution-profiles contract in

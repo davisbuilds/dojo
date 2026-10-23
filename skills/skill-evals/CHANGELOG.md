@@ -1,8 +1,12 @@
+# Changelog
+
+## 2.1.1 - 2026-10-23
+
+- Keep sample routing exclusions grounded in the current catalog after Vercel retirement.
+
 ## 2.1.0 - 2026-10-06
 
 - Add optional skill selection to the shared release-check function for focused CLI validation; existing whole-repository checks retain their behavior.
-
-# Changelog
 
 ## 2.0.0 - 2026-10-06
 

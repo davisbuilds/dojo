@@ -295,7 +295,7 @@ def test_the_ci_gate_passes_and_says_what_it_evaluated(capsys):
     code, captured = run_ci_check(capsys)
     assert code == 0, captured.err
     out = captured.out
-    assert "compositions resolved: 6 of 6" in out
+    assert "compositions resolved: 5 of 5" in out
     assert re.search(r"scored core\+engineering: \d+ skills, [1-9]\d* tokens", out), (
         "the gate must score a real composition, not merely load files")
     assert "NOT checked here" in out, (

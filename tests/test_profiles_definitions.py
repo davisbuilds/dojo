@@ -48,7 +48,6 @@ SC02_VOCABULARY = {
     "research",
     "design",
     "knowledge",
-    "shipping",
     "skill-authoring",
     "full",
 }
@@ -71,7 +70,6 @@ SC02_ANCHORS = {
     "research": {"deep-research", "research-architect"},
     "design": {"design-critique", "frontend-design"},
     "knowledge": {"obsidian", "session-retro"},
-    "shipping": {"vercel-deploy", "vercel-preview-logs"},
     "skill-authoring": {"skill-creator", "skill-standardizer"},
 }
 
@@ -207,13 +205,13 @@ def test_rejects_duplicate_key_inside_one_file(workdir, catalog):
     PyYAML's default is last-wins: the reviewed list above would be discarded in
     silence, and the file would still read as correct.
     """
-    (workdir / "shipping.yaml").write_text(
-        "name: shipping\nkind: overlay\ndescription: x\n"
-        "members: [vercel-deploy, vercel-preview-logs]\n"
+    (workdir / "engineering.yaml").write_text(
+        "name: engineering\nkind: overlay\ndescription: x\n"
+        "members: [create-cli, secure-code]\n"
         "members: [caveman]\n",
         encoding="utf-8",
     )
-    with pytest.raises(ProfileDefinitionError, match=r"shipping\.yaml.*duplicate key 'members'"):
+    with pytest.raises(ProfileDefinitionError, match=r"engineering\.yaml.*duplicate key 'members'"):
         load(workdir, catalog)
 
 
@@ -323,8 +321,8 @@ def test_rejects_the_sentinel_in_an_overlay(workdir, catalog):
 
 
 def test_rejects_a_duplicated_member_within_one_profile(workdir, catalog):
-    mutate(workdir / "shipping.yaml", members=["vercel-preview-logs", "vercel-deploy", "vercel-deploy"])
-    with pytest.raises(ProfileDefinitionError, match=r"shipping\.yaml.*'shipping'.*vercel-deploy more than once"):
+    mutate(workdir / "engineering.yaml", members=["secure-code", "create-cli", "create-cli"])
+    with pytest.raises(ProfileDefinitionError, match=r"engineering\.yaml.*'engineering'.*create-cli more than once"):
         load(workdir, catalog)
 
 
@@ -519,12 +517,3 @@ def test_the_enforced_core_matches_the_contract_restated_here(profiles):
     """
     assert set(definitions.CORE_MEMBERS) == SC03_CORE
     assert set(profiles["core"].members) == SC03_CORE
-
-
-@pytest.mark.parametrize("missing", ["vercel-deploy", "vercel-preview-logs"])
-def test_shipping_requires_deployment_and_feedback(workdir, catalog, missing):
-    members = [m for m in ("vercel-deploy", "vercel-preview-logs") if m != missing]
-    # Keep the overlay nontrivial so the missing anchor causes the rejection.
-    mutate(workdir / "shipping.yaml", members=[*members, "caveman"])
-    with pytest.raises(ProfileDefinitionError, match=rf"shipping.*anchor.*{missing}"):
-        load(workdir, catalog)

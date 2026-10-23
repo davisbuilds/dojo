@@ -253,8 +253,8 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 
 ### Revalidate earlier catalog improvement candidates before selecting work
 
-- **What**: the March 2026 roadmap proposed combining Vercel deploy/preview skills,
-  sharing image-provider plumbing, bundling fetched web guidelines, research caching,
+- **What**: the March 2026 roadmap proposed sharing image-provider plumbing,
+  bundling fetched web guidelines, research caching,
   example specs, semantic trigger scoring, and broader hook/validator tests.
 - **Why or evidence**: these were source-review suggestions, not evidence that a
   capability was missing from today's model/harness or that a merger would help.
@@ -264,24 +264,16 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   current need. Check existing skills, tools, examples, and tests before adopting
   any candidate; preserve distinct triggers when they serve different tasks.
 
-### Reassess the retained React performance reference
-- **What**: Decide whether `vercel-react-best-practices` still earns a standalone
-  skill or should retire in favor of project guidance and current documentation.
-- **Evidence (2026-10-10 frontend audit)**: Broad write/refactor triggers and a
-  blanket no-barrel-import verification rule conflict with the bundled reference's
-  optimized-import exception. No task-outcome comparison was run.
-- **Next**: Review the useful remainder and its consumers before retirement; do
-  not replace the collection with another generic reference just to preserve it.
+### Complete downstream Vercel skill retirement migration
 
-### Repair or retire the Vercel deployment fallback
-- **What**: Decide whether the claimable-deployment fallback is needed, then repair
-  its authority and completion semantics or remove it.
-- **Evidence (2026-10-10 source audit)**: `vercel-deploy` falls back on an auth error
-  to a separate upload endpoint. `scripts/deploy.sh` packages the project with a
-  small exclusion list, calls 4xx responses ready, and can exit successfully after
-  its readiness timeout. The skill also prohibits fetching the deployed page.
-  No deployment or external upload was performed in the audit.
-- **Next**: Resolve before relying on this fallback. Prefer the project's existing
-  deployment route; if retained, make upload destination/scope explicit and
-  distinguish accepted, ready, failed, and unverified outcomes. Review the paired
-  `vercel-preview-logs` wrapper's runtime assumptions in the same bounded pass.
+- **What**: remove managed project links and selection declarations for the three
+  retired Vercel skills before syncing the canonical removal to consumers.
+- **Why / evidence, 2026-10-23**: read-only workspace inspection found project
+  links to the React reference and preview-log wrapper, with corresponding
+  deployment declarations owned outside Dojo. The isolated Dojo branch does not
+  change those installed links. See the [retirement decision](DECISIONS.md#vercel-skills-and-shipping-profile-retirement).
+- **Next**: coordinate the owning project/deployment edits on each managed host;
+  preserve unrelated skills and project deployment conventions. Reject or revise
+  saved selections naming `shipping`, then check for dangling links and effective
+  discovery after sync. Historical captures are evidence, not installations to
+  rewrite. Do not merge the canonical removal before that migration is ready.
