@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import html
 import importlib.util
 import json
 import re
@@ -22,7 +21,8 @@ def load_module():
 def embedded_data(page: str):
     m = re.search(r'<script id="data" type="application/json">(.*?)</script>', page, re.DOTALL)
     assert m
-    return json.loads(html.unescape(m.group(1)))
+    # Script contents are raw text: the browser does not decode HTML entities.
+    return json.loads(m.group(1))
 
 
 def test_build_page_embeds_name_desc_triggers():
@@ -77,3 +77,14 @@ def test_escapes_html_in_descriptions():
     assert "</script>alert" not in page
     data = embedded_data(page)
     assert data[0]["description"] == '<script>alert("xss")</script>'
+
+
+def test_content_edges_preserve_text_and_script_boundary():
+    module = load_module()
+    manifest = json.loads((REPO_ROOT / "tests/fixtures/catalog-content-edges.json").read_text())
+    page = module.build_page(manifest)
+    assert embedded_data(page) == manifest["skills"]
+    payload = re.search(r'<script id="data" type="application/json">(.*?)</script>', page, re.DOTALL).group(1)
+    # A literal '<' could open a closing-script token or an HTML comment that
+    # changes the tokenizer state, even though the script is a JSON data block.
+    assert "<" not in payload

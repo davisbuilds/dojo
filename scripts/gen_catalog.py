@@ -17,7 +17,6 @@ Usage:
 """
 
 import argparse
-import html
 import json
 import sys
 from pathlib import Path
@@ -86,7 +85,10 @@ def build_page(manifest: dict) -> str:
         {k: v for k, v in s.items() if k in ("name", "description", "version", "triggers")}
         for s in skills
     ]
-    data = html.escape(json.dumps(catalog, ensure_ascii=False), quote=False)
+    # Script data is raw text, so HTML entities would corrupt displayed values.
+    # JSON escapes round-trip through JSON.parse while preventing HTML's script
+    # end/comment tokens from appearing in the data block.
+    data = json.dumps(catalog, ensure_ascii=False).replace("<", "\\u003c")
     return PAGE_TEMPLATE.format(count=len(catalog), data=data)
 
 
