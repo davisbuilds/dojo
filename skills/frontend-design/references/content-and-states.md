@@ -61,12 +61,3 @@ missing verification recipe, a tested project-local instruction may help; this
 reference does not require creating one. Preserve useful evidence outside scratch
 state that cleanup removes. A demonstrated repair establishes that case, not a
 general claim that this skill improves agent performance.
-
-## Sources and adaptation
-
-The content-edge examples and layout remedies adapt Emil Kowalski's
-[`break-ui` and its catalog](https://github.com/emilkowalski/skills/tree/2d228630ba1446365f614a108cb8252f1feda202/skills/break-ui),
-under the MIT license. Dojo rewrites and narrows the guidance: cases are selected
-for the task, existing fixtures are preferred, and no toggle, report format, or
-new approval step is required. The serialization example comes from exercising
-Dojo's own catalog generator. See [third-party notices](../THIRD_PARTY_NOTICES.md).

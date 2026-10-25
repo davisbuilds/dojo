@@ -2,7 +2,7 @@
 name: frontend-design
 description: Build or refine frontend interfaces with intentional visual design. Use when creating a page or component, shaping a UI's visual direction, or improving its layout, hierarchy, and interaction states. For critique without implementation, use design-critique.
 skill-type: workflow
-license: Complete terms in LICENSE.txt and THIRD_PARTY_NOTICES.md
+license: Complete terms in LICENSE.txt
 version: 2.1.0
 ---
 

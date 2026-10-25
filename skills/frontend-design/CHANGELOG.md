@@ -4,8 +4,8 @@
 
 - Add an optional content-and-states reference with input-boundary checks,
   concrete layout and recovery remedies, and scoped rendered verification.
-- Adapt selected examples from Emil Kowalski's MIT-licensed `break-ui` guidance
-  with pinned attribution and bundled license notice; retain task discretion.
+- Keep source credits in the repository README and the required third-party
+  license notice in the standalone bundle; retain task discretion.
 
 ## 2.0.0 - 2026-10-10
 

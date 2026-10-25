@@ -1,7 +1,6 @@
 <!--
 Source: https://styles.refero.design/style/4e3b4717-84c8-4599-baaf-a343c3d619b6
 Fetched: 2026-05-03
-Attribution: Refero (styles.refero.design)
 Aesthetic pole: warm ivory, technical-studio, custom typography, light theme.
 Verbatim copy of Refero's Style Reference markdown export.
 -->

@@ -42,13 +42,15 @@
       "name": "caveman",
       "description": "Ultra-compressed communication mode, persistent across turns once active. Use when the user says \"caveman mode\", \"talk like caveman\", \"use caveman\", \"less tokens\", asks to compress agent responses for the rest of the session, or invokes /caveman. Stop with \"stop caveman\" or \"normal mode\".",
       "path": "skills/caveman",
-      "version": "1.0.1"
+      "version": "1.0.2",
+      "license": "Third-party terms in LICENSE.txt"
     },
     {
       "name": "create-cli",
       "description": "Design command-line interface parameters and UX: arguments, flags, subcommands, help text, output formats, error messages, exit codes, prompts, config/env precedence, and safe/dry-run behavior. Use when designing a CLI, refactoring its interface, or resolving a specific CLI UX decision during implementation. Reuse settled conventions without requiring a separate design document.\n",
       "path": "skills/create-cli",
-      "version": "2.1.0"
+      "version": "2.1.1",
+      "license": "Third-party terms in LICENSE.txt"
     },
     {
       "name": "deep-research",
@@ -60,19 +62,20 @@
       "name": "design-critique",
       "description": "Review an interface's visual hierarchy, usability, interaction states, and product fit. Use when asked to critique a UI, assess polish or accessibility concerns, identify generic design choices, or recommend what to improve. Return grounded findings and concrete alternatives; use frontend-design to implement changes.",
       "path": "skills/design-critique",
-      "version": "2.0.0"
+      "version": "2.0.1"
     },
     {
       "name": "design-md",
       "description": "Read, write, lint, diff, and export DESIGN.md files using the Google @google/design.md format. Use when the user mentions DESIGN.md, design tokens, extracting a design system, linting design tokens, exporting tokens to Tailwind, DTCG, or CSS variables, or when authoring a fresh design-system reference for a project.",
       "path": "skills/design-md",
-      "version": "2.0.1"
+      "version": "2.0.2"
     },
     {
       "name": "diagnose",
       "description": "Disciplined debugging loop for hard bugs and performance regressions. Use when the user says \"diagnose this\", \"debug this\", \"this is broken/throwing/failing\", reports a bug whose cause is non-obvious, or describes a performance regression. For completion-time evidence checks use verify-before-complete; for new-test methodology use test-strategy; for post-hoc code review use local-review.",
       "path": "skills/diagnose",
-      "version": "2.0.0"
+      "version": "2.0.1",
+      "license": "Third-party terms in LICENSE.txt"
     },
     {
       "name": "fetchmd",
@@ -97,7 +100,7 @@
       "description": "Build or refine frontend interfaces with intentional visual design. Use when creating a page or component, shaping a UI's visual direction, or improving its layout, hierarchy, and interaction states. For critique without implementation, use design-critique.",
       "path": "skills/frontend-design",
       "version": "2.1.0",
-      "license": "Complete terms in LICENSE.txt and THIRD_PARTY_NOTICES.md"
+      "license": "Complete terms in LICENSE.txt"
     },
     {
       "name": "gemini-imagen",
@@ -139,7 +142,8 @@
       "name": "obsidian",
       "description": "Work in an Obsidian vault \u2014 notes with wikilinks, properties, tags, callouts, and embeds; Bases (.base); Canvas (.canvas); and the Obsidian CLI for answers only the running app has. Use when creating, editing, or checking vault files, or when the user mentions Obsidian, wikilinks, Bases, canvases, or the obsidian CLI.",
       "path": "skills/obsidian",
-      "version": "1.0.0"
+      "version": "1.0.1",
+      "license": "Third-party terms in LICENSE.txt"
     },
     {
       "name": "playwright",

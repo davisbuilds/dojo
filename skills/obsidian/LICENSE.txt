@@ -1,14 +1,8 @@
-# Third-party notices
-
-`references/content-and-states.md` includes adapted content-edge examples and
-layout remedies from Emil Kowalski's `break-ui` skill and catalog, revision
-`2d228630ba1446365f614a108cb8252f1feda202`. The reference identifies Dojo's changes.
-The following license applies to that material; the existing Apache-2.0 license
-continues to cover the rest of this skill.
+Third-party material in the Markdown, Bases, and Canvas references:
 
 MIT License
 
-Copyright (c) 2026 Emil Kowalski
+Copyright (c) 2026 Steph Ango (@kepano)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
