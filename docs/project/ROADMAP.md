@@ -22,6 +22,13 @@ The bounded [development CLI pilot](../design/2026-10-06-dojo-cli-pilot.md)
 connects existing packaging checks and effective-catalog evidence. Evaluate it
 through real authoring and discovery work before expanding its command surface.
 
+The next selected catalog work emphasizes specialist knowledge grounded in real
+usage. Build on the frontend content/state reference with optional motion and
+interaction remedies. Investigate an unresolved interaction bug using existing
+project tools before deciding whether repeated inspection mechanics justify a
+bundled helper; the [follow-up](BACKLOG.md#investigate-a-real-interaction-bug-before-extracting-browser-tooling)
+owns that decision.
+
 ## Further Review
 
 The [composition-audit backlog entry](BACKLOG.md#evaluate-workflow-revisions-and-extend-the-composition-audit)
