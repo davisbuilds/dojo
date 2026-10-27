@@ -154,8 +154,3 @@ remain beside the guidance or fixtures they help verify and maintain.
 - [Command Line Interface Guidelines](https://clig.dev/) by Aanand Prasad, Ben Firshman, Carl Tashian, Eva Parish, and contributors; design by Mark Hurrell — the `create-cli` reference adapts this [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) guide for human, script, and agent consumers. Agent discovery, bounded evidence, and asynchronous lifecycle guidance are Dojo additions.
 - [Microsoft Playwright CLI](https://github.com/microsoft/playwright-cli) — Apache-2.0 material adapted for the `playwright` skill, with a wrapper and local reference guides; see its bundled notice.
 
-The comparative review also consulted [gstack](https://github.com/garrytan/gstack),
-[Addy Osmani's agent skills](https://github.com/addyosmani/agent-skills),
-[Cursor's pstack](https://github.com/cursor/plugins/tree/main/pstack), and Matt
-Pocock's writing guidance for disclosure, verification, and evaluation practices.
-Consultation is distinct from importing their tools or adopting their workflows.
