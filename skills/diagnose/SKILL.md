@@ -2,7 +2,8 @@
 name: diagnose
 description: Disciplined debugging loop for hard bugs and performance regressions. Use when the user says "diagnose this", "debug this", "this is broken/throwing/failing", reports a bug whose cause is non-obvious, or describes a performance regression. For completion-time evidence checks use verify-before-complete; for new-test methodology use test-strategy; for post-hoc code review use local-review.
 skill-type: workflow
-version: 2.0.0
+license: Third-party terms in LICENSE.txt
+version: 2.0.1
 ---
 
 # Diagnose

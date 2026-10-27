@@ -2,11 +2,7 @@
 name: design-critique
 description: Review an interface's visual hierarchy, usability, interaction states, and product fit. Use when asked to critique a UI, assess polish or accessibility concerns, identify generic design choices, or recommend what to improve. Return grounded findings and concrete alternatives; use frontend-design to implement changes.
 skill-type: workflow
-metadata:
-  upstream:
-    taxonomy: "https://impeccable.style/slop"
-    license: "Web-published; descriptions paraphrased with attribution"
-version: 2.0.0
+version: 2.0.1
 ---
 
 # Design Critique

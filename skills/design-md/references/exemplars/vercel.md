@@ -1,7 +1,6 @@
 <!--
 Source: https://styles.refero.design/style/<vercel-id>
 Fetched: 2026-05-03
-Attribution: Refero (styles.refero.design)
 Aesthetic pole: near-monochrome developer-tooling, pill-radius buttons, conic-gradient hero accent, Geist typography.
 Verbatim copy of Refero's Style Reference markdown export.
 -->

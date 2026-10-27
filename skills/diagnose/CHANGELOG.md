@@ -1,3 +1,7 @@
+## 2.0.1 - 2026-10-25
+
+- Include the upstream MIT notice with standalone bundles; keep narrative credits in the repository README.
+
 ## 2.0.0 - 2026-09-17
 
 - Separate investigation and repair authority; allow evidence-led diagnosis without fixed phases, hypothesis counts, or required artifacts.

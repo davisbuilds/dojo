@@ -29,6 +29,11 @@ are fallible prompts for review, not semantic checks or release gates.
 - Keep instructions relevant; move optional detail to references when it helps
   selection. Line count is an advisory placement signal, not a length mandate.
 - Add only what the agent does not already know. Context is shared and finite.
+- Put third-party credits and adaptation summaries in the repository README's
+  Acknowledgements section. Keep required license/notice files in each affected
+  skill bundle so standalone installs preserve them. Retain technical citations
+  and source/version metadata where they support verification or maintenance;
+  avoid repeating credit sections in task instructions and optional references.
 - Identify the capability, preference, or consequential failure that justifies
   an instruction. Prefer narrowing or removing obsolete process over adding
   exceptions; preserve actual authority and consumer requirements. A shorter

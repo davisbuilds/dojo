@@ -133,15 +133,23 @@ instructions use per-skill versions and changelogs; the root
 
 ## Acknowledgements
 
+Credits for adopted and adapted material live here so skill instructions stay
+focused on the task. Required license and notice files travel with each affected
+skill when installed separately. Technical citations and source/version records
+remain beside the guidance or fixtures they help verify and maintain.
+
 - [awesome-claude-code](https://github.com/hesreallyhim/awesome-claude-code)
 - [superpowers](https://github.com/obra/superpowers)
 - [agent-scripts](https://github.com/steipete/agent-scripts)
 - [anthropics/skills](https://github.com/anthropics/skills)
 - [compound-engineering-plugin](https://github.com/everyinc/compound-engineering-plugin) — source of the original agent-native-architecture skill (now rewritten as agent-native-design) and the retired compound-docs skill
 - Vercel skill contributions — retired React/Next.js references and deployment workflows remain available in Git history; see the [retirement decision](docs/project/DECISIONS.md#vercel-skills-and-shipping-profile-retirement).
-- [Kepano's Obsidian skills](https://github.com/kepano) — Obsidian Markdown, Bases, and JSON Canvas skill references
+- [Kepano's Obsidian skills](https://github.com/kepano/obsidian-skills) — MIT-licensed Markdown, Bases, and JSON Canvas references, consolidated into `obsidian`
 - [skills.sh](https://skills.sh) — community skill registry and discovery
 - [Google Labs `@google/design.md`](https://github.com/google-labs-code/design.md) — DESIGN.md format and CLI wrapped by the `design-md` skill (Apache-2.0)
 - [Refero](https://styles.refero.design) — source of the five DESIGN.md exemplars vendored under `skills/design-md/references/exemplars/`
 - [impeccable.style](https://impeccable.style/slop) — slop anti-pattern taxonomy paraphrased into the `design-critique` slop catalog
 - [mattpocock/skills](https://github.com/mattpocock/skills) — source of the `diagnose` (feedback-loop-first debugging) and `caveman` (ultra-compressed communication mode) skills (MIT)
+- [Emil Kowalski's `break-ui`](https://github.com/emilkowalski/skills/tree/2d228630ba1446365f614a108cb8252f1feda202/skills/break-ui) — MIT-licensed content-edge examples and layout remedies adapted into `frontend-design`. Dojo makes case selection optional, reuses existing fixtures, and omits the prescribed toggle, report format, and approval pause.
+- [Command Line Interface Guidelines](https://clig.dev/) by Aanand Prasad, Ben Firshman, Carl Tashian, Eva Parish, and contributors; design by Mark Hurrell — the `create-cli` reference adapts this [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) guide for human, script, and agent consumers. Agent discovery, bounded evidence, and asynchronous lifecycle guidance are Dojo additions.
+- [Microsoft Playwright CLI](https://github.com/microsoft/playwright-cli) — Apache-2.0 material adapted for the `playwright` skill, with a wrapper and local reference guides; see its bundled notice.

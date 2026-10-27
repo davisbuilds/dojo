@@ -1,7 +1,6 @@
 <!--
 Source: https://styles.refero.design/style/90ce5883-bb24-4466-93f7-801cd617b0d1
 Fetched: 2026-05-03
-Attribution: Refero (styles.refero.design)
 Aesthetic pole: dark midnight command center, single high-energy accent, layered surfaces.
 Verbatim copy of Refero's Style Reference markdown export.
 -->

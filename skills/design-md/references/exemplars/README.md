@@ -1,6 +1,6 @@
 # Exemplar DESIGN.md Files
 
-Five opinionated, brand-extracted DESIGN.md files curated from [Refero](https://styles.refero.design). Each spans a different aesthetic pole so the agent has anchors to sample from when authoring or critiquing token systems.
+Five opinionated, brand-extracted DESIGN.md files. Each spans a different aesthetic pole so the agent has anchors to sample from when authoring or critiquing token systems.
 
 These are stored in Refero's *Style Reference* markdown export format (the same shape Refero exposes from each style detail page). It overlaps heavily with Google's `@google/design.md` schema but is not byte-identical — Refero's export is richer (Surfaces / Elevation / Imagery / Layout / Similar Brands sections), and it omits the YAML frontmatter that the Google CLI lints against. When using these to write a new strict-spec DESIGN.md, treat them as taste references and translate to the format-primer's frontmatter shape.
 

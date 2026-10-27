@@ -1,12 +1,4 @@
-# Command Line Interface Guidelines (adapted)
-
-Source + contribution:
-- Full guide: https://clig.dev/
-- Propose changes: https://github.com/cli-guidelines/cli-guidelines
-
-Adapted for Dojo: the upstream human-first emphasis becomes consumer-aware
-design below. Agent discovery, bounded evidence, and asynchronous lifecycle
-guidance are local additions, not claims about the upstream guide.
+# Command Line Interface Guidelines
 
 Table of contents:
 - Foreword
@@ -244,7 +236,3 @@ This is a practical rubric for designing CLI interfaces (args/flags/subcommands/
 - Heroku CLI Style Guide
 - [Justin Poehnelt: CLI design for agents](https://justin.poehnelt.com/posts/rewrite-your-cli-for-ai-agents/) — runtime discovery and bounded output; adopted selectively above, not a requirement for raw JSON inputs or a universal CLI rewrite.
 - [Justin Poehnelt: native-app tooling](https://justin.poehnelt.com/posts/ship-mcp-server-native-app/) — an action/wait/inspection example; that lifecycle can inform a CLI without requiring MCP.
-
-## Authors
-
-Original “Command Line Interface Guidelines” authors (and many contributors): Aanand Prasad, Ben Firshman, Carl Tashian, Eva Parish. Design by Mark Hurrell.

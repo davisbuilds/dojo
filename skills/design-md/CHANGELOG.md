@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.2 - 2026-10-25
+
+- Centralize exemplar credits in the repository README; retain source URLs, retrieval dates, and format compatibility guidance beside the fixtures.
+
 ## 2.0.1 - 2026-10-10
 
 - Reconcile reference routing after retirement of the framework and web-guidelines skills.
