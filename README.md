@@ -38,11 +38,9 @@ which skill you want, name it in the request. Prefer the terminal? Use
 
 | What you need | Start with |
 | --- | --- |
-| Review a code change | [local-review](skills/local-review/SKILL.md) |
-| Find the cause of a bug or slowdown | [diagnose](skills/diagnose/SKILL.md) |
-| Design or review an API contract | [api-design](skills/api-design/SKILL.md) |
-| Explore an idea with unclear requirements | [brainstorming](skills/brainstorming/SKILL.md) |
-| Continue ongoing work in another session | [handoff](skills/handoff/SKILL.md) |
+| Find and reconcile drift between installed skill copies | [skill-standardizer](skills/skill-standardizer/SKILL.md) — audit and sync scripts with recovery records |
+| Make a CLI work for people, scripts, and agents | [create-cli](skills/create-cli/SKILL.md) — interface conventions and a specialist reference |
+| Write tests that catch the intended regression | [test-strategy](skills/test-strategy/SKILL.md) — testing preferences, dependency fidelity, and checks for misleading passes |
 
 Browse the [full catalog](docs/system/FEATURES.md), or open the
 [searchable catalog](docs/catalog/index.html) locally in a browser. Read the
@@ -52,22 +50,65 @@ chosen skill's `SKILL.md` for scope and dependencies.
 
 After setup, follow any restart instructions and ask your agent to use the chosen
 skill **in the project you want to work on**, with the task's scope and context.
-For example:
+These examples show tasks and results to inspect; they are not measured gains
+over your agent's existing abilities. Adapt names and paths to your project.
+
+### Reconcile drifted skill copies
+
+Suppose you maintain `test-strategy` in a repository and have installed copies
+in multiple agent homes:
 
 ```text
-Use local-review to review my uncommitted changes relative to HEAD.
-Do not edit files or post comments.
+Use skill-standardizer to audit only test-strategy across this repository and
+my agent skill directories. Show the resolved source and target paths, content
+differences, and proposed copy or link changes. Preserve local customizations;
+if the authoritative copy is unclear, leave that decision open. Do not apply yet.
 ```
 
-A useful review explains **what triggers a defect, what breaks, and where**.
-It can also report no supported findings. A handoff should give the next session
-the decisions, relevant files, completed work, and remaining work needed to
-continue. These describe the skills' intended behavior, not measured gains over
-your agent's existing abilities.
+**Inspect:** the scoped audit and dry-run actions identify which copies differ
+and where each replacement would come from. Once you have chosen the source and
+changes to apply, ask the agent to sync that selection and re-audit the same scope.
+The result includes recovery records and retained unique prior contents; recovery
+is manual. A clean audit establishes alignment under the selected policy, not
+that a harness has loaded the updated skill.
+
+### Make a command usable in automation
+
+Suppose your CLI's `export` command prints progress alongside its JSON output,
+breaking a downstream parser:
+
+```text
+Use create-cli to fix export's output contract for our existing JSON consumer.
+Keep the established command syntax. Send diagnostics to stderr, keep stdout
+parseable, and make missing required input fail clearly without prompting when
+stdin is not a terminal. Implement the change and check success and failure paths.
+```
+
+**Inspect:** captured stdout, stderr, and exit status from the actual command.
+The consumer can parse successful output, diagnostics stay on stderr, and missing
+input produces a useful error and nonzero exit without waiting for a prompt.
+The skill supplies conventions and reference material; your agent uses the
+project's implementation and tooling.
+
+### Check that a regression test catches the bug
+
+Suppose a fix restores keyboard focus after a dialog closes:
+
+```text
+Use test-strategy to add regression coverage for this dialog focus fix using
+the project's existing browser tests. Check that closing the dialog returns
+focus to its opener. Demonstrate failure on the original behavior and success
+with the fix. Use an isolated copy for the pre-fix run, preserve my working
+changes, and exercise real browser focus handling.
+```
+
+**Inspect:** the test reaches the close interaction and fails on the original
+focus assertion, then passes with the fix. A missing dependency or failure to
+open the dialog does not establish regression coverage. The browser exercises
+real focus behavior; use lower-level tests for contracts they can faithfully cover.
 
 Name the skill explicitly for the first attempt. Ask your agent to confirm it
 read the installed `SKILL.md` if you're unsure whether it used the skill.
-A harness's native review command is a separate entrypoint from this example.
 If the skill is missing or stale, point your agent to
 [consumer troubleshooting](docs/system/OPERATIONS.md#skill-troubleshooting).
 
@@ -78,18 +119,18 @@ a skill against your agent's ordinary baseline.
 ## Manual installation
 
 With Git and Python 3.11+ available, clone Dojo and run its installer. This example
-installs `local-review`; replace that name with any skill from the table above:
+installs `skill-standardizer`; replace that name with any skill from the table above:
 
 ```bash
 git clone https://github.com/davisbuilds/dojo.git
 cd dojo
 python3 skills/skill-installer/scripts/install-skill-from-github.py \
-  --agent codex --repo davisbuilds/dojo --path skills/local-review
+  --agent codex --repo davisbuilds/dojo --path skills/skill-standardizer
 ```
 
 For **Claude Code**, replace `--agent codex` with `--agent claude`. The installer
-copies the complete skill from GitHub's `main` into `~/.codex/skills/local-review`
-or `~/.claude/skills/local-review` by default, and prints the destination.
+copies the complete skill from GitHub's `main` into `~/.codex/skills/skill-standardizer`
+or `~/.claude/skills/skill-standardizer` by default, and prints the destination.
 It honors `CODEX_HOME` / `CLAUDE_HOME` and refuses to overwrite an existing directory.
 The installed bundle is a snapshot; pulling this checkout does not update it.
 See [installation options](docs/system/OPERATIONS.md#using-a-skill) for pinned

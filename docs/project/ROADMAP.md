@@ -22,12 +22,18 @@ The bounded [development CLI pilot](../design/2026-10-06-dojo-cli-pilot.md)
 connects existing packaging checks and effective-catalog evidence. Evaluate it
 through real authoring and discovery work before expanding its command surface.
 
-The next selected catalog work emphasizes specialist knowledge grounded in real
-usage. Build on the frontend content/state reference with optional motion and
-interaction remedies. Investigate an unresolved interaction bug using existing
-project tools before deciding whether repeated inspection mechanics justify a
-bundled helper; the [follow-up](BACKLOG.md#investigate-a-real-interaction-bug-before-extracting-browser-tooling)
-owns that decision.
+Make existing capabilities easier to try on real work. Lead consumer examples
+with `skill-standardizer` for executable drift auditing and recoverable sync,
+`create-cli` for specialist interface conventions, and `test-strategy` for
+portable testing preferences and meaningful regression coverage. Each example
+should name a concrete task and a result the user can inspect. These are useful
+starting points, not a required installation set or claims of measured benefit.
+
+The frontend content/state and optional motion references are available. The
+subsequent interaction investigation used existing browser and project test
+tools to reproduce and repair a defect; it did not establish a need for a bundled
+inspection helper. Revisit extraction only when repeated investigation exposes
+mechanics worth maintaining beyond the existing tools.
 
 ## Further Review
 

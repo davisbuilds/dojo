@@ -25,19 +25,6 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 
 ## Open
 
-### Investigate a real interaction bug before extracting browser tooling
-
-- **What**: investigate an unresolved interaction defect using the affected
-  project's existing browser tooling before designing a reusable helper.
-- **Why**: animation inventories alone do not establish correct state, focus,
-  cleanup, or responsiveness. A tool needs to reduce repeated investigation work
-  beyond what the existing browser surface already supplies.
-- **Next**: select a reproducible bug, establish its expected interaction contract,
-  and check the relevant action, interruption, completion, and reduced-motion
-  paths. Repair the defect in its owning project. Extract tooling only if the
-  investigation reveals recurring capture mechanics worth maintaining; no defect
-  or helper design is selected yet.
-
 ### Review test requirements against the current skill design principles
 
 - **What**: review validators and their tests together for requirements that no
