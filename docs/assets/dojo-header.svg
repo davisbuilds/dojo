@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="220" viewBox="0 0 880 220" role="img" aria-labelledby="title desc">
+  <title id="title">Dojo — reusable skills for coding agents</title>
+  <desc id="desc">A simple ink drawing of a dojo entrance, a vermilion sun, and code brackets on warm paper beside the Dojo wordmark.</desc>
+  <rect x="1" y="1" width="878" height="218" rx="16" fill="#f6f2e9" stroke="#ded8cb"/>
+  <g fill="none" stroke="#e9e3d6" stroke-width="1">
+    <path d="M40 60H282M40 100H282M40 140H282M40 180H282"/>
+    <path d="M80 32V188M120 32V188M160 32V188M200 32V188M240 32V188"/>
+  </g>
+  <circle cx="207" cy="64" r="24" fill="#c34c39"/>
+  <g fill="none" stroke="#293932" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M88 102L160 57L232 102Z" fill="#f6f2e9"/>
+    <path d="M79 108H241M101 114V168M219 114V168M94 170H226M83 180H237"/>
+    <path d="M130 168V119H190V168M160 121V166"/>
+    <path d="M110 132H120M110 148H120M200 132H210M200 148H210" stroke-width="3"/>
+  </g>
+  <g fill="none" stroke="#c34c39" stroke-width="4" stroke-linecap="square">
+    <path d="M59 91H47V155H59M261 91H273V155H261"/>
+  </g>
+  <path d="M317 48V172" stroke="#ded8cb" stroke-width="1"/>
+  <text x="358" y="118" fill="#293932" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="68" font-weight="700" letter-spacing="12">DOJO</text>
+  <path d="M361 139H404" stroke="#c34c39" stroke-width="4"/>
+  <text x="422" y="145" fill="#526158" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" letter-spacing="1">SHARPEN YOUR TOOLS.</text>
+</svg>

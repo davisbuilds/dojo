@@ -167,7 +167,6 @@ When two skills share domain vocabulary, the lexical scorer cannot distinguish t
 
 | Pair | Shared Terms | Resolution |
 |------|-------------|------------|
-| vercel-deploy / vercel-preview-logs | deploy, preview | Semantic (intent-based) |
 | first-principles / brainstorming | approaches, trade-offs | Semantic (depth vs breadth) |
 | fetchmd / markdown-converter | markdown, convert | Accepted (different tool domains) |
 | skill-creator / template | workflow, steps, trigger | Semantic (guided vs scaffold) |

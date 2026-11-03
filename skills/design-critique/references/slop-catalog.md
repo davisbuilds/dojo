@@ -6,12 +6,6 @@ authorship. A listed tell can be appropriate for a particular product; establish
 an actual problem before reporting it. Alternatives are suggestions, not fixes
 that must be applied.
 
-## Attribution
-
-The taxonomy and examples are paraphrased from impeccable.style/slop. Names are
-preserved for provenance; descriptions and alternatives are adaptations. This
-reference does not import the upstream tool or workflow.
-
 ## How to use
 
 Consult a relevant category when it helps explain an observed problem. The

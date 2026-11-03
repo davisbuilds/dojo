@@ -38,9 +38,10 @@ skills retain their own versions and changelogs. See
 
 ## CI Gates
 
-GitHub Actions runs regression, strict skill-contract, version, and generated-file
-checks in [the workflow](../../.github/workflows/skill-contract-pilot.yml).
-[Operations](../system/OPERATIONS.md) owns the corresponding local commands.
+[The workflow](../../.github/workflows/skill-contract-pilot.yml) classifies
+commit subjects, then runs `scripts/check`: regression, strict skill-contract,
+version, generated-file, link, and prose checks. Locally, the same command is
+the pre-push gate ([Operations](../system/OPERATIONS.md#ci)).
 Hooks provide earlier feedback; they do not replace CI.
 
 ## Branch Protection

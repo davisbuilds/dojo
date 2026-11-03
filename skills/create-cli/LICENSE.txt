@@ -1,0 +1,14 @@
+The adapted references/cli-guidelines.md is distributed under Creative Commons
+Attribution-ShareAlike 4.0 International (CC BY-SA 4.0).
+License: https://creativecommons.org/licenses/by-sa/4.0/
+Legal code: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+Original work: Command Line Interface Guidelines, https://clig.dev/
+Authors: Aanand Prasad, Ben Firshman, Carl Tashian, Eva Parish, and contributors.
+Design: Mark Hurrell.
+Source: https://github.com/cli-guidelines/cli-guidelines
+
+Changes: abridged and adapted for Dojo. Human-first guidance was revised for
+human, script, and agent consumers; agent discovery, bounded evidence, and
+asynchronous lifecycle guidance were added. The authors do not endorse Dojo.
+This notice applies to the adapted reference, not unrelated skill files.

@@ -3,7 +3,7 @@ name: frontend-design
 description: Build or refine frontend interfaces with intentional visual design. Use when creating a page or component, shaping a UI's visual direction, or improving its layout, hierarchy, and interaction states. For critique without implementation, use design-critique.
 skill-type: workflow
 license: Complete terms in LICENSE.txt
-version: 2.0.0
+version: 2.2.0
 ---
 
 # Frontend Design
@@ -62,6 +62,13 @@ limitations; no mandatory sibling review or fixed checklist report is required.
 
 ## Optional references
 
+- `references/motion-and-interaction.md` covers interrupted transitions, exit
+  cleanup, reduced motion, and rendering tradeoffs. Use it when implementing or
+  repairing animated interactions.
+
+- `references/content-and-states.md` connects realistic content and state failures
+  to remedies when building data-driven interfaces or repairing layouts that fail
+  beyond demo data. Use the examples relevant to the affected surface.
 - `references/anti-patterns.md` offers questions for spotting design choices that
   are disconnected from the task. These are prompts for judgment, not bans.
 - `references/color-palettes.md` and `references/font-pairings.md` offer starting

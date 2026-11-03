@@ -30,6 +30,32 @@ This reference defines default policy for `skill-standardizer`.
 - `MISSING_CODEX_LINK_TO_AGENTS`: Codex global is missing a link to the Agents source
 - `SELECTED_SKILL_NOT_FOUND`: a requested `--skill` name was not found in any scanned root
 
+## Version Deltas
+
+The report's `versions` list compares each installed copy with its source: the
+canonical copy, or the preferred global (Agents, then Codex, then Claude) when
+canonical lacks the skill. The source itself and deprecated names are not
+listed, and `--skill` scopes the list like issues. Symlinked entries report the
+version of their target. Each row gives `source_version`, `current_version`,
+`version_delta`, `version_note`, and `content_drift`.
+
+- `behind` / `ahead`: the copy's version has lower / higher SemVer precedence.
+- `equal`: same precedence and same content hash.
+- `divergent`: same precedence, different content. Release-relevant changes
+  require a version bump, so one side changed without a release.
+- `unknown`: either version is missing or not valid SemVer (for example
+  `v1.0.0` or `1.0`). Missing is never read as `0.0.0`; `version_note` says which.
+
+Versions come from the top-level `version` key of SKILL.md frontmatter, bare or
+quoted, as written without quotes or trailing comments; a nested `version` does
+not count. A quoted key or value is read as YAML reads a scalar that closes on
+its line: double quotes decode escapes, so `"\x31.2.3"` is `1.2.3`, and single
+quotes read `''` as `'`. A malformed escape, a surrogate or out-of-range code
+point, or a quote left open is reported as written. Multi-line scalars are not
+read. Numeric parts compare by value at any length. Versions never replace
+content hashes: drift issues, planned actions, and exit codes are unchanged. The text summary lists every delta except
+`equal`.
+
 ## Resolution Defaults
 
 - Local policy default: `prefer-global-link`

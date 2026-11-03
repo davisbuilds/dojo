@@ -73,9 +73,9 @@ def test_sibling_section_ignores_non_skill_words(tmp_path: Path) -> None:
     assert all("`git`" not in p and "`main`" not in p for p in problems)
 
 
-def test_external_and_anchor_links_are_skipped(tmp_path: Path) -> None:
+def test_external_links_are_skipped(tmp_path: Path) -> None:
     root = tmp_path / "skills"
-    make_skill(root, "alpha", "[docs](https://example.com/x.md) and [top](#heading).\n")
+    make_skill(root, "alpha", "[docs](https://example.com/x.md) and [mail](mailto:a@example.com).\n")
     assert MODULE.check(root, []) == []
 
 
@@ -157,3 +157,820 @@ def test_clean_checkout_matches_working_tree() -> None:
     for path in MODULE.markdown_files(MODULE.SKILLS_ROOT, MODULE.LIVING_DOCS):
         rel = path.relative_to(MODULE.REPO_ROOT).as_posix()
         assert rel in tracked, f"{rel} is scanned by the gate but not tracked in git"
+
+
+# --- Heading fragments -------------------------------------------------------
+#
+# Expected anchors below are written out by hand from GitHub's documented
+# heading-id behavior, not derived from the checker's slug function.
+
+
+def write_doc(root: Path, rel: str, text: str) -> Path:
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
+def fragment_problems(problems: list[str]) -> list[str]:
+    return [p for p in problems if "missing heading anchor" in p]
+
+
+def test_fragment_into_existing_heading_passes(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "See [setup](references/guide.md#install-and-run).\n")
+    write_doc(a, "references/guide.md", "# Guide\n\n## Install and run\n\nSteps.\n")
+    assert MODULE.check(root, []) == []
+
+
+def test_fragment_into_renamed_heading_is_reported(tmp_path: Path) -> None:
+    """The motivating failure: a reference heading is renamed, the file stays."""
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "See [setup](references/guide.md#install-and-run).\n")
+    write_doc(a, "references/guide.md", "# Guide\n\n## Installation\n\nSteps.\n")
+    problems = MODULE.check(root, [])
+    assert len(problems) == 1
+    assert "missing heading anchor" in problems[0]
+    assert "references/guide.md#install-and-run" in problems[0]
+
+
+def test_same_file_fragments_are_checked(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", "Jump to [usage](#usage) or [gone](#removed-section).\n\n## Usage\n\nx\n")
+    problems = MODULE.check(root, [])
+    assert len(problems) == 1
+    assert "#removed-section" in problems[0] and "missing heading anchor" in problems[0]
+
+
+def test_duplicate_headings_get_numbered_anchors(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#example) [b](#example-1) [c](#example-2) [d](#example-3)\n\n"
+        "## Example\n\nx\n\n### Example\n\ny\n\n## Example\n\nz\n",
+    )
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#example-3" in problems[0]
+
+
+def test_numbered_slug_collisions_follow_github_slugger(tmp_path: Path) -> None:
+    """A literal heading can already own the suffixed slug a duplicate would take.
+
+    github-slugger skips taken slugs: "a", "a", "a-1" -> a, a-1, a-1-1; and
+    "b-1", "b", "b" -> b-1, b, b-2.
+    """
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[1](#a) [2](#a-1) [3](#a-1-1) [4](#b-1) [5](#b) [6](#b-2)\n\n"
+        "## a\n\n## a\n\n## a-1\n\n## b-1\n\n## b\n\n## b\n",
+    )
+    assert MODULE.check(root, []) == []
+    make_skill(root, "beta", "[x](#a-2)\n\n## a\n\n## a\n\n## a-1\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#a-2" in problems[0]
+
+
+def test_inline_formatting_in_headings_is_slugged_like_rendered_text(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    headings = {
+        "## `run_task` — **Fast** _mode_ & [Docs](other.md)": "run_task--fast-mode--docs",
+        "## Claude Code harness (WebFetch/WebSearch) — as of 2026-07-12": "claude-code-harness-webfetchwebsearch--as-of-2026-07-12",
+        "### 1.1 Defer `await` Until Needed": "11-defer-await-until-needed",
+        "## snake_case_name stays": "snake_case_name-stays",
+        "## Closing hashes ##": "closing-hashes",
+        "## Escaped \\*stars\\* and ~~strike~~": "escaped-stars-and-strike",
+        "## Unicode Café Ünïcode": "unicode-café-ünïcode",
+    }
+    body = "\n".join(f"[x](#{slug})" for slug in headings.values()) + "\n\n" + "\n\n".join(headings) + "\n"
+    make_skill(root, "alpha", body)
+    write_doc(root / "alpha", "other.md", "x\n")
+    assert MODULE.check(root, []) == []
+    # Positive control: the same document with one heading renamed must fail.
+    make_skill(root, "alpha", body.replace("## snake_case_name stays", "## renamed"))
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#snake_case_name-stays" in problems[0]
+
+
+def test_percent_encoded_and_mixed_case_fragments_match(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", "[x](#caf%C3%A9-menu) [y](#Usage-Notes)\n\n## Café menu\n\n## Usage notes\n")
+    assert MODULE.check(root, []) == []
+
+
+def test_headings_inside_fences_are_not_anchors(tmp_path: Path) -> None:
+    """Shell comments and Markdown examples in fences are not document headings."""
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "[cmd](references/guide.md#install-deps) [ex](references/guide.md#example-title)\n")
+    write_doc(
+        a, "references/guide.md",
+        "# Guide\n\n```bash\n# install deps\nnpm ci\n```\n\n"
+        "1. Step\n\n   ~~~~markdown\n   ## Example title\n   ```\n   still fenced\n   ```\n   ~~~~\n",
+    )
+    problems = fragment_problems(MODULE.check(root, []))
+    assert sorted(p.split("-> ")[1] for p in problems) == [
+        "references/guide.md#example-title",
+        "references/guide.md#install-deps",
+    ]
+
+
+def test_fragment_links_inside_fences_are_not_checked(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "Example:\n\n```markdown\nSee [usage](#usage) and [ref](REFERENCE.md#api)\n```\n\n"
+        "  ~~~\n  [nested](#nowhere)\n  ~~~\n",
+    )
+    assert MODULE.check(root, []) == []
+
+
+def test_frontmatter_is_not_a_setext_heading_but_setext_headings_are(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    # make_skill frontmatter ends "version: 1.0.0\n---"; that is not a heading.
+    make_skill(root, "alpha", "[a](#overview) [b](#details) [c](#version-100)\n\nOverview\n========\n\nDetails\n-------\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#version-100" in problems[0]
+
+
+def test_explicit_html_anchors_are_targets(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", '[x](#custom-spot) [y](#named)\n\n<a id="custom-spot"></a>\n<a name="named"></a>\n')
+    assert MODULE.check(root, []) == []
+
+
+def test_fragment_exclusions_are_retained(tmp_path: Path, monkeypatch) -> None:
+    """External URLs, archive links, and asset templates stay unchecked."""
+    repo = tmp_path
+    (repo / "docs" / "project").mkdir(parents=True)
+    (repo / "docs" / "project" / "ROADMAP.md").write_text(
+        "From the [analysis](../archive/old.md#gone) and "
+        "[spec](https://example.com/spec.md#missing) or [mail](mailto:a@b.c#x).\n",
+        encoding="utf-8",
+    )
+    root = repo / "skills"
+    d = make_skill(root, "alpha", "Nothing.\n")
+    write_doc(d, "assets/template.md", "See [section](#placeholder-section) and [other](../SKILL.md#nope).\n")
+    monkeypatch.setattr(MODULE, "REPO_ROOT", repo)
+    assert MODULE.check(root, [repo / "docs" / "project"]) == []
+
+
+def test_fragments_into_non_markdown_targets_check_existence_only(tmp_path: Path) -> None:
+    """Unsupported boundary: line anchors and other file types are not parsed."""
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "[code](scripts/run.py#L10) [dir](references/#top) [gone](scripts/missing.py#L1)\n")
+    write_doc(a, "scripts/run.py", "print()\n")
+    write_doc(a, "references/x.md", "x\n")
+    problems = MODULE.check(root, [])
+    assert len(problems) == 1
+    assert "broken link" in problems[0] and "missing.py" in problems[0]
+
+
+def test_targets_with_unsupported_heading_markup_are_not_reported(tmp_path: Path) -> None:
+    """Unsupported boundary: raw HTML or images in a heading make its anchor
+    renderer-dependent, so misses into that file are not reported at all."""
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "[x](references/html.md#anything) [y](references/img.md#whatever)\n")
+    write_doc(a, "references/html.md", "## Press <kbd>Ctrl</kbd> twice\n")
+    write_doc(a, "references/img.md", "## ![logo](logo.png) Brand\n")
+    write_doc(a, "references/logo.png", "")
+    assert MODULE.check(root, []) == []
+
+
+def test_custom_id_and_emoji_headings_make_target_unsupported(tmp_path: Path) -> None:
+    """`{#custom-id}` and `:emoji:` render differently across renderers, so the
+    checker must neither validate a guessed slug nor report a miss."""
+    root = tmp_path / "skills"
+    a = make_skill(
+        root, "alpha",
+        "[a](references/custom.md#custom-id) [b](references/custom.md#title-custom-id) "
+        "[c](references/custom.md#stale) [d](references/emoji.md#smile-hello) "
+        "[e](references/emoji.md#stale)\n",
+    )
+    write_doc(a, "references/custom.md", "# Title {#custom-id}\n")
+    write_doc(a, "references/emoji.md", "## :smile: Hello\n")
+    assert MODULE.anchors("# Title {#custom-id}\n") is None
+    assert MODULE.anchors("## :smile: Hello\n") is None
+    assert MODULE.check(root, []) == []
+    # Positive control: plain headings in the same files are checked again.
+    write_doc(a, "references/custom.md", "# Title\n")
+    write_doc(a, "references/emoji.md", "## Hello\n")
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == [
+        "references/custom.md#custom-id",
+        "references/custom.md#stale",
+        "references/custom.md#title-custom-id",
+        "references/emoji.md#smile-hello",
+        "references/emoji.md#stale",
+    ]
+
+
+def test_user_content_prefixed_fragments_resolve_to_the_heading(tmp_path: Path) -> None:
+    """GitHub renders heading ids as `user-content-<slug>`; both forms link."""
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", "[x](#user-content-usage) [y](#user-content-gone)\n\n## Usage\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#user-content-gone" in problems[0]
+
+
+def test_html_ids_inside_inline_code_are_not_anchors(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[x](#not-real) [y](#real) [z](#--flag-usage)\n\n"
+        'Write `<a id="not-real"></a>` to add one.\n\n<a id="real"></a>\n\n## `--flag` usage\n',
+    )
+    assert MODULE.anchors('`<a id="not-real"></a>`\n') == set()
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#not-real" in problems[0]
+
+
+def test_headings_inside_html_comments_are_not_anchors(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[x](#ghost) [y](#after) [z](#kept)\n\n<!--\n# Ghost\n-->\n\n"
+        "<!-- INCLUDE: rules/example -->\n## After\n\n## Kept <!-- note -->\n",
+    )
+    assert MODULE.anchors("<!--\n# Ghost\n-->\n") == set()
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#ghost" in problems[0]
+
+
+def test_invalid_backtick_fence_openers_do_not_hide_later_content(tmp_path: Path) -> None:
+    """A backtick fence's info string cannot contain backticks, so ```x``` and
+    ``` a`b are inline text, not unclosed fences that swallow the file."""
+    root = tmp_path / "skills"
+    for name, opener in (("alpha", "```literal```"), ("beta", "``` info`tick")):
+        make_skill(
+            root, name,
+            f"{opener}\n\n[gone](missing.md) [frag](#nowhere) [ok](#real)\n\n## Real\n\n"
+            "```markdown\n[example](FORMS.md) [example](#example-only)\n```\n\n"
+            "~~~ tilde`info is valid\n[tilde](TILDE.md)\n~~~\n",
+        )
+    problems = sorted(p.split("/skills/")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "alpha/SKILL.md: broken link -> missing.md",
+        "alpha/SKILL.md: missing heading anchor -> #nowhere",
+        "beta/SKILL.md: broken link -> missing.md",
+        "beta/SKILL.md: missing heading anchor -> #nowhere",
+    ]
+
+
+def test_heading_links_with_balanced_parentheses(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    a = make_skill(
+        root, "alpha",
+        "[a](references/ref.md#api) [b](references/ref.md#cfg-file) [c](references/ref.md#guide)\n"
+        "[d](references/deep.md#anything)\n",
+    )
+    write_doc(a, "references/ref.md", "## [API](https://example.test/guide_(v2).md)\n\n## [`cfg`](https://example.test/c) file\n")
+    write_doc(a, "references/deep.md", "## [Deep](https://example.test/a_((b)).md)\n")
+    assert MODULE.anchors("## [API](https://example.test/guide_(v2).md)\n") == {"api"}
+    # Deeper nesting is outside the supported subset: skipped, not guessed.
+    assert MODULE.anchors("## [Deep](https://example.test/a_((b)).md)\n") is None
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "references/ref.md#guide" in problems[0]
+
+
+def test_combined_and_nested_underscore_emphasis(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#important) [b](#strong-and-em) [c](#outer-inner-end) "
+        "[d](#snake_case_name-and-__dunder__) [e](#_important_)\n\n"
+        "## ___Important___\n\n## __Strong__ and _em_\n\n## _outer __inner__ end_\n\n"
+        "## snake_case_name and `__dunder__`\n",
+    )
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#_important_" in problems[0]
+
+
+def test_private_use_characters_in_headings_are_unsupported_not_a_crash(tmp_path: Path) -> None:
+    """Code spans are held as placeholder characters while a heading is reduced;
+    neither literal nor entity-produced private-use characters may be mistaken
+    for one. Their slugging is renderer-dependent, so the file is skipped."""
+    for heading in ("## Entity &#xE000;\n", "## `x` &#xE000;\n", "## Glyph  here\n", "## ``\n"):
+        assert MODULE.anchors(heading) is None, heading
+    # A surrogate reference unescapes to U+FFFD, never to a code placeholder.
+    assert MODULE.heading_text("`x` &#xD800;") == "x �"
+    # Controls: real code spans and ordinary entities are still reduced; code stays literal.
+    assert MODULE.anchors("## `a_b` &amp; `c`\n") == {"a_b--c"}
+    assert MODULE.anchors("## Fish &amp; Chips\n## Caf&eacute;\n") == {"fish--chips", "café"}
+    assert MODULE.anchors("## `&amp;` op\n") == {"amp-op"}
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "[x](references/pua.md#stale) [y](#gone)\n\n## Fish &amp; Chips\n")
+    write_doc(a, "references/pua.md", "## Entity &#xE000;\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#gone" in problems[0]
+
+
+def test_inline_code_link_examples_are_not_checked(tmp_path: Path) -> None:
+    """Link syntax inside a code span is an example, not a link. Real links
+    beside or after one, and skills/ paths in code, are still checked."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "Write `[example](#placeholder)` or ``[a `tick` b](missing-a.md)``, "
+        "then [real](missing-real.md).\n\n"
+        "`[x](gone.md)`[adjacent](#adjacent-gone)\n\n"
+        "Multi `line\n[ex](multi.md) span` then [after](#after-gone).\n\n"
+        "Unmatched `` opener [still](unmatched-gone.md) checked.\n\n"
+        "Run `python3 skills/removed-thing/go.py`. [ok](#heading-cfg-code)\n\n"
+        "## Heading [`cfg`](cfg.md) code\n",
+    )
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> cfg.md",
+        "broken link -> missing-real.md",
+        "broken link -> unmatched-gone.md",
+        "missing heading anchor -> #adjacent-gone",
+        "missing heading anchor -> #after-gone",
+        "references skills/removed-thing/ which does not exist",
+    ]
+
+
+def test_reference_style_links_in_headings_are_skipped(tmp_path: Path) -> None:
+    """`[API][ref]` renders as a link only if `ref` is defined (slug `api`),
+    otherwise literally (slug `apiref`). Definitions are not resolved, so such
+    headings make the target unsupported rather than guessed."""
+    for text in ("## [API][undefined]\n", "[api]: x.md\n\n## [API][api]\n", "## [API][]\n"):
+        assert MODULE.anchors(text) is None, text
+    assert MODULE.anchors("## API\n") == {"api"}
+    root = tmp_path / "skills"
+    a = make_skill(
+        root, "alpha",
+        "[a](references/ref.md#api) [b](references/ref.md#apiundefined) [c](references/ref.md#stale)\n"
+        "[d](references/plain.md#api) [e](references/plain.md#stale)\n",
+    )
+    write_doc(a, "references/ref.md", "## [API][undefined]\n")
+    write_doc(a, "references/plain.md", "## API\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "references/plain.md#stale" in problems[0]
+
+
+def test_links_inside_html_comments_are_not_checked(tmp_path: Path) -> None:
+    """A closed comment is not rendered, so links in it are not links. Real
+    links beside it are checked, and comment delimiters inside code spans do
+    not open or close a comment."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "<!-- [example](#placeholder) -->\n"
+        "<!--\n[relative](references/missing.md) and [same](#gone-too)\n-->[adjacent](adjacent-gone.md)\n\n"
+        "Write `<!--` then [opened](opened-gone.md) and close with `-->`; [after](#after-gone).\n\n"
+        "Run `python3 skills/removed-thing/go.py`. <!-- skills/also-removed/x -->\n\n"
+        "[real](#real)\n\n## Real\n",
+    )
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> adjacent-gone.md",
+        "broken link -> opened-gone.md",
+        "missing heading anchor -> #after-gone",
+        "references skills/also-removed/ which does not exist",
+        "references skills/removed-thing/ which does not exist",
+    ]
+
+
+def test_top_level_four_space_fence_lookalikes_do_not_hide_later_content(tmp_path: Path) -> None:
+    """Four spaces before ``` at top level make indented code, not a fence; in
+    a list item a fence may sit up to three spaces past the item's content
+    column. Real fences, list fences and unclosed fences stay excluded."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "Intro.\n\n    ```\n[top](missing-top.md) and [frag](#gone-top)\n\n"
+        "    ~~~~\n## After pseudo\n\n[ok](#after-pseudo)\n\n"
+        "   ```\n[hidden](hidden.md)\n   ```\n\n"
+        "- item\n\n  ```markdown\n  [listed](#list-example)\n  ```\n\n"
+        "1. Step\n\n   ~~~~markdown\n   ## Example title\n   ```\n   [inner](inner.md)\n   ```\n   ~~~~\n\n"
+        "- deep\n\n      ```\n[deep](missing-deep.md) [x](#example-title)\n\n"
+        "````\n[eof](eof-hidden.md)\n```\n",
+    )
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> missing-deep.md",
+        "broken link -> missing-top.md",
+        "missing heading anchor -> #example-title",
+        "missing heading anchor -> #gone-top",
+    ]
+
+
+def test_escaped_opening_brackets_are_not_links(tmp_path: Path) -> None:
+    """An odd number of backslashes escapes `[`; an even number escapes only
+    themselves, leaving a real link."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "\\[example](#placeholder) and \\\\[even](missing-even.md) and "
+        "\\\\\\[odd](#odd-gone) then [real](missing-real.md)\\[lit](#lit)[adjacent](#adjacent-gone)\n",
+    )
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> missing-even.md",
+        "broken link -> missing-real.md",
+        "missing heading anchor -> #adjacent-gone",
+    ]
+
+
+def test_escaped_opening_brackets_in_headings_are_not_links() -> None:
+    # Escaped: literal `[API](...)` text, which this checker does not guess.
+    assert MODULE.anchors("## \\[API](https://e.test/x)\n") is None
+    # Even backslashes and plain links are real links: the label is the text.
+    assert MODULE.anchors("## \\\\[API](https://e.test/x)\n") == {"api"}
+    assert MODULE.anchors("## [API](https://e.test/x)\n") == {"api"}
+    # An escaped bracket beside a real link stays literal text.
+    assert MODULE.anchors("## \\[a [b](https://e.test) c\n") == {"a-b-c"}
+
+
+CLOSER_FIXTURE = (
+    "```\n    ```\n[hidden](hidden-a.md)\n```\n[after](missing-after-a.md)\n\n"
+    "- item\n\n  ```\n      ```\n  [hidden](hidden-b.md)\n  ```\n[after](missing-after-b.md)\n\n"
+    "- item\n\n  ```\n\n  [still](hidden-c.md)\n  ```\n\n"
+    "- item\n\n  ```\n  code\n[outer](missing-outer.md) [o](#outer)\n\n## Outer\n"
+)
+
+
+def test_fence_closers_obey_the_container_indent_rule(tmp_path: Path) -> None:
+    """A closer four spaces past its container margin is code, not a closer;
+    a non-blank line outdented past a list fence's margin ends the item and
+    the fence with it. Blank lines inside a list fence do not."""
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", CLOSER_FIXTURE)
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> missing-after-a.md",
+        "broken link -> missing-after-b.md",
+        "broken link -> missing-outer.md",
+    ]
+
+
+COMMENT_FENCE_FIXTURE = (
+    "<!--\n```\n-->\n[real](missing-c1.md)\n\n"
+    "<!--\n~~~\n-->\n[real](missing-c2.md) [h](#real-heading)\n\n## Real heading\n\n"
+    "```\n<!--\n```\n[after-fence](missing-c3.md)\n-->\n\n"
+    "`<!--`\n\n```\n[in-fence](hidden-c4.md)\n```\n\n`-->` [real](missing-c4.md)\n"
+)
+
+
+def test_comment_and_fence_masking_order(tmp_path: Path) -> None:
+    """Fence markers inside an HTML comment block do not open fences; comment
+    markers inside a fence or a code span are literal and mask nothing."""
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", COMMENT_FENCE_FIXTURE)
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> missing-c1.md",
+        "broken link -> missing-c2.md",
+        "broken link -> missing-c3.md",
+        "broken link -> missing-c4.md",
+    ]
+
+
+def test_headings_nested_in_wide_list_items_make_target_unsupported(tmp_path: Path) -> None:
+    """`10. Item` puts content at column 4, so `    ## Nested` is a real heading,
+    as is `- ## Inline`. Container headings are not parsed: such targets are
+    skipped rather than reported. Shallow list headings remain supported."""
+    assert MODULE.anchors("10. Item\n\n    ## Nested heading\n") is None
+    assert MODULE.anchors("- ## Inline item heading\n") is None
+    # Controls: top-level indented code is not a heading; shallow nesting parses.
+    assert MODULE.anchors("Text.\n\n    ## not a heading\n") == set()
+    assert MODULE.anchors("## Plain heading\n\n- item\n\n  ## Shallow nested\n") == {"plain-heading", "shallow-nested"}
+    root = tmp_path / "skills"
+    a = make_skill(
+        root, "alpha",
+        "[a](references/nested.md#nested-heading) [b](references/nested.md#stale)\n"
+        "[c](references/plain.md#plain-heading) [d](references/plain.md#shallow-nested) "
+        "[e](references/plain.md#stale)\n",
+    )
+    write_doc(a, "references/nested.md", "10. Item\n\n    ## Nested heading\n")
+    write_doc(a, "references/plain.md", "## Plain heading\n\n- item\n\n  ## Shallow nested\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "references/plain.md#stale" in problems[0]
+
+
+QUOTED_FENCE_FIXTURE = (
+    "[before](missing-before.md)\n\n"
+    "> **Example:**\n>\n> ```markdown\n> [example](#placeholder) [file](FORMS.md)\n> ```\n>\n"
+    "> See [quoted](missing-quoted.md).\n\n[after](missing-after.md)\n\n"
+    "> ~~~~\n> ```\n> [inner](hidden-inner.md)\n> ```\n> ~~~~\n\n"
+    "> ```\n> [open](hidden-open.md)\n\n[next](missing-next.md)\n\n"
+    "> ```\n> [lazy-code](hidden-lazy.md)\n[lazy](missing-lazy.md)\n\n"
+    "> > ```\n> > [deep](hidden-deep.md)\n> [shallow](missing-shallow.md)\n\n"
+    "> ```html\n> <!--\n> ```\n\n[after-comment](missing-after-comment.md)\n\n<!-- closed -->\n"
+)
+
+
+def test_fences_inside_block_quotes_are_masked(tmp_path: Path) -> None:
+    """A fence in a block quote is an example. Quoted prose and links outside
+    are still checked; the fence ends when its quote does."""
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", QUOTED_FENCE_FIXTURE)
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> missing-after-comment.md",
+        "broken link -> missing-after.md",
+        "broken link -> missing-before.md",
+        "broken link -> missing-lazy.md",
+        "broken link -> missing-next.md",
+        "broken link -> missing-quoted.md",
+        "broken link -> missing-shallow.md",
+    ]
+
+
+def test_quoted_headings_make_target_unsupported(tmp_path: Path) -> None:
+    """Block-quote headings are rendered but not parsed: the target is skipped,
+    while headings inside a quoted fence are simply not anchors."""
+    assert MODULE.anchors("> ## Quoted heading\n") is None
+    assert MODULE.anchors("> ```\n> ## Example\n> ```\n\n## Real\n") == {"real"}
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "[a](references/q.md#quoted-heading) [b](references/q.md#stale) [c](#example)\n\n"
+                   "> ```\n> ## Example\n> ```\n")
+    write_doc(a, "references/q.md", "> ## Quoted heading\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#example" in problems[0]
+
+
+def test_html_anchor_ids_are_entity_decoded(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#foo%26bar) [b](#x%26y) [c](#foo%26amp%3Bbar) [d](#x%26%2338%3By) "
+        "[e](#code%26id) [f](#comment%26id)\n\n"
+        '<a id="foo&amp;bar"></a>\n<a name="x&#38;y"></a>\n'
+        '`<a id="code&amp;id"></a>`\n<!-- <a id="comment&amp;id"></a> -->\n',
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#code%26id", "#comment%26id", "#foo%26amp%3Bbar", "#x%26%2338%3By"]
+
+
+def test_atx_heading_above_a_thematic_break_is_not_setext_text(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#heading) [b](#-heading) [c](#level-two) [d](#-level-two) [e](#true-setext)\n\n"
+        "## Heading\n---\n\n### Level two\n===\n\nTrue setext\n---\n",
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#-heading", "#-level-two"]
+
+
+def test_setext_headings_in_containers_make_target_unsupported(tmp_path: Path) -> None:
+    """Setext headings nested in a wide list item, a block quote, or under a
+    list marker line are rendered but not parsed, like their ATX forms."""
+    for text in ("10. Item\n\n    Nested heading\n    --------------\n", "> Nested heading\n> ----\n", "- Foo\n  ---\n"):
+        assert MODULE.anchors(text) is None, text
+    # Controls: plain and shallow setext still parse; thematic breaks are not headings.
+    assert MODULE.anchors("Plain\n-----\n\n- item\n\n  Shallow\n  ---\n") == {"plain", "shallow"}
+    assert MODULE.anchors("- item\n---\n\n> quote\n>\n> ---\n\n10. Item\n\n    ---\n") == set()
+    root = tmp_path / "skills"
+    a = make_skill(
+        root, "alpha",
+        "[a](references/wide.md#nested-heading) [b](references/wide.md#stale) "
+        "[c](references/plain.md#shallow) [d](references/plain.md#stale)\n",
+    )
+    write_doc(a, "references/wide.md", "10. Item\n\n    Nested heading\n    --------------\n")
+    write_doc(a, "references/plain.md", "Plain\n-----\n\n- item\n\n  Shallow\n  ---\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "references/plain.md#stale" in problems[0]
+
+
+def test_fences_opened_on_list_marker_lines_are_masked(tmp_path: Path) -> None:
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "- ```markdown\n  [example](#placeholder) [file](FORMS.md)\n  ```\n[after](missing-after.md)\n\n"
+        "1. ~~~~\n   [tilde](TILDE.md)\n   ```\n   [still](still.md)\n   ~~~~\n2. [real](missing-real.md) [frag](#gone)\n\n"
+        "- ```\n  [x](x.md)\n      ```\n  [deep](deep.md)\n  ```\n\n[end](missing-end.md)\n",
+    )
+    problems = sorted(p.split("SKILL.md: ")[1] for p in MODULE.check(root, []))
+    assert problems == [
+        "broken link -> missing-after.md",
+        "broken link -> missing-end.md",
+        "broken link -> missing-real.md",
+        "missing heading anchor -> #gone",
+    ]
+
+
+def test_html_anchor_attribute_names_are_case_insensitive(tmp_path: Path) -> None:
+    """Attribute names match in any case; values are entity-decoded exactly once."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#custom-spot) [b](#named) [c](#single) [d](#foo%26bar) [e](#x%26y) [f](#lit%26amp%3Bz) "
+        "[g](#after-gt) [h](#lit%26z) [i](#code-id) [j](#comment-id)\n\n"
+        '<a ID="custom-spot"></a>\n<A NAME="named"></A>\n<span Id=\'single\'>x</span>\n'
+        '<a id="foo&amp;bar"></a>\n<a name="x&#38;y"></a>\n<a id="lit&amp;amp;z"></a>\n'
+        '<a title="x>y" id="after-gt"></a>\n`<a ID="code-id">`\n<!-- <A ID="comment-id"> -->\n',
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#code-id", "#comment-id", "#lit%26z"]
+
+
+def test_html_ids_in_indented_code_are_not_anchors(tmp_path: Path) -> None:
+    """Four spaces past the margin after a block boundary is indented code; the
+    same indentation continuing a paragraph is still rendered inline HTML."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#ghost) [b](#real) [c](#continued) [d](#listed) [e](#list-ghost) "
+        "[f](#item-continued) [g](#after-heading-ghost)\n\n"
+        "Intro.\n\n    <a id=\"ghost\"></a>\n\n<a id=\"real\"></a>\n\n"
+        "Paragraph text\n    <a id=\"continued\"></a>\n\n"
+        "- item\n\n  <a id=\"listed\"></a>\n\n      <a id=\"list-ghost\"></a>\n\n"
+        "- second\n      <a id=\"item-continued\"></a>\n\n"
+        "## Heading\n    <a id=\"after-heading-ghost\"></a>\n",
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#after-heading-ghost", "#ghost", "#list-ghost"]
+
+
+def test_setext_heading_after_a_prior_block_is_single_line(tmp_path: Path) -> None:
+    """An ATX heading, thematic break or fence above setext text is a separate
+    block, so the heading is checked; genuine multi-line text stays skipped."""
+    assert MODULE.anchors("Line one\nLine two\n---\n") is None
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#title) [b](#second) [c](#third) [d](#previous) [e](#stale)\n\n"
+        "# Previous\nTitle\n---\n\n***\nSecond\n---\n\n```\ncode\n```\nThird\n---\n",
+    )
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#stale" in problems[0]
+
+
+# --- Review follow-ups (PR120 review 5593453927, F1-F6) -----------------------
+#
+# Expected anchors are hand-written from CommonMark block/inline rules and
+# GitHub's slugging, not derived from the checker.
+
+
+def test_equals_setext_heading_ends_the_paragraph_before_indented_code(tmp_path: Path) -> None:
+    """F1: a `===` underline closes its paragraph like `---` does, so a line
+    four spaces in after it is indented code. `===` after an ATX heading, or
+    lazily outdented from a list item or quote, is paragraph text, which the
+    indented line then continues."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#title) [b](#ghost) [c](#real) [d](#continued) [e](#lazy-text) [f](#after-atx) "
+        "[g](#shallow) [h](#list-ghost) [i](#lazy-list) [j](#lazy-quote)\n\n"
+        "Title\n===\n    <a id=\"ghost\"></a>\n\n<a id=\"real\"></a>\n\n"
+        "Paragraph text\n    <a id=\"continued\"></a>\n\n"
+        "## Lazy text\n===\n    <a id=\"after-atx\"></a>\n\n"
+        "- item\n\n  Shallow\n  ===\n      <a id=\"list-ghost\"></a>\n\n"
+        "- item\n===\n    <a id=\"lazy-list\"></a>\n\n"
+        "> Para\n===\n    <a id=\"lazy-quote\"></a>\n",
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#ghost", "#list-ghost"]
+
+
+def test_indented_code_inside_block_quotes_is_measured_past_the_markers(tmp_path: Path) -> None:
+    """F2: indentation inside a block quote counts from after its `>` markers,
+    and a quoted blank line (`>`) ends the quoted paragraph. Quoted HTML and
+    paragraph continuations, including lazy ones, are still rendered."""
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#ghost) [b](#quoted) [c](#continued) [d](#lazy) [e](#deep-ghost) "
+        "[f](#new-quote-ghost) [g](#after-break-ghost)\n\n"
+        "> Quote\n>\n>     <a id=\"ghost\"></a>\n\n"
+        "> <a id=\"quoted\"></a>\n\n"
+        "> Para\n>     <a id=\"continued\"></a>\n\n"
+        "> Para\n    <a id=\"lazy\"></a>\n\n"
+        "> > Deep\n> >\n> >     <a id=\"deep-ghost\"></a>\n\n"
+        "Para\n>     <a id=\"new-quote-ghost\"></a>\n\n"
+        "> ***\n>     <a id=\"after-break-ghost\"></a>\n",
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#after-break-ghost", "#deep-ghost", "#ghost", "#new-quote-ghost"]
+
+
+def test_escaped_entities_in_headings_stay_literal(tmp_path: Path) -> None:
+    """F3: `\\&amp;` renders as the literal text `&amp;`, so it is not decoded
+    again. Unescaped entities decode exactly once; an even backslash run
+    escapes only itself and leaves the entity live."""
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", "[valid](#amp-thing) [invented](#-thing)\n\n## \\&amp; thing\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#-thing" in problems[0]
+    assert MODULE.anchors("## Fish &amp; Chips\n") == {"fish--chips"}
+    assert MODULE.anchors("## &amp;amp; once\n") == {"amp-once"}
+    assert MODULE.anchors("## \\\\&amp; even\n") == {"-even"}
+    assert MODULE.anchors("## \\\\\\&amp; odd\n") == {"amp-odd"}
+    assert MODULE.anchors("## \\&#35; num\n") == {"35-num"}
+    assert MODULE.anchors("## `\\&amp;` code\n") == {"amp-code"}
+
+
+def test_escaped_markup_in_headings_is_literal_text(tmp_path: Path) -> None:
+    """F4: escaped `<` or `!` cannot open raw HTML or an image, so the heading
+    is ordinary text and fragments into the file are still checked. Unescaped
+    markup, or an even backslash run before it, stays unsupported."""
+    root = tmp_path / "skills"
+    a = make_skill(
+        root, "alpha",
+        "[a](references/kbd.md#kbdctrl) [b](references/kbd.md#stale) "
+        "[c](references/img.md#api) [d](references/img.md#stale)\n",
+    )
+    write_doc(a, "references/kbd.md", "## \\<kbd>Ctrl\n")
+    write_doc(a, "references/img.md", "## \\![API](guide.md)\n")
+    write_doc(a, "references/guide.md", "x\n")
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["references/img.md#stale", "references/kbd.md#stale"]
+    assert MODULE.anchors("## \\<span>x\\</span>\n") == {"spanxspan"}
+    # Escapes and code spans resolve left to right: `\\` before a span leaves it
+    # a span, so its markup is literal; `\`` is a literal backtick instead.
+    assert MODULE.anchors("## \\\\`<kbd>` x\n") == {"kbd-x"}
+    for text in (
+        "## <kbd>Ctrl</kbd>\n", "## ![API](guide.md)\n", "## \\\\<kbd>Ctrl\n", "## \\\\![API](guide.md)\n",
+        "## \\`<kbd>` x\n",
+        # Shortcodes are read from rendered text, where an escape still spells one.
+        "## \\:smile: Hello\n", "## Title \\{#custom}\n",
+    ):
+        assert MODULE.anchors(text) is None, text
+
+
+def test_processing_instructions_in_headings_are_unsupported_raw_html(tmp_path: Path) -> None:
+    """F5: `<?target?>` is raw HTML, so the target is skipped rather than
+    guessed. Escaped or entity-written, it is literal text and is slugged."""
+    assert MODULE.anchors("## <?target?> Hello\n") is None
+    assert MODULE.anchors("## \\<?target?> Hello\n") == {"target-hello"}
+    assert MODULE.anchors("## &lt;?target?&gt; Hello\n") == {"target-hello"}
+    root = tmp_path / "skills"
+    a = make_skill(
+        root, "alpha",
+        "[a](references/pi.md#target-hello) [b](references/pi.md#stale) "
+        "[c](references/lit.md#target-hello) [d](references/lit.md#stale)\n",
+    )
+    write_doc(a, "references/pi.md", "## <?target?> Hello\n")
+    write_doc(a, "references/lit.md", "## \\<?target?> Hello\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "references/lit.md#stale" in problems[0]
+
+
+def test_private_use_characters_in_any_plane_make_target_unsupported(tmp_path: Path) -> None:
+    """F6: private use spans U+E000-U+F8FF and planes 15-16; every one, literal
+    or from an entity, makes the heading unsupported. Other astral characters
+    are ordinary text."""
+    for heading in (
+        "## Glyph \U000F0000\n", "## Entity &#xF0000;\n", "## Glyph \U0010FFFD\n",
+        "## Entity &#1114109;\n", "## Code `\U00100000`\n",
+    ):
+        assert MODULE.anchors(heading) is None, heading
+    assert MODULE.anchors("## Glyph \U00020000\n") == {"glyph-\U00020000"}
+    assert MODULE.anchors("## Smile &#x1F600;\n") == {"smile-"}
+    root = tmp_path / "skills"
+    a = make_skill(root, "alpha", "[x](references/pua.md#stale) [y](references/ok.md#stale)\n")
+    write_doc(a, "references/pua.md", "## Entity &#xF0000;\n")
+    write_doc(a, "references/ok.md", "## Entity &#x20000;\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "references/ok.md#stale" in problems[0]
+
+
+# --- PR121 review follow-ups (R1, R2) -----------------------------------------
+
+
+def test_reference_definitions_are_not_setext_heading_text(tmp_path: Path) -> None:
+    """R1: a link reference definition is its own block, so an underline after
+    it is not setext and a `===` there starts an ordinary paragraph that the
+    indented line continues. Bracketed text that is not a definition still
+    forms a setext heading, after which the indented line is code."""
+    assert MODULE.anchors("[ref]: /url\n===\n    <a id=\"real\"></a>\n") == {"real"}
+    root = tmp_path / "skills"
+    make_skill(
+        root, "alpha",
+        "[a](#real) [b](#titled) [c](#two) [d](#ref-url) [e](#ghost) [f](#not-a-def-text) "
+        "[g](#ghost-four) [h](#quoted-real) [i](#listed-real) [j](#l-url)\n\n"
+        "[ref]: /url\n===\n    <a id=\"real\"></a>\n\n"
+        "[t]: /url \"Title\"\n===\n    <a id=\"titled\"></a>\n\n"
+        "[a1]: /a\n[b1]: <b c>\n===\n    <a id=\"two\"></a>\n\n"
+        "[x]: /url\n---\n    <a id=\"ghost\"></a>\n\n"
+        "[not a def] text\n===\n    <a id=\"ghost-four\"></a>\n\n"
+        "> [q]: /url\n> ===\n>     <a id=\"quoted-real\"></a>\n\n"
+        "- item\n\n  [l]: /url\n  ===\n      <a id=\"listed-real\"></a>\n",
+    )
+    problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
+    assert problems == ["#ghost", "#ghost-four", "#l-url", "#ref-url"]
+    assert MODULE.anchors("[ref]: /url\n---\n") == set()
+    # `[ref]:` takes the next line as its destination, so `===` is no underline.
+    assert MODULE.anchors("[ref]:\n===\n    <a id=\"code\"></a>\n") == set()
+
+
+def test_underscore_runs_beside_escapes_stay_whole(tmp_path: Path) -> None:
+    """R2: a delimiter run is used whole, so `\\____` is four literal
+    underscores rather than emphasis cut out of the trailing `___`. Genuine
+    emphasis beside escapes is still reduced."""
+    root = tmp_path / "skills"
+    make_skill(root, "alpha", "[valid](#____) [invented](#__)\n\n## \\____\n")
+    problems = fragment_problems(MODULE.check(root, []))
+    assert len(problems) == 1 and "#__" in problems[0] and "#____" not in problems[0]
+    assert MODULE.anchors("## ____\n") == {"____"}
+    assert MODULE.anchors("## \\___x___\n") == {"_x_"}
+    assert MODULE.anchors("## \\__a_\n") == {"_a"}
+    assert MODULE.anchors("## _a\\_\n") == {"_a_"}
+    assert MODULE.anchors("## \\_not em\\_\n") == {"_not-em_"}
+    assert MODULE.anchors("## \\\\__strong__\n") == {"strong"}
+    # A run opens only when followed by a non-space and closes only when
+    # preceded by one; part of a run may still pair with a shorter one.
+    assert MODULE.anchors("## ___ a_\n## _a ___\n## x ___ y\n") == {"___-a_", "_a-___", "x-___-y"}
+    assert MODULE.anchors("## __a_\n## _a__\n## ___a_\n") == {"_a", "a_", "__a"}

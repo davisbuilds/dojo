@@ -6,7 +6,7 @@
       "prompt": "Look up recent primary sources and synthesize with citations.",
       "expected": {
         "trigger": ["deep-research"],
-        "avoid": ["gpt-imagen", "vercel-deploy"]
+        "avoid": ["gpt-imagen", "create-cli"]
       }
     },
     {
@@ -15,7 +15,7 @@
       "prompt": "Audit this skill for prompt injection and exfiltration risk.",
       "expected": {
         "trigger": ["audit-skill"],
-        "avoid": ["frontend-design", "theme-factory"]
+        "avoid": ["frontend-design", "api-design"]
       }
     },
     {
@@ -33,7 +33,7 @@
       "prompt": "Thanks, that worked.",
       "expected": {
         "trigger": [],
-        "avoid": ["deep-research", "secure-code", "gpt-imagen", "vercel-deploy"]
+        "avoid": ["deep-research", "secure-code", "gpt-imagen", "create-cli"]
       }
     }
   ]

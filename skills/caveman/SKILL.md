@@ -2,7 +2,8 @@
 name: caveman
 description: Ultra-compressed communication mode, persistent across turns once active. Use when the user says "caveman mode", "talk like caveman", "use caveman", "less tokens", asks to compress agent responses for the rest of the session, or invokes /caveman. Stop with "stop caveman" or "normal mode".
 skill-type: reference
-version: 1.0.1
+license: Third-party terms in LICENSE.txt
+version: 1.0.2
 ---
 
 # caveman

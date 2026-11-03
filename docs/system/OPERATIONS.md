@@ -1,6 +1,82 @@
 # Operations
 
+## Using a skill
+
+The default consumer path is [agent-led setup](../../README.md#start-with-your-agent):
+the coding agent helps choose a skill for the current task, installs its complete
+bundle, checks discovery, and explains how to use it. The instructions below are
+for that agent or anyone who prefers manual installation.
+
+The GitHub installer needs Python 3.11+ and uses only its standard library; it
+does not require `uv sync`, the development CLI, or Dojo's hooks. Run it from a
+Dojo checkout:
+
+```bash
+python3 skills/skill-installer/scripts/install-skill-from-github.py \
+  --agent codex --repo davisbuilds/dojo --path skills/local-review
+```
+
+Use `--agent claude` for Claude Code. Defaults are `~/.codex/skills` and
+`~/.claude/skills`, overridden by `CODEX_HOME` and `CLAUDE_HOME` respectively
+(the installer appends `/skills`). `--dest /absolute/path/to/skills` overrides
+the destination root; choose one your harness discovers. The command prints
+`Installed local-review to <destination>/local-review` on success.
+
+The source is GitHub, even when run from a locally edited checkout. It defaults
+to `main`; use `--ref <tag-or-commit>` with `--method download` for a pinned
+archive. `--help` lists options. The default download can fall back to Git for
+some HTTP failures; `--method download` limits it to the archive path. Public
+Dojo downloads need no API key. Existing `GITHUB_TOKEN` / `GH_TOKEN` environment
+variables are used by the downloader if present.
+
+The complete selected directory is copied, including references and scripts.
+It is a snapshot, not a live link or an automatic update subscription. An existing
+destination causes an error; the installer does not merge or upgrade it. Compare
+and preserve any local edits before deliberately replacing an installed copy.
+For uninstalling a manually installed skill, remove only its directory at the
+reported destination, then start a fresh session. If another tool manages that
+copy, use that tool's update/removal procedure.
+
+### Skill troubleshooting
+
+| Symptom | What to check |
+| --- | --- |
+| `Destination already exists` | Inspect the named directory first; an existing installation may already be usable. Compare its `SKILL.md` version and bundle before replacing it. |
+| The agent cannot find the skill | Check the printed destination and your harness's configured skill roots, then start a fresh session and name the skill explicitly. Installing into a directory does not prove discovery. |
+| The agent sees an old or unexpected copy | Check for another copy with the same name and confirm which path the session actually loads. For Codex, use the diagnostic below. |
+| `dojo` says its environment is unavailable | The optional CLI needs `uv sync --locked` in the checkout holding its executable. This is separate from installing a skill. |
+| A skill needs an unavailable tool or service | Read that skill's dependencies and setup instructions; install or configure only what the task needs. |
+
+With the [development environment](#setup) prepared, diagnose Codex exposure
+from the Dojo checkout, substituting your target project's absolute path:
+
+```bash
+uv run --locked bin/dojo inspect local-review --harness codex --cwd /absolute/path/to/project
+```
+
+This compares candidate copies with this checkout and probes a fresh Codex prompt
+catalog. It may find content drift when an installation intentionally follows a
+different revision. It does not inspect an existing session's state or prove body
+loading. A disabled, unavailable, or clipped probe is a limitation, not proof of
+absence. See [CLI scope and exit codes](#dojo-development-cli) for interpretation.
+Claude Code and other harnesses require their own discovery/session diagnostics.
+
+### Optional skill dependencies
+
+These are separate from repository development dependencies. Each skill owns
+its setup instructions and any service-access requirements.
+
+| Skill | Extra packages or tools | Env vars |
+| --- | --- | --- |
+| [atlas-imagen](../../skills/atlas-imagen/SKILL.md) | None (Python standard library only) | `ATLASCLOUD_API_KEY` |
+| [gpt-imagen](../../skills/gpt-imagen/SKILL.md) | `openai>=1.0.0`, `Pillow>=10.0.0` | `OPENAI_API_KEY` |
+| [gemini-imagen](../../skills/gemini-imagen/SKILL.md) | `google-genai>=1.0.0`, `Pillow>=10.0.0` | `GEMINI_API_KEY` |
+| [design-md](../../skills/design-md/SKILL.md) | `npx` on PATH; pulls `@google/design.md@0.4.0` on first invocation | — |
+
 ## Setup
+
+This section prepares a checkout for developing Dojo or running its optional CLI.
+For installation into a coding agent, use [Using a skill](#using-a-skill).
 
 ### System Dependencies
 
@@ -12,7 +88,7 @@ git jq python3 sed grep
 
 ### Python Dependencies
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) 0.9.17 or later (the 7-day `exclude-newer` release quarantine needs it), then:
 
 ```bash
 uv sync --locked
@@ -23,7 +99,7 @@ uv run --locked pytest
 hashes. `.python-version` selects Python 3.12 for development and CI; supported
 Python starts at 3.11. Runtime dependencies are PyYAML, Typer, and Rich. The default
 dev group adds pytest; `uv sync --locked --no-dev` omits it. Optional per-skill
-packages remain documented in the [README](../../README.md#install) and their skills.
+packages remain documented under [optional skill dependencies](#optional-skill-dependencies) and in their skills.
 
 Use `uv add` / `uv add --dev`, or edit the manifest and run `uv lock`, then commit
 both manifest and lockfile. CI uses `uv sync --locked`, which fails on drift.
@@ -35,8 +111,8 @@ Configured Python hooks use `hooks/run-python.sh` to select this checkout's
 `.venv` regardless of the harness's inherited PATH. This hook helper performs no
 installation or network access; missing setup produces stderr and exit 1 from
 `hooks/run-python.sh`. The separate `dojo` CLI launcher uses exit 2 for missing
-setup, as described below. Bare `pytest` selects `tests/` through `pyproject.toml`;
-the skill-standardizer suite remains a separate direct-script check.
+setup, as described below. Bare `pytest` selects `tests/` through `pyproject.toml`,
+which also runs the skill-standardizer suite; that suite keeps its direct-script runner.
 
 ## Dojo development CLI
 
@@ -426,8 +502,10 @@ DOJO_BEHAVIORAL_EVALS=1 python scripts/behavioral_evals.py --json
 
 ### Run skill-standardizer regression tests
 
-This suite ships beside the skill rather than in `tests/`, so `pytest tests/` does
-not collect it. CI runs it as its own step; invoke it directly to run it locally:
+This suite ships beside the skill with a stdlib-only runner that needs no pytest.
+`pytest tests/` runs each of its tests through `tests/test_skill_standardizer_suite.py`,
+which also checks that every test restores cwd and the harness-home variables.
+CI also runs the runner as its own step; invoke it directly to run it locally:
 
 ```bash
 python3 skills/skill-standardizer/scripts/test_skill_standardizer.py
@@ -622,21 +700,20 @@ the next session to re-report current drift, delete that file.
 
 ## CI
 
-GitHub Actions enforces strict contract compliance, generated-artifact sync, and an AI-slop prose scan on the manifest-backed skill catalog via:
-
-- `.github/workflows/skill-contract-pilot.yml`
+GitHub Actions runs the repository gate, `scripts/check`, in
+`.github/workflows/skill-contract-pilot.yml`. Run the same command before
+pushing:
 
 ```bash
-python -m pytest tests/ -q
-python3 skills/skill-standardizer/scripts/test_skill_standardizer.py
-python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
-python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
-python3 scripts/gen_skill_docs.py --check
-python3 scripts/generate_skills_manifest.py --check
-python3 scripts/gen_harness_adapters.py --check --skip-symlinks
-python3 scripts/gen_catalog.py --check
-python3 scripts/slop_scan.py
+scripts/check          # every deterministic CI check; exit 1 names each failure
+scripts/check --fast   # skips pytest and the skill-standardizer runner (~0.5 s)
 ```
+
+The gate covers the strict contract, skill version bumps against `CHECK_BASE`
+(default `origin/main`; CI sets the PR base), the four generated-artifact
+`--check`s, distribution profiles, links, the AI-slop scan, and both test suites.
+It only checks. The workflow keeps commit-subject release classification and
+the strict-set report upload as separate steps.
 
 The strict validator gates metadata validity, matching directory/name identity,
 and an explicit `workflow` or `reference` type. Recognizable headings, trigger

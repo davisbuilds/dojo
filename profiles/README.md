@@ -14,7 +14,7 @@ Contract: [`docs/specs/2026-07-27-distribution-profiles-spec.md`](../docs/specs/
 | File | Kind | Role |
 |---|---|---|
 | `core.yaml` | baseline | The general delivery loop. Mandatory in every deployable composition; membership fixed by SC-03. |
-| `design.yaml`, `engineering.yaml`, `knowledge.yaml`, `research.yaml`, `shipping.yaml`, `skill-authoring.yaml` | overlay | Additive capability sets. Each carries its SC-02 anchors plus at least two non-`core` members. |
+| `design.yaml`, `engineering.yaml`, `knowledge.yaml`, `research.yaml`, `skill-authoring.yaml` | overlay | Additive capability sets. Each carries its SC-02 anchors plus at least two non-`core` members. |
 | `full.yaml` | inspection | The whole catalog, via the `"*"` sentinel. Never a default, no budget exemption. |
 | `harness-equivalences.yaml` | — | Per `(skill, harness)` declarations that the harness ships its own equivalent of a member. |
 
@@ -22,8 +22,11 @@ Contract: [`docs/specs/2026-07-27-distribution-profiles-spec.md`](../docs/specs/
 useful build and review tasks. Retiring the web-guidelines wrapper changes the
 profile identity; historical harness captures retain their original membership.
 
-`shipping` now covers Vercel deployment and deployment feedback (SC-02 revision
-17); ordinary GitHub publishing no longer contributes a skill to the profile.
+`shipping` is retired with its two Vercel skills (SC-02 revision 20). Existing
+selections that name it fail as unknown; choose remaining overlays for the task
+rather than silently mapping it to an unrelated capability. Deployment and logs
+use project guidance and current provider tools. See the
+[retirement decision](../docs/project/DECISIONS.md#vercel-skills-and-shipping-profile-retirement).
 
 One file per profile, on purpose: a duplicate definition then becomes a real,
 detectable condition instead of a silently last-wins YAML key.

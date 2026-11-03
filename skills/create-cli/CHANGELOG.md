@@ -1,3 +1,7 @@
+## 2.1.1 - 2026-10-25
+
+- Move narrative credits to the repository README; retain the adapted reference's CC BY-SA notice in the standalone bundle.
+
 ## 2.1.0 - 2026-10-07
 
 - Design for intended human, script, and agent consumers; add proportional discovery, bounded evidence, and explicit asynchronous wait semantics.

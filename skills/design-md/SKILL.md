@@ -7,8 +7,7 @@ metadata:
     format: "https://github.com/google-labs-code/design.md"
     cli: "@google/design.md@0.4.0 (npm)"
     license: "Apache-2.0"
-    exemplar-source: "https://styles.refero.design"
-version: 2.0.1
+version: 2.0.2
 ---
 
 # DESIGN.md

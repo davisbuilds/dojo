@@ -1,7 +1,6 @@
 <!--
 Source: https://styles.refero.design/style/48e5de76-05d5-4c4e-a269-c7c245b291ec
 Fetched: 2026-05-03
-Attribution: Refero (styles.refero.design)
 Aesthetic pole: clean white canvas, comfortable density, signature deep-violet accent, expressive gradients.
 Verbatim copy of Refero's Style Reference markdown export.
 -->

@@ -7,7 +7,8 @@ description: >
   its interface, or resolving a specific CLI UX decision during implementation.
   Reuse settled conventions without requiring a separate design document.
 skill-type: workflow
-version: 2.1.0
+license: Third-party terms in LICENSE.txt
+version: 2.1.1
 ---
 
 # Create CLI

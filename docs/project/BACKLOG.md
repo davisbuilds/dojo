@@ -52,32 +52,6 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   The authoring validator no longer gates prose headings or length;
   remaining candidates above still need consumer-grounded review.
 
-### Check heading fragments in local Markdown links
-
-- **What**: extend the existing link checker to validate supported local heading
-  fragments, preserving its deliberate exclusions and reporting coverage limits.
-- **Why or evidence, 2026-10-07**: the source survey found that
-  `scripts/check_links.py` strips fragments and checks only file existence.
-  A renamed reference heading can therefore break a skill's navigation while
-  CI passes. No currently broken link was established.
-- **Next or revisit when**: a bounded tooling pass or missed heading link warrants
-  it; use fixtures for valid/stale headings, duplicates, inline formatting, and
-  fenced examples. Define supported Markdown anchors rather than claiming full
-  renderer equivalence. Addy's reference-link validator is implementation context,
-  not a reason to add another skill or runtime workflow.
-
-### Isolate standardizer tests from process state
-
-- **What**: several standalone standardizer tests leave cwd and harness-home
-  environment variables pointing into deleted temporary directories.
-- **Why or evidence**: on 2026-10-02, bare `pytest -q` collected these tests and
-  subsequent tests failed at `Path.cwd()`. CI deliberately runs `pytest tests/`
-  and the standardizer script in separate processes; `pyproject.toml` now also
-  scopes default pytest discovery to `tests/`. Explicitly collecting the standalone
-  suite still needs isolation.
-- **Next**: restore cwd and environment per test before unifying test discovery;
-  preserve direct-script execution without adding a runtime pytest dependency.
-
 ### Evaluate workflow revisions and extend the composition audit
 
 - **What**: measure the marginal value of the compact workflow guidance and audit
@@ -193,13 +167,12 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   `tests/test_bump_skill_version.py` covers `skills/skill-evals/scripts/`
   via `importlib.spec_from_file_location`, and skill-evals ships no tests of its
   own. The standardizer is the sole outlier.
-- **The leak**: the suite mutates process-global state (`os.chdir`, and
-  `AGENTS_HOME`/`CODEX_HOME`/`CLAUDE_HOME`) with no teardown, and leaves `cwd`
-  pointing at a deleted tempdir. Verified this collides with nothing today —
-  nothing in `tests/` or `scripts/` reads `cwd` or those vars — so the risk is
-  latent, not active. `monkeypatch.setenv`/`monkeypatch.chdir` auto-restore and
-  would remove it. (An earlier note here called this an active pollution risk;
-  that was overstated.)
+- **Interim state**: each test restores cwd and
+  `AGENTS_HOME`/`CODEX_HOME`/`CLAUDE_HOME` through `isolated_tempdir()`, and
+  `tests/test_skill_standardizer_suite.py` loads the file with `importlib` to run
+  every test under pytest, check that restoration, and run the direct runner
+  without pytest. What remains is shipped test code, the dedicated CI step, and
+  two ways to invoke one file.
 - **No longer blocked**: an earlier version of this entry said the port needed a
   call on whether the skill should keep shipping its own tests, since sync copies
   them to `~/.agents/skills/skill-standardizer/scripts/`. Settled — the Test
@@ -208,17 +181,19 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   there (stdlib-only, hermetic tempdir fixtures — verified passing from `/tmp`),
   but "can run" is not "has a consumer". Losing it from the global copy costs
   nothing, so the port is plain conformance.
-- **Next**: port ~13 tests to `tests/test_skill_standardizer.py` with
-  `tmp_path`/`monkeypatch`, delete the original, drop the dedicated CI step, and
-  update both the `Run skill-standardizer regression tests` section of
-  `docs/system/OPERATIONS.md` and the "known exception" paragraph under Test
-  Tiers in `docs/system/ARCHITECTURE.md`.
+- **Next**: port the tests into `tests/test_skill_standardizer_suite.py` with
+  `tmp_path`/`monkeypatch` while keeping the stdlib-only direct runner and its
+  pytest-free check, which are a current contract. Deleting the original,
+  dropping the dedicated CI step, and updating the `Run skill-standardizer
+  regression tests` section of `docs/system/OPERATIONS.md` and the "known
+  exception" paragraph under Test Tiers in `docs/system/ARCHITECTURE.md` retire
+  that contract, so they need their own decision first.
 - **Rejected alternative**: symlinking `tests/test_skill_standardizer.py` to the
   skill's copy so pytest collects it while the skill still ships it. It would
   work (pytest collects module-level `test_*` functions; `assert_true` raises
-  `AssertionError`), but it moves the `os.chdir`/`os.environ` leak into the
-  shared 184-test run and leaves a dead `main()` plus two ways to invoke one
-  file. It preserves the anomaly instead of resolving it.
+  `AssertionError`), but it leaves a dead `main()` plus two ways to invoke one
+  file. It preserves the anomaly instead of resolving it; the interim `importlib`
+  wrapper shares that cost until the port lands.
 
 ### Shared SemVer helper
 - **What**: SemVer parsing/validation now exists in multiple scripts.
@@ -238,12 +213,14 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   `## 1.2.3 - YYYY-MM-DD` plus at least one bullet under the heading.
 
 ### Install/update workflows should understand skill versions
-- **What**: The manifest and catalog now expose skill versions, but installer and
-  standardizer workflows do not yet report available/current version deltas.
-- **Why it matters**: Version metadata is most useful when sync and install tools
-  can say whether a local copy is behind, ahead, or divergent.
-- **Next**: Extend skill install/standardization reports to show source and
-  destination versions alongside existing drift information.
+- **What**: `skill-standardizer` audit/sync reports now show source and current
+  versions with a behind/ahead/equal/divergent/unknown delta (2026-10-21), but
+  `skill-installer` still does not report available/current version deltas.
+- **Why it matters**: `list-skills.py` marks a skill only "already installed",
+  so an available update looks the same as an up-to-date copy.
+- **Next**: Show installed and available versions in `skill-installer` listings,
+  reusing the standardizer's semantics in
+  `skills/skill-standardizer/references/policy.md#version-deltas`.
 
 ### Test isolation: a test leaves the process cwd deleted under Python 3.14
 - **What**: some test in `pytest tests/` deletes the process working directory
@@ -262,10 +239,22 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   (`skill-contract-pilot.yml` pins 3.12) so the regression cannot return silently.
 - **Revisit when**: moving CI to Python 3.14, or the failure appears in isolation.
 
+### Scan-timeout test races scanner startup under load
+- **What**: `tests/test_audit_skill.py::test_scan_timeout_stops_scanner_and_its_child`
+  gives `run_scan` a 1 s timeout, in which `scan.sh` must start a fake Python
+  engine that writes its PID file. When startup is slower than that, the
+  "Scanner never started" assertion fails without any cleanup defect.
+- **Why or evidence**: failed once in a full `scripts/check` run on 2026-10-15
+  (MacBook, Python 3.12), then passed in isolation five times and in two further
+  full runs.
+- **Next**: have the fake engine write its PID file before any other work, or
+  raise the timeout enough to cover cold interpreter startup; revisit if it
+  fails in CI.
+
 ### Revalidate earlier catalog improvement candidates before selecting work
 
-- **What**: the March 2026 roadmap proposed combining Vercel deploy/preview skills,
-  sharing image-provider plumbing, bundling fetched web guidelines, research caching,
+- **What**: the March 2026 roadmap proposed sharing image-provider plumbing,
+  bundling fetched web guidelines, research caching,
   example specs, semantic trigger scoring, and broader hook/validator tests.
 - **Why or evidence**: these were source-review suggestions, not evidence that a
   capability was missing from today's model/harness or that a merger would help.
@@ -274,25 +263,3 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 - **Revisit when**: observed user friction or a selected catalog review supplies a
   current need. Check existing skills, tools, examples, and tests before adopting
   any candidate; preserve distinct triggers when they serve different tasks.
-
-### Reassess the retained React performance reference
-- **What**: Decide whether `vercel-react-best-practices` still earns a standalone
-  skill or should retire in favor of project guidance and current documentation.
-- **Evidence (2026-10-10 frontend audit)**: Broad write/refactor triggers and a
-  blanket no-barrel-import verification rule conflict with the bundled reference's
-  optimized-import exception. No task-outcome comparison was run.
-- **Next**: Review the useful remainder and its consumers before retirement; do
-  not replace the collection with another generic reference just to preserve it.
-
-### Repair or retire the Vercel deployment fallback
-- **What**: Decide whether the claimable-deployment fallback is needed, then repair
-  its authority and completion semantics or remove it.
-- **Evidence (2026-10-10 source audit)**: `vercel-deploy` falls back on an auth error
-  to a separate upload endpoint. `scripts/deploy.sh` packages the project with a
-  small exclusion list, calls 4xx responses ready, and can exit successfully after
-  its readiness timeout. The skill also prohibits fetching the deployed page.
-  No deployment or external upload was performed in the audit.
-- **Next**: Resolve before relying on this fallback. Prefer the project's existing
-  deployment route; if retained, make upload destination/scope explicit and
-  distinguish accepted, ready, failed, and unverified outcomes. Review the paired
-  `vercel-preview-logs` wrapper's runtime assumptions in the same bounded pass.

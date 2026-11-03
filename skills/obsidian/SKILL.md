@@ -2,7 +2,8 @@
 name: obsidian
 description: Work in an Obsidian vault — notes with wikilinks, properties, tags, callouts, and embeds; Bases (.base); Canvas (.canvas); and the Obsidian CLI for answers only the running app has. Use when creating, editing, or checking vault files, or when the user mentions Obsidian, wikilinks, Bases, canvases, or the obsidian CLI.
 skill-type: reference
-version: 1.0.0
+license: Third-party terms in LICENSE.txt
+version: 1.0.1
 ---
 
 # Obsidian
@@ -52,4 +53,3 @@ The Obsidian CLI (`obsidian` / `obsidian-cli`) reaches the running app: resolved
 ## References
 
 - [Obsidian Help](https://help.obsidian.md/): [Obsidian Flavored Markdown](https://help.obsidian.md/obsidian-flavored-markdown), [Properties](https://help.obsidian.md/properties), [Bases syntax](https://help.obsidian.md/bases/syntax), [CLI](https://help.obsidian.md/cli); [JSON Canvas 1.0](https://jsoncanvas.org/spec/1.0/)
-- Consolidates the former `obsidian-markdown`, `obsidian-bases`, and `obsidian-canvas` skills. Adapted from [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) (MIT).

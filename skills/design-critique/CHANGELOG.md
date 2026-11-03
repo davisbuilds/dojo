@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.1 - 2026-10-25
+
+- Move taxonomy credits from task guidance and discovery metadata to the repository README.
+
 ## 2.0.0 - 2026-10-10
 
 - Replace mandatory aesthetic rules and review ceremony with product-fit judgment,

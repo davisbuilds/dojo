@@ -1,7 +1,6 @@
 <!--
 Source: https://styles.refero.design/style/<figma-id>
 Fetched: 2026-05-03
-Attribution: Refero (styles.refero.design)
 Aesthetic pole: monochrome chassis for chromatic content, mixed border-radius dichotomy (50px pills vs 0px content), aggressive negative tracking.
 Verbatim copy of Refero's Style Reference markdown export.
 -->

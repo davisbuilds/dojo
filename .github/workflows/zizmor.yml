@@ -18,6 +18,11 @@ on:
 permissions:
   contents: read
 
+# Superseded validation must release runner capacity for the newest commit.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   zizmor:
     name: zizmor
@@ -30,8 +35,9 @@ jobs:
           persist-credentials: false
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v8
         with:
+          version: "0.13.5"
           enable-cache: false
 
       # uvx fetches zizmor hermetically at the pinned version; --offline skips

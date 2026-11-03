@@ -48,13 +48,15 @@
       "name": "caveman",
       "description": "Ultra-compressed communication mode, persistent across turns once active. Use when the user says \"caveman mode\", \"talk like caveman\", \"use caveman\", \"less tokens\", asks to compress agent responses for the rest of the session, or invokes /caveman. Stop with \"stop caveman\" or \"normal mode\".",
       "path": "skills/caveman",
-      "version": "1.0.1"
+      "version": "1.0.2",
+      "license": "Third-party terms in LICENSE.txt"
     },
     {
       "name": "create-cli",
       "description": "Design command-line interface parameters and UX: arguments, flags, subcommands, help text, output formats, error messages, exit codes, prompts, config/env precedence, and safe/dry-run behavior. Use when designing a CLI, refactoring its interface, or resolving a specific CLI UX decision during implementation. Reuse settled conventions without requiring a separate design document.\n",
       "path": "skills/create-cli",
-      "version": "2.1.0"
+      "version": "2.1.1",
+      "license": "Third-party terms in LICENSE.txt"
     },
     {
       "name": "deep-research",
@@ -66,19 +68,20 @@
       "name": "design-critique",
       "description": "Review an interface's visual hierarchy, usability, interaction states, and product fit. Use when asked to critique a UI, assess polish or accessibility concerns, identify generic design choices, or recommend what to improve. Return grounded findings and concrete alternatives; use frontend-design to implement changes.",
       "path": "skills/design-critique",
-      "version": "2.0.0"
+      "version": "2.0.1"
     },
     {
       "name": "design-md",
       "description": "Read, write, lint, diff, and export DESIGN.md files using the Google @google/design.md format. Use when the user mentions DESIGN.md, design tokens, extracting a design system, linting design tokens, exporting tokens to Tailwind, DTCG, or CSS variables, or when authoring a fresh design-system reference for a project.",
       "path": "skills/design-md",
-      "version": "2.0.1"
+      "version": "2.0.2"
     },
     {
       "name": "diagnose",
       "description": "Disciplined debugging loop for hard bugs and performance regressions. Use when the user says \"diagnose this\", \"debug this\", \"this is broken/throwing/failing\", reports a bug whose cause is non-obvious, or describes a performance regression. For completion-time evidence checks use verify-before-complete; for new-test methodology use test-strategy; for post-hoc code review use local-review.",
       "path": "skills/diagnose",
-      "version": "2.0.0"
+      "version": "2.0.1",
+      "license": "Third-party terms in LICENSE.txt"
     },
     {
       "name": "fetchmd",
@@ -102,7 +105,7 @@
       "name": "frontend-design",
       "description": "Build or refine frontend interfaces with intentional visual design. Use when creating a page or component, shaping a UI's visual direction, or improving its layout, hierarchy, and interaction states. For critique without implementation, use design-critique.",
       "path": "skills/frontend-design",
-      "version": "2.0.0",
+      "version": "2.2.0",
       "license": "Complete terms in LICENSE.txt"
     },
     {
@@ -145,7 +148,8 @@
       "name": "obsidian",
       "description": "Work in an Obsidian vault \u2014 notes with wikilinks, properties, tags, callouts, and embeds; Bases (.base); Canvas (.canvas); and the Obsidian CLI for answers only the running app has. Use when creating, editing, or checking vault files, or when the user mentions Obsidian, wikilinks, Bases, canvases, or the obsidian CLI.",
       "path": "skills/obsidian",
-      "version": "1.0.0"
+      "version": "1.0.1",
+      "license": "Third-party terms in LICENSE.txt"
     },
     {
       "name": "playwright",
@@ -202,7 +206,7 @@
       "name": "skill-evals",
       "description": "Check skill packaging, release versions, and lexical routing fixtures, and choose evidence appropriate to a skill-quality claim. Use when validating a skill edit, investigating trigger collisions, or assessing what an evaluation establishes.",
       "path": "skills/skill-evals",
-      "version": "2.1.0"
+      "version": "2.1.1"
     },
     {
       "name": "skill-installer",
@@ -214,7 +218,7 @@
       "name": "skill-standardizer",
       "description": "Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.",
       "path": "skills/skill-standardizer",
-      "version": "2.0.0"
+      "version": "2.1.0"
     },
     {
       "name": "template",
@@ -234,25 +238,6 @@
       "path": "skills/theme-factory",
       "version": "1.0.0",
       "license": "Complete terms in LICENSE.txt"
-    },
-    {
-      "name": "vercel-deploy",
-      "description": "Create and push new Vercel deployments. Use when the user wants to deploy, ship, go live, or create a preview \u2014 e.g. \"deploy my app\", \"push this live\", \"ship it\".",
-      "path": "skills/vercel-deploy",
-      "version": "1.0.2"
-    },
-    {
-      "name": "vercel-preview-logs",
-      "description": "Retrieve and diagnose Vercel build/runtime logs. Use when the user asks to check errors, inspect logs, debug a failed build, or correlate a PR/commit with log output from an existing environment.",
-      "path": "skills/vercel-preview-logs",
-      "version": "1.0.2"
-    },
-    {
-      "name": "vercel-react-best-practices",
-      "description": "React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when writing, reviewing, or refactoring React/Next.js code to ensure optimal performance patterns. Triggers on tasks involving React components, Next.js pages, data fetching, bundle optimization, or performance improvements.",
-      "path": "skills/vercel-react-best-practices",
-      "version": "1.0.2",
-      "license": "MIT"
     },
     {
       "name": "verify-before-complete",

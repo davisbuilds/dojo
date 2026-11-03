@@ -1,3 +1,7 @@
+## 1.0.1 - 2026-10-25
+
+- Move source credits to the repository README and include the upstream MIT notice in standalone bundles.
+
 ## 1.0.0 - 2026-10-03
 
 - Preserve Canvas extension metadata, scope diagram-format guidance to Canvas, and honor authorized CLI setup.

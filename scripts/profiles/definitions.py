@@ -47,7 +47,7 @@ import yaml
 # vocabulary by being dropped in a directory.
 BASELINE = "core"
 INSPECTION = "full"
-OVERLAYS = ("design", "engineering", "knowledge", "research", "shipping", "skill-authoring")
+OVERLAYS = ("design", "engineering", "knowledge", "research", "skill-authoring")
 VOCABULARY = frozenset({BASELINE, INSPECTION, *OVERLAYS})
 
 # name -> kind. A file naming itself `core` with `kind: overlay` is a definition
@@ -62,7 +62,6 @@ ANCHORS = {
     "engineering": ("create-cli", "secure-code"),
     "knowledge": ("obsidian", "session-retro"),
     "research": ("deep-research", "research-architect"),
-    "shipping": ("vercel-deploy", "vercel-preview-logs"),
     "skill-authoring": ("skill-creator", "skill-standardizer"),
 }
 

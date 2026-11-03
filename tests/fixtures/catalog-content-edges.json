@@ -1,0 +1,20 @@
+{
+  "skills": [
+    {
+      "name": "internationalization-and-accessibility-review",
+      "version": "1.0.0",
+      "description": "Review Research & Development interfaces. Preserve literal &amp; examples and names such as Nguyễn, Zoë, and 山田. Inspect content at https://documentation.example.com/internationalization/accessibility/reference.",
+      "triggers": ["internationalization-and-accessibility-review", "review translated labels"]
+    },
+    {
+      "name": "markup-reference",
+      "description": "Explain literal </script><script>window.catalogInjected = true</script>, <!-- <script>, <button>, and &amp; text without turning examples into markup.",
+      "triggers": []
+    },
+    {
+      "name": "brief",
+      "version": "1.0.0",
+      "description": "Short copy."
+    }
+  ]
+}

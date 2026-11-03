@@ -110,8 +110,8 @@ def resolve(selection: list[str] | tuple[str, ...], definitions: dict[str, Profi
     """Set union over `core` plus the named overlays, lexically ordered.
 
     Composition order has no semantic effect: the members are sorted and the
-    identity hashes the *normalized* selection, so all 720 orderings of the six
-    overlays produce one result (EV-CON-02).
+    identity hashes the *normalized* selection, so every ordering of the selected
+    overlays produces one result (EV-CON-02).
     """
     tokens = tuple(selection)
 
