@@ -45,6 +45,7 @@ accessibility compliance.
 | `write-plan` | Plan dependencies, rollout, and proof when needed; accept tickets/conversations and retain conditional high-risk traceability and review |
 | `blind-spots` | Find what you don't know about one change — blind spot pass before it's built, or a brief-then-quiz before you merge (never scored, never gating) |
 | `create-cli` | CLI design or focused interface consultation during implementation |
+| `verification-tooling` | Build and maintain repeatable consumer verification paths, including setup, evidence, cleanup, and drift repair |
 | `agent-native-design` | Design agent-facing interfaces, delegated work, and products for agent consumers |
 | `deep-research` | Direct source-backed research with claim-level evidence checks and optional structured-finding triage |
 | `research-architect` | Shape portable research prompts with the user, commission independent same-question runs, and assess or synthesize returned reports |

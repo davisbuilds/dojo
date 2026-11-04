@@ -1,0 +1,5 @@
+# AUTO-GENERATED from SKILL.md frontmatter — do not edit
+interface:
+  display_name: "Verification Tooling"
+  short_description: "Build and maintain repeatable repository verification tooling"
+  default_prompt: "Use $verification-tooling for this task."
