@@ -21,6 +21,7 @@ jq '.skills | length' skills.json
 
 | Skill | Purpose |
 |-------|---------|
+| `atlas-imagen` | Image generation/editing via Atlas Cloud |
 | `design-md` | Read, write, lint, diff, and export DESIGN.md files via the pinned `@google/design.md` CLI |
 | `design-critique` | Review product fit, visual hierarchy, usability, and interaction evidence |
 | `frontend-design` | Build and refine interfaces around product intent and existing conventions |
