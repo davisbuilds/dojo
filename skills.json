@@ -224,7 +224,7 @@
       "name": "test-strategy",
       "description": "Guide agents to follow preferred testing methodology \u2014 red/green TDD, real dependencies over mocks, behavior-based tests, and effective-runtime authority-boundary probes. Use when writing tests, planning test coverage, deciding between TDD and test-after, correcting excessive mocking, or testing filesystem, credential, process, network, or remote-mutation permissions. Triggers on 'write tests', 'add test coverage', 'how should I test this', 'TDD', 'test strategy', 'test plan', 'test the permission boundary'.",
       "path": "skills/test-strategy",
-      "version": "2.1.0"
+      "version": "2.1.1"
     },
     {
       "name": "theme-factory",
@@ -234,10 +234,17 @@
       "license": "Complete terms in LICENSE.txt"
     },
     {
+      "name": "verification-tooling",
+      "description": "Build and maintain repeatable repository verification tooling. Use when a project lacks a usable verification environment, important consumer paths cannot be exercised, setup or fixtures have drifted, or verification scripts and runbooks need repair or an audit.",
+      "path": "skills/verification-tooling",
+      "version": "1.0.0",
+      "license": "MIT; see LICENSE.txt"
+    },
+    {
       "name": "verify-before-complete",
       "description": "Guard against false completion claims when the cost of being wrong is high. Use when accepting delegated or subagent work, shipping high-risk changes (auth, migrations, infra, security, broad refactors), lacking fresh verification evidence (missing, stale, or conflicting), or being explicitly asked to confirm something is really done or audit a completion claim. Skip routine low-risk changes already covered by the repo's own checks \u2014 running those checks is enough.",
       "path": "skills/verify-before-complete",
-      "version": "3.0.0"
+      "version": "3.0.1"
     },
     {
       "name": "write-plan",

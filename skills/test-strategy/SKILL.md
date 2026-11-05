@@ -2,7 +2,7 @@
 name: test-strategy
 description: Guide agents to follow preferred testing methodology — red/green TDD, real dependencies over mocks, behavior-based tests, and effective-runtime authority-boundary probes. Use when writing tests, planning test coverage, deciding between TDD and test-after, correcting excessive mocking, or testing filesystem, credential, process, network, or remote-mutation permissions. Triggers on 'write tests', 'add test coverage', 'how should I test this', 'TDD', 'test strategy', 'test plan', 'test the permission boundary'.
 skill-type: reference
-version: 2.1.0
+version: 2.1.1
 ---
 
 # Test Strategy
@@ -107,6 +107,8 @@ justify it. Restore any temporary mutation and keep probes isolated.
 
 ## Sibling skills
 
+- `verification-tooling` — building or repairing the repeatable environment,
+  scripts, fixtures, and runbooks needed to exercise a consumer path.
 - `verify-before-complete` — assessing whether available evidence supports a
   consequential completion claim.
 - `diagnose` — finding the cause of an unclear test or runtime failure.
