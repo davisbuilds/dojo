@@ -781,3 +781,128 @@ def test_a_model_switch_is_not_called_a_build_change(base56):
     findings = compare(base56, other_build)
     assert any("harness build changed" in f for f in findings)
     assert not any("model changed" in f for f in findings)
+
+
+# --------------------------------------------------------------------------
+# Which sessions count as the machine's interactive listing
+# --------------------------------------------------------------------------
+#
+# Measured on a Mac whose only Codex surface is the desktop app: its sessions
+# rendered the same entry identities, at the same per-entry cost, as an
+# interactive `codex-tui` session of the same build (one build, so opt-in). The
+# default still reads only `codex-tui`; a caller that knows its machine runs the
+# desktop app asks for it with `--surface`. `codex exec` is the opposite case --
+# it does not load account-synced connectors -- and cannot be selected at all.
+
+
+def _sessions_dir(tmp_path, originator: str, name: str = "sessions"):
+    """A sessions root holding the healthy fixture re-labelled with `originator`."""
+    text = FOK45.read_text().replace('"originator": "codex-tui"',
+                                     f'"originator": "{originator}"')
+    day = tmp_path / name / "2026" / "08" / "06"
+    day.mkdir(parents=True)
+    (day / "rollout-2026-08-06T00-00-00-00000000-0000-0000-0000-000000000045.jsonl"
+     ).write_text(text)
+    return tmp_path / name
+
+
+def test_the_default_still_reads_only_the_tui(tmp_path, capsys, monkeypatch):
+    """Opt-in, not a changed default: with no --surface a desktop-only machine is
+    still unobserved, exactly as before."""
+    import profiles.drift_check as dc
+
+    root = _sessions_dir(tmp_path, "Codex Desktop")
+    monkeypatch.setattr(rc, "default_sessions_root", lambda: root)
+    assert dc.run(tmp_path / "baseline.json", update=True) == EXIT_CANNOT_EVALUATE
+    assert "no parseable codex-tui session" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("originator,surfaces", [
+    ("Codex Desktop", ("Codex Desktop",)),
+    ("Codex Desktop", ("codex-tui", "Codex Desktop")),
+    ("codex-tui", ("codex-tui", "Codex Desktop")),
+])
+def test_a_selected_surface_is_observed(tmp_path, capsys, monkeypatch, originator, surfaces):
+    import profiles.drift_check as dc
+
+    root = _sessions_dir(tmp_path, originator)
+    monkeypatch.setattr(rc, "default_sessions_root", lambda: root)
+    assert dc.run(tmp_path / "baseline.json", update=True,
+                  surfaces=surfaces) == EXIT_CLEAN
+    assert "state: baseline-recorded" in capsys.readouterr().out
+
+
+def test_a_surface_that_was_not_selected_is_not_observed(tmp_path, capsys, monkeypatch):
+    import profiles.drift_check as dc
+
+    root = _sessions_dir(tmp_path, "codex-tui")
+    monkeypatch.setattr(rc, "default_sessions_root", lambda: root)
+    assert dc.run(tmp_path / "baseline.json", update=True,
+                  surfaces=("Codex Desktop",)) == EXIT_CANNOT_EVALUATE
+
+
+def test_exec_cannot_be_selected(tmp_path, capsys):
+    """The control: `codex exec` renders a different listing, so reading it as the
+    machine's listing would report 69 phantom removals. Refused, not merely unused."""
+    import profiles.drift_check as dc
+
+    with pytest.raises(SystemExit) as exc:
+        dc.main(["--baseline", str(tmp_path / "b.json"), "--surface", "codex_exec"])
+    assert exc.value.code == 2
+    assert "codex_exec" in capsys.readouterr().err
+    with pytest.raises(ValueError):
+        dc.run(tmp_path / "b.json", surfaces=("codex_exec",))
+
+
+def test_the_missing_session_message_names_the_selected_surfaces(tmp_path, capsys, monkeypatch):
+    import profiles.drift_check as dc
+
+    empty = tmp_path / "sessions"
+    empty.mkdir()
+    monkeypatch.setattr(rc, "default_sessions_root", lambda: empty)
+    dc.run(tmp_path / "baseline.json")
+    assert "no parseable codex-tui session" in capsys.readouterr().out
+    dc.run(tmp_path / "baseline.json", surfaces=("codex-tui", "Codex Desktop"))
+    out = capsys.readouterr().out
+    assert "codex-tui or Codex Desktop" in out
+
+
+def test_surface_flag_is_repeatable_on_the_command_line(tmp_path, capsys, monkeypatch):
+    import profiles.drift_check as dc
+
+    root = _sessions_dir(tmp_path, "Codex Desktop")
+    monkeypatch.setattr(rc, "default_sessions_root", lambda: root)
+    code = dc.main(["--baseline", str(tmp_path / "b.json"), "--update",
+                    "--surface", "codex-tui", "--surface", "Codex Desktop"])
+    assert code == EXIT_CLEAN
+    assert "Codex Desktop" in capsys.readouterr().out
+
+
+def test_the_newest_session_wins_across_selected_surfaces(tmp_path):
+    """A machine used from both surfaces is watched through whichever ran last."""
+    root = _sessions_dir(tmp_path, "codex-tui")
+    newer = root / "2026" / "08" / "07"
+    newer.mkdir(parents=True)
+    (newer / "rollout-2026-08-07T00-00-00-00000000-0000-0000-0000-000000000046.jsonl"
+     ).write_text(FOK45.read_text().replace('"originator": "codex-tui"',
+                                            '"originator": "Codex Desktop"'))
+    found = rc.observations(root, surface=rc.INTERACTIVE_SURFACES, limit=1)
+    assert [o.meta.surface for o in found] == ["Codex Desktop"]
+
+
+def test_a_surface_change_alone_does_not_defeat_notice_mode():
+    """Flipping between TUI and desktop sessions of one build is not controlled
+    drift: only membership outside local control moved."""
+    import profiles.drift_check as dc
+
+    healthy = Baseline.from_observation(rc.read_rollout(FOK45))  # not saturated
+    swapped = "connector:github:yeet"
+    previous = dataclasses.replace(
+        healthy, surface="codex-tui",
+        entry_ids=sorted(healthy.entry_ids + [swapped]),
+        uncontrolled_ids=sorted(healthy.uncontrolled_ids + [swapped]))
+    current = dataclasses.replace(healthy, surface="Codex Desktop")
+    assert dc._only_uncontrolled_membership_changed(previous, current)
+    # ...but a surface outside the interactive pair still disqualifies it.
+    assert not dc._only_uncontrolled_membership_changed(
+        previous, dataclasses.replace(healthy, surface="codex_exec"))

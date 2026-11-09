@@ -647,13 +647,25 @@ python3 scripts/profiles/drift_check.py --json     # machine-readable
 python3 scripts/profiles/drift_check.py --uncontrolled-as-notice  # health mode
 ```
 
-It compares the newest `codex-tui` rollout against a recorded baseline (default
+It compares the newest `codex-tui` rollout (or, with `--surface`, a `Codex Desktop`
+one) against a recorded baseline (default
 `~/.agents/.dojo-profile-baseline.json`, deliberately outside this public
 repository, and **keyed by working directory**) and reports build changes, model changes, a moved or newly
 underivable ceiling, saturation starting or stopping, changes to the listed and
 uncontrolled entry **multisets**, and charged demand moving under unchanged
 membership. Exit `0` clean, `1` cannot evaluate, `2` drift, `3` blind too long,
 `4` saturated.
+
+By default only `codex-tui` sessions are read. A machine whose Codex use is the
+desktop app has none, so it would be reported blind; pass `--surface "Codex
+Desktop"` (repeatable, `--surface codex-tui --surface "Codex Desktop"` accepts
+either) to read those. The two interactive surfaces compare as one class: on one
+build (0.160.0) their same-day sessions rendered the same entry identities at the
+same per-entry cost, and the few-token total gap was the root table, which
+varies by working directory and is already keyed by it. That equivalence was
+measured on one build, which is why it is opt-in and why a build change is worth
+re-checking. `codex exec` cannot be selected: it does not load account-synced
+connectors, so it would report phantom removals.
 
 The default remains strict. `--uncontrolled-as-notice` exits `0` with
 `state: notice` only when the same-build, non-saturated transition is entirely

@@ -62,6 +62,7 @@ from __future__ import annotations
 import json
 import re
 from collections import Counter
+from collections.abc import Collection
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -71,6 +72,12 @@ BLOCK_OPEN = "<skills_instructions>"
 BLOCK_CLOSE = "</skills_instructions>"
 
 SURFACE_TUI = "codex-tui"
+SURFACE_DESKTOP = "Codex Desktop"
+# The surfaces a person works in, and so the ones whose listing is the machine's
+# listing. Both render the account-synced connectors and the same entry identities
+# at the same per-entry cost (measured on one build, 0.160.0). `codex exec` is
+# deliberately absent: it does not load connectors, which is the original defect.
+INTERACTIVE_SURFACES = frozenset({SURFACE_TUI, SURFACE_DESKTOP})
 SURFACE_EXEC = "codex_exec"
 SURFACE_PROBE = "exec"  # what probe_codex observes; an alias of the exec path
 
@@ -378,7 +385,7 @@ def find_rollouts(sessions_root: Path | str | None = None) -> list[Path]:
 
 
 def observations(sessions_root: Path | str | None = None, *, cwd: str | Path | None = None,
-                 surface: str | None = None, limit: int | None = None,
+                 surface: str | Collection[str] | None = None, limit: int | None = None,
                  errors: list | None = None) -> list[RolloutObservation]:
     """Parsed observations, newest first, optionally filtered by cwd and surface.
 
@@ -404,7 +411,8 @@ def observations(sessions_root: Path | str | None = None, *, cwd: str | Path | N
             continue
         if observation is None:
             continue
-        if surface is not None and observation.meta.surface != surface:
+        if surface is not None and observation.meta.surface not in (
+                {surface} if isinstance(surface, str) else surface):
             continue
         if wanted_cwd is not None:
             try:
