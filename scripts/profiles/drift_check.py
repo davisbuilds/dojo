@@ -59,6 +59,22 @@ from profiles import rollout_codex as rc  # noqa: E402
 # repository is public.
 DEFAULT_BASELINE = Path.home() / ".agents" / ".dojo-profile-baseline.json"
 
+_SURFACE_ORDER = (rc.SURFACE_TUI, rc.SURFACE_DESKTOP)
+
+
+def _surfaces_label(surfaces) -> str:
+    """"codex-tui or Codex Desktop", in the order a reader expects them."""
+    return " or ".join(sorted(surfaces, key=_SURFACE_ORDER.index))
+
+
+def _surface_class(surface: str) -> str:
+    """Interactive Codex surfaces compare as one; any other stays itself.
+
+    A machine used from both would otherwise read as a surface change whenever
+    the newest session switched, which is not a change to anything governed.
+    """
+    return "interactive" if surface in rc.INTERACTIVE_SURFACES else surface
+
 EXIT_CLEAN = 0
 EXIT_CANNOT_EVALUATE = 1
 EXIT_DRIFT = 2
@@ -276,7 +292,7 @@ def _only_uncontrolled_membership_changed(previous: Baseline,
     more narrowly.
     """
     if (previous.harness_build != current.harness_build
-            or previous.surface != current.surface
+            or _surface_class(previous.surface) != _surface_class(current.surface)
             or previous.ceiling != current.ceiling
             or previous.saturated != current.saturated
             or previous.saturated or current.saturated):
@@ -317,10 +333,21 @@ def _saturation_findings(obs: rc.RolloutObservation, current: Baseline) -> list[
 
 def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
         as_json: bool = False, max_blind_days: int | None = None,
-        uncontrolled_as_notice: bool = False) -> int:
+        uncontrolled_as_notice: bool = False,
+        surfaces: tuple[str, ...] = (rc.SURFACE_TUI,)) -> int:
+    # Only surfaces whose listing is the machine's listing may be selected.
+    # `codex exec` does not load account-synced connectors, so a baseline taken
+    # from it would report phantom removals; refuse it rather than trust callers.
+    unsupported = sorted(set(surfaces) - rc.INTERACTIVE_SURFACES)
+    if unsupported or not surfaces:
+        raise ValueError(
+            f"unsupported surface {unsupported or surfaces!r}; "
+            f"choose from {sorted(rc.INTERACTIVE_SURFACES)}")
+    surfaces = tuple(dict.fromkeys(surfaces))
+    label = _surfaces_label(surfaces)
     errors: list[tuple[Path, str]] = []
     observations = rc.observations(
-        cwd=cwd, surface=rc.SURFACE_TUI, errors=errors, limit=1)
+        cwd=cwd, surface=surfaces, errors=errors, limit=1)
 
     # Every path that cannot establish a *fresh, well-classified* observation
     # runs through one gate. The first version of this threshold guarded only
@@ -351,7 +378,7 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
     if not observations:
         detail = f"; {len(errors)} rollouts were unparseable" if errors else ""
         return blind_or("cannot-evaluate",
-                        [f"no parseable {rc.SURFACE_TUI} session found{detail}"],
+                        [f"no parseable {label} session found{detail}"],
                         EXIT_CANNOT_EVALUATE)
 
     current_obs = observations[0]
@@ -419,7 +446,7 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
             else "It still matches the baseline"
         )
         _emit(as_json, "blind",
-              [f"the newest {rc.SURFACE_TUI} session is {age}d old, past the "
+              [f"the newest {label} session is {age}d old, past the "
                f"{max_blind_days}d threshold. {relation}, but nothing new has "
                "been observed: this machine is not being watched."],
               current)
@@ -472,6 +499,12 @@ def main(argv: list[str] | None = None) -> int:
                         help="escalate to exit 3 when the check has been unable "
                              "to evaluate for longer than this")
     parser.add_argument(
+        "--surface", action="append", choices=sorted(rc.INTERACTIVE_SURFACES),
+        help="a Codex surface whose sessions count as this machine's listing; "
+             "repeat to accept several (default: codex-tui). Only the surfaces "
+             "a person works in are accepted; codex exec renders a different "
+             "listing")
+    parser.add_argument(
         "--uncontrolled-as-notice", action="store_true",
         help="exit 0 while still reporting a transition limited to vendor or "
              "account-synced membership; build, saturation, ceiling, and "
@@ -479,7 +512,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     return run(args.baseline, cwd=args.cwd, update=args.update,
            as_json=args.as_json, max_blind_days=args.max_blind_days,
-           uncontrolled_as_notice=args.uncontrolled_as_notice)
+           uncontrolled_as_notice=args.uncontrolled_as_notice,
+           surfaces=tuple(args.surface) if args.surface else (rc.SURFACE_TUI,))
 
 
 if __name__ == "__main__":
