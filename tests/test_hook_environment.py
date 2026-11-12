@@ -37,24 +37,23 @@ def checkout(tmp_path):
     return repo, env
 
 
-def command(config, hook):
-    settings = json.loads((ROOT/config/'settings.json').read_text())
+def command(hook):
+    settings = json.loads((ROOT/'.claude'/'settings.json').read_text())
     return next(shlex.split(h['command']) for events in settings['hooks'].values()
                 for event in events for h in event['hooks'] if h['command'].endswith(hook))
 
 
-@pytest.mark.parametrize('config', ['.claude', '.agents'])
-def test_configured_python_hooks_use_checkout_environment(checkout, config):
+def test_configured_python_hooks_use_checkout_environment(checkout):
     repo, env = checkout
     payload = {'tool_name': 'Write', 'tool_input': {
         'file_path': str(repo/'skills/alpha/SKILL.md'), 'content': 'missing frontmatter'}}
-    pre = subprocess.run(command(config, 'pre-tool-use-validate-skill.sh'), cwd=repo,
+    pre = subprocess.run(command('pre-tool-use-validate-skill.sh'), cwd=repo,
                          env=env, input=json.dumps(payload), capture_output=True, text=True)
     assert pre.returncode == 2, pre.stderr
     assert 'ambient Python used' not in pre.stderr
     (repo/'skills/alpha/SKILL.md').write_text(
         '---\nname: alpha\ndescription: Use when testing.\nversion: 1.0.0\n---\n')
-    post = subprocess.run(command(config, 'post-tool-use-regen-manifest.sh'), cwd=repo,
+    post = subprocess.run(command('post-tool-use-regen-manifest.sh'), cwd=repo,
                           env=env, input=json.dumps(payload), capture_output=True, text=True)
     assert post.returncode == 0, post.stderr
     manifest = json.loads((repo/'skills.json').read_text())
@@ -65,7 +64,7 @@ def test_configured_python_hooks_use_checkout_environment(checkout, config):
 def test_missing_hook_environment_reports_setup_error(checkout):
     repo, env = checkout
     (repo/'.venv').unlink()
-    result = subprocess.run(command('.claude', 'pre-tool-use-validate-skill.sh'),
+    result = subprocess.run(command('pre-tool-use-validate-skill.sh'),
                             cwd=repo, env=env, input='{}', capture_output=True, text=True)
     assert result.returncode == 1
     assert 'uv sync --locked' in result.stderr

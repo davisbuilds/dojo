@@ -46,7 +46,7 @@ Context loading follows three tiers:
 
 ## Hook Pipeline
 
-Hooks run at defined lifecycle events and are configured in `.claude/settings.json` and `.agents/settings.json`.
+Hooks run at defined lifecycle events and are configured in `.claude/settings.json`. Only Claude Code runs them: Codex reads hooks from its own `hooks.json`, which this repository does not ship.
 
 | Hook | Event | Purpose |
 |------|-------|---------|
@@ -60,7 +60,6 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 | `post-tool-use-validate-spec.sh` | PostToolUse (Write/Edit) | Validates `docs/specs/*-spec.md` against the `write-spec` contract schema; forbids plan-shaped content, conditionally enforces high-risk IDs/scenarios/readiness, and advises on obvious weak acceptance gates |
 | `post-tool-use-validate-plan.sh` | PostToolUse (Write/Edit) | Validates `docs/plans/*-plan.md` against the `write-plan` execution schema; resolves target-repository paths, conditionally enforces linked-spec coverage/task/file grounding/readiness, and advises on obvious weak acceptance gates |
 | `post-tool-use-validate-doc.sh` | (shared body) | Called by the spec and plan hooks; resolves the edited file to a repository-relative path, so absolute and relative `file_path` values both match |
-| `stop-hook-git-check.sh` | (unregistered) | Blocks if there are uncommitted changes or untracked files. Script kept in `hooks/` but no longer wired into `.claude/settings.json`. |
 | `stop-hook-skill-structure.sh` | Stop | Validates modified skill directories have valid SKILL.md and release-version bumps |
 | `stop-hook-session-retro.sh` | Stop | Non-blocking reminder to capture still-missing consequential knowledge only when authorized; skips already-captured or unnecessary updates |
 

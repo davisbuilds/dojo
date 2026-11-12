@@ -746,7 +746,7 @@ whether the sample was healthy.
 
 ## Hook Configuration
 
-Hooks are configured in `.claude/settings.json` and `.agents/settings.json`. No manual installation is needed — they activate automatically when opening the repo in a supported harness.
+Hooks are configured in `.claude/settings.json`. No manual installation is needed: they activate when the repo is opened in Claude Code. No other harness reads that file, so the hooks do not run under Codex.
 
 The SessionStart drift notice (`session-start-skill-drift.sh`) keeps per-checkout
 debounce state in `.skill-standardizer/drift-state.json` (gitignored). To force
