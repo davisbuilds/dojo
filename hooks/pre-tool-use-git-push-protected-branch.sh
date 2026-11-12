@@ -116,8 +116,11 @@ while IFS= read -r segment; do
     for p in $positionals; do
       idx=$((idx + 1))
       [[ "$idx" -eq 1 ]] && continue   # skip the remote
+      p="${p#+}"                       # a leading + only marks a forced update
       dst="${p##*:}"                   # refspec destination (right of last colon)
       dst="${dst#refs/heads/}"
+      # A bare HEAD or @ pushes the current branch to its own name.
+      if [[ "$dst" == "HEAD" || "$dst" == "@" ]]; then dst="$current_branch"; fi
       [[ "$dst" == "$branch" ]] && targeted=1
     done
 
