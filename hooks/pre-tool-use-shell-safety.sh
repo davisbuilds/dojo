@@ -55,9 +55,14 @@ fi
 
 # --- 2. ripgrep --replace mistaken for recursive -------------------------------
 # Matches a short-flag cluster containing r (-r, -rn, -rln) but not --replace
-# spelled out, which is presumably deliberate.
-if [[ "$command" =~ (^|[[:space:]])rg[[:space:]] ]] && [[ ! "$command" =~ --replace ]]; then
-  if [[ "$command" =~ (^|[[:space:]])-[A-Za-qs-z]*r[A-Za-z]*([[:space:]]|$) ]]; then
+# spelled out, which is presumably deliberate. The cluster must belong to the
+# rg invocation itself: the search stops at the next | ; & or newline, so
+# `rg x | sort -rn` and `rg x; tail -r f` stay quiet. A pattern containing one
+# of those characters before the flag is missed, which is the cheaper error for
+# a warning.
+rg_replace_re='(^|[[:space:]|;&(])rg[[:space:]]([^|;&'$'\n'']*[[:space:]])?-[A-Za-qs-z]*r[A-Za-z]*([[:space:]|;&)]|$)'
+if [[ ! "$command" =~ --replace ]]; then
+  if [[ "$command" =~ $rg_replace_re ]]; then
     add_warning "rg -r is --replace, not recursive. ripgrep is already recursive; -r rewrites every match so the output reads like real hits and is not. The line-number flag is -n alone."
   fi
 fi
