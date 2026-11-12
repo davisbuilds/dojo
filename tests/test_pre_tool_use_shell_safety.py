@@ -73,7 +73,18 @@ def test_does_not_warn_on_correct_loops(command: str) -> None:
 # --- the ripgrep --replace trap -----------------------------------------------
 
 
-@pytest.mark.parametrize("command", ["rg -rn foo", "rg -r x pattern", "rg -rln thing"])
+@pytest.mark.parametrize(
+    "command",
+    [
+        "rg -rn foo",
+        "rg -r x pattern",
+        "rg -rln thing",
+        "rg foo -rn",                       # flag after the pattern
+        "ls | rg -rn foo",                  # rg later in a pipeline
+        "cd src && rg -rn foo",
+        "rg -n a | rg -r b c",              # the second rg is the wrong one
+    ],
+)
 def test_warns_on_rg_replace_cluster(command: str) -> None:
     assert "--replace" in warnings_of(run(command))
 
@@ -86,6 +97,11 @@ def test_warns_on_rg_replace_cluster(command: str) -> None:
         "rg --replace X pattern",           # spelled out, presumably deliberate
         "rg pattern",
         "grep -rn pattern .",               # grep -r really is recursive
+        "rg -n pattern | sort -rn",         # another command's -r, after rg
+        "git log -r | rg -n pattern",       # ... and before it
+        "rg -l pattern && ls -r",
+        "rg -n pattern; sqlite3 -readonly db 'select 1'",
+        "rg -n pattern\ntail -r file",
     ],
 )
 def test_does_not_warn_on_correct_rg(command: str) -> None:
