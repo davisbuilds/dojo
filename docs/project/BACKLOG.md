@@ -96,6 +96,12 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   limits. Its first live creator inspection surfaced a profile/exposure mismatch.
   Tests and author-driven use establish functionality, not a measured reduction
   in supervision or an improvement in task outcomes.
+- **Outstanding acceptance check**: the pilot called for a live Codex creator
+  catalog inspection on both pilot hosts. Two-host coverage remains unverified.
+  On each host, run `uv run --locked bin/dojo inspect skill-creator --harness codex --cwd . --json`
+  and record the host, probe context, exit code, and catalog findings. The
+  result describes a fresh prompt rendering.
+  [Original acceptance criteria](https://github.com/davisbuilds/dojo/blob/2726ee4bc47e02c2a4c2363e15254ae0585475dd/docs/design/2026-10-06-dojo-cli-pilot.md#L49-L56)
 - **Next**: observe whether an agent can reach the correct conclusion without
   reconstructing commands or overstating a pass. Add commands only for recurring
   unmet work. Claude probing needs an explicit capture/effect contract; revision
