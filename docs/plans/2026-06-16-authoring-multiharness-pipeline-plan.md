@@ -2,11 +2,17 @@
 date: 2026-06-16
 topic: authoring-multiharness-pipeline
 stage: plan
-status: draft
+status: superseded
 source: conversation
 ---
 
 # Authoring + Multi-Harness Pipeline Plan
+
+The shipped authoring and composition rules are in the
+[skill contract](../system/skill-contract-v1.md). Adapter generation now follows
+an explicit project selection as described in
+[Operations](../system/OPERATIONS.md#regenerate-harness-adapters). The original
+whole-catalog adapter backfill below describes a historical implementation.
 
 ## Goal
 

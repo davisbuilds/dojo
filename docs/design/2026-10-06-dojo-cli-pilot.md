@@ -1,3 +1,8 @@
+---
+date: 2026-10-06
+status: implemented
+---
+
 # Dojo evidence CLI pilot
 
 Status: implemented, 2026-10-06; outcome observations remain open.

@@ -18,7 +18,7 @@ knowledge-capture ownership, and claim-specific verification/testing. That is th
 basis for subsequent review, not proof of improved model performance. Empirical
 comparison remains separate from structural validation and source review.
 
-The bounded [development CLI pilot](../design/2026-10-06-dojo-cli-pilot.md)
+The bounded [development CLI pilot](../system/OPERATIONS.md#dojo-development-cli)
 connects existing packaging checks and effective-catalog evidence. Evaluate it
 through real authoring and discovery work before expanding its command surface.
 

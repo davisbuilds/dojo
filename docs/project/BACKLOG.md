@@ -91,7 +91,7 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 
 - **What**: exercise `bin/dojo check` and `bin/dojo inspect` on normal skill edits
   and harness-discovery investigations, including use by a fresh agent.
-- **Why or evidence, 2026-10-06**: the [pilot](../design/2026-10-06-dojo-cli-pilot.md)
+- **Why or evidence, 2026-10-06**: the [development CLI](../system/OPERATIONS.md#dojo-development-cli)
   connects existing tools and exposes revision, scope, findings, and evidence
   limits. Its first live creator inspection surfaced a profile/exposure mismatch.
   Tests and author-driven use establish functionality, not a measured reduction

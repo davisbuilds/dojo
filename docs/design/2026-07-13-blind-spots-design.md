@@ -2,9 +2,13 @@
 date: 2026-07-13
 topic: blind-spots
 stage: brainstorm
+status: implemented
 ---
 
 # Blind Spots
+
+The two modes shipped in [the blind-spots skill](../../skills/blind-spots/SKILL.md),
+which owns the current invocation and behavior.
 
 ## Problem / Context
 
