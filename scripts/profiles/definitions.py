@@ -27,7 +27,7 @@ Three rules are worth reading before changing anything:
    cannot fire is indistinguishable from one that is missing.
 
 Contract: docs/specs/2026-07-27-distribution-profiles-spec.md (SC-01, SC-02,
-SC-03, SC-11). Build sequence: docs/plans/2026-07-31-distribution-profiles-plan.md.
+SC-03, SC-11). Editing and validation: profiles/README.md.
 """
 
 from __future__ import annotations

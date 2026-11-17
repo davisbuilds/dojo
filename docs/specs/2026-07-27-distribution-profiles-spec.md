@@ -3,13 +3,22 @@ date: 2026-07-27
 author: gpt-5.6-sol
 topic: distribution-profiles
 stage: spec
-status: complete
+status: reference
 source: conversation
 risk_profile: high
 readiness: ready
 ---
 
 # Distribution Profiles Spec
+
+The shipped boundary is read-only measurement, definition validation, drift
+checks and deterministic evidence. Use [the reviewed profile data](../../profiles/README.md)
+for current vocabulary and identity rules, [Operations](../system/OPERATIONS.md#measure-what-a-sessions-skill-listing-actually-costs)
+for the runnable checks, and [Global Skill Membership](../project/GLOBAL-SKILL-MEMBERSHIP.md)
+for the standing membership decision. This reference retains the success-criterion
+and scenario IDs used by those tools. Its original acceptance criteria and
+execution sequence include a wrapper and applicator that were descoped in
+revisions 15 and 16 below.
 
 ## Current design selection
 

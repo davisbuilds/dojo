@@ -256,8 +256,11 @@ For actual manifest findings, inspect the selected checkout's changes, use
 [manifest regeneration](#regenerate-manifest), and rerun the same `check` command.
 That write path refreshes the catalog too; check mode never repairs either file.
 
-Pilot goals and acceptance boundaries are recorded in the
-[CLI pilot design](../design/2026-10-06-dojo-cli-pilot.md).
+The development CLI brings existing checks and evidence into one interface.
+The first Codex creator inspection surfaced a mismatch between declared profile
+suppression and observed exposure. The equivalence was later corrected.
+[The Backlog](../project/BACKLOG.md#observe-the-bounded-cli-pilot-before-expanding-its-scope)
+tracks whether fresh agents can use the evidence correctly during ordinary work.
 
 ## CLI and tooling releases
 
@@ -570,8 +573,9 @@ arithmetic.
 
 Four things to know before trusting a number from these:
 
-- **The Codex probe reads the `exec` surface, not the interactive one — do not
-  quote it as a session cost until Task 5A lands.** `codex debug prompt-input`
+- **The Codex probe reads the `exec` surface. Use
+  `scripts/profiles/rollout_codex.py` for an interactive session's catalog.**
+  `codex debug prompt-input`
   does not load account-synced connector plugins that `codex-tui` loads. On
   2026-08-04 the same directory, model, and minute measured 41 entries at 76% via
   the probe and **110 entries at 246% with every description clipped to ≤77
@@ -584,8 +588,8 @@ Four things to know before trusting a number from these:
   5,440 (and at 7,440 for a 372,000-window model, both matching `2% × window`),
   and 0.145.0 changed it. Never pool samples across builds. And **the
   harness's shortening warning is not a fit signal** — Codex warned at 246% and
-  stayed silent at 144% while still clipping 50 of 56 descriptions. Until the
-  observation moves to the rollout record, read a live session instead:
+  stayed silent at 144% while still clipping 50 of 56 descriptions. To locate
+  the source rollout:
 
   ```bash
   # what the harness ACTUALLY sent, per session, with its originator
