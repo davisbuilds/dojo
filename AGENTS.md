@@ -48,14 +48,10 @@ The auto-generated `skills.json` manifest is the runtime source of truth for wha
 - **Push back before building.** If a request is incoherent or self-contradictory, or a spec/plan is vague or skips key decisions, stop and interview me — ask clarifying questions and confirm intent before writing code or changing files. Don't guess at scope or comply silently. (Clear, well-scoped requests don't need this.)
 - **Log durable follow-ups in `BACKLOG.md`.** Note design gaps, tech debt, or better approaches you spot mid-task in `docs/project/BACKLOG.md`; fix simple, quick, or blocking issues inline and call them out. Add an item only for recurring friction, meaningful risk/cost, an unresolved decision, or a concrete trigger. Record **What / Why or evidence / Next or Revisit when**; keep the backlog future-only, use the capability-owning repository as canonical for cross-repo work, date/source volatile claims (or label a hypothesis), and remove resolved work while preserving any unresolved remainder. Agents can execute backlog entries directly; use GitHub Issues when persistent discussion or coordination helps, with one detailed owner and links where useful.
 - **Keep docs current.** Update the owning reference when a change makes a documented contract, boundary, procedure, or direction stale. Reconcile affected backlog entries as work lands; update Roadmap when selected direction changes, not for every shipment.
-- **Planning and continuity.** Use the accepted conversation or task as the
-  contract when sufficient. Save a design, spec, or plan when it helps
-  coordinate work, define acceptance, or sequence execution. Leave a concise
-  handoff when unfinished work transfers and the recipient needs context.
-  Keep lifecycle status current and commit documents needed for shared
-  execution that suit this public repository. Before moving a completed
-  execution document into the ignored `docs/archive/`, preserve lasting
-  decisions and open work in maintained references and repair incoming links.
-  Git history retains formerly tracked versions.
+- **Planning and continuity.** Reuse clear task context. Save planning docs when
+  decisions, acceptance, or coordination need persistence. Leave a brief handoff
+  only when needed to resume unfinished work. Commit shared docs and keep status
+  current. Before archiving, preserve lasting decisions and open work in
+  maintained docs and repair links.
 - **Commit logically.** Commit completed work in coherent chunks as you proceed. Push only when explicitly asked.
 - **Re-ground after compaction.** A compaction summary loses precise paths, context, and verification state — before continuing, re-read this project's `AGENTS.md`, its reference docs, and recent commits.
