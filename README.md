@@ -183,6 +183,7 @@ remain beside the guidance or fixtures they help verify and maintain.
 - [superpowers](https://github.com/obra/superpowers)
 - [agent-scripts](https://github.com/steipete/agent-scripts)
 - [anthropics/skills](https://github.com/anthropics/skills)
+- [openai/skills](https://github.com/openai/skills) — Apache-2.0 source of `skill-installer`, rebased on the copy bundled with Codex; Dojo adds Claude Code targets. Its license travels with the skill.
 - [compound-engineering-plugin](https://github.com/everyinc/compound-engineering-plugin) — source of the original agent-native-architecture skill (now rewritten as agent-native-design) and the retired compound-docs skill
 - Vercel skill contributions — retired React/Next.js references and deployment workflows remain available in Git history; see the [retirement decision](docs/project/DECISIONS.md#vercel-skills-and-shipping-profile-retirement).
 - [Kepano's Obsidian skills](https://github.com/kepano/obsidian-skills) — MIT-licensed Markdown, Bases, and JSON Canvas references, consolidated into `obsidian`
