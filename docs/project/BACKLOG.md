@@ -65,14 +65,16 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   expected behavior, not model-performance improvement. Methodology skills and
   higher-priority harness loading policies can still add process outside the
   revised cluster.
-- **Next**: use the separate skill-effect experiment reported by the user on
-  2026-09-17 for empirical comparison; keep that experiment with its owning
-  project. Compare current guidance, compact guidance, and minimal added guidance
-  with the same harness/repo controls. Assess outcomes, authority boundaries,
-  unnecessary artifacts/stops, context cost, and time. Prioritize remaining
-  skills from observed friction; do not infer low value from invocation counts.
-- **Revisit when**: a candidate is selected, real usage exposes more friction,
-  experimental results arrive, or model/tool changes warrant recalibration.
+- **Decision, 2026-11-20**: the maintainer gated the next review candidate on
+  [skilleval](https://github.com/davisbuilds/skilleval)'s experimental results
+  plus observed friction, so no choice is pending from the maintainer. The
+  experiment stays with skilleval; it compares current, compact, and minimal
+  added guidance under the same harness/repo controls, assessing outcomes,
+  authority boundaries, unnecessary artifacts/stops, context cost, and time.
+- **Next**: when results arrive, select the candidate they and observed friction
+  support; do not infer low value from invocation counts.
+- **Revisit when**: skilleval reports results, real usage exposes more friction,
+  or model/tool changes warrant recalibration.
 
 ### Remaining command permission patterns hardcode dojo-relative paths
 
@@ -215,14 +217,32 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   backfill the 8 undated headings.
 
 ### Install/update workflows should understand skill versions
-- **What**: `skill-standardizer` audit/sync reports now show source and current
+- **What**: `skill-standardizer` audit/sync reports show source and current
   versions with a behind/ahead/equal/divergent/unknown delta (2026-10-21), but
-  `skill-installer` still does not report available/current version deltas.
+  `skill-installer` listings still do not report available/current versions.
+- **Decision, 2026-11-20**: the maintainer chose to keep and diverge Dojo's
+  `skill-installer` and install it for Claude Code; Codex keeps its bundled
+  copy. Version 2.0.0 rebased it on the Codex CLI 0.163.0 bundled copy; see its
+  [changelog](../../skills/skill-installer/CHANGELOG.md) and
+  [Global Skill Membership](GLOBAL-SKILL-MEMBERSHIP.md).
 - **Why it matters**: `list-skills.py` marks a skill only "already installed",
   so an available update looks the same as an up-to-date copy.
-- **Next**: Show installed and available versions in `skill-installer` listings,
+- **Next**: show installed and available versions in `skill-installer` listings,
   reusing the standardizer's semantics in
-  `skills/skill-standardizer/references/policy.md#version-deltas`.
+  `skills/skill-standardizer/references/policy.md#version-deltas`. Re-check the
+  bundled Codex copy for upstream changes when doing so.
+
+### skill-standardizer cannot keep a skill out of the shared global root
+- **What**: `--normalize-primary` promotes any concrete skill in a secondary
+  global root to `~/.agents/skills`, and `--enforce-mirror` creates one there.
+  Neither knows that a skill is meant for one harness only.
+- **Why or evidence, 2026-11-20**: a temp-home dry run with a Claude-only
+  `skill-installer` in `~/.claude/skills` planned `PROMOTE_TO_PRIMARY`. Applied,
+  that would expose Dojo's copy to Codex beside its bundled one. `--only-existing`
+  syncs the copy in place and is safe.
+- **Next**: let the standardizer honor harness-scoped skills, for example by
+  reading `profiles/harness-equivalences.yaml` when the canonical repo is Dojo or
+  through a repeatable flag; until then, review dry runs for this skill.
 
 ### Scan-timeout test races scanner startup under load
 - **What**: `tests/test_audit_skill.py::test_scan_timeout_stops_scanner_and_its_child`

@@ -34,6 +34,7 @@ class Args(argparse.Namespace):
     path: str
     ref: str
     agent: str
+    dest: str | None
     format: str
 
 
@@ -42,13 +43,12 @@ def _request(url: str) -> bytes:
 
 
 def _agent_home(agent: str) -> str:
-    env_var = AGENT_HOME_ENV[agent]
     default_home = os.path.expanduser(AGENT_DEFAULT_HOME[agent])
-    return os.environ.get(env_var, default_home)
+    return os.environ.get(AGENT_HOME_ENV[agent], default_home)
 
 
-def _installed_skills(agent: str) -> set[str]:
-    root = os.path.join(_agent_home(agent), "skills")
+def _installed_skills(agent: str, dest: str | None) -> set[str]:
+    root = dest or os.path.join(_agent_home(agent), "skills")
     if not os.path.isdir(root):
         return set()
     entries = set()
@@ -66,8 +66,7 @@ def _list_skills(repo: str, path: str, ref: str) -> list[str]:
     except urllib.error.HTTPError as exc:
         if exc.code == 404:
             raise ListError(
-                "Skills path not found: "
-                f"https://github.com/{repo}/tree/{ref}/{path}"
+                f"Skills path not found: https://github.com/{repo}/tree/{ref}/{path}"
             ) from exc
         raise ListError(f"Failed to fetch skills: HTTP {exc.code}") from exc
     data = json.loads(payload.decode("utf-8"))
@@ -90,7 +89,10 @@ def _parse_args(argv: list[str]) -> Args:
         "--agent",
         choices=sorted(AGENT_HOME_ENV),
         default=DEFAULT_AGENT,
-        help="Target agent skills home for installed annotations (default: codex)",
+        help="Agent whose skills home supplies installed annotations (default: codex)",
+    )
+    parser.add_argument(
+        "--dest", help="Skills directory for installed annotations (overrides --agent)"
     )
     parser.add_argument(
         "--format",
@@ -105,7 +107,7 @@ def main(argv: list[str]) -> int:
     args = _parse_args(argv)
     try:
         skills = _list_skills(args.repo, args.path, args.ref)
-        installed = _installed_skills(args.agent)
+        installed = _installed_skills(args.agent, args.dest)
         if args.format == "json":
             payload = [
                 {"name": name, "installed": name in installed} for name in skills

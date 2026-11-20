@@ -1,7 +1,9 @@
 # Global Skill Membership
 
 Which dojo skills are installed into the machine-global roots
-(`~/.agents/skills`, symlinked from `~/.codex/skills`), why, and what it costs.
+(`~/.agents/skills`, symlinked from `~/.codex/skills` and `~/.claude/skills`),
+why, and what it costs. One exception lives only in `~/.claude/skills`; see the
+2026-11-20 decision.
 
 This is a living decision record, not a backlog item and not a plan. The backlog
 holds work someone should do; this holds a standing choice and the measurement
@@ -146,6 +148,25 @@ This settles the `obsidian-canvas` cost-per-use candidate. The `knowledge`
 overlay anchor moves with it (SC-02 revision 18), and skill-standardizer maps the
 old names so a sync replaces installed copies. Not yet re-measured against a
 live Codex render.
+
+**2026-11-20 — install `skill-installer` for Claude Code only.** Maintainer
+decision. Codex bundles its own copy, as `profiles/harness-equivalences.yaml`
+records, and reads `~/.agents/skills`, so a shared install would list the skill
+twice there. The Dojo copy is therefore a concrete directory in
+`~/.claude/skills/skill-installer`, absent from `~/.agents/skills` and
+`~/.codex/skills`. Its Claude listing entry is about 257 characters against the
+40,000-character 1M budget. Install it on each host from a current Dojo checkout:
+
+```bash
+python3 ~/Dev/dojo/skills/skill-installer/scripts/install-skill-from-github.py \
+  --agent claude --repo davisbuilds/dojo --path skills/skill-installer \
+  --method download --ref "$(git -C ~/Dev/dojo rev-parse origin/main)"
+```
+
+Keep it current with skill-standardizer's `--skill skill-installer
+--only-existing` sync, which updates the copy in place. Do not apply
+`--normalize-primary` or `--enforce-mirror` to it: both put it in
+`~/.agents/skills`, and so in Codex.
 
 ## Verified position after the cuts (2026-08-12, build 0.146.0)
 
