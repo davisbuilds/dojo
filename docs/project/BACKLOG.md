@@ -40,6 +40,8 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   its tooling retains draft-hygiene, citation, and CLI coverage. Remaining
   candidates include fixed profile vocabulary/membership in
   `tests/test_profiles_definitions.py` and plan/spec validator requirements.
+  By 2026-11-20 (`8b9c86d`) the suite had grown to 1,114 collected cases; the
+  category counts above are from the earlier inventory.
 - **Next**: identify the current consumer or protected failure for each disputed
   requirement before keeping, narrowing, replacing, or retiring it. Change the
   owning instructions, validators, and tests together. Keep coverage for safe
@@ -77,7 +79,10 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 - **What**: `local-review` and `repo-hardening`
   command wrappers still declare literal `Bash(... skills/<name>/...)` prefixes.
   Their runnable bodies use installed absolute paths, which these matchers do not
-  cover. Observed in source on 2026-10-03; effective behavior is harness-dependent.
+  cover. Observed in source on 2026-10-03 and still present on 2026-11-20 at
+  line 5 of `skills/local-review/commands/review.md` and
+  `skills/repo-hardening/commands/repo-{audit,harden}.md`; effective behavior is
+  harness-dependent.
 - **Why or evidence**: fixing the instruction path does not fix permission matcher
   semantics. The security rewrite removed these ineffective declarations from
   `secure-code` and `audit-skill`; those wrappers now inherit harness permissions
@@ -139,36 +144,29 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   optional evidence lenses, not a reason to restore mandatory scorecards.
 
 ### skills-health: many canonical dojo skills aren't installed globally, so they're unmeasurable
-- **What**: As of 2026-07-15, 26 of 57 canonical `skills/` are installed in none
-  of the global catalog dirs AgentMonitor scans (`~/.claude/skills`,
-  `~/.codex/skills`, `~/.agents/skills`) and have never fired, so AgentMonitor
-  emits no health row and they land in the report's collapsed "no data" bucket
-  (agent-native-architecture, caveman, compound-docs, design-md,
-  fetchmd, gh-commit-push-pr, loop-design, markdown-converter,
-  nextjs-app-router, repo-hardening, skill-evals, skill-installer, template,
-  theme-factory, vercel-composition-patterns, vercel-deploy,
-  vercel-preview-logs). **Updated 2026-08-01:** eight of the original 26 were
-  retired rather than installed, giving a then-current census of 17 of 48.
-  This is historical evidence, not current membership; `compound-docs` was
-  retired on 2026-09-22. Recompute before using the census for a decision. The earlier
-  "13 of 55" figure was a stale
-  point-in-time AgentMonitor snapshot; the catalog has since grown and prior
-  syncs used `--only-existing`.
-- **Why it matters**: A skill that isn't installed anywhere the agent can trigger
-  it can't generate trigger health, so the loop can't tell whether its
-  description works. A prior skill-standardizer run likely used `--only-existing`,
-  which skips skills not already installed globally, so newly-added canonical
-  skills never got pushed out.
-- **Direction**: do **not** install the entire catalog merely to
-  manufacture runtime coverage. The distribution-profile contract makes
-  intentional exclusion explicit and evaluates routing against deployable
-  profiles; health coverage should distinguish excluded skills from missing or
-  drifted members of the selected profile.
+- **What**: canonical `skills/` that are installed in none of the catalog dirs
+  AgentMonitor scans emit no health row, so `scripts/skills_health.py --runtime`
+  lumps them into one "no data" bucket. Missing or drifted members of the
+  selected profile look the same as intentionally excluded skills.
+- **Why or evidence, 2026-11-20**: AgentMonitor scans `~/.claude/skills` and
+  `$CODEX_HOME/skills` by default, overridable with
+  `AGENTMONITOR_SKILL_CATALOG_DIRS` (agentmonitor `src/config.ts`, `7da48d5`).
+  `scripts/skill_health_runtime.py` counts absent skills as "no data" and has no
+  profile awareness. The catalog has 40 skill directories; the July/August
+  installation censuses (26 of 57, then 17 of 48) predate later retirements and
+  are not current. AgentMonitor's backlog tracks the consumer-side gap
+  ("Version attribution only reaches skills in the installed catalog").
+- **Next**: do **not** install the entire catalog merely to manufacture runtime
+  coverage. The distribution-profile contract makes intentional exclusion
+  explicit; have the health report distinguish excluded skills from missing or
+  drifted members of the selected profile. Recompute the census on the target
+  host before using it for a decision.
 
 ### Port skill-standardizer tests to pytest under tests/
 - **What**: `skills/skill-standardizer/scripts/test_skill_standardizer.py` uses a
   hand-rolled `main()` runner and an `assert_true` helper instead of pytest. It
-  is the only test file outside `tests/`, and CI needs a dedicated step for it.
+  is the only test file outside `tests/`, and `scripts/check` (the local and CI
+  gate) runs it as a separate check.
 - **Why it matters**: `tests/` already tests skill-owned scripts —
   `tests/test_bump_skill_version.py` covers `skills/skill-evals/scripts/`
   via `importlib.spec_from_file_location`, and skill-evals ships no tests of its
@@ -177,32 +175,26 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   `AGENTS_HOME`/`CODEX_HOME`/`CLAUDE_HOME` through `isolated_tempdir()`, and
   `tests/test_skill_standardizer_suite.py` loads the file with `importlib` to run
   every test under pytest, check that restoration, and run the direct runner
-  without pytest. What remains is shipped test code, the dedicated CI step, and
-  two ways to invoke one file.
-- **No longer blocked**: an earlier version of this entry said the port needed a
-  call on whether the skill should keep shipping its own tests, since sync copies
-  them to `~/.agents/skills/skill-standardizer/scripts/`. Settled — the Test
-  Tiers rule in `docs/system/ARCHITECTURE.md` says behavior ships (`evals/`) and
-  code tests do not. Nothing in a global install invokes the suite. It does run
-  there (stdlib-only, hermetic tempdir fixtures — verified passing from `/tmp`),
-  but "can run" is not "has a consumer". Losing it from the global copy costs
-  nothing, so the port is plain conformance.
+  without pytest. What remains is shipped test code, the separate check, and
+  two ways to invoke one file. The Test Tiers rule in
+  `docs/system/ARCHITECTURE.md` (behavior ships; code tests do not) makes the
+  port plain conformance.
 - **Next**: port the tests into `tests/test_skill_standardizer_suite.py` with
   `tmp_path`/`monkeypatch` while keeping the stdlib-only direct runner and its
   pytest-free check, which are a current contract. Deleting the original,
-  dropping the dedicated CI step, and updating the `Run skill-standardizer
+  dropping its `scripts/check` line, and updating the `Run skill-standardizer
   regression tests` section of `docs/system/OPERATIONS.md` and the "known
   exception" paragraph under Test Tiers in `docs/system/ARCHITECTURE.md` retire
-  that contract, so they need their own decision first.
-- **Rejected alternative**: symlinking `tests/test_skill_standardizer.py` to the
-  skill's copy so pytest collects it while the skill still ships it. It would
-  work (pytest collects module-level `test_*` functions; `assert_true` raises
-  `AssertionError`), but it leaves a dead `main()` plus two ways to invoke one
-  file. It preserves the anomaly instead of resolving it; the interim `importlib`
-  wrapper shares that cost until the port lands.
+  that contract, so they need their own decision first. Symlinking the file into
+  `tests/` was rejected: like the interim wrapper, it keeps a dead `main()` and
+  two entry points.
 
 ### Shared SemVer helper
-- **What**: SemVer parsing/validation now exists in multiple scripts.
+- **What**: SemVer parsing/validation now exists in multiple scripts. On
+  2026-11-20 four `SEMVER_RE` copies existed: `scripts/generate_skills_manifest.py`,
+  `skills/skill-creator/scripts/quick_validate.py`,
+  `skills/skill-evals/scripts/check_skill_versions.py`, and
+  `skills/skill-standardizer/scripts/skill_standardizer_lib.py`.
 - **Why it matters**: The duplication is small, but future changes to prerelease
   or build-metadata handling could drift between validation, manifest generation,
   and version-bump checks.
@@ -215,8 +207,12 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   the new version, but do not require dates or entry content.
 - **Why it matters**: This keeps adoption friction low, but changelog quality may
   vary once skills start receiving regular releases.
-- **Next**: After a few real version bumps, consider requiring headings like
-  `## 1.2.3 - YYYY-MM-DD` plus at least one bullet under the heading.
+- **Evidence, 2026-11-20**: the "after a few real bumps" gate is met. Skill
+  changelogs hold 151 version headings, 143 dated and 8 undated, and
+  `bump_skill_version.py` already writes `## <version> - <date>` with a bullet.
+- **Next**: decide whether to require headings like `## 1.2.3 - YYYY-MM-DD`
+  plus at least one bullet in the version check, and whether to grandfather or
+  backfill the 8 undated headings.
 
 ### Install/update workflows should understand skill versions
 - **What**: `skill-standardizer` audit/sync reports now show source and current
@@ -228,23 +224,6 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   reusing the standardizer's semantics in
   `skills/skill-standardizer/references/policy.md#version-deltas`.
 
-### Test isolation: a test leaves the process cwd deleted under Python 3.14
-- **What**: some test in `pytest tests/` deletes the process working directory
-  without restoring it; under Python 3.14's `os.getcwd()` a later test that reads
-  cwd then fails only in full-suite ordering, never in isolation. The victim was
-  `test_validate_plan.py::test_high_risk_plan_requires_linked_spec_and_structured_addendum`.
-- **Why or evidence**: reproduced 2026-08-14 on local Python 3.14.6. The
-  `discover_repo_root` crash half of this was fixed 2026-08-16 (it now catches
-  `FileNotFoundError` and degrades to the artifact's directory), so the full
-  suite is green on 3.14 — but the leaky test remains a latent flake generator
-  for any other code that reads cwd. The poisoner was not isolated; it does not
-  reproduce in the pairwise combinations tried.
-- **Next**: find the test that deletes cwd without restoring (bisect via a
-  session-scoped autouse fixture that asserts cwd is intact after each test),
-  fix it to restore or avoid chdir, then add 3.14 to the CI matrix
-  (`skill-contract-pilot.yml` pins 3.12) so the regression cannot return silently.
-- **Revisit when**: moving CI to Python 3.14, or the failure appears in isolation.
-
 ### Scan-timeout test races scanner startup under load
 - **What**: `tests/test_audit_skill.py::test_scan_timeout_stops_scanner_and_its_child`
   gives `run_scan` a 1 s timeout, in which `scan.sh` must start a fake Python
@@ -252,10 +231,12 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   "Scanner never started" assertion fails without any cleanup defect.
 - **Why or evidence**: failed once in a full `scripts/check` run on 2026-10-15
   (MacBook, Python 3.12), then passed in isolation five times and in two further
-  full runs.
-- **Next**: have the fake engine write its PID file before any other work, or
-  raise the timeout enough to cover cold interpreter startup; revisit if it
-  fails in CI.
+  full runs. The last 100 `skill-contract-pilot.yml` runs (2026-10-20 to
+  2026-11-20) had no failures. The fake engine spawns its sleeping child before
+  writing the PID file, because the file records both PIDs.
+- **Next**: shorten the work before the PID write (for example, start the child
+  with a cheaper command than a second Python interpreter), or raise the timeout
+  enough to cover cold interpreter startup; revisit if it fails in CI.
 
 ### Revalidate earlier catalog improvement candidates before selecting work
 
