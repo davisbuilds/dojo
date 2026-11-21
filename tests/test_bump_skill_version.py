@@ -31,9 +31,6 @@ def make_skill(tmp_path: Path, version: str = "1.2.3", changelog: str | None = N
     return d
 
 
-# --- pure bump arithmetic --------------------------------------------------
-
-
 def test_bump_patch():
     m = load_module()
     assert m.bump_version("1.2.3", "patch") == "1.2.4"
@@ -58,9 +55,6 @@ def test_bump_rejects_bad_version():
     m = load_module()
     with pytest.raises(ValueError):
         m.bump_version("v1.2.3", "patch")
-
-
-# --- end-to-end file effects ----------------------------------------------
 
 
 def test_end_to_end_updates_skill_and_changelog(tmp_path: Path):
@@ -190,9 +184,6 @@ def test_entry_text_becomes_bullet(tmp_path: Path):
     d = make_skill(tmp_path, "1.2.3")
     m.apply_bump(d, part="patch", date="2026-07-15", entry="Fixed the thing.")
     assert "- Fixed the thing." in (d / "CHANGELOG.md").read_text()
-
-
-# --- manifest/catalog regeneration ----------------------------------------
 
 
 def _fake_checkout(tmp_path: Path, version: str = "1.2.3") -> Path:

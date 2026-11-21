@@ -64,9 +64,6 @@ def test_empty_prompt_fails(prompt):
     assert result["status"] == "fail"
 
 
-# --- individual checks ----------------------------------------------------
-
-
 def test_clean_prompt_passes_everything():
     result = lint_prompt.evaluate(make_prompt(), executor="terminal")
     assert result["status"] == "pass"
@@ -98,9 +95,6 @@ def test_xml_like_text_inside_prompt_is_not_treated_as_trailing_debris():
     text = make_prompt(extra="Use <content>example</content> as the fixture.\nThen summarize it.\n")
     result = lint_prompt.evaluate(text, executor="terminal")
     assert check(result, "harness_debris")["status"] == "pass"
-
-
-# --- CLI ------------------------------------------------------------------
 
 
 def run_cli(tmp_path: Path, text: str, *args: str) -> subprocess.CompletedProcess:
@@ -140,9 +134,6 @@ def test_cli_missing_file_exits_two(tmp_path):
         text=True,
     )
     assert proc.returncode == 2
-
-
-# --- seeded statistics ----------------------------------------------------
 
 
 SEEDED_FLOATING = (

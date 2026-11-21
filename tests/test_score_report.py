@@ -40,9 +40,6 @@ Liquidity providers tend to cluster around round numbers.
 """
 
 
-# --- citation extraction --------------------------------------------------
-
-
 def test_extracts_markdown_link_citations():
     citations = score_report.extract_citations(REPORT)
     urls = [c["url"] for c in citations]
@@ -177,9 +174,6 @@ https://example.com/study
     assert worksheet["checks"] == []
 
 
-# --- claim extraction -----------------------------------------------------
-
-
 def test_quantitative_claims_are_flagged():
     citations = score_report.extract_citations(REPORT)
     claims = score_report.extract_claims(REPORT, citations)
@@ -225,9 +219,6 @@ def test_uncited_prose_is_not_a_claim():
     assert not any("round numbers" in c["text"] for c in claims)
 
 
-# --- sampling -------------------------------------------------------------
-
-
 def build_checks(n_quant: int, n_plain: int) -> list[dict]:
     checks = []
     for i in range(n_quant):
@@ -256,9 +247,6 @@ def test_sample_is_capped_by_available_claims():
 def test_sample_is_deterministic():
     claims = build_checks(20, 20)
     assert score_report.select_sample(claims, 10) == score_report.select_sample(claims, 10)
-
-
-# --- scoring --------------------------------------------------------------
 
 
 def worksheet_with(verdicts: dict[str, str]) -> dict:
@@ -398,9 +386,6 @@ def test_invalid_applicability_verdict_is_rejected():
         raise AssertionError("expected ValueError on an unrecognized applicability verdict")
 
 
-# --- CLI ------------------------------------------------------------------
-
-
 def test_cli_worksheet_emits_json(tmp_path):
     report = tmp_path / "report.md"
     report.write_text(REPORT, encoding="utf-8")
@@ -448,9 +433,6 @@ def test_cli_missing_file_exits_two(tmp_path):
     assert proc.returncode == 2
 
 
-# --- per-citation checks --------------------------------------------------
-
-
 MULTI_CITE = (
     "## Findings\n\n"
     "Two datasets put disputes at 43% "
@@ -492,9 +474,6 @@ def test_uncited_claims_contribute_no_checks():
     worksheet = score_report.build_worksheet("## F\n\nNothing is cited here.\n")
     assert worksheet["checks"] == []
     assert worksheet["sample"] == []
-
-
-# --- CLI input validation -------------------------------------------------
 
 
 def test_cli_rejects_a_zero_sample_size(tmp_path):

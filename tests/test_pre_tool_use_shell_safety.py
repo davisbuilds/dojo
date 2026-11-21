@@ -28,9 +28,6 @@ def warnings_of(proc) -> str:
     return json.loads(proc.stdout)["hookSpecificOutput"]["additionalContext"]
 
 
-# --- never blocks -------------------------------------------------------------
-
-
 @pytest.mark.parametrize(
     "command",
     [
@@ -43,9 +40,6 @@ def warnings_of(proc) -> str:
 def test_always_exits_zero(command: str) -> None:
     """Warn-only by contract: a false positive must never stop work."""
     assert run(command).returncode == 0
-
-
-# --- the zsh word-splitting trap ----------------------------------------------
 
 
 def test_warns_on_unquoted_variable_for_loop() -> None:
@@ -68,9 +62,6 @@ def test_warns_on_braced_form() -> None:
 )
 def test_does_not_warn_on_correct_loops(command: str) -> None:
     assert warnings_of(run(command)) == ""
-
-
-# --- the ripgrep --replace trap -----------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -108,18 +99,12 @@ def test_does_not_warn_on_correct_rg(command: str) -> None:
     assert warnings_of(run(command)) == ""
 
 
-# --- zsh reserved names -------------------------------------------------------
-
-
 def test_warns_on_reserved_path_variable() -> None:
     assert "masks command lookup" in warnings_of(run("path=/usr/local/bin; ls"))
 
 
 def test_does_not_warn_on_ordinary_variable() -> None:
     assert warnings_of(run("mypath=/usr/local/bin; ls")) == ""
-
-
-# --- fails open ---------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
