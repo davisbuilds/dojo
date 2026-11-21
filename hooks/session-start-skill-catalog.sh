@@ -15,7 +15,6 @@ echo "## Repository Conventions"
 echo "Read AGENTS.md at the repo root for skill structure, commands, and design principles."
 echo ""
 
-# --- Skill Catalog ---
 echo "## Available Skills"
 echo ""
 
@@ -41,7 +40,6 @@ echo ""
 echo "Total: ${count} skills available."
 echo ""
 
-# --- Recent Git Activity ---
 echo "## Recent Activity"
 echo ""
 git -C "$REPO_ROOT" log --oneline --no-decorate -10 2>/dev/null || echo "(no git history)"
