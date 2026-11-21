@@ -769,7 +769,9 @@ scripts/check --fast   # skips pytest and the skill-standardizer runner (~0.5 s)
 
 The gate covers the strict contract, skill version bumps against `CHECK_BASE`
 (default `origin/main`; CI sets the PR base), the four generated-artifact
-`--check`s, distribution profiles, links, the AI-slop scan, and both test suites.
+`--check`s, distribution profiles, links, the AI-slop scan, the comment ratchet
+(`scripts/check_comments.py` against `.comment-baseline.json`), and both test
+suites.
 It only checks. The workflow keeps commit-subject release classification and
 the strict-set report upload as separate steps.
 
