@@ -78,6 +78,7 @@
     "skills/skill-standardizer/scripts/backup_policy.py": 6,
     "skills/skill-standardizer/scripts/skill_standardizer_lib.py": 82,
     "skills/skill-standardizer/scripts/test_skill_standardizer.py": 40,
+    "skills/theme-factory/assets/theme-template.html": 6,
     "skills/theme-factory/scripts/generate_css.py": 2,
     "skills/write-plan/scripts/validate_plan.py": 29,
     "skills/write-spec/scripts/validate_spec.py": 15,
