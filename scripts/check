@@ -45,6 +45,7 @@ run "Generated catalog" py scripts/gen_catalog.py --check
 run "Distribution profiles" py scripts/profiles/ci_check.py
 run "Dangling links and skill references" py scripts/check_links.py
 run "AI-slop prose scan" py scripts/slop_scan.py
+run "Comment ratchet" py scripts/check_comments.py
 if [ "$fast" -eq 0 ]; then
   run "Regression tests" py -m pytest tests/ -q
   # The suite's stdlib-only direct runner; `pytest tests/` runs the same tests in-process.
