@@ -273,8 +273,6 @@ def test_legacy_high_risk_contract_without_ids_is_accepted() -> None:
 
 def test_partial_id_high_risk_contract_fails_rather_than_downgrading() -> None:
     module = load_module()
-    # SC IDs present but scenarios use named surfaces (no EV IDs): partial
-    # adoption must fail, not silently downgrade to the legacy path.
     body = contract_body(legacy_high_risk_sections())
 
     errors = module.validate_high_risk(
@@ -286,9 +284,6 @@ def test_partial_id_high_risk_contract_fails_rather_than_downgrading() -> None:
 
 def test_id_mode_rejects_an_unnumbered_success_criterion() -> None:
     module = load_module()
-    # SC-01/SC-02 are numbered and all four EV classes are present, but an extra
-    # criterion carries no ID: once ID discipline is active, every criterion must
-    # be numbered, so a partial retrofit must fail.
     body = contract_body(complete_high_risk_sections()).replace(
         "- SC-02: Forbidden work leaves no side effect.",
         "- SC-02: Forbidden work leaves no side effect.\n- An extra criterion with no stable ID.",
@@ -303,8 +298,6 @@ def test_id_mode_rejects_an_unnumbered_success_criterion() -> None:
 
 def test_legacy_high_risk_contract_still_requires_structural_headings() -> None:
     module = load_module()
-    # An id-less high-risk contract is accepted on IDs but not on structure:
-    # dropping a required heading still fails.
     body = legacy_contract_body().replace("## Authority And Safety", "## Authority")
 
     errors = module.validate_high_risk(

@@ -28,7 +28,6 @@ def checkout(tmp_path):
     (repo/'.venv').symlink_to(Path(sys.prefix), target_is_directory=True)
     tools = tmp_path/'tools'
     tools.mkdir()
-    # A known failing ambient Python proves the configured hook selects .venv.
     python = tools/'python3'
     python.write_text('#!/bin/sh\necho "ambient Python used" >&2\nexit 1\n')
     python.chmod(0o755)

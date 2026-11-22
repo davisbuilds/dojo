@@ -69,7 +69,6 @@ def test_sibling_section_ignores_non_skill_words(tmp_path: Path) -> None:
     root = tmp_path / "skills"
     make_skill(root, "alpha", "## Sibling skills\n\n- Use `git` and `main`; see `pull-request` flow.\n")
     problems = MODULE.check(root, [])
-    # `git` and `main` have no hyphen so are skipped; `pull-request` does and is flagged.
     assert all("`git`" not in p and "`main`" not in p for p in problems)
 
 
@@ -153,15 +152,12 @@ def test_clean_checkout_matches_working_tree() -> None:
     ).stdout.split()
     for problem in MODULE.check():
         assert False, f"working tree is not clean for the gate: {problem}"
-    # Every living doc the checker scans must itself be tracked.
     for path in MODULE.markdown_files(MODULE.SKILLS_ROOT, MODULE.LIVING_DOCS):
         rel = path.relative_to(MODULE.REPO_ROOT).as_posix()
         assert rel in tracked, f"{rel} is scanned by the gate but not tracked in git"
 
 
-# --- Heading fragments -------------------------------------------------------
-#
-# Expected anchors below are written out by hand from GitHub's documented
+# WHY: expected anchors below are written by hand from GitHub's documented
 # heading-id behavior, not derived from the checker's slug function.
 
 
@@ -246,7 +242,6 @@ def test_inline_formatting_in_headings_is_slugged_like_rendered_text(tmp_path: P
     make_skill(root, "alpha", body)
     write_doc(root / "alpha", "other.md", "x\n")
     assert MODULE.check(root, []) == []
-    # Positive control: the same document with one heading renamed must fail.
     make_skill(root, "alpha", body.replace("## snake_case_name stays", "## renamed"))
     problems = fragment_problems(MODULE.check(root, []))
     assert len(problems) == 1 and "#snake_case_name-stays" in problems[0]
@@ -286,7 +281,6 @@ def test_fragment_links_inside_fences_are_not_checked(tmp_path: Path) -> None:
 
 def test_frontmatter_is_not_a_setext_heading_but_setext_headings_are(tmp_path: Path) -> None:
     root = tmp_path / "skills"
-    # make_skill frontmatter ends "version: 1.0.0\n---"; that is not a heading.
     make_skill(root, "alpha", "[a](#overview) [b](#details) [c](#version-100)\n\nOverview\n========\n\nDetails\n-------\n")
     problems = fragment_problems(MODULE.check(root, []))
     assert len(problems) == 1 and "#version-100" in problems[0]
@@ -351,7 +345,6 @@ def test_custom_id_and_emoji_headings_make_target_unsupported(tmp_path: Path) ->
     assert MODULE.anchors("# Title {#custom-id}\n") is None
     assert MODULE.anchors("## :smile: Hello\n") is None
     assert MODULE.check(root, []) == []
-    # Positive control: plain headings in the same files are checked again.
     write_doc(a, "references/custom.md", "# Title\n")
     write_doc(a, "references/emoji.md", "## Hello\n")
     problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
@@ -426,7 +419,6 @@ def test_heading_links_with_balanced_parentheses(tmp_path: Path) -> None:
     write_doc(a, "references/ref.md", "## [API](https://example.test/guide_(v2).md)\n\n## [`cfg`](https://example.test/c) file\n")
     write_doc(a, "references/deep.md", "## [Deep](https://example.test/a_((b)).md)\n")
     assert MODULE.anchors("## [API](https://example.test/guide_(v2).md)\n") == {"api"}
-    # Deeper nesting is outside the supported subset: skipped, not guessed.
     assert MODULE.anchors("## [Deep](https://example.test/a_((b)).md)\n") is None
     problems = fragment_problems(MODULE.check(root, []))
     assert len(problems) == 1 and "references/ref.md#guide" in problems[0]
@@ -451,9 +443,7 @@ def test_private_use_characters_in_headings_are_unsupported_not_a_crash(tmp_path
     for one. Their slugging is renderer-dependent, so the file is skipped."""
     for heading in ("## Entity &#xE000;\n", "## `x` &#xE000;\n", "## Glyph  here\n", "## ``\n"):
         assert MODULE.anchors(heading) is None, heading
-    # A surrogate reference unescapes to U+FFFD, never to a code placeholder.
     assert MODULE.heading_text("`x` &#xD800;") == "x �"
-    # Controls: real code spans and ordinary entities are still reduced; code stays literal.
     assert MODULE.anchors("## `a_b` &amp; `c`\n") == {"a_b--c"}
     assert MODULE.anchors("## Fish &amp; Chips\n## Caf&eacute;\n") == {"fish--chips", "café"}
     assert MODULE.anchors("## `&amp;` op\n") == {"amp-op"}
@@ -573,12 +563,9 @@ def test_escaped_opening_brackets_are_not_links(tmp_path: Path) -> None:
 
 
 def test_escaped_opening_brackets_in_headings_are_not_links() -> None:
-    # Escaped: literal `[API](...)` text, which this checker does not guess.
     assert MODULE.anchors("## \\[API](https://e.test/x)\n") is None
-    # Even backslashes and plain links are real links: the label is the text.
     assert MODULE.anchors("## \\\\[API](https://e.test/x)\n") == {"api"}
     assert MODULE.anchors("## [API](https://e.test/x)\n") == {"api"}
-    # An escaped bracket beside a real link stays literal text.
     assert MODULE.anchors("## \\[a [b](https://e.test) c\n") == {"a-b-c"}
 
 
@@ -632,7 +619,6 @@ def test_headings_nested_in_wide_list_items_make_target_unsupported(tmp_path: Pa
     skipped rather than reported. Shallow list headings remain supported."""
     assert MODULE.anchors("10. Item\n\n    ## Nested heading\n") is None
     assert MODULE.anchors("- ## Inline item heading\n") is None
-    # Controls: top-level indented code is not a heading; shallow nesting parses.
     assert MODULE.anchors("Text.\n\n    ## not a heading\n") == set()
     assert MODULE.anchors("## Plain heading\n\n- item\n\n  ## Shallow nested\n") == {"plain-heading", "shallow-nested"}
     root = tmp_path / "skills"
@@ -719,7 +705,6 @@ def test_setext_headings_in_containers_make_target_unsupported(tmp_path: Path) -
     list marker line are rendered but not parsed, like their ATX forms."""
     for text in ("10. Item\n\n    Nested heading\n    --------------\n", "> Nested heading\n> ----\n", "- Foo\n  ---\n"):
         assert MODULE.anchors(text) is None, text
-    # Controls: plain and shallow setext still parse; thematic breaks are not headings.
     assert MODULE.anchors("Plain\n-----\n\n- item\n\n  Shallow\n  ---\n") == {"plain", "shallow"}
     assert MODULE.anchors("- item\n---\n\n> quote\n>\n> ---\n\n10. Item\n\n    ---\n") == set()
     root = tmp_path / "skills"
@@ -798,12 +783,6 @@ def test_setext_heading_after_a_prior_block_is_single_line(tmp_path: Path) -> No
     assert len(problems) == 1 and "#stale" in problems[0]
 
 
-# --- Review follow-ups (PR120 review 5593453927, F1-F6) -----------------------
-#
-# Expected anchors are hand-written from CommonMark block/inline rules and
-# GitHub's slugging, not derived from the checker.
-
-
 def test_equals_setext_heading_ends_the_paragraph_before_indented_code(tmp_path: Path) -> None:
     """F1: a `===` underline closes its paragraph like `---` does, so a line
     four spaces in after it is indented code. `===` after an ATX heading, or
@@ -878,13 +857,10 @@ def test_escaped_markup_in_headings_is_literal_text(tmp_path: Path) -> None:
     problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
     assert problems == ["references/img.md#stale", "references/kbd.md#stale"]
     assert MODULE.anchors("## \\<span>x\\</span>\n") == {"spanxspan"}
-    # Escapes and code spans resolve left to right: `\\` before a span leaves it
-    # a span, so its markup is literal; `\`` is a literal backtick instead.
     assert MODULE.anchors("## \\\\`<kbd>` x\n") == {"kbd-x"}
     for text in (
         "## <kbd>Ctrl</kbd>\n", "## ![API](guide.md)\n", "## \\\\<kbd>Ctrl\n", "## \\\\![API](guide.md)\n",
         "## \\`<kbd>` x\n",
-        # Shortcodes are read from rendered text, where an escape still spells one.
         "## \\:smile: Hello\n", "## Title \\{#custom}\n",
     ):
         assert MODULE.anchors(text) is None, text
@@ -927,9 +903,6 @@ def test_private_use_characters_in_any_plane_make_target_unsupported(tmp_path: P
     assert len(problems) == 1 and "references/ok.md#stale" in problems[0]
 
 
-# --- PR121 review follow-ups (R1, R2) -----------------------------------------
-
-
 def test_reference_definitions_are_not_setext_heading_text(tmp_path: Path) -> None:
     """R1: a link reference definition is its own block, so an underline after
     it is not setext and a `===` there starts an ordinary paragraph that the
@@ -952,7 +925,6 @@ def test_reference_definitions_are_not_setext_heading_text(tmp_path: Path) -> No
     problems = sorted(p.split("-> ")[1] for p in fragment_problems(MODULE.check(root, [])))
     assert problems == ["#ghost", "#ghost-four", "#l-url", "#ref-url"]
     assert MODULE.anchors("[ref]: /url\n---\n") == set()
-    # `[ref]:` takes the next line as its destination, so `===` is no underline.
     assert MODULE.anchors("[ref]:\n===\n    <a id=\"code\"></a>\n") == set()
 
 
@@ -970,7 +942,5 @@ def test_underscore_runs_beside_escapes_stay_whole(tmp_path: Path) -> None:
     assert MODULE.anchors("## _a\\_\n") == {"_a_"}
     assert MODULE.anchors("## \\_not em\\_\n") == {"_not-em_"}
     assert MODULE.anchors("## \\\\__strong__\n") == {"strong"}
-    # A run opens only when followed by a non-space and closes only when
-    # preceded by one; part of a run may still pair with a shorter one.
     assert MODULE.anchors("## ___ a_\n## _a ___\n## x ___ y\n") == {"___-a_", "_a-___", "x-___-y"}
     assert MODULE.anchors("## __a_\n## _a__\n## ___a_\n") == {"_a", "a_", "__a"}

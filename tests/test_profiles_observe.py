@@ -52,11 +52,6 @@ def codex_listing(name="codex-prompt-input-dojo-2026-08-02.json", cwd=REPO_ROOT,
     return probe_codex.classify(listing, skills_root, None, cwd)
 
 
-# --------------------------------------------------------------------------
-# The probe decides membership
-# --------------------------------------------------------------------------
-
-
 def test_the_filesystem_never_adds_an_entry_the_probe_did_not_list(codex_policy, tmp_path):
     """The rule this program has broken six times.
 
@@ -91,11 +86,6 @@ def test_an_unclassified_listing_is_refused(codex_policy):
         observe_codex(unclassified, codex_policy, SKILLS)
 
 
-# --------------------------------------------------------------------------
-# Cost
-# --------------------------------------------------------------------------
-
-
 def test_computed_demand_agrees_with_the_probes_own_figure(codex_policy, tmp_path):
     """An end-to-end check of the cost model against the harness's own number.
 
@@ -106,9 +96,9 @@ def test_computed_demand_agrees_with_the_probes_own_figure(codex_policy, tmp_pat
     characters for the five skills using a folded YAML scalar, four of which are
     overlay members. The gap was 190 tokens and pointed straight at it.
     """
-    # Pair the dated capture with independently recovered source frontmatter
-    # from the commit that introduced it, not today's evolving skill catalog.
-    # Deriving this input from listing text would hide truncation/parser bugs.
+    # WHY: pair the dated capture with source frontmatter recovered from the commit
+    # that introduced it, not today's catalog; deriving this input from listing text
+    # would hide truncation and parser bugs.
     snapshot_path = FIXTURES / "codex-source-frontmatter-2026-08-02.json"
     snapshot = json.loads(snapshot_path.read_text())
     capture_digest = hashlib.sha256((FIXTURES / snapshot["capture"]).read_bytes()).hexdigest()
@@ -118,8 +108,6 @@ def test_computed_demand_agrees_with_the_probes_own_figure(codex_policy, tmp_pat
         target = source_root / name / "SKILL.md"
         target.parent.mkdir(parents=True)
         target.write_text(frontmatter)
-    # Origins are classified against that same dated catalog: classifying
-    # against today's would relabel since-retired or renamed skills as foreign.
     listing = codex_listing(skills_root=source_root)
     assert set(snapshot["frontmatters"]) == {
         entry.name for entry in listing.entries if entry.origin == "dojo-managed"
@@ -173,11 +161,6 @@ def test_entries_without_a_readable_source_are_still_charged(codex_policy):
     unreadable = [e for e in entries if e["cost_basis"] == "observed"]
     assert unreadable, "no observation-derived entries; this test is inert"
     assert all(e["source_description"] for e in unreadable), "charged as if they had no description"
-
-
-# --------------------------------------------------------------------------
-# Origin, scope, and shadowing
-# --------------------------------------------------------------------------
 
 
 def test_every_origin_is_present_as_a_non_degeneracy_floor(codex_policy):
@@ -246,11 +229,6 @@ def test_the_third_root_has_no_live_consumer(codex_policy, tmp_path):
     (tmp_path / ".agent" / "skills").symlink_to(SKILLS)
     observation = observe_codex(codex_listing(cwd=tmp_path), codex_policy, SKILLS)
     assert all(e.scope != "project" for e in observation.entries)
-
-
-# --------------------------------------------------------------------------
-# Claude Code, and the authority boundary
-# --------------------------------------------------------------------------
 
 
 def test_claude_listing_count_is_sent_not_loaded(claude_1m):

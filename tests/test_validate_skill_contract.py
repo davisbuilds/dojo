@@ -55,15 +55,6 @@ def evaluate(skill_dir: Path, strict: bool = True) -> dict:
     return MODULE.evaluate_skill(skill_dir, always_valid, strict, authoring_hints=True)
 
 
-# --- resource_map_present -------------------------------------------------
-#
-# The check is deliberately loose: any recognized resource heading OR any
-# resource path mention satisfies it. These tests pin the boundary that a
-# *behavioral* "Rules" section must not stand in for documenting bundled
-# resources, which is what makes `rules/` different from `references/` or
-# `commands/` as a heading word.
-
-
 def test_behavioral_rules_heading_does_not_satisfy_resource_map(tmp_path: Path) -> None:
     """A '## Rules' section is usually behavioral, not a resource map.
 
@@ -103,10 +94,6 @@ def test_rules_directory_undocumented_fails(tmp_path: Path) -> None:
         bundled=("rules",),
     )
     assert MODULE.resource_map_present((skill_dir / "SKILL.md").read_text(), skill_dir) is False
-
-
-# These checks exercise the difference between packaging failures and authoring
-# hints. Content quality is deliberately not inferred from these assertions.
 
 
 @pytest.mark.parametrize("strict", [False, True])

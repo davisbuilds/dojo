@@ -39,9 +39,6 @@ from profiles.drift_check import (  # noqa: E402
 
 F110 = FIXTURES / "codex-tui-clipped-110.jsonl"
 F56 = FIXTURES / "codex-tui-clipped-56.jsonl"
-# A listing that fits, so "clean" can be asserted without a clipped sample
-# standing in for a healthy one — and so the saturation checks below have a
-# control that proves they are not simply firing on everything.
 FOK45 = FIXTURES / "codex-tui-healthy-45.jsonl"
 
 
@@ -67,19 +64,9 @@ def base56():
     return Baseline.from_observation(rc.read_rollout(F56))
 
 
-# --------------------------------------------------------------------------
-# It reports nothing when nothing changed
-# --------------------------------------------------------------------------
-
-
 def test_an_unchanged_observation_is_clean(base56):
     """Guards against a detector that fires on everything."""
     assert compare(base56, base56) == []
-
-
-# --------------------------------------------------------------------------
-# The four changes CI cannot see
-# --------------------------------------------------------------------------
 
 
 def test_a_moved_ceiling_is_reported(base56):
@@ -147,7 +134,7 @@ def test_losing_one_copy_of_a_duplicated_identity_is_reported(base56):
     sets, dropping one of two copies leaves both sides equal and the freed
     tokens are reported as coming from nowhere.
     """
-    # A *second copy of an identity already listed* — not a new one, or set
+    # WHY: a second copy of an identity already listed, not a new one, or set
     # subtraction would catch it and this would prove nothing.
     twin = base56.entry_ids[0]
     doubled = dataclasses.replace(base56, entry_ids=sorted(base56.entry_ids + [twin]))
@@ -282,11 +269,6 @@ def test_health_mode_does_not_hide_controlled_or_build_drift(
     assert "harness build changed" in capsys.readouterr().out
 
 
-# --------------------------------------------------------------------------
-# Fails closed
-# --------------------------------------------------------------------------
-
-
 def test_no_session_is_cannot_evaluate_not_clean(tmp_path, capsys):
     """A monitor reporting 'no drift' when it observed nothing is worse than none."""
     empty = tmp_path / "sessions"
@@ -301,11 +283,6 @@ def test_no_session_is_cannot_evaluate_not_clean(tmp_path, capsys):
         rc.default_sessions_root = original  # type: ignore[assignment]
     assert code == EXIT_CANNOT_EVALUATE
     assert "no parseable" in capsys.readouterr().out
-
-
-# --------------------------------------------------------------------------
-# Blind for too long is a finding, not a quiet pass
-# --------------------------------------------------------------------------
 
 
 def test_never_having_evaluated_is_escalated_not_tolerated(tmp_path, capsys, monkeypatch):
@@ -404,7 +381,7 @@ def test_a_stale_but_readable_session_still_counts_as_blind(tmp_path, capsys, mo
     monkeypatch.setattr(dc, "_observation_age_days", lambda o: 70)
     path = tmp_path / "baseline.json"
 
-    dc.run(path, update=True)          # seed from the same stale sample
+    dc.run(path, update=True)
     capsys.readouterr()
 
     assert dc.run(path, max_blind_days=30) == dc.EXIT_BLIND, \
@@ -484,11 +461,6 @@ def test_real_drift_outranks_staleness(tmp_path, capsys, monkeypatch):
     assert "listed entries changed" in capsys.readouterr().out
 
 
-# --------------------------------------------------------------------------
-# Samples are not pooled across working directories
-# --------------------------------------------------------------------------
-
-
 def test_two_working_dirs_do_not_report_each_other_as_drift(tmp_path, capsys, monkeypatch):
     """Measured on this machine: at build 0.144.1, `Dev` listed 55 entries and
     `Dev/dojo` listed 112 — the repository's own project-scoped catalog on top of
@@ -509,14 +481,12 @@ def test_two_working_dirs_do_not_report_each_other_as_drift(tmp_path, capsys, mo
     assert dc.run(path, update=True) == EXIT_CLEAN
     capsys.readouterr()
 
-    # Switch project: a different cwd with a legitimately different catalog.
     monkeypatch.setattr(dc.rc, "observations", lambda **kw: [in_dojo])
     monkeypatch.setattr(dc, "_observation_cwd", lambda o: "/Users/x/Dev/dojo")
     assert dc.run(path, update=True) != EXIT_DRIFT, \
         "a different project's catalog is not drift"
     capsys.readouterr()
 
-    # ...and coming back must not report the reverse change either.
     monkeypatch.setattr(dc.rc, "observations", lambda **kw: [in_dev])
     monkeypatch.setattr(dc, "_observation_cwd", lambda o: "/Users/x/Dev")
     assert dc.run(path) == EXIT_CLEAN, "returning to a known project must be clean"
@@ -626,17 +596,9 @@ def test_the_check_never_writes_without_update(tmp_path, monkeypatch):
     dc.run(path, update=True)
     before = path.read_bytes()
 
-    # Both fixtures clip, so the run reports the standing state rather than the
-    # change; either way it found something, which is what makes the write
-    # assertion meaningful.
     monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(F110)])
     assert dc.run(path) == EXIT_SATURATED
     assert path.read_bytes() == before, "a run without --update must not rewrite the baseline"
-
-
-# --------------------------------------------------------------------------
-# Saturation is a standing state, not a change
-# --------------------------------------------------------------------------
 
 
 def test_a_clipping_listing_is_never_reported_as_clean(tmp_path, capsys, monkeypatch):
@@ -783,18 +745,6 @@ def test_a_model_switch_is_not_called_a_build_change(base56):
     assert not any("model changed" in f for f in findings)
 
 
-# --------------------------------------------------------------------------
-# Which sessions count as the machine's interactive listing
-# --------------------------------------------------------------------------
-#
-# Measured on a Mac whose only Codex surface is the desktop app: its sessions
-# rendered the same entry identities, at the same per-entry cost, as an
-# interactive `codex-tui` session of the same build (one build, so opt-in). The
-# default still reads only `codex-tui`; a caller that knows its machine runs the
-# desktop app asks for it with `--surface`. `codex exec` is the opposite case --
-# it does not load account-synced connectors -- and cannot be selected at all.
-
-
 def _sessions_dir(tmp_path, originator: str, name: str = "sessions"):
     """A sessions root holding the healthy fixture re-labelled with `originator`."""
     text = FOK45.read_text().replace('"originator": "codex-tui"',
@@ -895,7 +845,7 @@ def test_a_surface_change_alone_does_not_defeat_notice_mode():
     drift: only membership outside local control moved."""
     import profiles.drift_check as dc
 
-    healthy = Baseline.from_observation(rc.read_rollout(FOK45))  # not saturated
+    healthy = Baseline.from_observation(rc.read_rollout(FOK45))
     swapped = "connector:github:yeet"
     previous = dataclasses.replace(
         healthy, surface="codex-tui",
@@ -903,6 +853,5 @@ def test_a_surface_change_alone_does_not_defeat_notice_mode():
         uncontrolled_ids=sorted(healthy.uncontrolled_ids + [swapped]))
     current = dataclasses.replace(healthy, surface="Codex Desktop")
     assert dc._only_uncontrolled_membership_changed(previous, current)
-    # ...but a surface outside the interactive pair still disqualifies it.
     assert not dc._only_uncontrolled_membership_changed(
         previous, dataclasses.replace(healthy, surface="codex_exec"))

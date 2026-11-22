@@ -100,7 +100,6 @@ else:
 @pytest.mark.parametrize('count, expected', [(1, 0), (0, 1), (2, 1)])
 def test_inspect_exposure_has_real_positive_control(repo, tmp_path, count, expected):
     env = fake_codex(tmp_path, repo, count=count)
-    # Git is also needed; retain only its directory after the fake harness.
     import shutil, os
     env['PATH'] += os.pathsep + str(Path(shutil.which('git')).parent)
     before = (repo/'skills/alpha/SKILL.md').read_bytes()
@@ -144,7 +143,6 @@ def test_missing_repository_tools_are_unavailable(repo):
 
 
 def test_repo_checks_detect_manifest_drift_and_explicit_recovery(repo):
-    # Exercise the selected checkout's real generators in a disposable repository.
     (repo / 'scripts').mkdir()
     for name in ('generate_skills_manifest.py', 'gen_skill_docs.py',
                  'gen_harness_adapters.py', 'gen_catalog.py'):
@@ -172,10 +170,10 @@ def test_repo_checks_detect_manifest_drift_and_explicit_recovery(repo):
         assert {name: c['status'] for name, c in checks.items()} == expected_statuses
         assert all(c['details']['exit_code'] == (0 if c['status'] == 'pass' else 1)
                    for c in checks.values())
-        assert generated_state() == before  # Check mode must never repair drift.
+        assert generated_state() == before
         return checks
 
-    generate('generate_skills_manifest.py')  # Also writes the matching catalog.
+    generate('generate_skills_manifest.py')
     generate('gen_harness_adapters.py', '--skip-symlinks')
     healthy = generated_state()
     passing = dict.fromkeys(('manifest', 'composed-docs', 'adapters', 'catalog'), 'pass')

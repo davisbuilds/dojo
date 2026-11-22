@@ -53,7 +53,7 @@ F110 = FIXTURES / "codex-tui-clipped-110.jsonl"
 F56 = FIXTURES / "codex-tui-clipped-56.jsonl"
 
 OBSERVED_LIMIT = 4_000
-VENDOR_LIMIT = 5_440          # 2% of the 272,000 window `codex debug models` reports
+VENDOR_LIMIT = 5_440
 
 
 @pytest.fixture
@@ -64,11 +64,6 @@ def obs110():
 @pytest.fixture
 def obs56():
     return read_rollout(F56)
-
-
-# --------------------------------------------------------------------------
-# The surface
-# --------------------------------------------------------------------------
 
 
 def test_the_recorded_surface_is_available_not_inferred(obs110, obs56):
@@ -176,11 +171,6 @@ def test_a_duplicate_only_difference_is_still_a_mismatch(obs56):
     assert any("skill-creator" in i for i in mismatch["only_in_recorded"])
 
 
-# --------------------------------------------------------------------------
-# The limit, by saturation
-# --------------------------------------------------------------------------
-
-
 def test_two_saturating_renders_disclose_the_limit(obs110, obs56):
     """The central correction. Different inputs, same total, to the token."""
     assert len(obs110.listing.entries) != len(obs56.listing.entries)
@@ -251,14 +241,13 @@ def test_a_limit_is_never_derived_across_harness_builds(obs110, obs56):
     assert evidence.provisional is True
     assert "harness builds" in evidence.reason
 
-    # …and the same pair within one build still establishes it.
     assert derive_limit([obs110, obs56]).limit == OBSERVED_LIMIT
 
 
 def test_unclipped_renders_are_not_saturation_evidence(obs56):
     """An under-budget listing totals what it costs, which is not a ceiling."""
     for entry in obs56.listing.entries:
-        entry.description = "x" * (200 + len(entry.name))   # deliberately ragged
+        entry.description = "x" * (200 + len(entry.name))
     assert is_saturated(obs56) is False
     assert derive_limit([obs56, obs56]).limit is None
 
@@ -285,7 +274,6 @@ def test_uniform_lengths_alone_are_not_clipping(obs56):
         "uniform but complete descriptions are a catalog style, not a clipped render"
     assert rollout_codex.clipped_entry_names(obs56) == []
 
-    # The same uniform lengths, now cut mid-sentence: both signals agree.
     for entry in obs56.listing.entries:
         entry.description = "a templated summary of the skill and its us"
     assert is_saturated(obs56) is True
@@ -301,11 +289,6 @@ def test_one_stray_unpunctuated_description_does_not_raise_clipping(obs56):
         entry.description = "a templated summary of the skill and its use."
     obs56.listing.entries[0].description = "a templated summary of the skill and its u"
     assert is_saturated(obs56) is False
-
-
-# --------------------------------------------------------------------------
-# The pre-5A path, pinned by the failure it repairs
-# --------------------------------------------------------------------------
 
 
 def test_pre_5a_scoring_reports_the_target_as_comfortable(obs56):
@@ -326,11 +309,6 @@ def test_warning_absence_is_not_evidence_of_fit(obs56):
     assert is_saturated(obs56) is True, "clipped with no warning present"
 
 
-# --------------------------------------------------------------------------
-# Attribution, and the set-versus-total rule
-# --------------------------------------------------------------------------
-
-
 def test_demand_is_attributed_by_origin(obs56):
     attribution = attribute_demand(obs56)
     assert ORIGIN_DOJO in attribution
@@ -343,8 +321,6 @@ def test_connector_entries_are_named_as_uncontrolled(obs56):
     uncontrolled = obs56.uncontrolled_entries
     assert uncontrolled, "the fixture must contain uncontrolled entries"
     assert any(i.startswith(f"{ORIGIN_CONNECTOR}:github:") for i in uncontrolled)
-    # No identity in the set may be dojo's, and the check is by *qualified* id —
-    # a bare name cannot express this, which is the point of the next test.
     assert not any(i.startswith(f"{ORIGIN_DOJO}:") for i in uncontrolled)
 
 
@@ -395,9 +371,6 @@ def test_no_fixture_is_a_raw_session_capture():
             "derivation of what the parser consumes")
         text = path.read_text()
         assert "/Users/example-dev" in text
-        # Exactly one HARNESS-authored block. The fixtures deliberately carry a
-        # second, user-authored decoy to pin the extraction rule, so a bare
-        # count of the tag would now be wrong.
         assert text.count('"role": "developer"') == 1
         assert text.count("<skills_instructions>") <= 2
 
@@ -422,7 +395,6 @@ def test_a_symlinked_locator_resolves_before_classification(tmp_path):
     assert "/.agents/skills/" not in as_written, "the link path must not name the target"
     assert classify_locator(as_written) == ORIGIN_DOJO
 
-    # …and the pre-fix behaviour is pinned: without resolution it is unclassifiable.
     assert ORIGIN_DOJO not in as_written
 
 
@@ -471,7 +443,6 @@ def test_attribution_refuses_a_degraded_observation(obs56):
     with pytest.raises(ClassificationError, match="renders locators"):
         attribute_demand(broken)
 
-    # …and the escape hatch works, for inspecting the broken labels.
     degraded = attribute_demand(broken, allow_degraded=True)
     assert degraded, "allow_degraded must still return the (untrustworthy) split"
 
@@ -506,7 +477,7 @@ def test_staleness_compares_the_set_not_the_total(obs110, obs56):
     would let an uncontrolled change pass unnoticed, so it is asserted directly:
     equal totals, different sets, must still be stale.
     """
-    assert obs110.charged_tokens == obs56.charged_tokens      # totals agree exactly
+    assert obs110.charged_tokens == obs56.charged_tokens
     assert obs110.uncontrolled_entries != obs56.uncontrolled_entries
     reasons = staleness(obs110, obs56)
     assert reasons, "equal totals must not mask a changed entry set"
@@ -552,11 +523,6 @@ def test_a_harness_build_change_alone_makes_a_verdict_stale(obs56):
 def test_an_unchanged_target_is_not_stale(obs56):
     """Guards the detector: a rule that always fires reports nothing."""
     assert staleness(obs56, obs56) == []
-
-
-# --------------------------------------------------------------------------
-# Discovery
-# --------------------------------------------------------------------------
 
 
 def test_observations_filter_by_surface(tmp_path):
@@ -651,7 +617,6 @@ def test_ordering_follows_the_session_not_the_file_mtime(tmp_path):
     shutil.copy(F110, older)
     shutil.copy(F56, newer)
 
-    # The stale one is the most recently *modified*, which is the trap.
     import os
     os.utime(newer, (1_700_000_000, 1_700_000_000))
     os.utime(older, (1_800_000_000, 1_800_000_000))

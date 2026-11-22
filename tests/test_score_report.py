@@ -196,8 +196,6 @@ def test_claims_carry_the_citations_in_their_sentence():
 
 
 def test_claim_text_stops_at_headings_and_paragraph_breaks():
-    # A sentence-only splitter runs the heading, the frame check, and the first
-    # finding together, because "# Frame check" has no terminal punctuation.
     citations = score_report.extract_citations(REPORT)
     claims = score_report.extract_claims(REPORT, citations)
     first = next(c for c in claims if "292M" in c["text"])
@@ -231,7 +229,7 @@ def build_checks(n_quant: int, n_plain: int) -> list[dict]:
 def test_sample_prefers_quantitative_claims():
     sample = score_report.select_sample(build_checks(20, 20), size=10)
     quant = [cid for cid in sample if cid.startswith("Q")]
-    assert len(quant) == 7  # QUANTITATIVE_SHARE of 10
+    assert len(quant) == 7
 
 
 def test_sample_backfills_when_quantitative_claims_are_scarce():
@@ -461,7 +459,6 @@ def test_check_inherits_the_claim_kind_for_weighting():
 
 
 def test_one_bad_citation_is_not_hidden_by_a_good_one():
-    # The whole point: C1 supporting the claim must not mask C2 refuting it.
     worksheet = score_report.build_worksheet(MULTI_CITE)
     ids = [c["id"] for c in worksheet["checks"]]
     worksheet["verdicts"] = {ids[0]: "supported", ids[1]: "unsupported"}
