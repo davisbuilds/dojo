@@ -41,7 +41,6 @@ def check(result: dict, name: str) -> dict:
     return next(c for c in result["checks"] if c["name"] == name)
 
 
-# The linter checks shippable text, not a prescribed research methodology.
 @pytest.mark.parametrize("executor", ["web", "terminal"])
 def test_focused_prompt_needs_no_workflow_sections(executor):
     prompt = (
@@ -161,8 +160,6 @@ def test_identified_statistic_in_seed_block_passes():
 
 
 def test_magnitudes_outside_the_seed_block_are_ignored():
-    # The seed block ends at the next bold label, so the 1.5M below is body
-    # prose the executor is asked to produce -- not seeded background.
     extra = SEEDED_IDENTIFIED + "\n**Source floor:** report the 1.5M-case base rate.\n"
     result = lint_prompt.evaluate(make_prompt(extra=extra), "terminal")
     assert check(result, "seeded_statistics")["status"] == "pass"

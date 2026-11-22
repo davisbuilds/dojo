@@ -20,7 +20,6 @@ import urllib.request
 
 DEFAULT_URL = "http://127.0.0.1:3141/api/v2/analytics/skills/health"
 
-# Fields every health row must carry for the join to be meaningful.
 _REQUIRED_ROW_KEYS = ("name", "invocations", "neverFired")
 
 
@@ -91,7 +90,6 @@ def aggregate_rows(rows: list[dict]) -> dict[str, dict]:
             merged[row["name"]] = dict(row)
             continue
         acc["invocations"] += row["invocations"]
-        # never-fired holds only if EVERY version of the skill never fired.
         acc["neverFired"] = bool(acc.get("neverFired")) and bool(row.get("neverFired"))
         acc["misfireEligible"] = (acc.get("misfireEligible") or 0) + (row.get("misfireEligible") or 0)
         acc_mis, row_mis = acc.get("misfires"), row.get("misfires")
@@ -164,7 +162,6 @@ def _rank_key(entry: dict) -> tuple:
         group = 1
     else:
         group = 2
-    # Only group 2 sorts by volume; the others sort by name alone.
     volume = invocations if group == 2 else 0
     return (group, volume, entry["skill"])
 
@@ -218,7 +215,6 @@ def render_runtime_section(report: dict) -> list[str]:
     return lines
 
 
-# Static disclaimer: never-fired is always relative to the queried window.
 _FINDINGS_CAVEAT = (
     "_Never-fired is relative to the queried range; a skill may fire outside it. "
     "Review before filing — this is a proposal, not an auto-filed entry._"

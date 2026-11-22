@@ -28,7 +28,6 @@ def test_helper_cli_preserves_input_and_reports_advisory_scope(tmp_path, script,
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout)
     assert source.read_bytes() == original
-    # The limit travels with the JSON; consumers need not have read SKILL.md.
     assert payload["assessment_scope"] == "heuristic_triage"
     assert payload["sources_verified"] is False
     if script == "run_pipeline.py":

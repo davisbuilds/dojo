@@ -39,9 +39,9 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 from profiles import definitions  # noqa: E402
 from profiles.definitions import ProfileDefinitionError  # noqa: E402
 
-# --- Contract constants, quoted from the spec rather than imported. ---------
+# WHY: contract constants are quoted from the spec rather than imported, so a
+# drifted implementation cannot agree with itself.
 
-# SC-02: the public profile vocabulary.
 SC02_VOCABULARY = {
     "core",
     "engineering",
@@ -52,7 +52,6 @@ SC02_VOCABULARY = {
     "full",
 }
 
-# SC-03: `core` contains the general delivery loop.
 SC03_CORE = {
     "brainstorming",
     "first-principles",
@@ -64,7 +63,6 @@ SC03_CORE = {
     "verify-before-complete",
 }
 
-# SC-02: required anchors, per overlay.
 SC02_ANCHORS = {
     "engineering": {"create-cli", "secure-code"},
     "research": {"deep-research", "research-architect"},
@@ -116,11 +114,6 @@ def mutate_equivalences(path: Path, entries: list[dict]) -> None:
 
 def load(workdir: Path, catalog: dict) -> dict:
     return definitions.load_definitions(workdir, catalog)
-
-
-# ---------------------------------------------------------------------------
-# The definitions as authored
-# ---------------------------------------------------------------------------
 
 
 def test_vocabulary_is_exactly_the_sc02_set(profiles):
@@ -185,11 +178,6 @@ def test_no_two_overlays_are_the_same_set(profiles):
     """Two overlays resolving identically would make the vocabulary a fiction."""
     sets = {name: frozenset(profiles[name].members) for name in SC02_ANCHORS}
     assert len(set(sets.values())) == len(sets)
-
-
-# ---------------------------------------------------------------------------
-# Rejection cases — plan step 5. Each asserts the message names the offender.
-# ---------------------------------------------------------------------------
 
 
 def test_rejects_unreadable_yaml(workdir, catalog):
@@ -345,11 +333,6 @@ def test_rejects_an_empty_catalog(tmp_path):
     path.write_text(json.dumps({"version": 1, "skills": []}), encoding="utf-8")
     with pytest.raises(ProfileDefinitionError, match="holds no skills"):
         definitions.load_catalog(path)
-
-
-# ---------------------------------------------------------------------------
-# Harness equivalences
-# ---------------------------------------------------------------------------
 
 
 def test_the_declaration_is_non_empty_and_names_real_skills(equivalences, catalog):

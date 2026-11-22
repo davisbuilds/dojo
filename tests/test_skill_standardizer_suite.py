@@ -23,13 +23,12 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = REPO_ROOT / "skills" / "skill-standardizer" / "scripts" / "test_skill_standardizer.py"
 HOME_ENV_NAMES = ("AGENTS_HOME", "CODEX_HOME", "CLAUDE_HOME")
 STATES = ("absent", "preexisting", "empty")
-# Each rotation assigns one state per variable, so across the three every
-# variable starts absent, set, and set-but-empty.
 ROTATIONS = [STATES[i:] + STATES[:i] for i in range(len(STATES))]
 
 
 def load_suite():
-    # Distinct module name: pytest may import this file as test_skill_standardizer_suite.
+    # WHY: a distinct module name, because pytest may import this file as
+    # test_skill_standardizer_suite.
     spec = importlib.util.spec_from_file_location("skill_standardizer_suite", SCRIPT_PATH)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -50,7 +49,8 @@ def snapshot() -> dict[str, str | None]:
 
 def arrange(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, states) -> dict[str, str | None]:
     """Start in a synthetic cwd with each harness-home variable in the given state."""
-    # A home a test forgets to set falls back under this HOME, never a real install.
+    # WHY: a home a test forgets to set falls back under this HOME, never a real
+    # install.
     home = tmp_path / "home"
     home.mkdir()
     monkeypatch.setenv("HOME", str(home))
@@ -116,9 +116,8 @@ def test_isolated_tempdir_restores_after_a_failure(tmp_path, monkeypatch):
     assert not Path(td).exists()
 
 
-# Records the cwd at every directory and file removal through the public
-# os.rmdir/os.remove audit events, however the temporary directory deletes
-# itself. Audit hooks cannot be removed, so this runs in a child process.
+# WHY: audit hooks cannot be removed, so the removal observer runs in a child
+# process.
 REMOVAL_OBSERVER = r"""
 import contextlib, importlib.util, json, os, sys, tempfile
 
@@ -170,12 +169,10 @@ def test_isolated_tempdir_leaves_the_directory_before_removing_it(tmp_path):
     def removals(label):
         td = report[label]["td"]
         events = report[label]["events"]
-        # The observer must see the directory itself go, or it proves nothing.
         assert any(event == "os.rmdir" and os.path.basename(path) == os.path.basename(td)
                    for event, path, _ in events), events
         return td, [os.path.realpath(cwd) for _, _, cwd in events]
 
-    # Positive control: restoring only after the context exits is caught.
     td, cwds = removals("control")
     assert td in cwds
 
@@ -190,7 +187,8 @@ def test_direct_runner_needs_no_pytest(tmp_path):
     env["HOME"] = str(home)
 
     def run(*args: str) -> subprocess.CompletedProcess[str]:
-        # -S drops site-packages, where pytest is installed.
+        # WHY: -S drops site-packages, where pytest is installed, so the runner must
+        # work on the stdlib alone.
         return subprocess.run(
             [sys.executable, "-I", *args], cwd=tmp_path, env=env, capture_output=True, text=True,
         )

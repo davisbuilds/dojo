@@ -46,7 +46,7 @@ CONFIG_NAME = ".publication-hygiene.json"
 
 
 def clean_git_env() -> dict[str, str]:
-    # Git hooks export repository-local variables. A control repo must not
+    # WHY: git hooks export repository-local variables, and a control repo must not
     # inherit the caller's index or object store.
     return {
         key: value for key, value in os.environ.items() if not key.startswith("GIT_")
@@ -166,8 +166,6 @@ def verify_detector() -> None:
         )
         assert scan(scratch)[0] == []
         sample.write_text(bad)
-        # The staged blob is the commit candidate, even if the working copy
-        # has already been edited again.
         assert scan(scratch)[0] == []
         subprocess.run(
             ["git", "add", "sample.txt"], cwd=scratch, env=clean_git_env(), check=True

@@ -63,11 +63,6 @@ def example_suppression():
     )}
 
 
-# --------------------------------------------------------------------------
-# Composition
-# --------------------------------------------------------------------------
-
-
 def test_all_overlay_permutations_resolve_identically(defs, catalog):
     """EV-CON-02, at full strength.
 
@@ -113,11 +108,6 @@ def test_full_tracks_the_catalog_rather_than_a_list(defs, catalog):
     assert len(result.members) == len(catalog)
 
 
-# --------------------------------------------------------------------------
-# Rejections — each with its own code
-# --------------------------------------------------------------------------
-
-
 @pytest.mark.parametrize(
     "selection, code",
     [
@@ -151,11 +141,6 @@ def test_the_five_codes_are_actually_distinct():
         SelectionErrorCode.FULL_NOT_EXCLUSIVE,
     ]
     assert len({c.value for c in codes}) == len(codes)
-
-
-# --------------------------------------------------------------------------
-# Identity: what is, and is not, an input
-# --------------------------------------------------------------------------
 
 
 def test_profile_identity_ignores_selection_order(defs):
@@ -196,7 +181,7 @@ def test_one_profile_identity_two_harnesses_different_realizations(defs, catalog
     codex = resolve_for_harness(result, example_suppression, "codex")
     claude = resolve_for_harness(result, {}, "claude-code")
 
-    assert "skill-creator" in result.members  # SC-02 constrains selection, not realization.
+    assert "skill-creator" in result.members
     assert "skill-creator" not in codex.realized
     assert "skill-creator" in claude.realized
 
@@ -251,11 +236,6 @@ def test_canonical_revision_moves_realization_but_not_profile_identity(defs, cat
         canonical_revision="b", **common
     )
     assert resolve(("core", "research"), defs, catalog).identity == result.identity
-
-
-# --------------------------------------------------------------------------
-# Suppression is declared, never inferred
-# --------------------------------------------------------------------------
 
 
 def test_an_undeclared_collision_is_reported_and_the_member_survives(defs, catalog, equivalences):

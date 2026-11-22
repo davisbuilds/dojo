@@ -36,8 +36,6 @@ from .budget import Assessment, Policy, Verdict
 from .observe import Observation
 from .resolve import HarnessResolution, Resolution
 
-# SC-06's field set, verbatim. The report asserts against this, so adding or
-# dropping a field is a deliberate edit rather than a silent change in shape.
 SC06_FIELDS = (
     "assertions",
     "budget",
@@ -72,9 +70,8 @@ class ExitCode(IntEnum):
     NONCONFORMANT = 2
 
 
-# Plain string constants rather than an Enum: these values are serialized into
-# evidence and compared byte-for-byte, so their spelling is contractual and
-# should be visible at the point of use.
+# WHY: plain string constants rather than an Enum, because these values are
+# serialized into evidence and compared byte-for-byte.
 STATE_CONFORMANT = "conformant"
 STATE_NONCONFORMANT = "nonconformant"
 STATE_UNPROFILED = "unprofiled"
@@ -101,7 +98,7 @@ class Evidence:
         return ExitCode.NONCONFORMANT
 
     def __post_init__(self) -> None:
-        # Asserted in code, not only in a test: a report that could not finish
+        # WHY: asserted in code, not only in a test: a report that could not finish
         # must never be emitted with exit 0.
         if self.partial and self.payload.get("state") == STATE_CONFORMANT:
             raise ValueError("a partial report cannot be conformant")
@@ -158,20 +155,17 @@ def dirty_state(repo_root: Path, selected_members: tuple[str, ...],
     """
     try:
         out = subprocess.run(
-            # `-uall` is required. By default git *collapses* untracked
-            # directories to `?? skills/`, so a wholly-new selected skill never
-            # matches its own path prefix and a dirty target reports clean — the
-            # failure direction that lets unreviewed content look deployable.
+            # WHY: `-uall` is required. By default git collapses untracked directories
+            # to `?? skills/`, so a wholly new selected skill never matches its own path
+            # prefix and a dirty target reports clean.
             ["git", "-C", str(repo_root), "status", "--porcelain", "-uall"],
             capture_output=True, text=True, check=False, timeout=30,
         ).stdout
     except (OSError, subprocess.SubprocessError):
         return ["<git unavailable: source revision unverifiable>"]
 
-    # Only the *selected* definitions count. Including all of `profiles/` meant
-    # editing an unrelated overlay or another harness's policy made every
-    # composition audit-only — which contradicts this function's own promise and
-    # is how a gate ends up switched off during ordinary authoring.
+    # WHY: only the selected definitions count. Including all of `profiles/` made
+    # editing an unrelated overlay or policy turn every composition audit-only.
     selected_paths = {f"skills/{name}/" for name in selected_members}
     selected_paths |= {f"profiles/{name}.yaml" for name in selected_definitions}
     dirty = []
@@ -226,11 +220,8 @@ def build_evidence(
         selected_definitions=resolution.selection if resolution else (),
     )
 
-    # SC-05: a conformant target exposes every selected skill *and* no
-    # unselected dojo-managed one. Budget alone says nothing about membership —
-    # an under-budget observation containing a single foreign entry scored
-    # `conformant` while all eleven selected skills were absent, because being
-    # cheap was mistaken for being right.
+    # WHY: SC-05 also needs membership. Budget alone once scored an under-budget
+    # observation `conformant` while all eleven selected skills were absent.
     observed_managed = {e.name for e in observation.entries if e.origin == "dojo-managed"}
     missing = sorted(expected - observed_managed) if resolution else []
     unexpected = sorted(observed_managed - expected) if resolution else []
@@ -244,9 +235,6 @@ def build_evidence(
     elif dirty:
         state = STATE_UNSUPPORTED
     elif observation.unsupported:
-        # A reconciliation failure — e.g. Claude Code reporting a different
-        # `sent` count than the parser produced — means the observation itself
-        # is not trustworthy, so nothing downstream of it can be conformant.
         state = STATE_UNSUPPORTED
     elif missing or unexpected:
         state = STATE_NONCONFORMANT
@@ -267,9 +255,6 @@ def build_evidence(
         },
         "realization_identity": realization_id,
         "resolved_members": sorted(members),
-        # A suppressed member is not a member the profile never selected. Each
-        # entry names what displaced it and why, so a cross-harness difference is
-        # attributable rather than merely observed (SC-11).
         "suppressed": sorted(
             (
                 {"skill": s.skill, "bundled_entry": s.bundled_entry, "evidence": s.evidence}
@@ -320,8 +305,6 @@ def build_evidence(
         "assertions": {"executed": 0, "outcomes": []},
         "equivalence_identity": equivalence_id,
     }
-    # `equivalence_identity` is nested under profile rather than top level to keep
-    # the SC-06 field set exact; kept addressable here for readability.
     payload["profile"]["equivalence_identity"] = payload.pop("equivalence_identity")
 
     return Evidence(payload=payload, partial=partial)

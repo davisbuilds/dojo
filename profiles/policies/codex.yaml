@@ -1,34 +1,23 @@
-# Reviewed budget policy. Derived from vendor implementation source at a pinned
-# revision, which SC-04 accepts as authoritative — so the "two unchanged runs
-# must agree within 2%" rule does not apply here. That rule governs the
-# *measured* route only, where a limit is established by observation.
 harness: codex
 harness_version: codex-cli 0.146.0
 model: gpt-5.6-terra
 
 unit: tokens
 limit: 4000
-# Recorded for provenance only. THE LIMIT IS NOT DERIVED FROM THIS.
-# `codex debug models` reports 272,000 for every model in this catalog, implying
-# 2% = 5,440. The interactive surface budgets against 4,000 regardless of model:
-# gpt-5.6-terra and gpt-5.6-sol render byte-identically. Deriving the limit from
-# the window overstated it by 36% and made a 100%-of-budget target read as 74%
-# for four days.
+# WHY: provenance only; the limit is not derived from the window. The
+# interactive surface budgets against 4,000 regardless of model, and deriving it
+# from 2% of this window overstated the limit by 36%.
 context_window: 272000
 window_field: null
 
-# The limit is established by SATURATION, not by a vendor constant. Codex spends
-# the listing budget to the last token, so two renders of different inputs that
-# both saturate must total the same number -- and that number is the limit.
 limit_basis: observed
 observed_limit_samples:
-  - [110, 4000]   # 2026-08-04, gpt-5.6-terra, connectors present
-  - [56, 4000]    # 2026-08-06, gpt-5.6-terra, after connector removal
-  - [56, 4000]    # 2026-08-04, gpt-5.6-sol -- the budget does not move with the model
+  - [110, 4000]
+  - [56, 4000]
+  - [56, 4000]
 
-# Only a surface DECLARED IN USE can make a pair deployable. `codex exec` and
-# `codex debug prompt-input` render a different code path that omits
-# account-synced connector plugins entirely -- 69 of 110 entries on 2026-08-04.
+# WHY: `codex exec` and `codex debug prompt-input` render a different code path
+# that omits account-synced connector plugins, so only the TUI is declared.
 declared_surfaces:
   - codex-tui
 
@@ -45,11 +34,10 @@ provenance: >-
 measured: 2026-08-06
 probe: ~/.codex/sessions/**/rollout-*.jsonl (codex-tui surface)
 
-# Declared in use, so this pair gates (spec revision 11).
 deployable: true
 
-# Codex lists BOTH copies of a name across roots and charges for both. Verified:
-# a dojo-rooted session carried 32 duplicated names before the .agents link was
+# WHY: Codex lists both copies of a name across roots and charges for both; a
+# dojo-rooted session carried 32 duplicated names before the .agents link was
 # retired.
 shadows_by_name: false
 project_scope_root: .agents/skills

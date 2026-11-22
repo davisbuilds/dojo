@@ -13,7 +13,7 @@ CONVENTIONAL_SUBJECT = re.compile(
 )
 
 
-# Release Please also reads breaking/release trailers and nested commit lines.
+# WHY: Release Please also reads breaking/release trailers and nested commit lines.
 RELEASE_REQUEST = re.compile(
     r"^(?:(?:feat|fix|perf|revert)(?:\([^()\r\n]+\))?!?: "
     r"|[a-z]+(?:\([^()\r\n]+\))?!: "
@@ -38,8 +38,8 @@ def prose_release_error(message: str, base: str, head: str, label: str) -> str |
 
 def commit_prose_error(commit: str) -> str | None:
     message = subprocess.check_output(['git', 'show', '-s', '--format=%B', commit], text=True)
-    # Include merge nodes: the PR title/body can request a release even when
-    # every retained commit is correctly classified.
+    # WHY: include merge nodes, because the PR title/body can request a release even
+    # when every retained commit is correctly classified.
     return prose_release_error(message, f'{commit}^', commit, f'commit {commit[:12]}')
 
 

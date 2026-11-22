@@ -35,17 +35,10 @@ from .probe_codex import Listing, _absolute
 REPO_ROOT = Path(__file__).resolve().parents[2]
 _STANDARDIZER = REPO_ROOT / "skills" / "skill-standardizer" / "scripts"
 
-# Per-harness plugin caches, kept here for assertions and evidence. The
-# standardizer's `is_plugin_cache_path` hardcodes the Claude needle
-# `/.claude/plugins/cache`, which Codex never reads — reusing it for Codex
-# classifies Codex's own listed plugin entries as non-plugin and hides them.
-#
-# This module does **not** re-classify. `probe_codex.classify` already assigns
-# origin from the capture's own inferred home, and a second classifier here was
-# dead code: a mutation swapping the Codex needle for the Claude one passed every
-# test, because the line only ever re-labelled entries that were already
-# correctly labelled. A second implementation is a second thing that can
-# disagree, so it was removed rather than kept as belt-and-braces.
+# WHY: the standardizer's `is_plugin_cache_path` hardcodes the Claude needle
+# `/.claude/plugins/cache`, which Codex never reads, so reusing it hides
+# Codex's listed plugin entries. Origin itself comes from `probe_codex.classify`;
+# a second classifier here is a second thing that can disagree.
 PLUGIN_CACHE = {
     "codex": "/.codex/plugins/",
     "claude-code": "/.claude/plugins/",
@@ -68,10 +61,9 @@ class ObservedEntry:
     dir_hash: str | None = None
     duplicate_of: str | None = None
     exempt: bool = False
-    # Everything this module builds comes from a probe, so it was rendered. The
-    # field exists so a caller constructing a *hypothetical* entry — a
-    # composition scored before any target exists — can say so, and Task 3's
-    # detector will not read "nobody looked" as "the harness removed it".
+    #: ``False`` for a hypothetical entry, such as a composition scored before any
+    #: target exists, so the detector does not read "nobody looked" as "the
+    #: harness removed it".
     observed: bool = True
 
 
@@ -84,10 +76,8 @@ class Observation:
     root_lines: list[str] = field(default_factory=list)
     unsupported: list[str] = field(default_factory=list)
     warning: str | None = None
-    # `(path, target)` for each scope root that is itself a symlink. A
-    # whole-catalog link is a property of the *root*, not of how many entries
-    # happen to be listed, so the detector needs the topology rather than a
-    # count it can be fooled by.
+    #: ``(path, target)`` for each scope root that is itself a symlink. A
+    #: whole-catalog link is a property of the root, not of the entry count.
     symlinked_scope_roots: list[tuple[str, str]] = field(default_factory=list)
 
     @property
@@ -219,20 +209,14 @@ def observe_codex(listing: Listing, policy: Policy, skills_root: Path,
             scope=entry.scope,
             locator=_absolute(entry.locator, listing.root_lines),
             listed_description=entry.description,
-            # **Only a dojo-managed entry may take a canonical description.** A
-            # bundled, plugin, or foreign entry that merely shares a name is a
-            # different skill with different text: Codex's bundled
-            # `skill-creator` sits beside dojo's in this very fixture and their
-            # descriptions differ. Attaching dojo's text scored the wrong
-            # content *and* fabricated a truncation signal, because listed then
-            # differs from "source" for a reason that has nothing to do with
-            # elision.
+            # WHY: only a dojo-managed entry may take a canonical description. A
+            # bundled, plugin or foreign entry sharing a name is a different skill, and
+            # attaching dojo's text scores the wrong content and fabricates a truncation
+            # signal.
             source_description=descriptions.get(entry.name) if entry.origin == "dojo-managed" else None,
             cost=entry.cost_tokens,
             exempt=entry.origin == "harness-bundled",
         )
-        # Codex does not shadow: a name in two roots is two entries with two
-        # costs. Record the relationship rather than collapsing it.
         if entry.name in seen and not policy.shadows_by_name:
             observed.duplicate_of = seen[entry.name]
         seen.setdefault(entry.name, observed.locator)

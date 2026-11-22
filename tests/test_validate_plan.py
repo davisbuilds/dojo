@@ -312,8 +312,6 @@ def test_behavior_measured_marker_suppresses_external_tool_advisory() -> None:
 
 def test_hyphenated_tool_names_are_not_external_tool_invocations() -> None:
     module = load_module()
-    # Names and paths that merely start with a tool token — a hyphen is a word
-    # boundary but not a command terminator — must not read as invocations.
     body = plan_body(
         "- Create: `src/example.py`",
         implementation_steps=(
@@ -768,7 +766,6 @@ def write_legacy_high_risk_spec(root: Path, readiness: str = "ready") -> Path:
 
 def legacy_high_risk_plan_body(files: str, dependencies: str = "None") -> str:
     body = high_risk_plan_body(files, dependencies=dependencies)
-    # Replace stable IDs with named contract surfaces (the legacy adoption path).
     for old, new in {
         "SC-01": "session-authority",
         "EV-NEG-01": "forbidden-path",
@@ -813,8 +810,6 @@ def test_legacy_high_risk_plan_requires_named_traceability_rows(tmp_path: Path) 
     body = legacy_high_risk_plan_body(
         "- Modify: `src/example.py`\n- Test: `tests/test_example.py`"
     )
-    # Strip every named-surface row, leaving only the Traceability header: an
-    # id-less plan must still trace obligations, not skip coverage entirely.
     for surface in (
         "session-authority",
         "forbidden-path",
@@ -845,8 +840,6 @@ def test_high_risk_plan_inventing_ids_against_idless_spec_fails(tmp_path: Path) 
     target.parent.mkdir(parents=True)
     target.write_text("boundary = True\n", encoding="utf-8")
 
-    # The plan carries IDs the id-less spec never declared: partial adoption
-    # must fail, not silently downgrade to the legacy path.
     errors = module.validate_high_risk(
         {
             "risk_profile": "high",
@@ -899,7 +892,6 @@ def test_plan_cli_accepts_optional_handoff_without_weakening_evidence(
     else:
         path = write_plan(tmp_path, "- Create: `src/example.py`")
     content = path.read_text(encoding="utf-8").split("## Handoff")[0] + handoff
-    # A numbered implementation step must not accidentally satisfy a menu check.
     content = content.replace("1. Make the agreed change.", "- Make the agreed change.")
 
     def run(text: str) -> subprocess.CompletedProcess[str]:

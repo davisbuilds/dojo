@@ -250,3 +250,30 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 - **Revisit when**: observed user friction or a selected catalog review supplies a
   current need. Check existing skills, tools, examples, and tests before adopting
   any candidate; preserve distinct triggers when they serve different tasks.
+
+### Decide the open Codex equivalences for `gpt-imagen` and `local-review`
+
+- **What**: `profiles/harness-equivalences.yaml` leaves two Codex pairs
+  undeclared until someone decides them: `gpt-imagen` against Codex's bundled
+  `imagegen`, and `local-review` against Codex's `.system/review-agent`.
+- **Why or evidence**: a wrong declaration silently removes a selected skill, so
+  both stay undeclared and are reported as collisions. `gpt-imagen` belongs to no
+  overlay, so its suppression would never fire today (2026-08 observations).
+- **Next**: compare the two image skills' actual capabilities (masking, batch
+  output, the pinned model) rather than their descriptions, and declare the pair
+  only if the bundled path covers them; the `local-review` pair needs a
+  maintainer decision because `local-review` is a `core` member.
+
+### Reconcile Claude Code `unresolved` origins against the probe's source counts
+
+- **What**: `scripts/profiles/probe_claude.py` (`classify` origin assignment)
+  labels any listed entry it finds in no inspectable root `unresolved`, and
+  `scripts/profiles/observe.py` (`observe_claude`) exempts `unresolved` entries
+  alongside `harness-bundled` ones. A comment deferred reconciling that bucket
+  against the per-source counts in the debug log's `Loading skills from` line
+  to a later plan task, which never shipped (checked 2026-11-22).
+- **Why or evidence**: bundled skills ship inside the binary and land in this
+  bucket, but so would anything else the probe cannot see; while it is exempt,
+  an unseen non-bundled entry is never charged or reported.
+- **Next**: compare the bucket's size with the bundled count that line
+  reports, and mark the observation unsupported when they disagree.

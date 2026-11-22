@@ -54,10 +54,10 @@ def test_warns_on_braced_form() -> None:
 @pytest.mark.parametrize(
     "command",
     [
-        'for x in "${arr[@]}"; do echo "$x"; done',   # correct array form
-        "for f in *.md; do echo $f; done",            # glob, splits fine
-        "for f in $(ls); do echo $f; done",           # command substitution splits
-        "for i in 1 2 3; do echo $i; done",           # literal list
+        'for x in "${arr[@]}"; do echo "$x"; done',
+        "for f in *.md; do echo $f; done",
+        "for f in $(ls); do echo $f; done",
+        "for i in 1 2 3; do echo $i; done",
     ],
 )
 def test_does_not_warn_on_correct_loops(command: str) -> None:
@@ -70,10 +70,10 @@ def test_does_not_warn_on_correct_loops(command: str) -> None:
         "rg -rn foo",
         "rg -r x pattern",
         "rg -rln thing",
-        "rg foo -rn",                       # flag after the pattern
-        "ls | rg -rn foo",                  # rg later in a pipeline
+        "rg foo -rn",
+        "ls | rg -rn foo",
         "cd src && rg -rn foo",
-        "rg -n a | rg -r b c",              # the second rg is the wrong one
+        "rg -n a | rg -r b c",
     ],
 )
 def test_warns_on_rg_replace_cluster(command: str) -> None:
@@ -83,13 +83,13 @@ def test_warns_on_rg_replace_cluster(command: str) -> None:
 @pytest.mark.parametrize(
     "command",
     [
-        "rg -n pattern",                    # correct line-number flag
+        "rg -n pattern",
         "rg -l pattern",
-        "rg --replace X pattern",           # spelled out, presumably deliberate
+        "rg --replace X pattern",
         "rg pattern",
-        "grep -rn pattern .",               # grep -r really is recursive
-        "rg -n pattern | sort -rn",         # another command's -r, after rg
-        "git log -r | rg -n pattern",       # ... and before it
+        "grep -rn pattern .",
+        "rg -n pattern | sort -rn",
+        "git log -r | rg -n pattern",
         "rg -l pattern && ls -r",
         "rg -n pattern; sqlite3 -readonly db 'select 1'",
         "rg -n pattern\ntail -r file",
@@ -128,9 +128,6 @@ def test_multiple_traps_reported_together() -> None:
     assert "word-split" in w and "--replace" in w
 
 
-# --- multi-word literal passed as one argv element ----------------------------
-
-
 def test_warns_when_multiword_loop_item_is_used_unquoted() -> None:
     """The exact shape that reported four passing CI checks as stale."""
     w = warnings_of(run('for c in "scripts/gen.py --check"; do python3 $c; done'))
@@ -140,9 +137,9 @@ def test_warns_when_multiword_loop_item_is_used_unquoted() -> None:
 @pytest.mark.parametrize(
     "command",
     [
-        'for c in "one.py" "two.py"; do python3 $c; done',   # single-word items
-        'for c in "a.py --check"; do python3 "$c"; done',    # quoted use is fine
-        'for c in "a.py --check"; do echo done; done',       # var never used
+        'for c in "one.py" "two.py"; do python3 $c; done',
+        'for c in "a.py --check"; do python3 "$c"; done',
+        'for c in "a.py --check"; do echo done; done',
     ],
 )
 def test_does_not_warn_on_safe_multiword_forms(command: str) -> None:

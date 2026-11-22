@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# SessionStart hook: inject skill catalog, recent activity, and repo pointer
-# Outputs context to orient any agent harness at the start of a session.
-
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
 if [[ -z "$REPO_ROOT" ]]; then
   exit 0
@@ -10,7 +7,6 @@ fi
 
 MANIFEST="$REPO_ROOT/skills.json"
 
-# --- Pointer to AGENTS.md ---
 echo "## Repository Conventions"
 echo "Read AGENTS.md at the repo root for skill structure, commands, and design principles."
 echo ""
@@ -19,11 +15,9 @@ echo "## Available Skills"
 echo ""
 
 if [[ -f "$MANIFEST" ]] && command -v jq >/dev/null 2>&1; then
-  # Read from the machine-readable manifest (fast, no YAML parsing)
   count=$(jq '.skills | length' "$MANIFEST")
   jq -r '.skills[] | "- **\(.name)**: \(.description)"' "$MANIFEST"
 else
-  # Fallback: parse SKILL.md files directly
   count=0
   for skill_md in "$REPO_ROOT"/skills/*/SKILL.md; do
     [[ -f "$skill_md" ]] || continue
