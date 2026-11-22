@@ -45,9 +45,8 @@ from .probe_codex import (
     line_cost_tokens,
 )
 
-# SC-04's deployability ceiling, as exact integer basis points. Compared as
-# `demand * 10_000 <= limit * 9_000` so no float rounding can move a verdict
-# across the boundary.
+# WHY: integer basis points, compared as `demand * 10_000 <= limit * 9_000`, so
+# no float rounding can move a verdict across SC-04's deployability ceiling.
 CEILING_BASIS_POINTS = 9_000
 BASIS = 10_000
 
@@ -57,11 +56,16 @@ CLAUDE_ELLIPSIS = "…"
 class Degradation(str, Enum):
     """The five observable shapes. Named so evidence can say which occurred."""
 
-    CODEX_CLIPPED = "codex-clipped-no-marker"        # (a) budget-driven, invisible
-    CODEX_PRECAP = "codex-precap-ellipsis"           # (b) 1,024-char cap, marked "..."
-    CODEX_OMITTED = "codex-skill-omitted"            # (c) third tier, warns in-prompt
-    CLAUDE_ELLIPSIS_TRUNCATED = "claude-ellipsis-truncated"   # (d) past maxDescChars
-    CLAUDE_DESCRIPTION_REMOVED = "claude-description-removed"  # (e) bare name
+    #: (a) Budget-driven clipping with no visible marker.
+    CODEX_CLIPPED = "codex-clipped-no-marker"
+    #: (b) The 1,024-character description cap, marked with "...".
+    CODEX_PRECAP = "codex-precap-ellipsis"
+    #: (c) The third tier: the skill is omitted and the prompt warns.
+    CODEX_OMITTED = "codex-skill-omitted"
+    #: (d) Truncated past ``skillListingMaxDescChars``.
+    CLAUDE_ELLIPSIS_TRUNCATED = "claude-ellipsis-truncated"
+    #: (e) Listed as a bare name.
+    CLAUDE_DESCRIPTION_REMOVED = "claude-description-removed"
 
 
 class Verdict(str, Enum):
@@ -77,7 +81,8 @@ class Policy:
     harness: str
     harness_version: str
     model: str
-    unit: str                    # "tokens" | "characters"
+    #: ``"tokens"`` or ``"characters"``.
+    unit: str
     limit: int
     context_window: int | None
     window_field: str | None
@@ -85,14 +90,13 @@ class Policy:
     provenance: str
     measured: str
     probe: str
-    deployable: bool             # declared in use, per spec revision 11
+    deployable: bool
     shadows_by_name: bool
     project_scope_root: str
-    # SC-04, revision 13. "observed" = established by saturation; two renders of
-    # different inputs that both saturate must total the same number.
-    # "vendor-corroborated" = a vendor constant checked against behaviour.
-    # Bare "vendor" is PROVISIONAL and may not make a pair deployable — that is
-    # the mistake that made a 100%-of-budget Codex target read as 74%.
+    #: ``"observed"`` (established by saturation: two saturating renders of
+    #: different inputs total the same number), ``"vendor-corroborated"`` (a vendor
+    #: constant checked against behaviour), or bare ``"vendor"``, which is
+    #: provisional and cannot make a pair deployable.
     limit_basis: str = "vendor"
     declared_surfaces: tuple[str, ...] = ()
     identity: str = ""
@@ -131,9 +135,8 @@ class Assessment:
     degradations: tuple[Degradation, ...] = ()
     reason: str = ""
     entries_scored: int = 0
-    # The invocation surface this observation came from. `None` means the caller
-    # did not say — which a policy declaring surfaces must treat as undeclared,
-    # not as acceptable.
+    #: The invocation surface this observation came from. ``None`` means the caller
+    #: did not say, which a policy declaring surfaces treats as undeclared.
     surface: str | None = None
 
     @property
@@ -240,15 +243,9 @@ def detect_degradation(entries: list[dict], policy: Policy, warning: str | None 
     found: set[Degradation] = set()
 
     for entry in entries:
-        # **Not observed is not observed-absent.** An entry carries
-        # `listed_description` only if a probe actually rendered it; the key
-        # being missing means nobody looked, while the key present and `None`
-        # means the harness rendered a bare name. Conflating them made a
-        # *hypothetical* fit proof — `core` plus an overlay, scored before any
-        # target exists — report every member as description-removed, which is
-        # the detector inventing a degradation out of the absence of a
-        # measurement. Caught by the SC-03 fit proof failing on entries that had
-        # never been rendered at all.
+        # WHY: a missing `listed_description` means no probe rendered the entry, while
+        # `None` means the harness rendered a bare name. Conflating them made a
+        # hypothetical fit proof report every member as description-removed.
         if "listed_description" not in entry:
             continue
 
@@ -270,9 +267,9 @@ def detect_degradation(entries: list[dict], policy: Policy, warning: str | None 
             elif listed and listed.rstrip().endswith(CLAUDE_ELLIPSIS):
                 found.add(Degradation.CLAUDE_ELLIPSIS_TRUNCATED)
 
-    # (c) Codex omission, detectable two ways. Both are used: the in-prompt
-    # warning is authoritative when present, and a listed count below the
-    # candidate count catches it when the warning text changes.
+    # WHY: shape (c) is detected two ways. The in-prompt warning is authoritative
+    # when present, and a listed count below the candidate count catches the
+    # omission when the warning text changes.
     if warning and "Exceeded skills context budget" in warning:
         found.add(Degradation.CODEX_OMITTED)
     if candidate_count is not None and len(entries) < candidate_count:

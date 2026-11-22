@@ -40,7 +40,6 @@ def main(argv: list[str] | None = None) -> int:
     defs = definitions.load_definitions(REPO_ROOT / "profiles", catalog)
     print(f"definitions: {len(defs)} profiles over a {len(catalog)}-skill catalog")
 
-    # Every declared composition must resolve, and its members must exist.
     overlays = [n for n, d in sorted(defs.items()) if d.kind == "overlay"]
     for overlay in overlays:
         try:
@@ -54,8 +53,6 @@ def main(argv: list[str] | None = None) -> int:
         evaluated += 1
     print(f"compositions resolved: {evaluated} of {len(overlays)}")
 
-    # Every reviewed policy must load, and a policy whose limit was never checked
-    # against behaviour must not be able to gate.
     policy_dir = REPO_ROOT / "profiles" / "policies"
     policies = sorted(policy_dir.glob("*.yaml"))
     if not policies:
@@ -75,8 +72,6 @@ def main(argv: list[str] | None = None) -> int:
               f"({policy.limit_basis}), deployable={policy.deployable}, "
               f"surfaces={policy.declared_surfaces or 'any'}")
 
-    # Non-degeneracy: score a real composition so the gate exercises the arithmetic
-    # rather than only loading files.
     codex = load_policy(policy_dir / "codex.yaml")
     members = resolve(("core", "engineering"), defs, catalog).members
     entries = []
@@ -97,7 +92,6 @@ def main(argv: list[str] | None = None) -> int:
     if scored.verdict is Verdict.UNSUPPORTED:
         failures.append(f"scoring a reviewed composition was unsupported: {scored.reason}")
 
-    # State the boundary rather than implying coverage.
     print("\nNOT checked here (requires a harness and session rollouts, which CI "
           "has neither of): effective-catalog observation, budget ceiling by "
           "saturation, degradation, and drift. Those are machine-side.")

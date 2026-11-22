@@ -40,31 +40,23 @@ import tempfile
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-# Bundle v2.1.220 constants.
 SKILL_LISTING_BUDGET_FRACTION = 0.01
 SKILL_LISTING_MAX_DESC_CHARS = 1536
 BYTES_PER_TOKEN = 4
 DEFAULT_CONTEXT_TOKENS = 200_000
 
 LISTING_OPENING = "The following skills are available for use with the Skill tool:"
-# dojo's own SessionStart hook injects a catalog under this heading. It is not
-# the harness listing and must never be parsed as one.
+# WHY: dojo's own SessionStart hook injects a catalog under this heading. It is
+# not the harness listing and must never be parsed as one.
 DECOY_OPENING = "## Available Skills"
 
 LOADED_RE = re.compile(r"Loaded (\d+) unique skills \((.*?)\)")
 SENDING_RE = re.compile(r"Sending (\d+) skills via attachment")
 BUDGET_RE = re.compile(r"Skill listing over budget: (\d+) skills, (\d+) chars > (\d+) budget")
 SOURCES_RE = re.compile(r"Loading skills from: (.*)")
-# ``- name`` or ``- name: description``. The name may itself contain colons —
-# plugin skills list as ``namespace:name`` (``workflows:brainstorm``,
-# ``supabase:supabase-postgres-best-practices``). The separator is a colon
-# **followed by a space**; a bare colon belongs to the name.
-#
-# An earlier version used ``[^:]+?`` for the name and silently dropped all six
-# namespaced entries in the live fixture — 75 listed, 69 parsed. That is the
-# same defect this module documents for the Codex parser, made a second time in
-# the same file. The test now asserts parsed count equals raw ``- `` line count,
-# so nothing can go missing quietly again.
+# WHY: a name may contain colons (plugin skills list as `namespace:name`), so
+# the separator is a colon followed by a space. A `[^:]+?` name once dropped
+# every namespaced entry in the live fixture.
 ENTRY_RE = re.compile(r"^- (?P<name>.+?)(?:: (?P<description>.*))?$")
 
 
@@ -81,7 +73,8 @@ def budget_chars(context_tokens: int = DEFAULT_CONTEXT_TOKENS, fraction: float =
 class Entry:
     name: str
     description: str | None
-    shape: str  # full | ellipsis_truncated | description_removed
+    #: ``full``, ``ellipsis_truncated``, or ``description_removed``.
+    shape: str
     origin: str = "unknown"
     scope: str = "unknown"
 
@@ -101,11 +94,9 @@ class DebugResult:
     budget_chars: int | None = None
     over_budget: bool = False
     sources: str | None = None
-    # The over-budget warning states its own skill count. It is kept separate
-    # from ``sent`` rather than overwriting it: letting it win makes the
-    # ``sent``-versus-``loaded`` distinction untestable on any over-budget
-    # capture, which is most of them. A disagreement between the two is a
-    # harness change worth reporting, not something to silently reconcile.
+    # WHY: kept separate from ``sent`` rather than overwriting it, so the
+    # ``sent``-versus-``loaded`` distinction stays testable on over-budget
+    # captures; a disagreement is a harness change worth reporting.
     warned_skills: int | None = None
     fingerprint: dict = field(default_factory=dict)
 
@@ -264,20 +255,12 @@ def classify(
         elif entry.name in project or entry.name in user:
             entry.origin = "foreign"
         else:
-            # Listed but present in no inspectable root. Claude Code's bundled
-            # skills ship inside the binary and have no directory to find, so
-            # they land here — but so would anything else this probe cannot see.
-            #
-            # Deliberately **not** labelled `harness-bundled`: that would assert
-            # a positive identification the evidence does not support. Probe A
-            # reports source *counts* (`managed`, `user`, `project`, bundled)
-            # without a per-name mapping, so reconciling this bucket against
-            # those counts is Task 4's job. Naming it honestly keeps the gap
-            # visible instead of burying it in a plausible label.
+            # WHY: not labelled `harness-bundled`. Bundled skills ship inside the binary
+            # and land here, but so would anything else this probe cannot see, and the
+            # source counts carry no per-name mapping to support a positive
+            # identification.
             entry.origin = "unresolved"
 
-        # Claude Code's project scope is `.claude/skills`; it shadows by name, so
-        # a name in both roots is one effective entry with project authoritative.
         entry.scope = "project" if entry.name in project else "user" if entry.name in user else "bundled"
     return result
 
@@ -336,10 +319,6 @@ def fingerprint(model: str = "haiku") -> dict:
     Claude Code's budget scales with the context window, so the same repository
     is conformant on a 1M-window model and non-conformant on a 200k one.
     """
-    # The binary is absent in CI, where only the fixture-driven tests run. A
-    # missing harness makes the version unknown, which is a legitimate
-    # fingerprint state — evidence produced under it is stale by construction,
-    # since `is_stale` compares field by field.
     try:
         version = subprocess.run(
             ["claude", "--version"], capture_output=True, text=True, check=False

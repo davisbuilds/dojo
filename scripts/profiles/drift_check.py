@@ -54,9 +54,8 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from profiles import rollout_codex as rc  # noqa: E402
 
-# Machine-local by default and deliberately outside the repository: a baseline
-# records absolute paths and installed membership for one machine, and this
-# repository is public.
+# WHY: outside the repository, because a baseline records absolute paths and
+# installed membership for one machine, and this repository is public.
 DEFAULT_BASELINE = Path.home() / ".agents" / ".dojo-profile-baseline.json"
 
 _SURFACE_ORDER = (rc.SURFACE_TUI, rc.SURFACE_DESKTOP)
@@ -78,15 +77,10 @@ def _surface_class(surface: str) -> str:
 EXIT_CLEAN = 0
 EXIT_CANNOT_EVALUATE = 1
 EXIT_DRIFT = 2
-# Persistent blindness is its own outcome, not drift. Reporting it as drift
-# would mislabel what moved — nothing moved; the instrument stopped working.
 EXIT_BLIND = 3
-# Neither is saturation. A listing that clips is degraded *now*, and it stays
-# degraded until someone acts; drift is a transition, and `--update` accepts it.
-# Reported as drift it would be announced once and then debounced into silence,
-# which is exactly what happened: on 2026-08-13 the mini was clipping 24 of 48
-# descriptions mid-word and this check reported `state: clean`, because nothing
-# had moved since the baseline. Nothing had. It was broken the whole time.
+# WHY: neither blindness nor saturation is drift. A clipping listing stays
+# degraded until someone acts, while `--update` accepts drift, so reporting
+# saturation as drift announces it once and then debounces it into silence.
 EXIT_SATURATED = 4
 
 
@@ -169,9 +163,9 @@ def load_store(path: Path) -> dict[str, Baseline]:
         return {}
     if not isinstance(raw, dict):
         return {}
-    # A pre-keying baseline is a bare Baseline object. It cannot be filed under a
-    # cwd it never recorded, so it is dropped rather than guessed at — one
-    # re-seeding cycle is cheap, a baseline attributed to the wrong project is not.
+    # WHY: a pre-keying baseline cannot be filed under a cwd it never recorded, so
+    # it is dropped rather than guessed at: one re-seeding cycle is cheap, a
+    # baseline attributed to the wrong project is not.
     if "harness_build" in raw:
         return {}
     return {cwd: Baseline(**data) for cwd, data in raw.items()}
@@ -201,8 +195,6 @@ def compare(previous: Baseline, current: Baseline) -> list[str]:
     findings: list[str] = []
 
     if previous.harness_build != current.harness_build:
-        # Separate the two, because they invalidate different things and a
-        # monitor a human reads should not call a model switch a build change.
         prev_cli, _, prev_model = previous.harness_build.partition("/")
         cur_cli, _, cur_model = current.harness_build.partition("/")
         if prev_cli != cur_cli:
@@ -239,9 +231,8 @@ def compare(previous: Baseline, current: Baseline) -> list[str]:
     elif previous.saturated and not current.saturated:
         findings.append("the listing no longer saturates; clipping has stopped.")
 
-    # Multiset subtraction, not set subtraction. Codex does not shadow across
-    # roots — it lists and charges every copy of a duplicated name — so losing
-    # one of two copies is a real change that leaves the two *sets* identical.
+    # WHY: multiset subtraction, not set subtraction. Codex lists and charges every
+    # copy of a duplicated name, so losing one of two copies leaves the sets equal.
     before, after = Counter(previous.entry_ids), Counter(current.entry_ids)
     gone = sorted((before - after).elements())
     arrived = sorted((after - before).elements())
@@ -251,14 +242,10 @@ def compare(previous: Baseline, current: Baseline) -> list[str]:
             + (f" | removed: {', '.join(gone[:6])}" if gone else "")
             + (f" | added: {', '.join(arrived[:6])}" if arrived else ""))
 
-    # Membership answers *what* is listed; only the total answers *how much the
-    # same listing now costs*. A vendor rewriting one description moves no
-    # identity and is invisible to every comparison above.
+    # WHY: membership answers what is listed; only the total shows a vendor
+    # rewriting a description, which moves no identity.
     demand_delta = current.charged_tokens - previous.charged_tokens
     if demand_delta and not _ceiling_explains(previous, current, demand_delta):
-        # Only attribute a cause when the evidence supports one. If membership
-        # moved, that line already explains this; claiming a vendor content
-        # rewrite on top of it would be a cause the observation does not show.
         cause = (" with membership unchanged — entry content is rendered by the "
                  "vendor and can change under a stable identity, so this is "
                  "headroom moving with nothing done locally"
@@ -270,9 +257,6 @@ def compare(previous: Baseline, current: Baseline) -> list[str]:
 
     ub, ua = set(previous.uncontrolled_ids), set(current.uncontrolled_ids)
     if ub != ua:
-        # Reported separately even when the entry-set line already covers it:
-        # this is demand the operator cannot govern from the repository, and it
-        # moves without any local action.
         findings.append(
             f"uncontrolled entries changed: -{len(ub - ua)} +{len(ua - ub)}. "
             "These are vendor and account-synced entries; a local disable of an "
@@ -335,8 +319,7 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
         as_json: bool = False, max_blind_days: int | None = None,
         uncontrolled_as_notice: bool = False,
         surfaces: tuple[str, ...] = (rc.SURFACE_TUI,)) -> int:
-    # Only surfaces whose listing is the machine's listing may be selected.
-    # `codex exec` does not load account-synced connectors, so a baseline taken
+    # WHY: `codex exec` does not load account-synced connectors, so a baseline taken
     # from it would report phantom removals; refuse it rather than trust callers.
     unsupported = sorted(set(surfaces) - rc.INTERACTIVE_SURFACES)
     if unsupported or not surfaces:
@@ -349,12 +332,9 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
     observations = rc.observations(
         cwd=cwd, surface=surfaces, errors=errors, limit=1)
 
-    # Every path that cannot establish a *fresh, well-classified* observation
-    # runs through one gate. The first version of this threshold guarded only
-    # the no-rollout branch, which left two doors open: a degraded classifier
-    # returned before reaching it, and a machine that simply stopped being used
-    # kept re-reading the same historical rollout, comparing clean forever.
-    # Being able to read an old session is not the same as watching a machine.
+    # WHY: every path that cannot establish a fresh, well-classified observation
+    # runs through this one gate. Guarding only the no-rollout branch let a degraded
+    # classifier and an idle machine re-reading an old rollout compare clean forever.
     def blind_or(state: str, findings: list[str], code: int) -> int:
         blind_days = _days_blind(load_baseline(baseline_path, cwd))
         if max_blind_days is not None and (
@@ -393,12 +373,9 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
     age = _observation_age_days(current_obs)
     stale = (max_blind_days is not None and age is not None and age > max_blind_days)
 
-    # Drift and saturation are different kinds of claim, which is what settles
-    # their precedence against a stale sample. Drift is *historical* — sample A
-    # differs from sample B — and stays true however old both are. Saturation is
-    # *present tense*: this machine is clipping now. A sample too old to be
-    # evidence of the present cannot support it, so staleness suppresses it
-    # rather than being outranked by it.
+    # WHY: drift is historical and stays true however old both samples are, while
+    # saturation claims the machine is clipping now, so a stale sample suppresses
+    # saturation instead of being outranked by it.
     saturation = [] if stale else _saturation_findings(current_obs, current)
 
     def outcome(state: str, findings: list[str], code: int) -> int:
@@ -422,8 +399,6 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
         if update:
             store[observed_cwd] = current
             _write(baseline_path, store)
-            # Recording settles what to compare against next time. It is not a
-            # judgement that the sample is healthy, and must not read as one.
             return outcome("baseline-recorded", [f"for {observed_cwd}"], EXIT_CLEAN)
         return outcome("cannot-evaluate",
                        [f"no baseline for {observed_cwd} at {baseline_path}; "
@@ -436,9 +411,8 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
         and _only_uncontrolled_membership_changed(previous, current)
     )
 
-    # Actionable drift still outranks staleness, but a notice is explicitly the
-    # non-actionable branch. It cannot make an old sample current or healthy,
-    # and --update must not accept that stale sample into the baseline.
+    # WHY: a notice cannot make an old sample current or healthy, so --update must
+    # not accept a stale sample into the baseline.
     if stale and (not findings or notice_eligible):
         relation = (
             "It differs only in uncontrolled membership"

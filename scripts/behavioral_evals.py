@@ -87,7 +87,8 @@ def build_prompt(catalog: list[dict], request: str) -> str:
 def parse_response(text: str, valid_names: list[str]) -> str | None:
     """Extract the chosen skill name from a model reply, tolerant of extra prose."""
     lowered = text.lower()
-    # Prefer the longest matching name to avoid substring collisions.
+    # WHY: prefer the longest matching name, because a shorter name can match inside
+    # a longer hyphenated one.
     matches = [n for n in valid_names if re.search(rf"\b{re.escape(n.lower())}\b", lowered)]
     if not matches:
         return None

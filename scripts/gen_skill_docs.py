@@ -34,10 +34,6 @@ from pathlib import Path
 
 FRAGMENTS_DIRNAME = "_fragments"
 
-# Matches an INCLUDE directive and, optionally, the generated block it owns
-# (up to the matching closing marker with the same fragment name). A name may
-# be a bare fragment (skills/_fragments/<name>.md) or a namespaced rule
-# (rules/<name> -> rules/<name>.md).
 INCLUDE_RE = re.compile(
     r"<!-- INCLUDE: (?P<name>(?:rules/)?[a-z0-9][a-z0-9-]*) -->"
     r"(?:.*?<!-- /INCLUDE: (?P=name) -->)?",
@@ -109,7 +105,7 @@ def main() -> int:
     for skill_md in iter_skill_mds(skills_root):
         original = skill_md.read_text(encoding="utf-8")
         if not has_directive(original):
-            continue  # not opted in: never touch
+            continue
         try:
             expanded = expand(original, skills_root, repo_root)
         except FileNotFoundError as exc:

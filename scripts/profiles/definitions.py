@@ -41,22 +41,17 @@ from pathlib import Path
 
 import yaml
 
-# SC-02 fixes the public vocabulary. It is a contract term, so an unrecognised
-# profile file is rejected rather than loaded: a stray copy, a rename, or a
-# per-project fork (excluded by the spec's Assumptions) would otherwise enter the
-# vocabulary by being dropped in a directory.
+# WHY: SC-02 fixes the public vocabulary, so an unrecognised profile file is
+# rejected rather than loaded; otherwise a stray copy, a rename, or a
+# per-project fork would enter the vocabulary by being dropped in a directory.
 BASELINE = "core"
 INSPECTION = "full"
 OVERLAYS = ("design", "engineering", "knowledge", "research", "skill-authoring")
 VOCABULARY = frozenset({BASELINE, INSPECTION, *OVERLAYS})
 
-# name -> kind. A file naming itself `core` with `kind: overlay` is a definition
-# error and not a synonym; kind drives resolution rules in Task 2.
 KIND_BY_NAME = {BASELINE: "baseline", INSPECTION: "inspection", **{o: "overlay" for o in OVERLAYS}}
 KINDS = frozenset(KIND_BY_NAME.values())
 
-# SC-02's required anchors, verbatim. Anchors constrain the *definition*; a
-# realization may still suppress one on a harness that ships its own equivalent.
 ANCHORS = {
     "design": ("design-critique", "frontend-design"),
     "engineering": ("create-cli", "secure-code"),
@@ -65,14 +60,10 @@ ANCHORS = {
     "skill-authoring": ("skill-creator", "skill-standardizer"),
 }
 
-# SC-03 fixes `core`'s membership as tightly as SC-02 fixes the anchors, and it
-# matters more: `core` is mandatory in every deployable composition, so a
-# silently narrowed baseline ships a target missing the delivery safeguards the
-# contract promises. Enforced here rather than only in a repo test, because the
-# repo test protects this checkout while `load_definitions` is what a runtime
-# consumer calls against whatever `core.yaml` is on disk.
-#
-# Changing this set is a contract revision, not an edit to `core.yaml`.
+# WHY: enforced here rather than only in a repo test, because the repo test
+# protects this checkout while a runtime consumer calls `load_definitions`
+# against whatever `core.yaml` is on disk. Changing this set is a contract
+# revision, not an edit to `core.yaml`.
 CORE_MEMBERS = (
     "brainstorming",
     "diagnose",
@@ -90,10 +81,6 @@ REQUIRED_PROFILE_KEYS = ("name", "kind", "description", "members")
 EQUIVALENCE_FILENAME = "harness-equivalences.yaml"
 REQUIRED_EQUIVALENCE_KEYS = ("skill", "harness", "bundled_entry", "evidence")
 
-# The harnesses a realization can be produced for. Used only to reject an unknown
-# harness and to catch a member declared equivalent *everywhere*, which resolves
-# to an empty realization and is a definition error rather than a resolution
-# (spec Evaluation, EV-NEG-06).
 SUPPORTED_HARNESSES = ("claude-code", "codex")
 
 
@@ -209,9 +196,8 @@ def _parse_profile(path: Path) -> Profile:
             "and a definition that does not say why it exists cannot be challenged"
         )
 
-    # The sentinel is the inspection profile's whole point and nothing else's.
-    # An overlay carrying `"*"` would resolve to the entire catalog while looking
-    # like a small overlay in review — the widening this contract exists to stop.
+    # WHY: an overlay carrying `"*"` would resolve to the entire catalog while
+    # looking like a small overlay in review.
     if raw_members == SENTINEL:
         if name != INSPECTION:
             raise ProfileDefinitionError(
@@ -310,8 +296,8 @@ def _validate_membership(profile: Profile, core: Profile, catalog: dict[str, dic
     if profile.kind != "overlay":
         return
 
-    # Order matters — see the module docstring. Every anchor is non-`core`, so
-    # running the anchor check first would make this one unreachable.
+    # WHY: every anchor is non-`core`, so running the anchor check first would make
+    # this one unreachable.
     non_core = sorted(set(profile.members) - set(core.members))
     if len(non_core) < MIN_NON_CORE_MEMBERS:
         raise ProfileDefinitionError(

@@ -76,8 +76,8 @@ def add(result, name, status, scope, source, details):
 def content_hash(path):
     standardizer = load('skills/skill-standardizer/scripts/skill_standardizer_lib.py')
     backup = load('skills/skill-standardizer/scripts/backup_policy.py')
-    # Installation links identify a bundle; compare its contents, not the link text.
-    # Links inside the bundle retain the standardizer's structural semantics.
+    # WHY: installation links identify a bundle, so compare its contents, not the
+    # link text.
     return backup.fingerprint(backup.snapshot(path.resolve(strict=True), ignore=standardizer._copy_ignore))
 
 
@@ -171,7 +171,6 @@ def inspect(args, repo, target, result):
     codex_home = Path(os.environ.get('CODEX_HOME', Path.home() / '.codex')).expanduser()
     candidates = [target, codex_home / 'skills/.system' / target.name]
     candidates.extend(p / target.name for p in standardizer.global_roots().values())
-    # Candidate locations are filesystem inventory, not claims about harness loading.
     candidates.extend(p / folder / 'skills' / target.name
                       for p in [cwd, *cwd.parents] for folder in ('.agents', '.codex'))
     copies = []
