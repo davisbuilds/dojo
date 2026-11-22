@@ -13,8 +13,8 @@ dependencies = [
 dev = ["pytest>=9.2.0,<10"]
 
 [tool.uv]
-# Supply-chain quarantine: ignore distributions uploaded in the last 7 days.
-# For an urgent fix, override one package with exclude-newer-package.
+# WHY: supply-chain quarantine. For an urgent fix, override one package with
+# exclude-newer-package instead of lowering this.
 exclude-newer = "7 days"
 package = false
 

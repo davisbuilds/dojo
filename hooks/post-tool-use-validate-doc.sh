@@ -1,16 +1,5 @@
 #!/bin/bash
 
-# Shared body of the spec and plan PostToolUse hooks.
-# Usage: post-tool-use-validate-doc.sh spec|plan   (hook JSON on stdin)
-#
-# Validates docs/specs/*-spec.md or docs/plans/*-plan.md in the current
-# checkout after a write/edit. Harnesses send absolute paths, so the edited
-# file is resolved and matched relative to the repository root.
-#
-# Exit codes:
-#   0 = pass / not applicable
-#   2 = validation failed
-
 kind="$1"
 case "$kind" in
   spec|plan) ;;
@@ -30,7 +19,7 @@ if [[ -z "$REPO_ROOT" ]]; then
 fi
 REPO_ROOT="$(cd -- "$REPO_ROOT" && pwd -P)"
 
-# Compare physical paths so a symlinked checkout or /tmp alias still matches.
+# WHY: compare physical paths so a symlinked checkout or /tmp alias still matches.
 file_dir="$(cd -- "$(dirname -- "$file_path")" 2>/dev/null && pwd -P)" || exit 0
 relative="$file_dir/$(basename -- "$file_path")"
 relative="${relative#"$REPO_ROOT"/}"

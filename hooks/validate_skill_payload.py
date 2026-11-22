@@ -39,7 +39,7 @@ def _load_validator():
     sys.path.insert(0, str(REPO_ROOT / "skills" / "skill-creator" / "scripts"))
     try:
         from quick_validate import validate_skill
-    except Exception:  # missing dependency, broken import — degrade to allow
+    except Exception:
         return None
     return validate_skill
 
@@ -49,11 +49,11 @@ def project_content(tool_input: dict, target: Path) -> str | None:
 
     None means "cannot project" — allow the call through.
     """
-    if "content" in tool_input:  # Write
+    if "content" in tool_input:
         content = tool_input.get("content")
         return content if isinstance(content, str) else None
 
-    if "old_string" in tool_input:  # Edit
+    if "old_string" in tool_input:
         old = tool_input.get("old_string")
         new = tool_input.get("new_string")
         if not isinstance(old, str) or not isinstance(new, str) or not target.is_file():
@@ -84,11 +84,8 @@ def main() -> int:
 
     validate_skill = _load_validator()
     if validate_skill is None:
-        # Dependency unavailable — allow the edit rather than block it. The Stop
-        # hook's skill-structure check and CI remain the backstops.
         return 0
 
-    # Validate a throwaway copy so the real file is untouched on failure.
     tmp_root = Path(tempfile.mkdtemp())
     try:
         skill_dir = tmp_root / file_path.parent.name

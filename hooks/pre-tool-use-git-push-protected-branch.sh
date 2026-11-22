@@ -1,18 +1,8 @@
 #!/bin/bash
 
-# PreToolUse hook: block `git push` to a protected branch unless the command
-# carries an explicit override token (DOJO_ALLOW_PROTECTED_PUSH=1). Kept
-# separate from the stop hook so protected branches can hold local commits
-# without forcing a push.
-#
-# Detection is scoped to the actual push invocation. The command is split on
-# shell control operators into segments, and a segment is only treated as a
-# push when its git *subcommand* is `push`; branch targeting is then evaluated
-# against that push's own arguments. This avoids false positives from the word
-# "push" or a branch name appearing inside commit messages or unrelated
-# commands -- e.g. `git commit -m "...not push"` or `git log main..feature`.
-#
-# Written for bash 3.2 (macOS /bin/bash): no mapfile, no `\n` in sed.
+# WHY: kept separate from the stop hook so protected branches can hold local
+# commits without forcing a push. Written for bash 3.2 (macOS /bin/bash): no
+# mapfile, no `\n` in sed.
 
 input=$(cat)
 
@@ -37,9 +27,6 @@ resolve_protected_branches() {
   printf '%s\n' "$configured" | tr ' ' '\n' | awk 'NF' | sort -u
 }
 
-# If a segment is a `git push` invocation, print its push arguments and return
-# 0; otherwise return 1. Skips git global options (including the ones that
-# consume the following token, e.g. `-C <dir>`) so the subcommand is found.
 extract_push_args() {
   local segment="$1"
   local -a tokens
@@ -78,9 +65,6 @@ extract_push_args() {
 
 command_has_override && exit 0
 
-# Split into one segment per command. tr maps each control operator to a
-# newline (`||`/`&&` become two newlines -> a harmless empty segment). Parens
-# are included, which also isolates $(...) command-substitution bodies.
 segments_raw=$(printf '%s' "$command" | tr ';|&()' '\n\n\n\n\n')
 
 current_branch=$(git branch --show-current 2>/dev/null)
@@ -88,7 +72,6 @@ protected_list=$(resolve_protected_branches)
 
 while IFS= read -r segment; do
   push_args=$(extract_push_args "$segment") || continue
-  # This segment is a real `git push`. Evaluate only its arguments.
 
   positionals=""
   pushes_all=0
@@ -103,7 +86,6 @@ while IFS= read -r segment; do
     esac
   done
 
-  # First positional is the remote; any later positionals are refspecs.
   set -- $positionals
   has_refspec=0
   [[ $# -gt 1 ]] && has_refspec=1
@@ -115,18 +97,16 @@ while IFS= read -r segment; do
     idx=0
     for p in $positionals; do
       idx=$((idx + 1))
-      [[ "$idx" -eq 1 ]] && continue   # skip the remote
-      p="${p#+}"                       # a leading + only marks a forced update
-      dst="${p##*:}"                   # refspec destination (right of last colon)
+      [[ "$idx" -eq 1 ]] && continue
+      p="${p#+}"
+      dst="${p##*:}"
       dst="${dst#refs/heads/}"
-      # A bare HEAD or @ pushes the current branch to its own name.
       if [[ "$dst" == "HEAD" || "$dst" == "@" ]]; then dst="$current_branch"; fi
       [[ "$dst" == "$branch" ]] && targeted=1
     done
 
     [[ "$pushes_all" == "1" ]] && targeted=1
 
-    # No explicit refspec -> push sends the current branch.
     if [[ "$has_refspec" == "0" && "$current_branch" == "$branch" ]]; then
       targeted=1
     fi

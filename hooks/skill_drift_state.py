@@ -96,7 +96,6 @@ def main(argv: list[str] | None = None) -> int:
     try:
         report = json.loads(raw)
     except ValueError:
-        # A malformed/empty report is not worth failing a session over.
         return 0
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")

@@ -1,4 +1,3 @@
-# Reviewed data. Changing `members` changes profile identity — see profiles/README.md.
 name: research
 kind: overlay
 description: >-
