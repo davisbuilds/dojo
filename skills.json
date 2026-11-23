@@ -206,7 +206,7 @@
       "name": "skill-installer",
       "description": "Install skills into Codex or Claude Code skills directories from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos).",
       "path": "skills/skill-installer",
-      "version": "2.0.0"
+      "version": "2.0.1"
     },
     {
       "name": "skill-standardizer",

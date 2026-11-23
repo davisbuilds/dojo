@@ -5,7 +5,7 @@ skill-type: workflow
 compatibility: "Requires Python 3.11+ (standard library only), network access to GitHub, and git for the fallback path."
 metadata:
   short-description: Install curated skills from openai/skills or other repos
-version: 2.0.0
+version: 2.0.1
 ---
 
 # Skill Installer

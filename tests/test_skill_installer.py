@@ -164,8 +164,6 @@ def test_symlinked_skill_path_is_rejected_with_the_real_error(sandbox):
 
     result = _install(sandbox, "--dest", str(dest), "--path", "skills/alias")
 
-    # Git's sparse checkout refuses the non-directory path before validation;
-    # the SSH retry must surface that error, not its own leftover-directory one.
     assert result.returncode == 1
     assert "skills/alias" in result.stderr
     assert "already exists" not in result.stderr
@@ -185,9 +183,6 @@ def test_symlink_within_skill_to_a_file_is_copied(sandbox):
 
     assert result.returncode == 0, result.stderr
     assert (dest / "linked" / "alias.md").read_text(encoding="utf-8") == "content"
-
-
-# --- list-skills -----------------------------------------------------------
 
 
 def _load_lister():
