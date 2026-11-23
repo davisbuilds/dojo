@@ -40,6 +40,7 @@
     "skills/theme-factory/scripts/generate_css.py": 2,
     "skills/write-plan/scripts/validate_plan.py": 29,
     "skills/write-spec/scripts/validate_spec.py": 15,
-    "tests/test_evidence_filter.py": 4
+    "tests/test_evidence_filter.py": 4,
+    "tests/test_profiles_budget.py": 1
   }
 }
