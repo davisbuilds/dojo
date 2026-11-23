@@ -54,7 +54,7 @@ KINDS = frozenset(KIND_BY_NAME.values())
 
 ANCHORS = {
     "design": ("design-critique", "frontend-design"),
-    "engineering": ("create-cli", "secure-code"),
+    "engineering": ("cli-design", "secure-code"),
     "knowledge": ("obsidian", "session-retro"),
     "research": ("deep-research", "research-architect"),
     "skill-authoring": ("skill-creator", "skill-standardizer"),

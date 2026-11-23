@@ -1,5 +1,5 @@
 # AUTO-GENERATED from SKILL.md frontmatter — do not edit
 interface:
-  display_name: "Create Cli"
+  display_name: "Cli Design"
   short_description: "Design command-line interface parameters and UX: arguments"
-  default_prompt: "Use $create-cli for this task."
+  default_prompt: "Use $cli-design for this task."

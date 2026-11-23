@@ -1,3 +1,7 @@
+## 3.0.1 - 2026-11-23
+
+- Point CLI interface design tasks to the renamed cli-design skill.
+
 ## 3.0.0 - 2026-09-17
 
 - Default to conversational synthesis; make design artifacts and handoffs conditional and preserve existing implementation authority.

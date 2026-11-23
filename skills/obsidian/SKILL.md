@@ -3,7 +3,7 @@ name: obsidian
 description: Work in an Obsidian vault — notes with wikilinks, properties, tags, callouts, and embeds; Bases (.base); Canvas (.canvas); and the Obsidian CLI for answers only the running app has. Use when creating, editing, or checking vault files, or when the user mentions Obsidian, wikilinks, Bases, canvases, or the obsidian CLI.
 skill-type: reference
 license: Third-party terms in LICENSE.txt
-version: 1.0.1
+version: 1.0.2
 ---
 
 # Obsidian

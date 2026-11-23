@@ -89,7 +89,7 @@ def test_composition_is_set_union_and_collapses_overlap(defs, catalog):
     shared = "verify-before-complete"
     a = definitions.Profile(
         name="engineering", kind="overlay", description="x",
-        members=("create-cli", "secure-code", shared), source=Path("a.yaml"), is_sentinel=False,
+        members=("cli-design", "secure-code", shared), source=Path("a.yaml"), is_sentinel=False,
     )
     b = definitions.Profile(
         name="research", kind="overlay", description="x",
@@ -98,7 +98,7 @@ def test_composition_is_set_union_and_collapses_overlap(defs, catalog):
     patched = {**defs, "engineering": a, "research": b}
     result = resolve(("core", "engineering", "research"), patched, catalog)
     assert result.members.count(shared) == 1
-    assert {"create-cli", "deep-research"} <= set(result.members)
+    assert {"cli-design", "deep-research"} <= set(result.members)
 
 
 def test_full_tracks_the_catalog_rather_than_a_list(defs, catalog):

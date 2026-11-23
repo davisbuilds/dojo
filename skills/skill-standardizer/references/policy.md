@@ -87,6 +87,7 @@ content hashes: drift issues, planned actions, and exit codes are unchanged. The
 - `obsidian-bases` -> `obsidian`
 - `obsidian-canvas` -> `obsidian`
 - `imagegen` -> `gpt-imagen`
+- `create-cli` -> `cli-design`
 
 Treat the canonical replacement as the source of truth for future audits and sync operations.
 

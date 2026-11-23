@@ -23,7 +23,7 @@
       "id": "cli-backlinks",
       "type": "implicit",
       "prompt": "Use the obsidian CLI to list unresolved links and backlinks for this note.",
-      "expected": {"trigger": ["obsidian"], "avoid": ["create-cli"]}
+      "expected": {"trigger": ["obsidian"], "avoid": ["cli-design"]}
     },
     {
       "id": "plain-readme",

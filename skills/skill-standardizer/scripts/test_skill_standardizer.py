@@ -351,18 +351,30 @@ def check_obsidian_consolidation(selection: set[str], linked_secondaries: bool =
 
 
 def test_agent_native_rename_migrates_existing_installations() -> None:
-    for selection in [set(), {"agent-native-architecture"}, {"agent-native-design"}]:
+    check_skill_rename("agent-native-architecture", "agent-native-design", linked_secondaries=False)
+
+
+def test_cli_design_rename_migrates_existing_installations() -> None:
+    check_skill_rename("create-cli", "cli-design", linked_secondaries=True)
+
+
+def check_skill_rename(old_name: str, new_name: str, *, linked_secondaries: bool) -> None:
+    for selection in [set(), {old_name}, {new_name}]:
         with isolated_tempdir() as td:
             base = Path(td)
             repo = base / "repo"
             canonical = repo / "skills"
-            source = write_skill(canonical, "agent-native-design")
+            source = write_skill(canonical, new_name)
             write_skill(canonical, "unrelated")
             roots = [base / name / "skills" for name in [".agents", ".codex", ".claude"]]
             for env_name, root in zip(HOME_ENV_NAMES, roots):
                 os.environ[env_name] = str(root.parent)
-                old = write_skill(root, "agent-native-architecture")
-                (old / "local-note.md").write_text("preserve this old installation")
+                if linked_secondaries and root != roots[0]:
+                    root.mkdir(parents=True)
+                    (root / old_name).symlink_to(roots[0] / old_name, target_is_directory=True)
+                else:
+                    old = write_skill(root, old_name)
+                    (old / "local-note.md").write_text("preserve this old installation")
             os.chdir(repo)
 
             def audit():
@@ -378,21 +390,30 @@ def test_agent_native_rename_migrates_existing_installations() -> None:
             report = audit()
             replacements = [a for a in report["actions"] if a["action"] == "replace_deprecated_skill"]
             assert_true(len(replacements) == 3, f"old installs must migrate for selection {selection}: {report}")
+            deprecated_issues = [issue for issue in report["issues"] if issue["code"] == "DEPRECATED_SKILL_NAME"]
+            assert_true(len(deprecated_issues) == 3, f"audit must report each deprecated install: {report}")
             backup_root = base / "backups"
             result = apply_actions(report, apply=True, backup_root=str(backup_root))
             assert_true(not result["errors"], f"migration failed: {result}")
             for root in roots:
-                assert_true(not (root / "agent-native-architecture").exists(), "old name survived migration")
-                assert_true((root / "agent-native-design" / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "replacement differs from canonical")
+                assert_true(not os.path.lexists(root / old_name), "old name survived migration")
+                assert_true((root / new_name / "SKILL.md").read_bytes() == (source / "SKILL.md").read_bytes(), "replacement differs from canonical")
                 assert_true(not (root / "unrelated").exists(), "migration installed an unrelated skill")
             saved_notes = list(backup_root.rglob("local-note.md"))
-            assert_true(len(saved_notes) == 3, "old installations were not backed up")
+            expected_saved_notes = 1 if linked_secondaries else len(roots)
+            assert_true(len(saved_notes) == expected_saved_notes, "old installations were not backed up")
             assert_true(all(p.read_text() == "preserve this old installation" for p in saved_notes), "backup content changed")
             # Existing-name migration may first create independent copies;
             # the ordinary follow-up sync must normalize them and converge.
             followup = apply_actions(audit(), apply=True, backup_root=str(backup_root))
             assert_true(not followup["errors"], f"normalization failed: {followup}")
             assert_true(not audit()["actions"], "migration did not converge")
+            primary = roots[0] / new_name
+            assert_true(not primary.is_symlink(), "primary installation should be a concrete copy")
+            for root in roots[1:]:
+                installed = root / new_name
+                assert_true(installed.is_symlink() and installed.resolve() == primary.resolve(),
+                            f"secondary installation must link to primary: {installed}")
 
 
 def test_deprecated_replacement_uses_real_source() -> None:
@@ -1615,6 +1636,7 @@ TESTS = (
     test_review_lenses_consolidate_into_existing_local_review,
     test_obsidian_format_skills_consolidate_into_obsidian,
     test_agent_native_rename_migrates_existing_installations,
+    test_cli_design_rename_migrates_existing_installations,
     test_invalid_entries_do_not_emit_missing_actions,
     test_underscore_dirs_are_not_invalid_in_full_scan,
     test_known_non_skill_dir_ignored_in_owning_root,

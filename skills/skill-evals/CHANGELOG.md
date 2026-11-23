@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.2 - 2026-11-23
+
+- Use cli-design in routing examples that exclude the CLI design skill.
+
 ## 2.1.1 - 2026-10-23
 
 - Keep sample routing exclusions grounded in the current catalog after Vercel retirement.

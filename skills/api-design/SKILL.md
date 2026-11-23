@@ -2,7 +2,7 @@
 name: api-design
 description: Design and review robust API and interface contracts. Use when creating or changing HTTP endpoints, GraphQL/RPC-style APIs, webhooks, SSE/event streams, exported DTOs/types, service-layer boundaries, CLI JSON/stdout/exit-code contracts, versioning/deprecation plans, or any compatibility-sensitive boundary between consumers and providers.
 skill-type: workflow
-version: 2.0.0
+version: 2.0.1
 ---
 
 # API Design
@@ -98,7 +98,7 @@ a design or review alone does not establish that the code works.
 
 Consult only the concern that needs help:
 
-- `create-cli` — CLI syntax and human/script UX.
+- `cli-design` — CLI syntax and human/script UX.
 - `secure-code` — a concrete security question or requested security scan.
 - `test-strategy` — unresolved test coverage or dependency choices.
 - `write-spec` — an unresolved target or requested durable contract.

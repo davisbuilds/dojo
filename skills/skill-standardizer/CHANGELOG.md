@@ -1,3 +1,7 @@
+## 2.1.1 - 2026-11-23
+
+- Migrate existing create-cli installs to cli-design with the standard backup and link policies.
+
 ## 2.1.0 - 2026-10-21
 
 - Report each installed copy's version against its source (`behind`, `ahead`, `equal`, `divergent`, or `unknown`) in audit and sync reports. Missing or invalid versions stay `unknown`, and an equal version with different content is `divergent`. Planning and exit codes are unchanged.

@@ -24,7 +24,7 @@ through real authoring and discovery work before expanding its command surface.
 
 Make existing capabilities easier to try on real work. Lead consumer examples
 with `skill-standardizer` for executable drift auditing and recoverable sync,
-`create-cli` for specialist interface conventions, and `test-strategy` for
+`cli-design` for specialist interface conventions, and `test-strategy` for
 portable testing preferences and meaningful regression coverage. Each example
 should name a concrete task and a result the user can inspect. These are useful
 starting points, not a required installation set or claims of measured benefit.
