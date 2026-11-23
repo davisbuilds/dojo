@@ -11,7 +11,7 @@
       "name": "api-design",
       "description": "Design and review robust API and interface contracts. Use when creating or changing HTTP endpoints, GraphQL/RPC-style APIs, webhooks, SSE/event streams, exported DTOs/types, service-layer boundaries, CLI JSON/stdout/exit-code contracts, versioning/deprecation plans, or any compatibility-sensitive boundary between consumers and providers.",
       "path": "skills/api-design",
-      "version": "2.0.0"
+      "version": "2.0.1"
     },
     {
       "name": "audit-skill",
@@ -36,7 +36,7 @@
       "name": "brainstorming",
       "description": "Clarify what to build from a vague idea or feature request. Use when requirements are unclear, multiple directions need exploration, or material trade-offs need discussion before planning. Reuse settled direction; save a design summary only when requested or useful for downstream work.",
       "path": "skills/brainstorming",
-      "version": "3.0.0"
+      "version": "3.0.1"
     },
     {
       "name": "caveman",
@@ -46,10 +46,10 @@
       "license": "Third-party terms in LICENSE.txt"
     },
     {
-      "name": "create-cli",
+      "name": "cli-design",
       "description": "Design command-line interface parameters and UX: arguments, flags, subcommands, help text, output formats, error messages, exit codes, prompts, config/env precedence, and safe/dry-run behavior. Use when designing a CLI, refactoring its interface, or resolving a specific CLI UX decision during implementation. Reuse settled conventions without requiring a separate design document.\n",
-      "path": "skills/create-cli",
-      "version": "2.2.0",
+      "path": "skills/cli-design",
+      "version": "3.0.0",
       "license": "Third-party terms in LICENSE.txt"
     },
     {
@@ -142,7 +142,7 @@
       "name": "obsidian",
       "description": "Work in an Obsidian vault \u2014 notes with wikilinks, properties, tags, callouts, and embeds; Bases (.base); Canvas (.canvas); and the Obsidian CLI for answers only the running app has. Use when creating, editing, or checking vault files, or when the user mentions Obsidian, wikilinks, Bases, canvases, or the obsidian CLI.",
       "path": "skills/obsidian",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "license": "Third-party terms in LICENSE.txt"
     },
     {
@@ -200,7 +200,7 @@
       "name": "skill-evals",
       "description": "Check skill packaging, release versions, and lexical routing fixtures, and choose evidence appropriate to a skill-quality claim. Use when validating a skill edit, investigating trigger collisions, or assessing what an evaluation establishes.",
       "path": "skills/skill-evals",
-      "version": "2.1.1"
+      "version": "2.1.2"
     },
     {
       "name": "skill-installer",
@@ -212,7 +212,7 @@
       "name": "skill-standardizer",
       "description": "Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.",
       "path": "skills/skill-standardizer",
-      "version": "2.1.0"
+      "version": "2.1.1"
     },
     {
       "name": "template",

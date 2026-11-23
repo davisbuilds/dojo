@@ -6,7 +6,7 @@
       "prompt": "Look up recent primary sources and synthesize with citations.",
       "expected": {
         "trigger": ["deep-research"],
-        "avoid": ["gpt-imagen", "create-cli"]
+        "avoid": ["gpt-imagen", "cli-design"]
       }
     },
     {
@@ -33,7 +33,7 @@
       "prompt": "Thanks, that worked.",
       "expected": {
         "trigger": [],
-        "avoid": ["deep-research", "secure-code", "gpt-imagen", "create-cli"]
+        "avoid": ["deep-research", "secure-code", "gpt-imagen", "cli-design"]
       }
     }
   ]

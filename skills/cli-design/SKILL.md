@@ -1,5 +1,5 @@
 ---
-name: create-cli
+name: cli-design
 description: >
   Design command-line interface parameters and UX: arguments, flags, subcommands,
   help text, output formats, error messages, exit codes, prompts, config/env
@@ -8,10 +8,10 @@ description: >
   Reuse settled conventions without requiring a separate design document.
 skill-type: workflow
 license: Third-party terms in LICENSE.txt
-version: 2.2.0
+version: 3.0.0
 ---
 
-# Create CLI
+# CLI Design
 
 Design command-line syntax and behavior for its human, script, and agent consumers.
 Use the relevant conventions during authorized implementation as well as when

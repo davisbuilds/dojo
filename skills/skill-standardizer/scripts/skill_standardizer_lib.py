@@ -38,6 +38,7 @@ DEPRECATED_SKILL_REPLACEMENTS = {
     "obsidian-bases": "obsidian",
     "obsidian-canvas": "obsidian",
     "imagegen": "gpt-imagen",
+    "create-cli": "cli-design",
 }
 # Same grammar and precedence as skills/skill-evals/scripts/check_skill_versions.py.
 # Duplicated because this skill installs on its own and runs stdlib-only.

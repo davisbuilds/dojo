@@ -37,6 +37,25 @@ For uninstalling a manually installed skill, remove only its directory at the
 reported destination, then start a fresh session. If another tool manages that
 copy, use that tool's update/removal procedure.
 
+### Migrating from `create-cli` to `cli-design`
+
+Use `$cli-design` in saved prompts and `skills/cli-design` in install paths.
+For installations managed by the standardizer, preview the migration from the
+updated Dojo checkout:
+
+```bash
+python3 skills/skill-standardizer/scripts/sync.py --only-existing --skill cli-design
+```
+
+Review the targets, then repeat with `--apply` and re-run the preview. If it
+shows links to normalize, apply that plan and verify the next preview has no
+actions. If you also have `api-design` or `brainstorming` installed, include
+them with repeated `--skill` flags to refresh their pointers to `cli-design`.
+For a manual installation, install the new bundle alongside the old
+one, preserve local edits, and remove the old copy once the new one works.
+Check discovery in a fresh session. The `engineering` profile selects the new
+name automatically.
+
 ### Skill troubleshooting
 
 | Symptom | What to check |

@@ -2,7 +2,7 @@
 name: skill-standardizer
 description: Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.
 skill-type: workflow
-version: 2.1.0
+version: 2.1.1
 ---
 
 # Skill Standardizer
@@ -72,11 +72,16 @@ Current built-in mapping:
 - `obsidian-bases` -> `obsidian`
 - `obsidian-canvas` -> `obsidian`
 - `imagegen` -> `gpt-imagen`
+- `create-cli` -> `cli-design`
 
 When a deprecated skill name is found:
 - audit should report it explicitly instead of treating it as an unrelated extra directory
 - sync should back up the deprecated copy, install the canonical replacement in the same root, and remove the old name
 - secondary globals and local duplicates should still follow the normal link/copy policy for the replacement skill
+
+Re-audit after applying a rename. If the primary replacement was absent at
+planning time, the first sync can install concrete secondary copies. Apply the
+remaining relink actions and audit again to confirm the final topology.
 
 ## Scripts
 

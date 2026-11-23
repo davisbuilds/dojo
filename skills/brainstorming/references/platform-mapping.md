@@ -16,7 +16,7 @@ material unresolved decision requires one:
 
 - Contract definition: `write-spec` or `/workflows:spec` when available.
 - Execution dependencies or rollout: `write-plan` or `/workflows:plan`.
-- CLI interface decision: `create-cli`.
+- CLI interface decision: `cli-design`.
 - Architectural trade-off: `first-principles`.
 
 Use a manual fallback if a needed skill is unavailable. Do not create a spec or

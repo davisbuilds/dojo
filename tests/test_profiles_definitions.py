@@ -64,7 +64,7 @@ SC03_CORE = {
 }
 
 SC02_ANCHORS = {
-    "engineering": {"create-cli", "secure-code"},
+    "engineering": {"cli-design", "secure-code"},
     "research": {"deep-research", "research-architect"},
     "design": {"design-critique", "frontend-design"},
     "knowledge": {"obsidian", "session-retro"},
@@ -195,7 +195,7 @@ def test_rejects_duplicate_key_inside_one_file(workdir, catalog):
     """
     (workdir / "engineering.yaml").write_text(
         "name: engineering\nkind: overlay\ndescription: x\n"
-        "members: [create-cli, secure-code]\n"
+        "members: [cli-design, secure-code]\n"
         "members: [caveman]\n",
         encoding="utf-8",
     )
@@ -271,7 +271,7 @@ def test_rejects_a_missing_sc02_profile(workdir, catalog):
 
 
 def test_rejects_a_member_absent_from_the_catalog(workdir, catalog):
-    mutate(workdir / "engineering.yaml", members=["create-cli", "secure-code", "no-such-skill"])
+    mutate(workdir / "engineering.yaml", members=["cli-design", "secure-code", "no-such-skill"])
     with pytest.raises(ProfileDefinitionError, match=r"engineering\.yaml.*'engineering'.*no-such-skill"):
         load(workdir, catalog)
 
@@ -284,14 +284,14 @@ def test_rejects_an_overlay_with_fewer_than_two_non_core_members(workdir, catalo
     never fire on any input — a validation rule that cannot fire is
     indistinguishable from one that was never written.
     """
-    mutate(workdir / "engineering.yaml", members=["create-cli"])
+    mutate(workdir / "engineering.yaml", members=["cli-design"])
     with pytest.raises(ProfileDefinitionError, match=r"engineering\.yaml.*'engineering'.*at least 2"):
         load(workdir, catalog)
 
 
 def test_rejects_an_overlay_missing_an_anchor(workdir, catalog):
     mutate(workdir / "engineering.yaml", members=["api-design", "repo-hardening", "secure-code"])
-    with pytest.raises(ProfileDefinitionError, match=r"engineering\.yaml.*'engineering'.*anchor\(s\) create-cli"):
+    with pytest.raises(ProfileDefinitionError, match=r"engineering\.yaml.*'engineering'.*anchor\(s\) cli-design"):
         load(workdir, catalog)
 
 
@@ -309,8 +309,8 @@ def test_rejects_the_sentinel_in_an_overlay(workdir, catalog):
 
 
 def test_rejects_a_duplicated_member_within_one_profile(workdir, catalog):
-    mutate(workdir / "engineering.yaml", members=["secure-code", "create-cli", "create-cli"])
-    with pytest.raises(ProfileDefinitionError, match=r"engineering\.yaml.*'engineering'.*create-cli more than once"):
+    mutate(workdir / "engineering.yaml", members=["secure-code", "cli-design", "cli-design"])
+    with pytest.raises(ProfileDefinitionError, match=r"engineering\.yaml.*'engineering'.*cli-design more than once"):
         load(workdir, catalog)
 
 

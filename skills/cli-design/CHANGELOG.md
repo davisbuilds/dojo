@@ -1,3 +1,7 @@
+## 3.0.0 - 2026-11-23
+
+- Renamed `create-cli` to `cli-design`. Use `$cli-design` in saved prompts and `skills/cli-design` for new installs. Existing installations can migrate with `skill-standardizer`.
+
 ## 2.2.0 - 2026-11-23
 
 - Exercise the real command under caller I/O conditions and check observable effects, including prompt, data availability, replay, and pagination edge cases.
