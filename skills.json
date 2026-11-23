@@ -49,7 +49,7 @@
       "name": "create-cli",
       "description": "Design command-line interface parameters and UX: arguments, flags, subcommands, help text, output formats, error messages, exit codes, prompts, config/env precedence, and safe/dry-run behavior. Use when designing a CLI, refactoring its interface, or resolving a specific CLI UX decision during implementation. Reuse settled conventions without requiring a separate design document.\n",
       "path": "skills/create-cli",
-      "version": "2.1.1",
+      "version": "2.2.0",
       "license": "Third-party terms in LICENSE.txt"
     },
     {
@@ -206,7 +206,7 @@
       "name": "skill-installer",
       "description": "Install skills into Codex or Claude Code skills directories from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos).",
       "path": "skills/skill-installer",
-      "version": "2.0.0"
+      "version": "2.0.1"
     },
     {
       "name": "skill-standardizer",

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.1 - 2026-11-23
+
+- Clarify why the Git fallback needs a clean checkout on retry.
+
 ## 2.0.0 - 2026-11-20
 
 - Rebase on OpenAI's current bundled copy: the `skill-installer` shipped with

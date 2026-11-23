@@ -8,7 +8,7 @@ description: >
   Reuse settled conventions without requiring a separate design document.
 skill-type: workflow
 license: Third-party terms in LICENSE.txt
-version: 2.1.1
+version: 2.2.0
 ---
 
 # Create CLI
@@ -78,11 +78,13 @@ handoff menu is required.
 ## Verification
 
 - The affected interface fits its intended human, script, and agent consumers.
-- Output and errors preserve their promised streams, shapes, and exit behavior.
+- For implementation changes, run the affected command with the caller's stdin,
+  stdout, and stderr setup. Check each output stream, the exit status, and any
+  resulting state, including on affected failure paths. See the
+  [command verification examples](references/cli-guidelines.md#verifying-command-behavior).
 - Relevant destructive, noninteractive, and interruption paths have explicit
   behavior and evidence appropriate to the task.
-- Design examples agree with the contract. Implementation claims are supported
-  by relevant CLI checks, including failure paths where affected.
+- Design examples agree with the contract.
 
 ## Resources
 

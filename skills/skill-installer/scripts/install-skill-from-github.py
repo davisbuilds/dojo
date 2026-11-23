@@ -259,8 +259,7 @@ def _prepare_repo(source: Source, method: str, tmp_dir: str) -> str:
         try:
             return _git_sparse_checkout(repo_url, source.ref, source.paths, tmp_dir)
         except InstallError:
-            # Retry in a clean directory; otherwise the SSH clone fails on the
-            # HTTPS attempt's leftover checkout and hides the real error.
+            # WHY: A leftover HTTPS checkout masks the SSH retry's error.
             shutil.rmtree(os.path.join(tmp_dir, "repo"), ignore_errors=True)
             repo_url = _build_repo_ssh(source.owner, source.repo)
             return _git_sparse_checkout(repo_url, source.ref, source.paths, tmp_dir)
