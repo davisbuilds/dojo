@@ -18,6 +18,7 @@ import backup_policy
 AGENTS_HOME_ENV = "AGENTS_HOME"
 CODEX_HOME_ENV = "CODEX_HOME"
 CLAUDE_HOME_ENV = "CLAUDE_HOME"
+GEMINI_HOME_ENV = "GEMINI_HOME"
 
 IGNORE_NAMES = {".DS_Store", "__pycache__", ".git", ".pytest_cache"}
 IGNORE_FILE_SUFFIXES = {".pyc", ".pyo"}
@@ -141,10 +142,12 @@ def global_roots() -> dict[str, Path]:
     agents_home = Path(os.environ.get(AGENTS_HOME_ENV, "~/.agents")).expanduser()
     codex_home = Path(os.environ.get(CODEX_HOME_ENV, "~/.codex")).expanduser()
     claude_home = Path(os.environ.get(CLAUDE_HOME_ENV, "~/.claude")).expanduser()
+    gemini_home = Path(os.environ.get(GEMINI_HOME_ENV, "~/.gemini")).expanduser()
     return {
         "global-agents": (agents_home / "skills").resolve(),
         "global-codex": (codex_home / "skills").resolve(),
         "global-claude": (claude_home / "skills").resolve(),
+        "global-gemini": (gemini_home / "config" / "skills").resolve(),
     }
 
 
@@ -452,7 +455,7 @@ def scan_root(root: RootSpec, ignore_dirs: set[str] | None = None) -> RootInvent
     return RootInventory(root=root, skills=skills, invalid_entries=invalid_entries)
 
 
-GLOBAL_ROOT_KINDS = ("global-agents", "global-codex", "global-claude")
+GLOBAL_ROOT_KINDS = ("global-agents", "global-codex", "global-claude", "global-gemini")
 
 
 def _preferred_global_kinds() -> list[str]:
@@ -953,6 +956,12 @@ def build_audit_report(
                 for inv in inventories:
                     if not inv.root.kind.startswith("global-"):
                         continue
+                    # WHY: absent secondary global roots mean that harness is not
+                    # configured on this machine; mirroring would create unused dirs.
+                    if not inv.root.exists and (
+                        primary_global_root is None or inv.root.kind != primary_global_root.kind
+                    ):
+                        continue
                     if skill in inv.skills:
                         continue
                     if skill in invalid_by_root.get(inv.root.path, set()):
@@ -1061,7 +1070,12 @@ def build_audit_report(
                         dest=codex_global_inventory.root.path / skill,
                         reason="Codex dedupe: prefer Agents source for aggregated catalogs",
                     )
-            elif agents_entry and not codex_entry and enforce_mirror:
+            elif (
+                agents_entry
+                and not codex_entry
+                and enforce_mirror
+                and codex_global_inventory.root.exists
+            ):
                 agents_target = agents_global_inventory.root.path / skill
                 add_issue(
                     severity="info",
