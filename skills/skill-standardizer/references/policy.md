@@ -106,7 +106,7 @@ Combine `--skill` with `--enforce-mirror` to install a selected canonical skill 
 
 ## Topology Normalization (`--normalize-primary`)
 
-When enabled, concrete skills found in secondary global roots are promoted to the primary global root and the secondary copies are replaced with symlinks. This handles the common case where skills were originally installed in `~/.codex/skills`, `~/.claude/skills`, or `~/.gemini/config/skills` and need to be consolidated into `~/.agents/skills` as the single gold copy.
+When enabled, concrete skills found in secondary global roots are promoted to the primary global root and the secondary copies are replaced with symlinks (including when the primary global entry is a symlink pointing to that secondary copy). This handles the common case where skills were originally installed in `~/.codex/skills`, `~/.claude/skills`, or `~/.gemini/config/skills` and need to be consolidated into `~/.agents/skills` as the single gold copy.
 
 ## Recovery and Retention
 

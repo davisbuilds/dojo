@@ -1787,3 +1787,173 @@ def test_global_gemini_normalize_primary_stale_and_deprecated(tmp_path, monkeypa
         and (gemini_skills / "cli-design").is_symlink()
         and (gemini_skills / "cli-design").resolve() == (agents_home / "skills" / "cli-design").resolve()
     ), "deprecated create-cli in global-gemini must migrate to cli-design symlink"
+
+
+@pytest.mark.parametrize("target_kind", ["global-gemini", "global-codex", "global-claude"])
+def test_primary_symlink_to_secondary_global_is_preserved_without_canonical(
+    tmp_path, monkeypatch, target_kind: str,
+) -> None:
+    """When primary symlinks to a concrete secondary skill, sync must preserve that source."""
+    agents_home = tmp_path / ".agents"
+    codex_home = tmp_path / ".codex"
+    claude_home = tmp_path / ".claude"
+    gemini_home = tmp_path / ".gemini"
+    roots_by_kind = {
+        "global-agents": agents_home / "skills",
+        "global-codex": codex_home / "skills",
+        "global-claude": claude_home / "skills",
+        "global-gemini": gemini_home / "config" / "skills",
+    }
+    for root in roots_by_kind.values():
+        root.mkdir(parents=True)
+
+    target_root = roots_by_kind[target_kind]
+    concrete = write_skill(target_root, "alpha")
+    (concrete / "notes.md").write_text("keep-me", encoding="utf-8")
+    primary_link = roots_by_kind["global-agents"] / "alpha"
+    primary_link.symlink_to(concrete, target_is_directory=True)
+
+    extra_kind = "global-claude" if target_kind != "global-claude" else "global-gemini"
+    write_skill(roots_by_kind[extra_kind], "alpha")
+
+    monkeypatch.setenv("AGENTS_HOME", str(agents_home))
+    monkeypatch.setenv("CODEX_HOME", str(codex_home))
+    monkeypatch.setenv("CLAUDE_HOME", str(claude_home))
+    monkeypatch.setenv("GEMINI_HOME", str(gemini_home))
+    monkeypatch.chdir(tmp_path)
+
+    report = build_audit_report(
+        context=resolve_context(None, None, False),
+        local_policy="prefer-global-link",
+        global_policy="prefer-primary-link",
+        keep_local_skills=set(),
+        enforce_mirror=False,
+        codex_agents_dedupe=True,
+    )
+    planned_dests = {Path(a["dest"]).resolve() for a in report["actions"]}
+    assert concrete.resolve() not in planned_dests, (
+        f"must not overwrite concrete source referenced by primary symlink: {report['actions']}"
+    )
+
+    result = apply_actions(report, apply=True, backup_root=str(tmp_path / "backups"))
+    assert not result["errors"], f"apply failed: {result}"
+    assert concrete.is_dir() and not concrete.is_symlink(), "concrete secondary source must survive"
+    assert (concrete / "notes.md").read_text(encoding="utf-8") == "keep-me"
+    assert primary_link.is_symlink() and primary_link.resolve() == concrete.resolve()
+    extra_entry = roots_by_kind[extra_kind] / "alpha"
+    assert extra_entry.is_symlink() and extra_entry.resolve() == concrete.resolve()
+    assert audit_main(["--format", "text"]) == 0
+
+
+def test_primary_symlink_to_secondary_global_is_preserved_with_canonical(tmp_path, monkeypatch) -> None:
+    """Even with canonical present, primary symlinking to Gemini must not delete Gemini."""
+    repo = tmp_path / "repo"
+    skills = repo / "skills"
+    skills.mkdir(parents=True)
+    (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+    write_skill(skills, "alpha")
+
+    agents_home = tmp_path / ".agents"
+    codex_home = tmp_path / ".codex"
+    claude_home = tmp_path / ".claude"
+    gemini_home = tmp_path / ".gemini"
+    for home in [agents_home, codex_home, claude_home]:
+        (home / "skills").mkdir(parents=True)
+    gemini_skills = gemini_home / "config" / "skills"
+    gemini_skills.mkdir(parents=True)
+
+    concrete = write_skill(gemini_skills, "alpha")
+    primary_link = agents_home / "skills" / "alpha"
+    primary_link.symlink_to(concrete, target_is_directory=True)
+
+    monkeypatch.setenv("AGENTS_HOME", str(agents_home))
+    monkeypatch.setenv("CODEX_HOME", str(codex_home))
+    monkeypatch.setenv("CLAUDE_HOME", str(claude_home))
+    monkeypatch.setenv("GEMINI_HOME", str(gemini_home))
+    monkeypatch.chdir(repo)
+
+    report = build_audit_report(
+        context=resolve_context(str(skills), [], False),
+        local_policy="prefer-global-link",
+        global_policy="prefer-primary-link",
+        keep_local_skills=set(),
+        enforce_mirror=False,
+        codex_agents_dedupe=True,
+    )
+    assert not report["actions"], f"shared primary/gemini source should need no action: {report}"
+    assert audit_main(["--canonical-root", str(skills), "--format", "text"]) == 0
+
+
+def test_normalize_primary_promotes_secondary_referenced_by_primary_symlink(tmp_path, monkeypatch) -> None:
+    """--normalize-primary converts a primary symlink + concrete secondary into concrete primary + symlink."""
+    agents_home = tmp_path / ".agents"
+    codex_home = tmp_path / ".codex"
+    claude_home = tmp_path / ".claude"
+    gemini_home = tmp_path / ".gemini"
+    for home in [agents_home, codex_home, claude_home]:
+        (home / "skills").mkdir(parents=True)
+    gemini_skills = gemini_home / "config" / "skills"
+    gemini_skills.mkdir(parents=True)
+
+    concrete = write_skill(gemini_skills, "alpha")
+    (concrete / "notes.md").write_text("promoted", encoding="utf-8")
+    primary = agents_home / "skills" / "alpha"
+    primary.symlink_to(concrete, target_is_directory=True)
+
+    monkeypatch.setenv("AGENTS_HOME", str(agents_home))
+    monkeypatch.setenv("CODEX_HOME", str(codex_home))
+    monkeypatch.setenv("CLAUDE_HOME", str(claude_home))
+    monkeypatch.setenv("GEMINI_HOME", str(gemini_home))
+    monkeypatch.chdir(tmp_path)
+
+    report = build_audit_report(
+        context=resolve_context(None, None, False),
+        local_policy="prefer-global-link",
+        global_policy="prefer-primary-link",
+        keep_local_skills=set(),
+        enforce_mirror=False,
+        codex_agents_dedupe=True,
+        normalize_primary=True,
+    )
+    assert [a["action"] for a in report["actions"]] == ["promote_to_primary"], (
+        f"expected single promote_to_primary action: {report['actions']}"
+    )
+
+    result = apply_actions(report, apply=True, backup_root=str(tmp_path / "backups"))
+    assert not result["errors"], f"promotion apply failed: {result}"
+    assert primary.is_dir() and not primary.is_symlink(), "primary must become concrete directory"
+    assert (primary / "notes.md").read_text(encoding="utf-8") == "promoted"
+    assert concrete.is_symlink() and concrete.resolve() == primary.resolve(), (
+        "secondary must become symlink to primary"
+    )
+    assert audit_main(["--format", "text"]) == 0
+
+
+def test_apply_actions_refuses_self_referential_relink(tmp_path) -> None:
+    """apply_actions must never move a destination whose symlink source resolves back to it."""
+    gemini_skills = tmp_path / ".gemini" / "config" / "skills"
+    agents_skills = tmp_path / ".agents" / "skills"
+    gemini_skills.mkdir(parents=True)
+    agents_skills.mkdir(parents=True)
+
+    concrete = write_skill(gemini_skills, "alpha")
+    (concrete / "notes.md").write_text("intact", encoding="utf-8")
+    primary_link = agents_skills / "alpha"
+    primary_link.symlink_to(concrete, target_is_directory=True)
+
+    report = {
+        "actions": [
+            {
+                "action": "relink_to_global",
+                "skill": "alpha",
+                "source": str(primary_link),
+                "dest": str(concrete),
+                "reason": "degenerate self-relink",
+            }
+        ]
+    }
+    result = apply_actions(report, apply=True, backup_root=str(tmp_path / "backups"))
+    assert result["errors"], f"self-referential relink must fail closed: {result}"
+    assert concrete.is_dir() and not concrete.is_symlink(), "destination must remain untouched"
+    assert (concrete / "notes.md").read_text(encoding="utf-8") == "intact"
+    assert primary_link.is_symlink() and primary_link.resolve() == concrete.resolve()

@@ -491,6 +491,31 @@ def _to_jsonable_issue(issue: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+def _shares_resolved_target(entry: SkillEntry, target_path: Path | None) -> bool:
+    """True when `entry` already resolves to the same directory as `target_path`."""
+    if target_path is None:
+        return False
+    return entry.resolved_path == target_path.resolve()
+
+
+def _source_depends_on_dest(raw_source: Path, dest: Path) -> bool:
+    """True when moving `dest` would delete or break `raw_source` or its target."""
+    resolved = raw_source.resolve()
+    if resolved == dest or dest in resolved.parents:
+        return True
+    probe = raw_source
+    seen: set[Path] = set()
+    while probe not in seen:
+        seen.add(probe)
+        if probe == dest or dest in probe.parents:
+            return True
+        if not probe.is_symlink():
+            break
+        target = Path(os.readlink(probe))
+        probe = _expand_nofollow(target if target.is_absolute() else probe.parent / target)
+    return False
+
+
 def _replacement_source_for_root(
     replacement_skill: str,
     root: RootSpec,
@@ -638,12 +663,19 @@ def build_audit_report(
             inv for inv in inventories
             if inv.root.kind.startswith("global-") and inv.root.kind != primary_root.kind
         ]
+        promoted_skills: set[str] = set()
         for sec_inv in secondary_globals:
             for skill_name, entry in list(sec_inv.skills.items()):
-                if skill_name in primary_global_inventory.skills:
-                    continue  # already in primary
+                if skill_name in promoted_skills:
+                    continue
+                primary_entry = primary_global_inventory.skills.get(skill_name)
+                if primary_entry is not None and not (
+                    primary_entry.is_symlink and primary_entry.resolved_path == entry.resolved_path
+                ):
+                    continue
                 if entry.is_symlink:
-                    continue  # already a link, nothing to promote
+                    continue
+                promoted_skills.add(skill_name)
                 add_issue(
                     severity="info",
                     code="PROMOTE_TO_PRIMARY",
@@ -902,12 +934,7 @@ def build_audit_report(
                     and root.kind != primary_global_root.kind
                 ):
                     if primary_global_entry or enforce_mirror:
-                        already_linked = (
-                            entry.is_symlink
-                            and primary_global_target is not None
-                            and entry.path.resolve() == primary_global_target
-                        )
-                        if already_linked:
+                        if _shares_resolved_target(entry, primary_global_target):
                             continue
 
                         code = "GLOBAL_DUPLICATE_PRIMARY"
@@ -1036,11 +1063,7 @@ def build_audit_report(
             )
 
             if agents_entry and codex_entry:
-                already_linked = (
-                    codex_entry.is_symlink
-                    and codex_entry.path.resolve() == agents_entry.path.resolve()
-                )
-                if not already_linked:
+                if not _shares_resolved_target(codex_entry, agents_entry.path):
                     code = "CODEX_AGENTS_DUPLICATE"
                     message = (
                         "Codex and Agents roots are aggregated by Codex; "
@@ -1103,10 +1126,7 @@ def build_audit_report(
                     if entry.path == preferred_entry.path:
                         continue
                     if global_policy == "prefer-primary-link":
-                        already_linked = (
-                            entry.is_symlink and entry.path.resolve() == preferred_target
-                        )
-                        if already_linked:
+                        if _shares_resolved_target(entry, preferred_target):
                             continue
 
                         code = "GLOBAL_DUPLICATE_PREFERRED"
@@ -1180,8 +1200,7 @@ def build_audit_report(
                     (canonical_inventory.root.path / skill).resolve()
                     if canonical_inventory and skill in canonical_inventory.skills
                     else None)
-                if entry.is_symlink and entry.path.resolve() in {
-                        t for t in (global_target, canonical_target) if t is not None}:
+                if any(_shares_resolved_target(entry, t) for t in (global_target, canonical_target)):
                     continue
 
                 code = "LOCAL_DUPLICATE_GLOBAL"
@@ -1506,8 +1525,19 @@ def apply_actions(
         dest = _expand_nofollow(action["dest"])
 
         try:
+            if (
+                action_type in {"sync_copy", "create_copy", "relink_to_global",
+                                "replace_deprecated_skill", "promote_to_primary"}
+                and action.get("source")
+                and _source_depends_on_dest(_expand_nofollow(action["source"]), dest)
+            ):
+                raise RuntimeError(
+                    f"Refusing self-referential {action_type}: source {action['source']} resolves through destination {dest}"
+                )
+
             if action_type in {"sync_copy", "create_copy", "relink_to_global",
-                               "replace_deprecated_skill", "remove_stale_entry"}:
+                               "replace_deprecated_skill", "remove_stale_entry",
+                               "promote_to_primary"}:
                 backup = _backup_destination(dest, backup_base, stamp)
                 if backup:
                     result["backups"].append({"dest": str(dest), "backup": str(backup)})
@@ -1521,7 +1551,7 @@ def apply_actions(
             if action_type == "promote_to_primary":
                 # Copy concrete skill to primary global, then relink secondary
                 _replace_with_copy(source, dest)
-                secondary_dest = _expand(action["secondary_dest"])
+                secondary_dest = _expand_nofollow(action["secondary_dest"])
                 sec_backup = _backup_destination(secondary_dest, backup_base, stamp)
                 if sec_backup:
                     result["backups"].append({"dest": str(secondary_dest), "backup": str(sec_backup)})
