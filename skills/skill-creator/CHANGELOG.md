@@ -13,7 +13,7 @@
 
 - Design for capable agents and revisitable marginal value; scope authoring stages and packaging to the request, with consumer-driven output examples.
 
-## 1.0.1
+## 1.0.1 - 2026-07-13
 
 - Add the required `version: 1.0.0` field to `init_skill.py`'s `SKILL_TEMPLATE`.
   A freshly scaffolded skill previously failed contract validation on creation,

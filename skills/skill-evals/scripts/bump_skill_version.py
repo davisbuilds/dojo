@@ -22,8 +22,7 @@ import re
 import sys
 from pathlib import Path
 
-# Reuse the canonical SemVer parser + regexes from the version checker so bump
-# arithmetic and heading detection stay identical to what CI enforces.
+# WHY: Reuse the version checker's SemVer parser so bump arithmetic follows CI precedence.
 _CHECK_PATH = Path(__file__).with_name("check_skill_versions.py")
 _spec = importlib.util.spec_from_file_location("check_skill_versions", _CHECK_PATH)
 _check = importlib.util.module_from_spec(_spec)

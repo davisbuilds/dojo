@@ -29,7 +29,7 @@
     "skills/screenshot/scripts/macos_window_info.swift": 1,
     "skills/screenshot/scripts/take_screenshot.py": 1,
     "skills/secure-code/scripts/scan.py": 1,
-    "skills/skill-evals/scripts/bump_skill_version.py": 12,
+    "skills/skill-evals/scripts/bump_skill_version.py": 10,
     "skills/skill-evals/scripts/check_skill_versions.py": 3,
     "skills/skill-evals/scripts/run_trigger_evals.py": 33,
     "skills/skill-evals/scripts/validate_skill_contract.py": 7,

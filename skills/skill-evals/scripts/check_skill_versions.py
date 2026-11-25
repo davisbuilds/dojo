@@ -8,6 +8,7 @@ import re
 import subprocess
 import sys
 from dataclasses import dataclass
+from datetime import date
 from functools import total_ordering
 from pathlib import Path
 from typing import Iterable
@@ -23,6 +24,18 @@ SEMVER_RE = re.compile(
 )
 FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n?", re.DOTALL)
 CHANGELOG_HEADING_RE = re.compile(r"^##+\s+(?:\[)?{version}(?:\])?(?:\s|$)", re.MULTILINE)
+CHANGELOG_HIDDEN_RE = re.compile(
+    r"<!--[\s\S]*?(?:-->|\Z)|"
+    r"^ {0,3}(?P<fence>(?P<marker>`|~)(?P=marker){2,})(?!(?P=marker))[^\n]*\n"
+    r"[\s\S]*?(?:^ {0,3}(?P=fence)(?P=marker)*[ \t]*$|\Z)",
+    re.MULTILINE,
+)
+CHANGELOG_SECTION_RE = re.compile(r"(?=^ {0,3}#{1,2}(?:[ \t]|$))", re.MULTILINE)
+CHANGELOG_ENTRY_HEADING_RE = re.compile(
+    r" {0,3}##[ \t]+(?P<version>\S+)[ \t]+-[ \t]+"
+    r"(?P<date>[0-9]{4}-[0-9]{2}-[0-9]{2})[ \t]*"
+)
+CHANGELOG_BULLET_RE = re.compile(r"^ {0,3}[-+*][ \t]+\S", re.MULTILINE)
 
 # Append-only run memory: a skill accumulates these as it is *used*, not as it
 # is changed. Requiring a SemVer bump per appended lesson would version the
@@ -196,8 +209,18 @@ def base_skill_version(repo_root: Path, base: str, skill_name: str) -> str | Non
 def changelog_has_version(changelog: Path, version: str) -> bool:
     if not changelog.exists():
         return False
-    pattern = CHANGELOG_HEADING_RE.pattern.format(version=re.escape(version))
-    return re.search(pattern, changelog.read_text(encoding="utf-8"), re.MULTILINE) is not None
+    text = CHANGELOG_HIDDEN_RE.sub(" ", changelog.read_text(encoding="utf-8"))
+    for section in CHANGELOG_SECTION_RE.split(text):
+        heading, _, body = section.partition("\n")
+        match = CHANGELOG_ENTRY_HEADING_RE.fullmatch(heading)
+        if not match or match["version"] != version or not CHANGELOG_BULLET_RE.search(body):
+            continue
+        try:
+            date.fromisoformat(match["date"])
+        except ValueError:
+            continue
+        return True
+    return False
 
 
 def changed_skill_map(paths: Iterable[str]) -> dict[str, list[str]]:

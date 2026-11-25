@@ -39,7 +39,7 @@
 - Extend deterministic validation for high-risk structure while preserving the
   lean routine planning path.
 
-## 1.1.0
+## 1.1.0 - 2026-07-11
 
 - Add target-specific evidence for existing-code tasks, resolve-now planning,
   irreducible-risk triage, and test-discovery proof when tests change.
