@@ -164,12 +164,9 @@ So a skill's Python script is tested centrally from `tests/`, loaded with
 see `tests/test_bump_skill_version.py`, which covers a script owned by
 `skills/skill-evals/`. The skill directory stays free of test code.
 
-Known exception: `skills/skill-standardizer/scripts/test_skill_standardizer.py`
-is skill-local code tests — a third category that predates this rule. It is the
-only test file outside `tests/`, keeps a stdlib-only direct runner with its own
-CI step, and ships to globals as dead weight. `tests/test_skill_standardizer_suite.py`
-runs each of its tests under pytest. Porting it is tracked in
-`docs/project/BACKLOG.md`; do not use it as a pattern for new skills.
+The skill-standardizer suite in `tests/test_skill_standardizer_suite.py` uses
+temporary skill roots and pytest's `monkeypatch` fixture to restore the working
+directory and harness-home variables after each test.
 
 ## Directory Map
 

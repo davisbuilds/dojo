@@ -1,3 +1,7 @@
+## 2.1.2 - 2026-11-25
+
+- Move regression tests into the repository pytest suite and retire the shipped test runner.
+
 ## 2.1.1 - 2026-11-23
 
 - Migrate existing create-cli installs to cli-design with the standard backup and link policies.

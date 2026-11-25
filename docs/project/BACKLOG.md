@@ -146,33 +146,6 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   drifted members of the selected profile. Recompute the census on the target
   host before using it for a decision.
 
-### Port skill-standardizer tests to pytest under tests/
-- **What**: `skills/skill-standardizer/scripts/test_skill_standardizer.py` uses a
-  hand-rolled `main()` runner and an `assert_true` helper instead of pytest. It
-  is the only test file outside `tests/`, and `scripts/check` (the local and CI
-  gate) runs it as a separate check.
-- **Why it matters**: `tests/` already tests skill-owned scripts —
-  `tests/test_bump_skill_version.py` covers `skills/skill-evals/scripts/`
-  via `importlib.spec_from_file_location`, and skill-evals ships no tests of its
-  own. The standardizer is the sole outlier.
-- **Interim state**: each test restores cwd and
-  `AGENTS_HOME`/`CODEX_HOME`/`CLAUDE_HOME` through `isolated_tempdir()`, and
-  `tests/test_skill_standardizer_suite.py` loads the file with `importlib` to run
-  every test under pytest, check that restoration, and run the direct runner
-  without pytest. What remains is shipped test code, the separate check, and
-  two ways to invoke one file. The Test Tiers rule in
-  `docs/system/ARCHITECTURE.md` (behavior ships; code tests do not) makes the
-  port plain conformance.
-- **Next**: port the tests into `tests/test_skill_standardizer_suite.py` with
-  `tmp_path`/`monkeypatch` while keeping the stdlib-only direct runner and its
-  pytest-free check, which are a current contract. Deleting the original,
-  dropping its `scripts/check` line, and updating the `Run skill-standardizer
-  regression tests` section of `docs/system/OPERATIONS.md` and the "known
-  exception" paragraph under Test Tiers in `docs/system/ARCHITECTURE.md` retire
-  that contract, so they need their own decision first. Symlinking the file into
-  `tests/` was rejected: like the interim wrapper, it keeps a dead `main()` and
-  two entry points.
-
 ### Shared SemVer helper
 - **What**: SemVer parsing/validation now exists in multiple scripts. On
   2026-11-20 four `SEMVER_RE` copies existed: `scripts/generate_skills_manifest.py`,
