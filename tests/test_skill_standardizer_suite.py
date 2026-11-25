@@ -1957,3 +1957,166 @@ def test_apply_actions_refuses_self_referential_relink(tmp_path) -> None:
     assert concrete.is_dir() and not concrete.is_symlink(), "destination must remain untouched"
     assert (concrete / "notes.md").read_text(encoding="utf-8") == "intact"
     assert primary_link.is_symlink() and primary_link.resolve() == concrete.resolve()
+
+
+@pytest.mark.parametrize("target_kind", ["global-gemini", "global-codex", "global-claude"])
+def test_normalize_primary_repairs_canonical_drift_when_primary_is_symlink(
+    tmp_path, monkeypatch, target_kind: str,
+) -> None:
+    """--normalize-primary must promote canonical contents when canonical has newer bytes than the secondary copy."""
+    repo = tmp_path / "repo"
+    skills = repo / "skills"
+    skills.mkdir(parents=True)
+    (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+    canonical = write_versioned_skill(skills, "alpha", "2.0.0", body="canonical v2\n")
+
+    agents_home = tmp_path / ".agents"
+    codex_home = tmp_path / ".codex"
+    claude_home = tmp_path / ".claude"
+    gemini_home = tmp_path / ".gemini"
+    roots_by_kind = {
+        "global-agents": agents_home / "skills",
+        "global-codex": codex_home / "skills",
+        "global-claude": claude_home / "skills",
+        "global-gemini": gemini_home / "config" / "skills",
+    }
+    for root in roots_by_kind.values():
+        root.mkdir(parents=True)
+
+    secondary_root = roots_by_kind[target_kind]
+    outdated = write_versioned_skill(secondary_root, "alpha", "1.0.0", body="outdated v1\n")
+    primary = roots_by_kind["global-agents"] / "alpha"
+    primary.symlink_to(outdated, target_is_directory=True)
+
+    monkeypatch.setenv("AGENTS_HOME", str(agents_home))
+    monkeypatch.setenv("CODEX_HOME", str(codex_home))
+    monkeypatch.setenv("CLAUDE_HOME", str(claude_home))
+    monkeypatch.setenv("GEMINI_HOME", str(gemini_home))
+    monkeypatch.chdir(repo)
+
+    report = build_audit_report(
+        context=resolve_context(str(skills), [], False),
+        local_policy="prefer-global-link",
+        global_policy="prefer-primary-link",
+        keep_local_skills=set(),
+        enforce_mirror=False,
+        codex_agents_dedupe=True,
+        normalize_primary=True,
+    )
+    result = apply_actions(report, apply=True, backup_root=str(tmp_path / "backups"))
+    assert not result["errors"], f"promotion apply failed: {result}"
+
+    assert primary.is_dir() and not primary.is_symlink(), "primary must become concrete directory"
+    assert (primary / "SKILL.md").read_bytes() == (canonical / "SKILL.md").read_bytes(), (
+        "primary must receive canonical v2.0.0 content in one apply"
+    )
+    assert outdated.is_symlink() and outdated.resolve() == primary.resolve(), (
+        "secondary must become symlink to primary rather than staying concrete"
+    )
+    backup_contents = [p.read_text(encoding="utf-8") for p in (tmp_path / "backups").rglob("SKILL.md")]
+    assert any("outdated v1" in text for text in backup_contents), (
+        f"outdated secondary content must be preserved in backups: {result}"
+    )
+    assert audit_main(["--canonical-root", str(skills), "--format", "text"]) == 0
+
+
+def test_normalize_primary_repairs_canonical_drift_with_only_existing_and_multiple_secondaries(
+    tmp_path, monkeypatch,
+) -> None:
+    """--normalize-primary + --only-existing repairs drift across all secondaries without installing new skills."""
+    repo = tmp_path / "repo"
+    skills = repo / "skills"
+    skills.mkdir(parents=True)
+    (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+    canonical = write_versioned_skill(skills, "alpha", "2.0.0", body="canonical v2\n")
+    write_versioned_skill(skills, "beta", "1.0.0", body="uninstalled beta\n")
+
+    agents_home = tmp_path / ".agents"
+    codex_home = tmp_path / ".codex"
+    claude_home = tmp_path / ".claude"
+    gemini_home = tmp_path / ".gemini"
+    for home in [agents_home, codex_home, claude_home]:
+        (home / "skills").mkdir(parents=True)
+    gemini_skills = gemini_home / "config" / "skills"
+    gemini_skills.mkdir(parents=True)
+
+    claude_outdated = write_versioned_skill(claude_home / "skills", "alpha", "1.0.0", body="claude v1\n")
+    gemini_outdated = write_versioned_skill(gemini_skills, "alpha", "0.9.0", body="gemini v0.9\n")
+    primary = agents_home / "skills" / "alpha"
+
+    monkeypatch.setenv("AGENTS_HOME", str(agents_home))
+    monkeypatch.setenv("CODEX_HOME", str(codex_home))
+    monkeypatch.setenv("CLAUDE_HOME", str(claude_home))
+    monkeypatch.setenv("GEMINI_HOME", str(gemini_home))
+    monkeypatch.chdir(repo)
+
+    report = build_audit_report(
+        context=resolve_context(str(skills), [], False),
+        local_policy="prefer-global-link",
+        global_policy="prefer-primary-link",
+        keep_local_skills=set(),
+        enforce_mirror=False,
+        codex_agents_dedupe=True,
+        only_existing=True,
+        normalize_primary=True,
+    )
+    result = apply_actions(report, apply=True, backup_root=str(tmp_path / "backups"))
+    assert not result["errors"], f"promotion apply failed: {result}"
+
+    assert primary.is_dir() and not primary.is_symlink()
+    assert (primary / "SKILL.md").read_bytes() == (canonical / "SKILL.md").read_bytes()
+    assert claude_outdated.is_symlink() and claude_outdated.resolve() == primary.resolve()
+    assert gemini_outdated.is_symlink() and gemini_outdated.resolve() == primary.resolve()
+    assert not os.path.lexists(agents_home / "skills" / "beta"), "only-existing must not install beta"
+    backup_contents = [p.read_text(encoding="utf-8") for p in (tmp_path / "backups").rglob("SKILL.md")]
+    assert any("claude v1" in text for text in backup_contents), "claude backup missing"
+    assert any("gemini v0.9" in text for text in backup_contents), "gemini backup missing"
+    assert audit_main(["--canonical-root", str(skills), "--only-existing", "--format", "text"]) == 0
+
+
+def test_normalize_primary_repairs_canonical_drift_when_primary_is_absent(tmp_path, monkeypatch) -> None:
+    """--normalize-primary with an absent primary promotes canonical contents and keeps secondary as a symlink."""
+    repo = tmp_path / "repo"
+    skills = repo / "skills"
+    skills.mkdir(parents=True)
+    (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+    canonical = write_versioned_skill(skills, "alpha", "2.0.0", body="canonical v2\n")
+
+    agents_home = tmp_path / ".agents"
+    codex_home = tmp_path / ".codex"
+    claude_home = tmp_path / ".claude"
+    gemini_home = tmp_path / ".gemini"
+    for home in [agents_home, codex_home, claude_home]:
+        (home / "skills").mkdir(parents=True)
+    gemini_skills = gemini_home / "config" / "skills"
+    gemini_skills.mkdir(parents=True)
+
+    outdated = write_versioned_skill(gemini_skills, "alpha", "1.0.0", body="outdated v1\n")
+    primary = agents_home / "skills" / "alpha"
+
+    monkeypatch.setenv("AGENTS_HOME", str(agents_home))
+    monkeypatch.setenv("CODEX_HOME", str(codex_home))
+    monkeypatch.setenv("CLAUDE_HOME", str(claude_home))
+    monkeypatch.setenv("GEMINI_HOME", str(gemini_home))
+    monkeypatch.chdir(repo)
+
+    report = build_audit_report(
+        context=resolve_context(str(skills), [], False),
+        local_policy="prefer-global-link",
+        global_policy="prefer-primary-link",
+        keep_local_skills=set(),
+        enforce_mirror=False,
+        codex_agents_dedupe=True,
+        normalize_primary=True,
+    )
+    result = apply_actions(report, apply=True, backup_root=str(tmp_path / "backups"))
+    assert not result["errors"], f"promotion apply failed: {result}"
+
+    assert primary.is_dir() and not primary.is_symlink(), "primary must become concrete directory"
+    assert (primary / "SKILL.md").read_bytes() == (canonical / "SKILL.md").read_bytes(), (
+        "primary must receive canonical v2.0.0 content in one apply"
+    )
+    assert outdated.is_symlink() and outdated.resolve() == primary.resolve(), (
+        "secondary must remain a symlink to primary after apply"
+    )
+    assert audit_main(["--canonical-root", str(skills), "--format", "text"]) == 0
