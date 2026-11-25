@@ -129,8 +129,7 @@ Configured Python hooks use `hooks/run-python.sh` to select this checkout's
 `.venv` regardless of the harness's inherited PATH. This hook helper performs no
 installation or network access; missing setup produces stderr and exit 1 from
 `hooks/run-python.sh`. The separate `dojo` CLI launcher uses exit 2 for missing
-setup, as described below. Bare `pytest` selects `tests/` through `pyproject.toml`,
-which also runs the skill-standardizer suite; that suite keeps its direct-script runner.
+setup, as described below. Bare `pytest` selects `tests/` through `pyproject.toml`.
 
 ## Dojo development CLI
 
@@ -566,13 +565,11 @@ DOJO_BEHAVIORAL_EVALS=1 python scripts/behavioral_evals.py --json
 
 ### Run skill-standardizer regression tests
 
-This suite ships beside the skill with a stdlib-only runner that needs no pytest.
-`pytest tests/` runs each of its tests through `tests/test_skill_standardizer_suite.py`,
-which also checks that every test restores cwd and the harness-home variables.
-CI also runs the runner as its own step; invoke it directly to run it locally:
+The repository regression suite includes the skill-standardizer tests. To run
+them on their own from the checkout:
 
 ```bash
-python3 skills/skill-standardizer/scripts/test_skill_standardizer.py
+uv run --locked pytest tests/test_skill_standardizer_suite.py -q
 ```
 
 ### Measure what a session's skill listing actually costs
@@ -783,14 +780,14 @@ pushing:
 
 ```bash
 scripts/check          # every deterministic CI check; exit 1 names each failure
-scripts/check --fast   # skips pytest and the skill-standardizer runner (~0.5 s)
+scripts/check --fast   # skips pytest (~0.5 s)
 ```
 
 The gate covers the strict contract, skill version bumps against `CHECK_BASE`
 (default `origin/main`; CI sets the PR base), the four generated-artifact
 `--check`s, distribution profiles, links, the AI-slop scan, the comment ratchet
-(`scripts/check_comments.py` against `.comment-baseline.json`), and both test
-suites.
+(`scripts/check_comments.py` against `.comment-baseline.json`), and the pytest
+regression suite.
 It only checks. The workflow keeps commit-subject release classification and
 the strict-set report upload as separate steps.
 
