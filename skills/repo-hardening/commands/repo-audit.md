@@ -2,7 +2,6 @@
 name: repo-audit
 description: Run the deterministic repo-hardening inventory and write repo-local audit artifacts.
 argument-hint: "[repo-path] [--out-dir <dir>] [--package <name> ...]"
-allowed-tools: [Read, Bash(git:*), Bash(rg:*), Bash(python3 skills/repo-hardening/scripts/repo_inventory.py:*)]
 ---
 
 # Repo Audit Command

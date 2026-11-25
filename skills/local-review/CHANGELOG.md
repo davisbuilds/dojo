@@ -1,3 +1,7 @@
+## 2.0.1 - 2026-11-25
+
+- Let /review inherit harness permissions by removing its command-specific tool grants.
+
 ## 2.0.0 - 2026-10-02
 
 - Rebuild review guidance around actionable introduced defects, concrete affected paths, counterevidence, and concise priority-tagged comments.
