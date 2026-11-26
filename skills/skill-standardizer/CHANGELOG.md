@@ -1,3 +1,7 @@
+## 2.2.0 - 2026-11-25
+
+- Support global-gemini (~/.gemini/config/skills) with GEMINI_HOME override, skip absent secondary global roots during mirror enforcement, preserve concrete secondary copies referenced by primary-global symlinks, and promote canonical contents during `--normalize-primary` when canonical drift exists.
+
 ## 2.1.2 - 2026-11-25
 
 - Move regression tests into the repository pytest suite and retire the shipped test runner.

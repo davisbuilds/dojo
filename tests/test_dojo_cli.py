@@ -94,7 +94,8 @@ else:
 ''')
     executable.chmod(0o755)
     return {**os.environ, 'PATH': str(tools), 'HOME': str(home), 'CODEX_HOME': str(home/'.codex'),
-            'AGENTS_HOME': str(home/'.agents'), 'CLAUDE_HOME': str(home/'.claude')}
+            'AGENTS_HOME': str(home/'.agents'), 'CLAUDE_HOME': str(home/'.claude'),
+            'GEMINI_HOME': str(home/'.gemini')}
 
 
 @pytest.mark.parametrize('count, expected', [(1, 0), (0, 1), (2, 1)])

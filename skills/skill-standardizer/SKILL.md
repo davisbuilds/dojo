@@ -2,7 +2,7 @@
 name: skill-standardizer
 description: Use when skill copies drift across repositories or agent globals and you need canonicalization, drift auditing, and safe synchronization across local and global skills directories.
 skill-type: workflow
-version: 2.1.2
+version: 2.2.0
 ---
 
 # Skill Standardizer
@@ -29,9 +29,10 @@ This skill provides a deterministic workflow:
 Default policy:
 - Repository `skills/` is canonical when discoverable.
 - User global roots are mirrors:
-  - `~/.agents/skills`
-  - `~/.codex/skills`
-  - `~/.claude/skills`
+  - `~/.agents/skills` (override: `AGENTS_HOME`)
+  - `~/.codex/skills` (override: `CODEX_HOME`)
+  - `~/.claude/skills` (override: `CLAUDE_HOME`)
+  - `~/.gemini/config/skills` (override: `GEMINI_HOME`)
 - Plugin caches (for example `~/.claude/plugins/cache`) are excluded by default.
 
 If no canonical repo is discoverable from current working directory, operate in global/local audit mode and avoid canonical overwrite actions.
@@ -45,7 +46,7 @@ Default local policy is `prefer-global-link`:
 
 Default global policy is `prefer-primary-link`:
 - Keep a concrete copy in the primary global root (`~/.agents/skills` by default).
-- Keep secondary globals (`~/.codex/skills`, `~/.claude/skills`) as symlinks to that primary copy.
+- Keep secondary globals (`~/.codex/skills`, `~/.claude/skills`, `~/.gemini/config/skills`) as symlinks to that primary copy.
 - This avoids duplicate skill entries in clients that aggregate multiple global roots.
 - Use `--global-policy mirror-copy` when fully independent per-global copies are required.
 
@@ -58,6 +59,7 @@ Preferred global precedence:
 1. `~/.agents/skills`
 2. `~/.codex/skills`
 3. `~/.claude/skills`
+4. `~/.gemini/config/skills`
 
 ## Rename Policy
 
@@ -187,7 +189,7 @@ python3 <skill-dir>/scripts/sync.py \
   --apply
 ```
 
-`--skill` is repeatable. In selected-skill mode, audits and sync plans hide unrelated invalid directories and unrelated canonical skills. Deprecated aliases remain in scope when the replacement or any alias that resolves to it is selected.
+`--skill` is repeatable. In selected-skill mode, audits and sync plans hide unrelated invalid directories and unrelated canonical skills. Deprecated aliases remain in scope when the replacement or any alias that resolves to it is selected. `--enforce-mirror` only mirrors into secondary global roots that already exist on disk; absent harness directories are skipped rather than created.
 
 ## Intersection Mode
 
@@ -202,7 +204,7 @@ python3 <skill-dir>/scripts/sync.py \
 
 ## Topology Normalization
 
-Use `--normalize-primary` to promote concrete skills from secondary globals (`~/.codex/skills`, `~/.claude/skills`) to the primary global root (`~/.agents/skills`) and replace the secondary copies with symlinks. This is useful when skills were originally installed in a secondary root and need to be consolidated.
+Use `--normalize-primary` to promote concrete skills from secondary globals (`~/.codex/skills`, `~/.claude/skills`, `~/.gemini/config/skills`) to the primary global root (`~/.agents/skills`) and replace the secondary copies with symlinks. This is useful when skills were originally installed in a secondary root and need to be consolidated.
 
 ```bash
 python3 <skill-dir>/scripts/sync.py \

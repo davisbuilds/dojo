@@ -34,7 +34,7 @@
     "skills/skill-evals/scripts/run_trigger_evals.py": 33,
     "skills/skill-evals/scripts/validate_skill_contract.py": 7,
     "skills/skill-standardizer/scripts/backup_policy.py": 6,
-    "skills/skill-standardizer/scripts/skill_standardizer_lib.py": 82,
+    "skills/skill-standardizer/scripts/skill_standardizer_lib.py": 80,
     "skills/theme-factory/assets/theme-template.html": 6,
     "skills/theme-factory/scripts/generate_css.py": 2,
     "skills/write-plan/scripts/validate_plan.py": 29,
