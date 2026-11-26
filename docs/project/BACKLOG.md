@@ -159,18 +159,6 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   module under `skills/skill-evals/scripts/` or `scripts/lib/`, then have
   validators and generators use the same implementation.
 
-### Changelog entry format hardening
-- **What**: Version checks currently require a `CHANGELOG.md` heading containing
-  the new version, but do not require dates or entry content.
-- **Why it matters**: This keeps adoption friction low, but changelog quality may
-  vary once skills start receiving regular releases.
-- **Evidence, 2026-11-20**: the "after a few real bumps" gate is met. Skill
-  changelogs hold 151 version headings, 143 dated and 8 undated, and
-  `bump_skill_version.py` already writes `## <version> - <date>` with a bullet.
-- **Next**: decide whether to require headings like `## 1.2.3 - YYYY-MM-DD`
-  plus at least one bullet in the version check, and whether to grandfather or
-  backfill the 8 undated headings.
-
 ### Install/update workflows should understand skill versions
 - **What**: `skill-standardizer` audit/sync reports show source and current
   versions with a behind/ahead/equal/divergent/unknown delta (2026-10-21), but

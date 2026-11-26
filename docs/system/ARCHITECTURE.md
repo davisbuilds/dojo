@@ -91,7 +91,7 @@ SKILL.md frontmatter is the single source of truth; deterministic, idempotent ge
 identity/type gates and opt-in advisory prose heuristics. It does not gate on heading
 names, trigger phrases, or length, and does not establish behavioral quality.
 
-`skills/skill-evals/scripts/check_skill_versions.py` compares changed skill files against a git base ref. Release-relevant skill edits require a strictly greater version than the base SKILL.md and a matching `CHANGELOG.md` entry. The initial migration from unversioned skills is allowed without reconstructing historical changelogs.
+`skills/skill-evals/scripts/check_skill_versions.py` compares changed skill files against a git base ref. Release-relevant skill edits require a strictly greater version than the base SKILL.md and a matching `CHANGELOG.md` entry with a dated version heading and at least one nonempty bullet. The initial migration from unversioned skills is allowed without reconstructing historical changelogs.
 
 Uses a polyglot shebang — works with both `python` and `python3`.
 

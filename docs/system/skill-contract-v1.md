@@ -71,8 +71,9 @@ schema version. Use SemVer without a leading `v`.
   narrowed triggers, or incompatible script behavior.
 
 Release-relevant changes increase the version and add a corresponding
-`CHANGELOG.md` heading. `check_skill_versions.py` enforces that against a Git
-base; it is a separate gate. The first unversioned baseline is supported.
+`CHANGELOG.md` entry with a `## <version> - YYYY-MM-DD` heading and at least
+one nonempty bullet. `check_skill_versions.py` enforces that against a Git
+base. The first unversioned baseline is supported.
 
 ## Optional `triggers`
 

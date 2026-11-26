@@ -101,7 +101,7 @@ accessibility compliance.
 
 - SKILL.md frontmatter validated on every write/edit (pre-tool-use).
 - Catalog skills declare `skill-type` for inventory and optional authoring hints; strict validation gates metadata, not prose structure.
-- Every skill declares a SemVer `version`; release-relevant skill edits require a version bump and changelog entry against the selected git base.
+- Every skill declares a SemVer `version`; release-relevant skill edits require a version bump and a changelog entry with a dated heading and at least one nonempty bullet against the selected git base.
 - Pushes to protected branches are blocked unless the command includes an explicit `DOJO_ALLOW_PROTECTED_PUSH=1` override.
 - `skills.json` manifest regenerated after every SKILL.md change (post-tool-use).
 - Newly authored design summaries, specs, and plans identify the producing agent

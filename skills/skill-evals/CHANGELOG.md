@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.0 - 2026-11-25
+
+- Require a dated version heading and a nonempty bullet when validating a skill release entry.
+
 ## 2.1.2 - 2026-11-23
 
 - Use cli-design in routing examples that exclude the CLI design skill.
@@ -64,7 +68,7 @@
 
 - Add bump_skill_version.py: bump a skill's SemVer and prepend a CHANGELOG heading in one command (major/minor/patch or --set), dogfooding the release-version contract.
 
-## 1.1.0
+## 1.1.0 - 2026-07-14
 
 - Rewrite the trigger scorer: TF-IDF cosine over stemmed tokens with
   hyphenated-compound splitting, replacing token-overlap plus a hand-maintained

@@ -26,6 +26,6 @@
 - Correct the compatibility note (standard library only, not `requests`), anchor
   script commands to `<skill-dir>`, and drop the generic contract sections.
 
-## 1.0.0
+## 1.0.0 - 2026-11-20
 
 - Vendored from OpenAI's `skill-installer` with `--agent codex|claude` support.

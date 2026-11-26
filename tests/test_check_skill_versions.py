@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = REPO_ROOT / "skills" / "skill-evals" / "scripts" / "check_skill_versions.py"
@@ -51,7 +53,8 @@ def test_semver_accepts_prerelease_identifiers_starting_with_zero() -> None:
     assert module.SemVer.parse("1.0.0-0rc.1") < module.SemVer.parse("1.0.0")
 
 
-def test_changed_skill_requires_version_increase_and_changelog(tmp_path: Path) -> None:
+@pytest.mark.parametrize("version", ["1.0.1", "1.0.1-rc.1+build.1"])
+def test_changed_skill_requires_version_increase_and_changelog(tmp_path: Path, version: str) -> None:
     module = load_module()
     repo = init_repo(tmp_path)
     skills_root = repo / "skills"
@@ -64,15 +67,55 @@ def test_changed_skill_requires_version_increase_and_changelog(tmp_path: Path) -
     errors = module.check_versions(repo, skills_root, base, include_untracked=True)
     assert any("version did not increase" in error for error in errors)
 
-    write_skill(repo, "alpha", "1.0.1", body="Changed body.")
+    write_skill(repo, "alpha", version, body="Changed body.")
     errors = module.check_versions(repo, skills_root, base, include_untracked=True)
-    assert errors == ["alpha: missing CHANGELOG.md entry for 1.0.1"]
+    assert errors == [f"alpha: missing CHANGELOG.md entry for {version}"]
 
     (skills_root / "alpha" / "CHANGELOG.md").write_text(
-        "# Changelog\n\n## 1.0.1\n\n- Clarified behavior.\n",
+        f"# Changelog\n\n## {version} - 2026-11-25\n\n- Clarified behavior.\n",
         encoding="utf-8",
     )
     assert module.check_versions(repo, skills_root, base, include_untracked=True) == []
+
+
+
+@pytest.mark.parametrize(
+    "changelog",
+    [
+        pytest.param("## 1.0.1\n\n- Changed behavior.\n", id="undated"),
+        pytest.param("## 1.0.1 - 2026-1-5\n\n- Changed behavior.\n", id="wrong-date-format"),
+        pytest.param("## 1.0.1 - 2026-02-30\n\n- Changed behavior.\n", id="invalid-date"),
+        pytest.param("### 1.0.1 - 2026-11-25\n\n- Changed behavior.\n", id="wrong-heading-level"),
+        pytest.param("## 1.0.1 - 2026-11-25\n\nChanged behavior.\n", id="no-bullet"),
+        pytest.param("## 1.0.1 - 2026-11-25\n\n- \n", id="empty-bullet"),
+        pytest.param(
+            "## 1.0.1 - 2026-11-25\n\n## 1.0.0 - 2026-11-24\n\n- Earlier change.\n",
+            id="bullet-in-another-entry",
+        ),
+        pytest.param(
+            "## 1.0.1 - 2026-11-25\n\n```text\n- Example only.\n```\n",
+            id="bullet-in-code-example",
+        ),
+        pytest.param(
+            "## 1.0.1 - 2026-11-25\n\n<!--\n- Hidden text.\n-->\n",
+            id="bullet-in-comment",
+        ),
+    ],
+)
+def test_changed_skill_requires_dated_changelog_entry_with_bullet(tmp_path: Path, changelog: str) -> None:
+    module = load_module()
+    repo = init_repo(tmp_path)
+    skills_root = repo / "skills"
+    write_skill(repo, "alpha", "1.0.0")
+    git(repo, "add", ".")
+    git(repo, "commit", "-m", "baseline")
+
+    write_skill(repo, "alpha", "1.0.1", body="Changed body.")
+    (skills_root / "alpha" / "CHANGELOG.md").write_text(changelog, encoding="utf-8")
+
+    assert module.check_versions(repo, skills_root, "HEAD", include_untracked=True) == [
+        "alpha: missing CHANGELOG.md entry for 1.0.1"
+    ]
 
 
 def test_unversioned_base_allows_initial_baseline_without_changelog(tmp_path: Path) -> None:

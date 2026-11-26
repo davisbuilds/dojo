@@ -131,4 +131,4 @@ python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
 - Collects release-relevant changes under `skills/<name>/`.
 - Ignores generated Codex sidecars, changelog-only edits, bytecode, and cache files.
 - Allows the first migration from an unversioned base skill.
-- Requires later changed skills to increase their SemVer release and include a `CHANGELOG.md` heading for the new version.
+- Requires later changed skills to increase their SemVer release and include a `CHANGELOG.md` entry with a `## <version> - YYYY-MM-DD` heading and at least one nonempty bullet.
