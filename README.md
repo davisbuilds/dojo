@@ -39,7 +39,7 @@ which skill you want, name it in the request. Prefer the terminal? Use
 | What you need | Start with |
 | --- | --- |
 | Find and reconcile drift between installed skill copies | [skill-standardizer](skills/skill-standardizer/SKILL.md) — audit and sync scripts with recovery records |
-| Make a CLI work for people, scripts, and agents | [create-cli](skills/create-cli/SKILL.md) — interface conventions and a specialist reference |
+| Make a CLI work for people, scripts, and agents | [cli-design](skills/cli-design/SKILL.md) — interface conventions and a specialist reference |
 | Write tests that catch the intended regression | [test-strategy](skills/test-strategy/SKILL.md) — testing preferences, dependency fidelity, and checks for misleading passes |
 
 Browse the [full catalog](docs/system/FEATURES.md), or open the
@@ -78,13 +78,15 @@ Suppose your CLI's `export` command prints progress alongside its JSON output,
 breaking a downstream parser:
 
 ```text
-Use create-cli to fix export's output contract for our existing JSON consumer.
+Use cli-design to fix export's output contract for our existing JSON consumer.
 Keep the established command syntax. Send diagnostics to stderr, keep stdout
 parseable, and make missing required input fail clearly without prompting when
 stdin is not a terminal. Implement the change and check success and failure paths.
 ```
 
 **Inspect:** captured stdout, stderr, and exit status from the actual command.
+
+Already using `create-cli`? [Migrate to `cli-design`](docs/system/OPERATIONS.md#migrating-from-create-cli-to-cli-design).
 The consumer can parse successful output, diagnostics stay on stderr, and missing
 input produces a useful error and nonzero exit without waiting for a prompt.
 The skill supplies conventions and reference material; your agent uses the
@@ -183,6 +185,7 @@ remain beside the guidance or fixtures they help verify and maintain.
 - [superpowers](https://github.com/obra/superpowers)
 - [agent-scripts](https://github.com/steipete/agent-scripts)
 - [anthropics/skills](https://github.com/anthropics/skills)
+- [openai/skills](https://github.com/openai/skills) — Apache-2.0 source of `skill-installer`, rebased on the copy bundled with Codex; Dojo adds Claude Code targets. Its license travels with the skill.
 - [compound-engineering-plugin](https://github.com/everyinc/compound-engineering-plugin) — source of the original agent-native-architecture skill (now rewritten as agent-native-design) and the retired compound-docs skill
 - Vercel skill contributions — retired React/Next.js references and deployment workflows remain available in Git history; see the [retirement decision](docs/project/DECISIONS.md#vercel-skills-and-shipping-profile-retirement).
 - [Kepano's Obsidian skills](https://github.com/kepano/obsidian-skills) — MIT-licensed Markdown, Bases, and JSON Canvas references, consolidated into `obsidian`
@@ -192,5 +195,6 @@ remain beside the guidance or fixtures they help verify and maintain.
 - [impeccable.style](https://impeccable.style/slop) — slop anti-pattern taxonomy paraphrased into the `design-critique` slop catalog
 - [mattpocock/skills](https://github.com/mattpocock/skills) — source of the `diagnose` (feedback-loop-first debugging) and `caveman` (ultra-compressed communication mode) skills (MIT)
 - [Emil Kowalski's skills](https://github.com/emilkowalski/skills/tree/2d228630ba1446365f614a108cb8252f1feda202/skills) — MIT-licensed content-edge remedies from `break-ui` and motion craft guidance from `animate` and `review-animations` adapted into `frontend-design`. Dojo keeps case selection and motion choices contextual, reuses existing tooling, and omits prescribed report formats and approval pauses. Browser API details are linked from the references.
-- [Command Line Interface Guidelines](https://clig.dev/) by Aanand Prasad, Ben Firshman, Carl Tashian, Eva Parish, and contributors; design by Mark Hurrell — the `create-cli` reference adapts this [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) guide for human, script, and agent consumers. Agent discovery, bounded evidence, and asynchronous lifecycle guidance are Dojo additions.
+- [Command Line Interface Guidelines](https://clig.dev/) by Aanand Prasad, Ben Firshman, Carl Tashian, Eva Parish, and contributors; design by Mark Hurrell — the `cli-design` reference adapts this [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) guide for human, script, and agent consumers. Agent discovery, bounded evidence, and asynchronous lifecycle guidance are Dojo additions.
 - [Microsoft Playwright CLI](https://github.com/microsoft/playwright-cli) — Apache-2.0 material adapted for the `playwright` skill, with a wrapper and local reference guides; see its bundled notice.
+- [Lauren Tan's pstack verification skills](https://github.com/cursor/plugins/tree/ae5650febf4320793844c12c4adaa937f417f8da/pstack/skills) — MIT-licensed creation and maintenance guidance adapted into `verification-tooling`: usable readiness, consumer interaction, retained evidence, cleanup, and verification drift. Dojo combines creation and maintenance, keeps artifacts project-native, and scopes coverage to the task; the upstream license travels with the skill.

@@ -16,8 +16,6 @@ import skill_health_runtime as shr  # noqa: E402
 FIXTURE = REPO_ROOT / "tests" / "fixtures" / "sample-skill-health.json"
 
 
-# --- Task 1: load_health_rows -------------------------------------------------
-
 def test_load_health_rows_from_file():
     rows = shr.load_health_rows(url=None, path=str(FIXTURE))
     assert isinstance(rows, list)
@@ -34,7 +32,6 @@ def test_load_health_rows_url_error_raises():
 
 def test_load_health_rows_malformed_shape_raises(tmp_path):
     bad = tmp_path / "bad.json"
-    # `data` present but items are not the expected shape.
     bad.write_text(json.dumps({"data": [{"nope": 1}]}), encoding="utf-8")
     with pytest.raises(RuntimeError):
         shr.load_health_rows(url=None, path=str(bad))
@@ -46,8 +43,6 @@ def test_load_health_rows_missing_data_raises(tmp_path):
     with pytest.raises(RuntimeError):
         shr.load_health_rows(url=None, path=str(bad))
 
-
-# --- Task 2: enrich_report ----------------------------------------------------
 
 def _report(*skill_names):
     """A minimal build_report-shaped dict with the given dojo skills."""
@@ -62,8 +57,6 @@ def _fixture_rows():
 
 
 def test_enrich_attaches_runtime_fields_to_dojo_skills():
-    # find-skills (never-fired), write-spec (heavy), plus a dojo skill absent
-    # from the health data (audit-skill).
     report = _report("find-skills", "write-spec", "audit-skill")
     shr.enrich_report(report, _fixture_rows(), source="fixture")
     by_name = {s["skill"]: s for s in report["skills"]}
@@ -79,16 +72,15 @@ def test_enrich_ignores_non_dojo_rows():
     report = _report("find-skills", "write-spec")
     shr.enrich_report(report, _fixture_rows(), source="fixture")
     names = {s["skill"] for s in report["skills"]}
-    # The fixture's non-dojo row must not be added to the report.
     assert "some-external-plugin" not in names
 
 
 def test_enrich_marks_unmatched_dojo_skill_unknown():
-    report = _report("audit-skill")  # no health row for this skill
+    report = _report("audit-skill")
     shr.enrich_report(report, _fixture_rows(), source="fixture")
     entry = report["skills"][0]
     assert entry["invocations"] == 0
-    assert entry["never_fired"] is None  # unknown, distinct from explicit False
+    assert entry["never_fired"] is None
 
 
 def test_enrich_adds_summary_rollups():
@@ -96,11 +88,9 @@ def test_enrich_adds_summary_rollups():
     shr.enrich_report(report, _fixture_rows(), source="http://example/health")
     s = report["summary"]
     assert s["runtime_source"] == "http://example/health"
-    assert s["never_fired"] == 1  # only find-skills
-    assert s["invoked"] == 2  # write-spec + brainstorming
+    assert s["never_fired"] == 1
+    assert s["invoked"] == 2
 
-
-# --- version-split aggregation (last-wins join bug) ---------------------------
 
 def _split_rows():
     """Two health rows for one skill, as AgentMonitor's (name, version) keying
@@ -123,12 +113,11 @@ def test_enrich_sums_volume_across_version_split_rows():
     report = _report("write-spec")
     shr.enrich_report(report, _split_rows(), source="fixture")
     entry = report["skills"][0]
-    # Last-wins would report only the second row (85 / 90); the total is the skill's.
-    assert entry["invocations"] == 125           # 40 + 85
-    assert entry["misfire_eligible"] == 120       # 30 + 90
-    assert entry["misfires"] == 3                 # 3 + 0
-    assert entry["last_invoked_at"] == "2026-07-06T18:22:00Z"  # newest wins
-    assert entry["misfire_rate"] == pytest.approx(3 / 120)     # recomputed from totals
+    assert entry["invocations"] == 125
+    assert entry["misfire_eligible"] == 120
+    assert entry["misfires"] == 3
+    assert entry["last_invoked_at"] == "2026-07-06T18:22:00Z"
+    assert entry["misfire_rate"] == pytest.approx(3 / 120)
     assert entry["never_fired"] is False
 
 
@@ -145,7 +134,7 @@ def test_enrich_never_fired_only_when_all_rows_never_fired():
     shr.enrich_report(report, rows, source="fixture")
     entry = report["skills"][0]
     assert entry["invocations"] == 5
-    assert entry["never_fired"] is False  # one version fired -> not never-fired
+    assert entry["never_fired"] is False
 
 
 def test_enrich_all_never_fired_rows_stay_never_fired():
@@ -162,11 +151,9 @@ def test_enrich_all_never_fired_rows_stay_never_fired():
     entry = report["skills"][0]
     assert entry["invocations"] == 0
     assert entry["never_fired"] is True
-    assert entry["misfires"] is None       # no eligible rows -> stays absent
+    assert entry["misfires"] is None
     assert entry["misfire_rate"] is None
 
-
-# --- Task 3: ranking + render -------------------------------------------------
 
 def _enriched(*names):
     report = _report(*names)
@@ -177,7 +164,6 @@ def _enriched(*names):
 def test_never_fired_sorts_first():
     report = _enriched("write-spec", "brainstorming", "find-skills", "write-plan")
     order = [e["skill"] for e in shr.rank_runtime_skills(report)]
-    # never-fired first, then rarely-fired band, then rest by invocations asc.
     assert order[0] == "find-skills"
     assert order.index("brainstorming") < order.index("write-plan")
     assert order.index("write-plan") < order.index("write-spec")
@@ -186,7 +172,6 @@ def test_never_fired_sorts_first():
 def test_misfire_does_not_affect_rank():
     report = _enriched("write-spec", "write-plan", "brainstorming", "find-skills")
     before = [e["skill"] for e in shr.rank_runtime_skills(report)]
-    # Perturb misfire fields only; ranking must not move.
     for e in report["skills"]:
         e["misfires"] = 999 if e.get("misfires") is not None else e.get("misfires")
         e["misfire_rate"] = 0.99 if e.get("misfire_rate") is not None else e.get("misfire_rate")
@@ -200,18 +185,15 @@ def test_render_marks_misfire_experimental_and_never_fired():
     text = "\n".join(lines)
     assert "Runtime health" in text
     assert "find-skills" in text and "never" in text.lower()
-    # write-plan has misfire data -> experimental label with N/M denominator.
     assert "2/10" in text and "experimental" in text
 
 
 def test_unknown_skill_renders_no_data_and_sorts_last():
     report = _enriched("write-spec", "audit-skill", "find-skills")
     order = [e["skill"] for e in shr.rank_runtime_skills(report)]
-    assert order[-1] == "audit-skill"  # no runtime data -> last
+    assert order[-1] == "audit-skill"
     assert "no data" in "\n".join(shr.render_runtime_section(report))
 
-
-# --- Task 3: CLI main() wiring (subprocess) -----------------------------------
 
 import subprocess  # noqa: E402
 
@@ -237,11 +219,9 @@ def test_runtime_load_failure_exits_nonzero_no_report():
         capture_output=True, text=True,
     )
     assert proc.returncode == 1
-    assert proc.stdout.strip() == ""  # no partial report
+    assert proc.stdout.strip() == ""
     assert "health" in proc.stderr.lower()
 
-
-# --- Task 4: findings ---------------------------------------------------------
 
 def test_findings_emits_backlog_block_for_never_fired():
     report = _enriched("find-skills", "write-spec", "brainstorming")
@@ -251,16 +231,14 @@ def test_findings_emits_backlog_block_for_never_fired():
     assert "**What**" in block
     assert "**Why it matters**" in block
     assert "**Sketch**" in block
-    # Skills that fired must not be proposed for retirement.
     assert "#### write-spec" not in block
-    # Static caveat about the queried range is present.
     assert "range" in block.lower()
 
 
 def test_findings_none_when_all_fired():
     report = _enriched("write-spec", "brainstorming")
     block = shr.render_findings(report)
-    assert "####" not in block  # no never-fired skills -> no findings blocks
+    assert "####" not in block
 
 
 def test_findings_writes_no_file():
@@ -271,5 +249,5 @@ def test_findings_writes_no_file():
         capture_output=True, text=True,
     )
     assert proc.returncode == 0, proc.stderr
-    assert "####" in proc.stdout  # findings printed to stdout
-    assert backlog.read_bytes() == before  # nothing auto-written
+    assert "####" in proc.stdout
+    assert backlog.read_bytes() == before

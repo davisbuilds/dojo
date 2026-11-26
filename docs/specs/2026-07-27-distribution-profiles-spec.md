@@ -3,13 +3,22 @@ date: 2026-07-27
 author: gpt-5.6-sol
 topic: distribution-profiles
 stage: spec
-status: complete
+status: reference
 source: conversation
 risk_profile: high
 readiness: ready
 ---
 
 # Distribution Profiles Spec
+
+The shipped boundary is read-only measurement, definition validation, drift
+checks and deterministic evidence. Use [the reviewed profile data](../../profiles/README.md)
+for current vocabulary and identity rules, [Operations](../system/OPERATIONS.md#measure-what-a-sessions-skill-listing-actually-costs)
+for the runnable checks, and [Global Skill Membership](../project/GLOBAL-SKILL-MEMBERSHIP.md)
+for the standing membership decision. This reference retains the success-criterion
+and scenario IDs used by those tools. Its original acceptance criteria and
+execution sequence include a wrapper and applicator that were descoped in
+revisions 15 and 16 below.
 
 ## Current design selection
 
@@ -362,7 +371,7 @@ catalog as conformant.
   across overlays collapses deterministically, and every resolved member must
   exist in the canonical catalog. Each capability overlay adds at least two
   non-`core` members and includes these required anchors: `engineering`
-  includes `create-cli` and `secure-code`; `research` includes `deep-research`
+  includes `cli-design` and `secure-code`; `research` includes `deep-research`
   and `research-architect`; `design` includes `design-critique` and
   `frontend-design`; `knowledge` includes `obsidian` and
   `session-retro`; and `skill-authoring` includes `skill-creator` and `skill-standardizer`.
@@ -901,6 +910,10 @@ data constrained by required anchors, non-triviality, routing evidence, and
 budget checks, not an unresolved behavioral decision.
 
 ## Revision History
+
+- **2026-11-23 (revision 21).** The SC-02 CLI design anchor in `engineering`
+  moved from `create-cli` to `cli-design`. The selection still resolves with
+  the same capabilities under a new profile identity.
 
 - **2026-10-23 (revision 20). Retire Vercel skills and the shipping overlay.**
   SC-02 removes `shipping` from the public vocabulary; selections naming it fail

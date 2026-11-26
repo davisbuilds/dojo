@@ -35,12 +35,9 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 HOOKS = REPO_ROOT / "hooks"
 WORKFLOW = REPO_ROOT / ".github" / "workflows" / "skill-contract-pilot.yml"
-# CI delegates its checks to the repository gate, so both files are CI source.
 CI_SOURCES = (WORKFLOW, REPO_ROOT / "scripts" / "check")
 AUDIT = REPO_ROOT / "skills" / "skill-standardizer" / "scripts" / "audit.py"
 
-# Entrypoints and flags that can change installed skill state. Matched as whole
-# tokens so a substring in prose or a filename cannot trip them.
 MUTATING_TOKENS = (
     r"--apply",
     r"\bsync\.py\b",
@@ -49,9 +46,6 @@ MUTATING_TOKENS = (
     r"profiles[/.]apply\b",
 )
 
-# `audit.py` is the read-only half of the standardizer and the only entrypoint a
-# hook invokes. Its import list is the seam: `apply_actions` lives in the same
-# library, one line away.
 AUDIT_READONLY_SYMBOLS = {
     "build_audit_report", "print_json", "resolve_context",
     "summarize_report", "write_json",
@@ -66,11 +60,6 @@ def hook_scripts() -> list[Path]:
 
 def mutating_tokens_in(text: str) -> list[str]:
     return [t for t in MUTATING_TOKENS if re.search(t, text)]
-
-
-# --------------------------------------------------------------------------
-# Static: hooks
-# --------------------------------------------------------------------------
 
 
 def test_no_hook_references_a_mutating_entrypoint():
@@ -97,11 +86,6 @@ def test_the_detector_does_not_fire_on_ordinary_hook_text(tmp_path):
     assert mutating_tokens_in(benign.read_text()) == []
 
 
-# --------------------------------------------------------------------------
-# Static: the standardizer's read-only entrypoint
-# --------------------------------------------------------------------------
-
-
 def test_audit_imports_only_read_only_symbols():
     """`apply_actions` sits one line away in the same library.
 
@@ -116,11 +100,6 @@ def test_audit_imports_only_read_only_symbols():
         f"audit.py's imports changed: {imported ^ AUDIT_READONLY_SYMBOLS}")
 
 
-# --------------------------------------------------------------------------
-# Static: CI
-# --------------------------------------------------------------------------
-
-
 def test_ci_never_creates_the_whole_catalog_links():
     """`gen_harness_adapters.py` without `--skip-symlinks` links the whole catalog
     into project scope — the defect that put a dojo session at 177% of budget."""
@@ -130,7 +109,6 @@ def test_ci_never_creates_the_whole_catalog_links():
         for line in source.read_text().splitlines()
         if "gen_harness_adapters.py" in line
     ]
-    # A scan that finds no invocation proves nothing about how CI calls it.
     assert invocations, "no gen_harness_adapters.py invocation found in CI sources"
     for line in invocations:
         assert "--skip-symlinks" in line, f"CI may create catalog links: {line}"
@@ -140,11 +118,6 @@ def test_ci_never_creates_the_whole_catalog_links():
 def test_ci_holds_no_mutating_entrypoint():
     for source in CI_SOURCES:
         assert mutating_tokens_in(source.read_text()) == [], source
-
-
-# --------------------------------------------------------------------------
-# Dynamic: hooks leave a skills root byte-identical
-# --------------------------------------------------------------------------
 
 
 def hash_tree(root: Path) -> str:
@@ -208,9 +181,9 @@ def test_every_hook_leaves_the_skills_roots_untouched(fixture_home, hook_repo):
         **os.environ, "HOME": str(fixture_home),
         "CLAUDE_PROJECT_DIR": str(hook_repo), "PATH": os.environ.get("PATH", ""),
     }
-    # A realistic tool payload. With bare `{}` the tool-use hooks exit at their
-    # first `jq` extraction, so the sweep would cover only the session hooks —
-    # notably skipping the one that regenerates artifacts.
+    # WHY: a realistic tool payload. With bare `{}` the tool-use hooks exit at their
+    # first `jq` extraction, so the sweep would skip the one that regenerates
+    # artifacts.
     payload = json.dumps({
         "tool_name": "Write",
         "tool_input": {"file_path": str(hook_repo / "skills" / "skill-standardizer" / "SKILL.md")},
@@ -242,7 +215,6 @@ def test_the_drift_hook_actually_reaches_its_audit(fixture_home, hook_repo):
     env = {**os.environ, "HOME": str(fixture_home), "PATH": os.environ.get("PATH", "")}
     hook = hook_repo / "hooks" / "session-start-skill-drift.sh"
 
-    # It must get past `git rev-parse` in this repo, and not in a non-repo.
     inside = subprocess.run(["bash", "-x", str(hook)], cwd=hook_repo, env=env,
                             capture_output=True, text=True, timeout=120)
     trace = inside.stderr
@@ -275,11 +247,6 @@ def test_the_tree_hash_detects_each_mutation_shape(fixture_home):
     link.unlink()
     link.symlink_to(skills / "example-skill" / "SKILL.md")
     assert hash_tree(fixture_home) != baseline, "a relinked target is invisible"
-
-
-# --------------------------------------------------------------------------
-# The CI gate itself
-# --------------------------------------------------------------------------
 
 
 def run_ci_check(capsys):

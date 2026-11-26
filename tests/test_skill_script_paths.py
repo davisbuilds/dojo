@@ -43,34 +43,19 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILLS_ROOT = REPO_ROOT / "skills"
 
-# Any repository-relative skills subpath — scripts/, rules/, assets/, whatever —
-# because all of them resolve against the caller's cwd, not dojo. The lookbehind
-# keeps an *absolute* anchor from matching: `$CODEX_HOME/skills/foo/...` and
-# `.claude/skills/foo/...` are preceded by `/` and are already correct.
 REPO_RELATIVE = re.compile(r"(?<![\w/<.-])skills/[a-z0-9-]+/[\w./-]+")
 
-# Fenced blocks tagged as a shell: every line is a command (so a `\`-continued
-# operand on its own line is still covered). An untagged fence may be a directory
-# tree or sample data, so those lines qualify only if they carry an executor,
-# the same bar inline spans must clear.
 SHELL_FENCES = {"bash", "sh", "shell", "zsh", "console", "shell-session"}
 
-# An executor at a command position: line start, or right after a pipe/`;`/`&&`
-# /`$(`. Anchoring it here is what separates `python3 skills/foo/...` (a command)
-# from a bare mention of `skills/foo/scripts/run.sh` (whose `.sh` would otherwise
-# read as the `sh` executor).
 _EXECUTOR = re.compile(r"(?:^|[|;&]\s*|\$\(\s*)(?:bash|sh|zsh|python3?|node|printf|\./)\b")
 _INLINE_CODE = re.compile(r"`([^`]+)`")
 
-# dojo's own skill-authoring and validation gates. A command that runs one of
-# these is meant to run from a dojo checkout — that is the workflow — so a
-# repo-relative path to `skill-evals`/`skill-creator` is correct wherever it is
-# cited. The exemption keys on the tool being invoked, not the file citing it:
-# `loop-design` telling an author to run `skill-evals` is the same correct case
-# as `skill-evals` documenting itself.
+# WHY: dojo's own authoring and validation gates are meant to run from a dojo
+# checkout, so a repo-relative path to them is correct wherever it is cited. The
+# exemption keys on the tool invoked, not the file citing it.
 REPO_TOOLING = {
-    "skill-evals",      # strict contract gate over dojo's own catalog
-    "skill-creator",    # scaffolds/validates a new skill, from a dojo checkout
+    "skill-evals",
+    "skill-creator",
 }
 
 

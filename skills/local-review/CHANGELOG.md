@@ -1,3 +1,7 @@
+## 2.0.1 - 2026-11-25
+
+- Let /review inherit harness permissions by removing its command-specific tool grants.
+
 ## 2.0.0 - 2026-10-02
 
 - Rebuild review guidance around actionable introduced defects, concrete affected paths, counterevidence, and concise priority-tagged comments.
@@ -31,6 +35,6 @@
   The "post PR reviews to GitHub" boundary now points at the `gh` CLI or the
   harness's own review command rather than a skill that no longer exists.
 
-## 1.1.0
+## 1.1.0 - 2026-07-07
 
 - Added deep review context collection, branch-base fallback, stricter flag validation, and clearer helper path guidance.

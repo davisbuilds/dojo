@@ -26,7 +26,7 @@
 - Extend deterministic validation for high-risk structure while preserving the
   lean routine path and mechanism-free spec boundary.
 
-## 1.1.0
+## 1.1.0 - 2026-07-11
 
 - Add decision readiness and uncertainty triage before a contract can hand off to
   planning.

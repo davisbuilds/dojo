@@ -31,9 +31,6 @@ def make_skill(tmp_path: Path, version: str = "1.2.3", changelog: str | None = N
     return d
 
 
-# --- pure bump arithmetic --------------------------------------------------
-
-
 def test_bump_patch():
     m = load_module()
     assert m.bump_version("1.2.3", "patch") == "1.2.4"
@@ -60,9 +57,6 @@ def test_bump_rejects_bad_version():
         m.bump_version("v1.2.3", "patch")
 
 
-# --- end-to-end file effects ----------------------------------------------
-
-
 def test_end_to_end_updates_skill_and_changelog(tmp_path: Path):
     m = load_module()
     d = make_skill(tmp_path, "1.2.3")
@@ -70,8 +64,8 @@ def test_end_to_end_updates_skill_and_changelog(tmp_path: Path):
     assert (old, new) == ("1.2.3", "1.3.0")
     skill_text = (d / "SKILL.md").read_text()
     assert "version: 1.3.0" in skill_text
-    assert "Body stays put." in skill_text  # body preserved
-    assert "description: Does a thing." in skill_text  # other frontmatter preserved
+    assert "Body stays put." in skill_text
+    assert "description: Does a thing." in skill_text
     changelog = (d / "CHANGELOG.md").read_text()
     assert changelog.startswith("## 1.3.0 - 2026-07-15")
 
@@ -91,7 +85,7 @@ def test_prepends_above_existing_entries(tmp_path: Path):
     m.apply_bump(d, part="patch", date="2026-07-15")
     text = (d / "CHANGELOG.md").read_text()
     assert text.index("## 1.2.4") < text.index("## 1.2.3")
-    assert "First release." in text  # old entry retained
+    assert "First release." in text
 
 
 def test_inserts_entry_below_changelog_title(tmp_path: Path):
@@ -192,9 +186,6 @@ def test_entry_text_becomes_bullet(tmp_path: Path):
     assert "- Fixed the thing." in (d / "CHANGELOG.md").read_text()
 
 
-# --- manifest/catalog regeneration ----------------------------------------
-
-
 def _fake_checkout(tmp_path: Path, version: str = "1.2.3") -> Path:
     """A minimal checkout: skills/<skill>, real generators via a scripts/ symlink,
     and a seeded catalog so the manifest->catalog cascade has a file to refresh."""
@@ -216,7 +207,7 @@ def _fake_checkout(tmp_path: Path, version: str = "1.2.3") -> Path:
 def test_regenerate_manifest_writes_manifest_and_cascades_catalog(tmp_path: Path):
     m = load_module()
     d = _fake_checkout(tmp_path, "1.2.3")
-    m.apply_bump(d, part="patch", date="2026-07-15")  # -> 1.2.4 on disk
+    m.apply_bump(d, part="patch", date="2026-07-15")
 
     manifest_path = m.regenerate_manifest(d)
 
@@ -229,8 +220,6 @@ def test_regenerate_manifest_writes_manifest_and_cascades_catalog(tmp_path: Path
 def test_regenerate_manifest_creates_absent_catalog(tmp_path: Path):
     m = load_module()
     d = _fake_checkout(tmp_path, "1.2.3")
-    # A checkout whose generated catalog was deleted/omitted: regen must create
-    # it, not skip it (else CI's gen_catalog --check would still fail).
     catalog = tmp_path / "docs" / "catalog" / "index.html"
     catalog.unlink()
 
@@ -242,7 +231,7 @@ def test_regenerate_manifest_creates_absent_catalog(tmp_path: Path):
 
 def test_regenerate_manifest_noops_outside_a_checkout(tmp_path: Path):
     m = load_module()
-    d = make_skill(tmp_path, "1.2.3")  # parent is tmp_path, not a skills/ dir
+    d = make_skill(tmp_path, "1.2.3")
     assert m.regenerate_manifest(d) is None
 
 

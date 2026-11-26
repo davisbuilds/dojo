@@ -16,8 +16,6 @@
 - `spec/agent-skills-spec.md` — full skill specification.
 - `rules/` — standing always-follow conventions (skill authoring, doc/commit hygiene), separate from on-trigger skills; composable into SKILL.md via `<!-- INCLUDE: rules/<name> -->`.
 
-The auto-generated `skills.json` manifest is the runtime source of truth for what's available.
-
 ## Working Conventions
 
 - **Hooks already enforce most invariants.** Editing a `SKILL.md` triggers validation on write, manifest regen on save, and skill-structure check at session stop. If a hook blocks you, fix the underlying problem rather than working around it.
@@ -25,15 +23,11 @@ The auto-generated `skills.json` manifest is the runtime source of truth for wha
 
 ## Key Design Principles
 
-1. **Context is sacred**: The context window is finite and shared. Only add information the agent doesn't already have/know.
+Context economy, degrees of freedom, and trigger quality are owned by
+`docs/system/SKILL-BEST-PRACTICES.md`; progressive-disclosure tiers by
+`docs/system/ARCHITECTURE.md`. The local preference:
 
-2. **Progressive disclosure**: Metadata always loaded (~100 words) → SKILL.md body on trigger (<5k words) → bundled resources as needed.
-
-3. **Degrees of freedom**: Match specificity to task fragility - high freedom for flexible tasks (text instructions), low freedom for fragile operations (specific scripts).
-
-4. **Description is the trigger**: The `description` field determines when the agent uses the skill. Include both what it does AND specific scenarios/triggers.
-
-5. **Earn the constraint**: Design for capable agents. Add missing capabilities, preferences, or demonstrated safeguards; let generic coaching shrink as it loses value. Consultation does not inherit a sibling's workflow. Follow the authoring and retirement guidance in `docs/system/SKILL-BEST-PRACTICES.md`, grounded in `docs/project/VISION.md`.
+- **Earn the constraint**: Design for capable agents. Add missing capabilities, preferences, or demonstrated safeguards; let generic coaching shrink as it loses value. Consultation does not inherit a sibling's workflow. Follow the authoring and retirement guidance in `docs/system/SKILL-BEST-PRACTICES.md`, grounded in `docs/project/VISION.md`.
 
 ## Testing
 
@@ -41,12 +35,47 @@ The auto-generated `skills.json` manifest is the runtime source of truth for wha
 
 - **Pre-push**: `scripts/check`, the same gate CI runs (about 30 s; `--fast` skips the test suites). It only checks, never writes, and names every failed check. Add a new CI check to the script rather than to the workflow.
 - **Focused skill checks**: `uv run --locked bin/dojo check <skill>` verifies one skill's packaging and links while you edit it; `uv run --locked bin/dojo inspect <skill> --harness codex` investigates why a skill is missing, stale, or mis-exposed in Codex. Both are narrower than the pre-push command and CI, and don't replace them. Options and limits: [operations](docs/system/OPERATIONS.md#dojo-development-cli).
-- **TDD**: red/green for new features, major refactors, and large changes. The red step must fail for the behavior you're about to fix — a test that fails only because the symbol doesn't exist yet is a stub, not a red test; write the signature first, then a test that fails on the behavior. Skip the red step for code with no behavior to assert, and cover it after. For smaller edits, still run the relevant existing tests before wrapping up.
+- **TDD**: red/green for new features, major refactors, and large changes; the red step must fail on the behavior being fixed, not on a missing symbol.
+
+## Git
+
+[GIT_HISTORY_POLICY.md](docs/project/GIT_HISTORY_POLICY.md) owns merge settings: merge commits by default, rebase allowed, squash disabled, branches deleted on merge. `main` requires the `check` and `Validate Strict Skill Set` checks; branches need not be up to date. Commit subjects and PR titles/bodies are Conventional Commits that Release Please parses ([release contract](docs/system/OPERATIONS.md#cli-and-tooling-releases)); use `docs(<skill>): ...` for skill instruction changes. Merging an ordinary PR updates the open Release Please PR; merging that release PR tags and publishes a CLI/tooling release.
 
 ## Working Agreement
 
-- **Push back before building.** If a request is incoherent or self-contradictory, or a spec/plan is vague or skips key decisions, stop and interview me — ask clarifying questions and confirm intent before writing code or changing files. Don't guess at scope or comply silently. (Clear, well-scoped requests don't need this.)
-- **Keep docs current.** Update the owning reference when a change makes a documented contract, boundary, procedure, or direction stale. Reconcile affected backlog entries as work lands; update Roadmap when selected direction changes, not for every shipment.
-- **Commit logically.** Commit completed work in coherent chunks as you proceed. Push only when explicitly asked.
-- **Log durable follow-ups in `BACKLOG.md`.** Note design gaps, tech debt, or better approaches you spot mid-task in `docs/project/BACKLOG.md`; fix simple, quick, or blocking issues inline and call them out. Add an item only for recurring friction, meaningful risk/cost, an unresolved decision, or a concrete trigger. Record **What / Why or evidence / Next or Revisit when**; keep the backlog future-only, use the capability-owning repository as canonical for cross-repo work, date/source volatile claims (or label a hypothesis), and remove resolved work while preserving any unresolved remainder. Agents can execute backlog entries directly; use GitHub Issues when persistent discussion or coordination helps, with one detailed owner and links where useful.
-- **Re-ground after compaction.** A compaction summary loses precise paths, context, and verification state — before continuing, re-read this project's `AGENTS.md`, its reference docs, and recent commits.
+- **Clarify before building** when a request is vague, contradictory, or skips a
+  key decision; clear, well-scoped requests need no interview.
+- **Comments.** Don't add code comments. The one exception is a decision record:
+  start it with `WHY:` and state a non-obvious reason the code can't express.
+  Never justify a shortcut in a comment; fix it or record it in
+  `docs/project/BACKLOG.md`. `python3 scripts/check_comments.py` enforces a
+  ratchet: after deleting comments run it with `--update`, and never raise a
+  count in `.comment-baseline.json`.
+- **Fix small issues now; backlog the rest.** Fix simple, quick, or blocking
+  issues in this repo as part of the current change and call them out. Record in
+  `docs/project/BACKLOG.md` only what can't be finished now or needs the
+  maintainer's decision; don't open a branch or PR just for a backlog entry.
+  Add an item only for recurring friction, meaningful risk/cost, an unresolved
+  decision, or a concrete trigger. Record **What / Why or evidence / Next or
+  Revisit when**; keep the backlog future-only, use the capability-owning
+  repository as canonical for cross-repo work, date/source volatile claims (or
+  label a hypothesis), and remove resolved work while preserving any unresolved
+  remainder. Agents can execute backlog entries directly; use GitHub Issues
+  when persistent discussion or coordination helps, with one detailed owner and
+  links where useful.
+- **Keep docs current** when a change makes a documented contract, boundary,
+  procedure, or direction stale. Reconcile affected backlog entries as work
+  lands; update Roadmap when selected direction changes, not for every shipment.
+- **Planning and continuity.** Reuse clear task context. Save planning docs when
+  decisions, acceptance, or coordination need persistence. Leave a brief handoff
+  only when needed to resume unfinished work. Commit shared docs and keep status
+  current. Before archiving, preserve lasting decisions and open work in
+  maintained docs and repair links.
+- **Commit and push.** Commit coherent chunks, staging by explicit path. Push
+  your task branch and open a PR once the work is complete and the local gate
+  passes; don't push directly to `main`.
+- **Merge** only under the standing merge authority in the maintainer's
+  workspace instructions, or when the maintainer asks. Without those
+  instructions in context, leave the PR for the maintainer.
+- **Re-ground after compaction** in source, this file, the owning docs, and
+  recent commits. A summary and your own earlier proposals are not user approval.

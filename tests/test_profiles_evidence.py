@@ -84,11 +84,6 @@ def evidence_for(pieces, catalog, **kwargs):
     )
 
 
-# --------------------------------------------------------------------------
-# Determinism — each assertion paired with a perturbation
-# --------------------------------------------------------------------------
-
-
 def test_two_runs_over_unchanged_inputs_are_byte_identical(pieces, catalog):
     first = evidence_for(pieces, catalog).to_json()
     second = evidence_for(pieces, catalog).to_json()
@@ -127,11 +122,6 @@ def test_lists_are_lexically_ordered(pieces, catalog):
     assert [s["skill"] for s in payload["suppressed"]] == sorted(s["skill"] for s in payload["suppressed"])
 
 
-# --------------------------------------------------------------------------
-# Shape
-# --------------------------------------------------------------------------
-
-
 def test_the_report_carries_exactly_the_sc06_field_set(pieces, catalog):
     """Adding or dropping a field must fail, not pass quietly."""
     payload = evidence_for(pieces, catalog).payload
@@ -161,11 +151,6 @@ def test_a_suppressed_member_is_distinguishable_from_one_never_selected(pieces, 
     assert "caveman" not in payload["resolved_members"]
     entry = next(s for s in payload["suppressed"] if s["skill"] == "skill-creator")
     assert entry["bundled_entry"] and entry["evidence"].strip()
-
-
-# --------------------------------------------------------------------------
-# States and exit codes
-# --------------------------------------------------------------------------
 
 
 def test_unprofiled_is_first_class_with_full_observation(pieces, catalog):
@@ -208,11 +193,6 @@ def test_an_unverifiable_revision_is_unsupported(pieces, catalog, monkeypatch):
     assert report.payload["state"] == STATE_UNSUPPORTED
 
 
-# --------------------------------------------------------------------------
-# Dirty state, narrowly (EV-NEG-04)
-# --------------------------------------------------------------------------
-
-
 def test_only_changes_to_selected_paths_make_a_target_audit_only(tmp_path):
     """An unrelated working-tree edit must not block an otherwise valid run.
 
@@ -225,9 +205,6 @@ def test_only_changes_to_selected_paths_make_a_target_audit_only(tmp_path):
     (tmp_path / "skills" / "diagnose" / "SKILL.md").write_text("x")
     (tmp_path / "unrelated.md").write_text("y")
 
-    # `git status --porcelain` alone collapses untracked directories to
-    # `?? skills/`, so a wholly-new selected skill would never match its own
-    # prefix and a dirty target would report clean. `-uall` is required.
     assert dirty_state(tmp_path, ("diagnose",)) == ["skills/diagnose/SKILL.md"]
     assert dirty_state(tmp_path, ("write-spec",)) == []
 
@@ -238,11 +215,6 @@ def test_git_being_unavailable_is_reported_rather_than_assumed_clean(tmp_path, m
         raise OSError("no git")
     monkeypatch.setattr(subprocess, "run", boom)
     assert dirty_state(tmp_path, ()) == ["<git unavailable: source revision unverifiable>"]
-
-
-# --------------------------------------------------------------------------
-# Legacy topologies (SC-09)
-# --------------------------------------------------------------------------
 
 
 def test_a_whole_catalog_link_is_detected_from_topology_not_a_count(pieces, catalog):

@@ -40,9 +40,6 @@ Liquidity providers tend to cluster around round numbers.
 """
 
 
-# --- citation extraction --------------------------------------------------
-
-
 def test_extracts_markdown_link_citations():
     citations = score_report.extract_citations(REPORT)
     urls = [c["url"] for c in citations]
@@ -177,9 +174,6 @@ https://example.com/study
     assert worksheet["checks"] == []
 
 
-# --- claim extraction -----------------------------------------------------
-
-
 def test_quantitative_claims_are_flagged():
     citations = score_report.extract_citations(REPORT)
     claims = score_report.extract_claims(REPORT, citations)
@@ -202,8 +196,6 @@ def test_claims_carry_the_citations_in_their_sentence():
 
 
 def test_claim_text_stops_at_headings_and_paragraph_breaks():
-    # A sentence-only splitter runs the heading, the frame check, and the first
-    # finding together, because "# Frame check" has no terminal punctuation.
     citations = score_report.extract_citations(REPORT)
     claims = score_report.extract_claims(REPORT, citations)
     first = next(c for c in claims if "292M" in c["text"])
@@ -225,9 +217,6 @@ def test_uncited_prose_is_not_a_claim():
     assert not any("round numbers" in c["text"] for c in claims)
 
 
-# --- sampling -------------------------------------------------------------
-
-
 def build_checks(n_quant: int, n_plain: int) -> list[dict]:
     checks = []
     for i in range(n_quant):
@@ -240,7 +229,7 @@ def build_checks(n_quant: int, n_plain: int) -> list[dict]:
 def test_sample_prefers_quantitative_claims():
     sample = score_report.select_sample(build_checks(20, 20), size=10)
     quant = [cid for cid in sample if cid.startswith("Q")]
-    assert len(quant) == 7  # QUANTITATIVE_SHARE of 10
+    assert len(quant) == 7
 
 
 def test_sample_backfills_when_quantitative_claims_are_scarce():
@@ -256,9 +245,6 @@ def test_sample_is_capped_by_available_claims():
 def test_sample_is_deterministic():
     claims = build_checks(20, 20)
     assert score_report.select_sample(claims, 10) == score_report.select_sample(claims, 10)
-
-
-# --- scoring --------------------------------------------------------------
 
 
 def worksheet_with(verdicts: dict[str, str]) -> dict:
@@ -398,9 +384,6 @@ def test_invalid_applicability_verdict_is_rejected():
         raise AssertionError("expected ValueError on an unrecognized applicability verdict")
 
 
-# --- CLI ------------------------------------------------------------------
-
-
 def test_cli_worksheet_emits_json(tmp_path):
     report = tmp_path / "report.md"
     report.write_text(REPORT, encoding="utf-8")
@@ -448,9 +431,6 @@ def test_cli_missing_file_exits_two(tmp_path):
     assert proc.returncode == 2
 
 
-# --- per-citation checks --------------------------------------------------
-
-
 MULTI_CITE = (
     "## Findings\n\n"
     "Two datasets put disputes at 43% "
@@ -479,7 +459,6 @@ def test_check_inherits_the_claim_kind_for_weighting():
 
 
 def test_one_bad_citation_is_not_hidden_by_a_good_one():
-    # The whole point: C1 supporting the claim must not mask C2 refuting it.
     worksheet = score_report.build_worksheet(MULTI_CITE)
     ids = [c["id"] for c in worksheet["checks"]]
     worksheet["verdicts"] = {ids[0]: "supported", ids[1]: "unsupported"}
@@ -492,9 +471,6 @@ def test_uncited_claims_contribute_no_checks():
     worksheet = score_report.build_worksheet("## F\n\nNothing is cited here.\n")
     assert worksheet["checks"] == []
     assert worksheet["sample"] == []
-
-
-# --- CLI input validation -------------------------------------------------
 
 
 def test_cli_rejects_a_zero_sample_size(tmp_path):

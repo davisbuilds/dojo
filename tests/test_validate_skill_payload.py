@@ -42,8 +42,6 @@ skill-type: workflow
 # Demo
 """
 
-# A colon-space inside an unquoted YAML scalar silently turns the description
-# into a mapping and blows up the parse. This is a real bug that shipped.
 BAD_YAML = """---
 name: demo-skill
 description: A demo skill. Use when asked. Optional: never scores the user.
@@ -162,7 +160,6 @@ def test_malformed_hook_input_does_not_block(skill_dir: Path):
 def test_missing_validator_dependency_degrades_to_allow(skill_dir, monkeypatch):
     """A guard hook must not block edits because its own dependency is missing."""
     module = load_hook_module()
-    # Simulate PyYAML (or the validator) being unimportable.
     monkeypatch.setattr(module, "_load_validator", lambda: None)
     target = skill_dir / "SKILL.md"
     monkeypatch.setattr("sys.stdin", _StdinStub(json.dumps(write_payload(target, MISSING_VERSION))))

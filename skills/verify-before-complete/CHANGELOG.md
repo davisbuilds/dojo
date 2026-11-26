@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.1 - 2026-11-04
+
+- Point authorized verification-machinery construction and repair to
+  `verification-tooling`; retain ownership of claim/evidence assessment.
+
 ## 3.0.0 - 2026-09-23
 
 - Assess claim-specific evidence, reuse applicable CI/delegated artifacts, and remove mandatory local reruns, risk levels, and report formats. Preserve unresolved-proof and authority boundaries.

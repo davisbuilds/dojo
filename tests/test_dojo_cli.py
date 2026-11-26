@@ -1,6 +1,7 @@
 """Real CLI failures and positive controls over isolated skill edits."""
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 
@@ -93,13 +94,13 @@ else:
 ''')
     executable.chmod(0o755)
     return {**os.environ, 'PATH': str(tools), 'HOME': str(home), 'CODEX_HOME': str(home/'.codex'),
-            'AGENTS_HOME': str(home/'.agents'), 'CLAUDE_HOME': str(home/'.claude')}
+            'AGENTS_HOME': str(home/'.agents'), 'CLAUDE_HOME': str(home/'.claude'),
+            'GEMINI_HOME': str(home/'.gemini')}
 
 
 @pytest.mark.parametrize('count, expected', [(1, 0), (0, 1), (2, 1)])
 def test_inspect_exposure_has_real_positive_control(repo, tmp_path, count, expected):
     env = fake_codex(tmp_path, repo, count=count)
-    # Git is also needed; retain only its directory after the fake harness.
     import shutil, os
     env['PATH'] += os.pathsep + str(Path(shutil.which('git')).parent)
     before = (repo/'skills/alpha/SKILL.md').read_bytes()
@@ -140,6 +141,56 @@ def test_missing_repository_tools_are_unavailable(repo):
     code, result = invoke(repo, 'check', 'alpha', '--repo-checks')
     assert code == 2
     assert all(c['status']=='unavailable' for c in result['checks'] if c['scope']=='repository')
+
+
+def test_repo_checks_detect_manifest_drift_and_explicit_recovery(repo):
+    (repo / 'scripts').mkdir()
+    for name in ('generate_skills_manifest.py', 'gen_skill_docs.py',
+                 'gen_harness_adapters.py', 'gen_catalog.py'):
+        shutil.copy2(ROOT / 'scripts' / name, repo / 'scripts' / name)
+    (repo / 'config').mkdir()
+    (repo / 'config/project-skills.json').write_text(json.dumps({
+        'roots': ['.agents/skills', '.claude/skills'],
+        'linked': ['alpha', 'beta'], 'retired_roots': ['.agent/skills'],
+    }))
+
+    def generate(name, *args):
+        subprocess.run([sys.executable, str(repo / 'scripts' / name), *args],
+                       cwd=repo, capture_output=True, text=True, check=True)
+
+    def generated_state():
+        files = [repo / 'skills.json', repo / 'docs/catalog/index.html',
+                 *sorted((repo / 'skills').rglob('*'))]
+        return {str(p.relative_to(repo)): p.read_bytes() for p in files if p.is_file()}
+
+    def repository_checks(expected_code, expected_statuses):
+        before = generated_state()
+        code, result = invoke(repo, 'check', 'alpha', '--repo-checks')
+        assert code == expected_code, result
+        checks = {c['id']: c for c in result['checks'] if c['scope'] == 'repository'}
+        assert {name: c['status'] for name, c in checks.items()} == expected_statuses
+        assert all(c['details']['exit_code'] == (0 if c['status'] == 'pass' else 1)
+                   for c in checks.values())
+        assert generated_state() == before
+        return checks
+
+    generate('generate_skills_manifest.py')
+    generate('gen_harness_adapters.py', '--skip-symlinks')
+    healthy = generated_state()
+    passing = dict.fromkeys(('manifest', 'composed-docs', 'adapters', 'catalog'), 'pass')
+    repository_checks(0, passing)
+
+    manifest = repo / 'skills.json'
+    stale = json.loads(manifest.read_text())
+    stale['skills'][0]['description'] = 'Stale generated description.'
+    manifest.write_text(json.dumps(stale, indent=2) + '\n')
+    checks = repository_checks(1, {**passing, 'manifest': 'fail', 'catalog': 'fail'})
+    assert 'Manifest is stale' in checks['manifest']['details']['stderr']
+
+    generate('generate_skills_manifest.py')
+    repository_checks(0, passing)
+    assert generated_state() == healthy
+    assert not (repo / '.agents').exists() and not (repo / '.claude').exists()
 
 
 def test_help_works_without_repository_or_harness(tmp_path):

@@ -41,7 +41,6 @@ def check(result: dict, name: str) -> dict:
     return next(c for c in result["checks"] if c["name"] == name)
 
 
-# The linter checks shippable text, not a prescribed research methodology.
 @pytest.mark.parametrize("executor", ["web", "terminal"])
 def test_focused_prompt_needs_no_workflow_sections(executor):
     prompt = (
@@ -62,9 +61,6 @@ def test_empty_prompt_fails(prompt):
     result = lint_prompt.evaluate(prompt, "terminal")
     assert check(result, "nonempty_prompt")["status"] == "fail"
     assert result["status"] == "fail"
-
-
-# --- individual checks ----------------------------------------------------
 
 
 def test_clean_prompt_passes_everything():
@@ -98,9 +94,6 @@ def test_xml_like_text_inside_prompt_is_not_treated_as_trailing_debris():
     text = make_prompt(extra="Use <content>example</content> as the fixture.\nThen summarize it.\n")
     result = lint_prompt.evaluate(text, executor="terminal")
     assert check(result, "harness_debris")["status"] == "pass"
-
-
-# --- CLI ------------------------------------------------------------------
 
 
 def run_cli(tmp_path: Path, text: str, *args: str) -> subprocess.CompletedProcess:
@@ -142,9 +135,6 @@ def test_cli_missing_file_exits_two(tmp_path):
     assert proc.returncode == 2
 
 
-# --- seeded statistics ----------------------------------------------------
-
-
 SEEDED_FLOATING = (
     "**Seed sources (vetted; start here):**\n"
     "- A large-N study reportedly finds 1.2B trades show no longshot bias.\n"
@@ -170,8 +160,6 @@ def test_identified_statistic_in_seed_block_passes():
 
 
 def test_magnitudes_outside_the_seed_block_are_ignored():
-    # The seed block ends at the next bold label, so the 1.5M below is body
-    # prose the executor is asked to produce -- not seeded background.
     extra = SEEDED_IDENTIFIED + "\n**Source floor:** report the 1.5M-case base rate.\n"
     result = lint_prompt.evaluate(make_prompt(extra=extra), "terminal")
     assert check(result, "seeded_statistics")["status"] == "pass"

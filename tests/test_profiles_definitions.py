@@ -39,9 +39,9 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 from profiles import definitions  # noqa: E402
 from profiles.definitions import ProfileDefinitionError  # noqa: E402
 
-# --- Contract constants, quoted from the spec rather than imported. ---------
+# WHY: contract constants are quoted from the spec rather than imported, so a
+# drifted implementation cannot agree with itself.
 
-# SC-02: the public profile vocabulary.
 SC02_VOCABULARY = {
     "core",
     "engineering",
@@ -52,7 +52,6 @@ SC02_VOCABULARY = {
     "full",
 }
 
-# SC-03: `core` contains the general delivery loop.
 SC03_CORE = {
     "brainstorming",
     "first-principles",
@@ -64,9 +63,8 @@ SC03_CORE = {
     "verify-before-complete",
 }
 
-# SC-02: required anchors, per overlay.
 SC02_ANCHORS = {
-    "engineering": {"create-cli", "secure-code"},
+    "engineering": {"cli-design", "secure-code"},
     "research": {"deep-research", "research-architect"},
     "design": {"design-critique", "frontend-design"},
     "knowledge": {"obsidian", "session-retro"},
@@ -116,11 +114,6 @@ def mutate_equivalences(path: Path, entries: list[dict]) -> None:
 
 def load(workdir: Path, catalog: dict) -> dict:
     return definitions.load_definitions(workdir, catalog)
-
-
-# ---------------------------------------------------------------------------
-# The definitions as authored
-# ---------------------------------------------------------------------------
 
 
 def test_vocabulary_is_exactly_the_sc02_set(profiles):
@@ -187,11 +180,6 @@ def test_no_two_overlays_are_the_same_set(profiles):
     assert len(set(sets.values())) == len(sets)
 
 
-# ---------------------------------------------------------------------------
-# Rejection cases — plan step 5. Each asserts the message names the offender.
-# ---------------------------------------------------------------------------
-
-
 def test_rejects_unreadable_yaml(workdir, catalog):
     (workdir / "design.yaml").write_text("name: design\nmembers: [unclosed\n", encoding="utf-8")
     with pytest.raises(ProfileDefinitionError, match=r"design\.yaml.*not readable YAML"):
@@ -207,7 +195,7 @@ def test_rejects_duplicate_key_inside_one_file(workdir, catalog):
     """
     (workdir / "engineering.yaml").write_text(
         "name: engineering\nkind: overlay\ndescription: x\n"
-        "members: [create-cli, secure-code]\n"
+        "members: [cli-design, secure-code]\n"
         "members: [caveman]\n",
         encoding="utf-8",
     )
@@ -283,7 +271,7 @@ def test_rejects_a_missing_sc02_profile(workdir, catalog):
 
 
 def test_rejects_a_member_absent_from_the_catalog(workdir, catalog):
-    mutate(workdir / "engineering.yaml", members=["create-cli", "secure-code", "no-such-skill"])
+    mutate(workdir / "engineering.yaml", members=["cli-design", "secure-code", "no-such-skill"])
     with pytest.raises(ProfileDefinitionError, match=r"engineering\.yaml.*'engineering'.*no-such-skill"):
         load(workdir, catalog)
 
@@ -296,14 +284,14 @@ def test_rejects_an_overlay_with_fewer_than_two_non_core_members(workdir, catalo
     never fire on any input — a validation rule that cannot fire is
     indistinguishable from one that was never written.
     """
-    mutate(workdir / "engineering.yaml", members=["create-cli"])
+    mutate(workdir / "engineering.yaml", members=["cli-design"])
     with pytest.raises(ProfileDefinitionError, match=r"engineering\.yaml.*'engineering'.*at least 2"):
         load(workdir, catalog)
 
 
 def test_rejects_an_overlay_missing_an_anchor(workdir, catalog):
     mutate(workdir / "engineering.yaml", members=["api-design", "repo-hardening", "secure-code"])
-    with pytest.raises(ProfileDefinitionError, match=r"engineering\.yaml.*'engineering'.*anchor\(s\) create-cli"):
+    with pytest.raises(ProfileDefinitionError, match=r"engineering\.yaml.*'engineering'.*anchor\(s\) cli-design"):
         load(workdir, catalog)
 
 
@@ -321,8 +309,8 @@ def test_rejects_the_sentinel_in_an_overlay(workdir, catalog):
 
 
 def test_rejects_a_duplicated_member_within_one_profile(workdir, catalog):
-    mutate(workdir / "engineering.yaml", members=["secure-code", "create-cli", "create-cli"])
-    with pytest.raises(ProfileDefinitionError, match=r"engineering\.yaml.*'engineering'.*create-cli more than once"):
+    mutate(workdir / "engineering.yaml", members=["secure-code", "cli-design", "cli-design"])
+    with pytest.raises(ProfileDefinitionError, match=r"engineering\.yaml.*'engineering'.*cli-design more than once"):
         load(workdir, catalog)
 
 
@@ -345,11 +333,6 @@ def test_rejects_an_empty_catalog(tmp_path):
     path.write_text(json.dumps({"version": 1, "skills": []}), encoding="utf-8")
     with pytest.raises(ProfileDefinitionError, match="holds no skills"):
         definitions.load_catalog(path)
-
-
-# ---------------------------------------------------------------------------
-# Harness equivalences
-# ---------------------------------------------------------------------------
 
 
 def test_the_declaration_is_non_empty_and_names_real_skills(equivalences, catalog):

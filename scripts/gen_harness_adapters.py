@@ -33,16 +33,11 @@ from pathlib import Path
 
 import yaml
 
-# Project selection is owned here; workspace deployment tools can reference this
-# declaration directly. It is independent of the measurement-only profiles/ data.
 SELECTION_PATH = "config/project-skills.json"
-SYMLINK_TARGET = "../skills"  # exact legacy root link we may safely retire
+#: The exact legacy root link target that is safe to retire.
+SYMLINK_TARGET = "../skills"
 MARKER = "# AUTO-GENERATED from SKILL.md frontmatter — do not edit"
 
-# Claude Code reads slash commands from .claude/commands/. Selected skills'
-# commands/<rel>.md is linked to .claude/commands/<rel>.md, preserving nested
-# layout (workflows/brainstorm.md -> /workflows:brainstorm). Local-only and
-# gitignored, like the per-skill links in .claude/skills.
 COMMANDS_LINK_DIR = ".claude/commands"
 
 
@@ -68,7 +63,8 @@ def display_name(name: str) -> str:
     return " ".join(part.capitalize() for part in name.split("-"))
 
 
-SHORT_DESC_MAX = 64  # openai.yaml contract: short_description is 25-64 chars
+#: openai.yaml requires short_description to be 25-64 characters.
+SHORT_DESC_MAX = 64
 SHORT_DESC_MIN = 25
 
 
@@ -185,8 +181,8 @@ def retire_legacy_symlink(link: Path, write: bool) -> tuple[bool, str | None]:
                 f"{link} is a non-empty real directory; refusing to delete it. "
                 f"It may hold your own skills. Move it aside before retiring this root."
             )
-        # An empty real dir contributes no skills, so it is harmless -- but it is
-        # also what an interrupted migration leaves behind. Clear it when writing.
+        # WHY: an empty real directory contributes no skills, but it is what an
+        # interrupted migration leaves behind, so clear it when writing.
         if write:
             link.rmdir()
         return False, None
@@ -197,7 +193,7 @@ def retire_legacy_symlink(link: Path, write: bool) -> tuple[bool, str | None]:
         )
 
     if not write:
-        return True, None  # drift, reported by --check
+        return True, None
     link.unlink()
     return False, None
 
@@ -212,7 +208,7 @@ def plan_command_links(skills_root: Path, commands_root: Path, selected: list[st
     seen: dict[Path, Path] = {}
     collisions: list[str] = []
     for cmd in sorted(skills_root.glob("*/commands/**/*.md")):
-        parts = cmd.relative_to(skills_root).parts  # (skill, "commands", *rel)
+        parts = cmd.relative_to(skills_root).parts
         if len(parts) < 3 or parts[1] != "commands" or parts[0] not in selected:
             continue
         link = commands_root.joinpath(*parts[2:])
@@ -275,7 +271,7 @@ def ensure_command_symlink(
             return False, f"{link} is a foreign symlink; move it aside"
         if not write:
             return False, None
-        link.unlink()  # wrong/broken managed symlink: safe to replace
+        link.unlink()
     elif link.exists():
         return False, f"{link} exists and is not a managed symlink; move it aside"
     if not write:
@@ -322,7 +318,6 @@ def main() -> int:
     errors: list[str] = []
     wrote: list[str] = []
 
-    # Validate selection even in CI sidecar-only mode.
     try:
         selection = load_selection(repo_root, skills_root)
     except (OSError, ValueError, TypeError) as exc:
@@ -342,14 +337,13 @@ def main() -> int:
             elif stale:
                 drift.append(f"{root_rel} is a retired catalog link and should be removed")
 
-    # 2. Codex sidecars
     for skill_md in sorted(skills_root.glob("*/SKILL.md")):
         name = skill_md.parent.name
         fm = parse_frontmatter(skill_md)
         sidecar = skill_md.parent / "agents" / "openai.yaml"
 
         if sidecar.exists() and not is_generated(sidecar):
-            continue  # hand-authored: leave alone
+            continue
 
         rendered = render_sidecar(name, fm)
         current = sidecar.read_text(encoding="utf-8") if sidecar.exists() else None
@@ -362,7 +356,6 @@ def main() -> int:
             sidecar.write_text(rendered, encoding="utf-8")
             wrote.append(name)
 
-    # 3. Command wrappers -> .claude/commands (local-only, like the skills symlink)
     if not args.skip_symlinks:
         commands_root = repo_root / COMMANDS_LINK_DIR
         desired, collisions = plan_command_links(skills_root, commands_root, selection["linked"])

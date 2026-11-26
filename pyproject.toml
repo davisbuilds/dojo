@@ -1,20 +1,20 @@
 [project]
 name = "dojo"
-version = "0.1.0"
+version = "0.3.0"
 description = "Agent skills, hooks, and checkout-based development tools"
 requires-python = ">=3.11"
 dependencies = [
     "pyyaml==6.0.3",
-    "typer>=0.27.2,<1",
+    "typer>=0.29.2,<1",
     "rich>=15,<16",
 ]
 
 [dependency-groups]
-dev = ["pytest>=9.1.1,<10"]
+dev = ["pytest>=9.2.0,<10"]
 
 [tool.uv]
-# Supply-chain quarantine: ignore distributions uploaded in the last 7 days.
-# For an urgent fix, override one package with exclude-newer-package.
+# WHY: supply-chain quarantine. For an urgent fix, override one package with
+# exclude-newer-package instead of lowering this.
 exclude-newer = "7 days"
 package = false
 

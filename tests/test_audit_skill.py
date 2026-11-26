@@ -49,7 +49,7 @@ def test_fenced_instructions_are_indicators_with_original_lines(tmp_path):
     result = module().run_audit(str(root))
     items = [x for x in result['indicators'] if x['category'] == 'prompt-injection']
     assert any(x['line'] == 3 for x in items)
-    assert 'findings' not in result  # A quoted example needs contextual judgment.
+    assert 'findings' not in result
 
 
 def test_target_script_is_never_executed_and_links_are_not_followed(tmp_path):
@@ -130,7 +130,6 @@ def test_invalid_declaration_types_stay_serializable(tmp_path, field):
 
 
 def test_scan_timeout_stops_scanner_and_its_child(tmp_path, monkeypatch):
-    # Real nested processes reproduce the orphan, without running untrusted code.
     mod = module()
     pid_file = tmp_path / 'scanner-pids.json'
     engine = tmp_path / 'semgrep'
@@ -151,7 +150,7 @@ def test_scan_timeout_stops_scanner_and_its_child(tmp_path, monkeypatch):
         assert probe.returncode in (0, 1), probe.stderr
         return bool(probe.stdout.strip()) and not probe.stdout.strip().startswith('Z')
 
-    assert running(os.getpid())  # Positive control for the process detector.
+    assert running(os.getpid())
     pids = []
     try:
         with pytest.raises(subprocess.TimeoutExpired):

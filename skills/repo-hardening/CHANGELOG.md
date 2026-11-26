@@ -1,3 +1,7 @@
+## 1.0.4 - 2026-11-25
+
+- Let /repo-audit and /repo-harden inherit harness permissions by removing their command-specific tool grants.
+
 ## 1.0.3 - 2026-10-03
 
 - Update the secure-code route for scoped security investigation without a mandatory second audit.

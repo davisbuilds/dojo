@@ -18,6 +18,7 @@ import backup_policy
 AGENTS_HOME_ENV = "AGENTS_HOME"
 CODEX_HOME_ENV = "CODEX_HOME"
 CLAUDE_HOME_ENV = "CLAUDE_HOME"
+GEMINI_HOME_ENV = "GEMINI_HOME"
 
 IGNORE_NAMES = {".DS_Store", "__pycache__", ".git", ".pytest_cache"}
 IGNORE_FILE_SUFFIXES = {".pyc", ".pyo"}
@@ -38,6 +39,7 @@ DEPRECATED_SKILL_REPLACEMENTS = {
     "obsidian-bases": "obsidian",
     "obsidian-canvas": "obsidian",
     "imagegen": "gpt-imagen",
+    "create-cli": "cli-design",
 }
 # Same grammar and precedence as skills/skill-evals/scripts/check_skill_versions.py.
 # Duplicated because this skill installs on its own and runs stdlib-only.
@@ -140,10 +142,12 @@ def global_roots() -> dict[str, Path]:
     agents_home = Path(os.environ.get(AGENTS_HOME_ENV, "~/.agents")).expanduser()
     codex_home = Path(os.environ.get(CODEX_HOME_ENV, "~/.codex")).expanduser()
     claude_home = Path(os.environ.get(CLAUDE_HOME_ENV, "~/.claude")).expanduser()
+    gemini_home = Path(os.environ.get(GEMINI_HOME_ENV, "~/.gemini")).expanduser()
     return {
         "global-agents": (agents_home / "skills").resolve(),
         "global-codex": (codex_home / "skills").resolve(),
         "global-claude": (claude_home / "skills").resolve(),
+        "global-gemini": (gemini_home / "config" / "skills").resolve(),
     }
 
 
@@ -451,7 +455,7 @@ def scan_root(root: RootSpec, ignore_dirs: set[str] | None = None) -> RootInvent
     return RootInventory(root=root, skills=skills, invalid_entries=invalid_entries)
 
 
-GLOBAL_ROOT_KINDS = ("global-agents", "global-codex", "global-claude")
+GLOBAL_ROOT_KINDS = ("global-agents", "global-codex", "global-claude", "global-gemini")
 
 
 def _preferred_global_kinds() -> list[str]:
@@ -485,6 +489,31 @@ def _to_jsonable_issue(issue: dict[str, Any]) -> dict[str, Any]:
         if key in out and isinstance(out[key], Path):
             out[key] = str(out[key])
     return out
+
+
+def _shares_resolved_target(entry: SkillEntry, target_path: Path | None) -> bool:
+    """True when `entry` already resolves to the same directory as `target_path`."""
+    if target_path is None:
+        return False
+    return entry.resolved_path == target_path.resolve()
+
+
+def _source_depends_on_dest(raw_source: Path, dest: Path) -> bool:
+    """True when moving `dest` would delete or break `raw_source` or its target."""
+    resolved = raw_source.resolve()
+    if resolved == dest or dest in resolved.parents:
+        return True
+    probe = raw_source
+    seen: set[Path] = set()
+    while probe not in seen:
+        seen.add(probe)
+        if probe == dest or dest in probe.parents:
+            return True
+        if not probe.is_symlink():
+            break
+        target = Path(os.readlink(probe))
+        probe = _expand_nofollow(target if target.is_absolute() else probe.parent / target)
+    return False
 
 
 def _replacement_source_for_root(
@@ -611,9 +640,9 @@ def build_audit_report(
         for inv in inventories
     }
 
-    def add_action(**kwargs: Any) -> None:
+    def add_action(**kwargs: Any) -> bool:
         if not skill_in_scope(kwargs.get("skill")):
-            return
+            return False
         dest = kwargs.get("dest")
         if isinstance(dest, Path) and dest.name in reserved_by_root.get(dest.parent, set()):
             add_issue(
@@ -623,11 +652,13 @@ def build_audit_report(
                 root=dest.parent,
                 message="Skill name collides with a tool-owned directory; left untouched",
             )
-            return
+            return False
         actions.append(kwargs)
+        return True
 
     # --normalize-primary: promote concrete skills from secondary globals to
     # the primary global root, then relink the secondary to the primary.
+    promoted_secondary_roots: dict[str, Path] = {}
     if normalize_primary and primary_global_inventory:
         primary_root = primary_global_inventory.root
         secondary_globals = [
@@ -636,10 +667,43 @@ def build_audit_report(
         ]
         for sec_inv in secondary_globals:
             for skill_name, entry in list(sec_inv.skills.items()):
-                if skill_name in primary_global_inventory.skills:
-                    continue  # already in primary
+                if skill_name in promoted_secondary_roots:
+                    continue
+                replacement_skill = DEPRECATED_SKILL_REPLACEMENTS.get(skill_name)
+                if replacement_skill and (
+                    (canonical_inventory and replacement_skill in canonical_inventory.skills)
+                    or preferred_global_for_skill(replacement_skill, inventories) is not None
+                ):
+                    continue
+                primary_entry = primary_global_inventory.skills.get(skill_name)
+                if primary_entry is not None and not (
+                    primary_entry.is_symlink and primary_entry.resolved_path == entry.resolved_path
+                ):
+                    continue
                 if entry.is_symlink:
-                    continue  # already a link, nothing to promote
+                    continue
+                canonical_entry = (
+                    canonical_inventory.skills.get(skill_name)
+                    if canonical_inventory
+                    else None
+                )
+                canonical_drifted = (
+                    canonical_entry is not None and canonical_entry.dir_hash != entry.dir_hash
+                )
+                if not add_action(
+                    action="promote_to_primary",
+                    skill=skill_name,
+                    source=canonical_entry.path if canonical_entry is not None else entry.path,
+                    dest=primary_root.path / skill_name,
+                    secondary_dest=sec_inv.root.path / skill_name,
+                    reason=(
+                        f"Promote canonical copy and relink {sec_inv.root.kind} to {primary_root.kind}"
+                        if canonical_drifted
+                        else f"Promote concrete copy from {sec_inv.root.kind} to {primary_root.kind} and relink"
+                    ),
+                ):
+                    continue
+                promoted_secondary_roots[skill_name] = sec_inv.root.path
                 add_issue(
                     severity="info",
                     code="PROMOTE_TO_PRIMARY",
@@ -647,14 +711,6 @@ def build_audit_report(
                     root=sec_inv.root.path,
                     global_root=primary_root.path,
                     message=f"Concrete skill in secondary global should be promoted to primary ({primary_root.kind})",
-                )
-                add_action(
-                    action="promote_to_primary",
-                    skill=skill_name,
-                    source=entry.path,
-                    dest=primary_root.path / skill_name,
-                    secondary_dest=sec_inv.root.path / skill_name,
-                    reason=f"Promote concrete copy from {sec_inv.root.kind} to {primary_root.kind} and relink",
                 )
 
     for inv in inventories:
@@ -778,6 +834,7 @@ def build_audit_report(
             primary_has_name = primary_global_inventory is not None and (
                 invalid_name in primary_global_inventory.skills
                 or invalid_name in primary_global_inventory.invalid_entries
+                or invalid_name in promoted_secondary_roots
             )
             # Staleness is a claim about *link* topology, so it only holds where
             # the secondary roots are meant to be links. Under `mirror-copy` the
@@ -826,6 +883,7 @@ def build_audit_report(
                 # arrives here.
                 and (
                     invalid_name in primary_global_inventory.skills
+                    or invalid_name in promoted_secondary_roots
                     or (canonical_inventory and invalid_name in canonical_inventory.skills)
                 )
             ):
@@ -862,11 +920,21 @@ def build_audit_report(
             primary_global_inventory.skills.get(skill) if primary_global_inventory else None
         )
         primary_global_target = primary_global_root.path / skill if primary_global_root else None
+        promoted_sec_root = promoted_secondary_roots.get(skill)
 
         if canonical_has_skill:
             canonical_entry = canonical_inventory.skills[skill]
             for root, entry in entries:
                 if root.kind == "canonical":
+                    continue
+                # WHY: promote_to_primary writes the primary copy and relinks the promoted
+                # secondary root at priority -1, so follow-up sync/link actions would
+                # duplicate the write or overwrite that symlink back into a concrete dir.
+                if (
+                    promoted_sec_root is not None
+                    and primary_global_root is not None
+                    and root.path in {primary_global_root.path, promoted_sec_root}
+                ):
                     continue
                 # --only-existing: skip skills not already in this root
                 if only_existing and skill not in {
@@ -897,13 +965,8 @@ def build_audit_report(
                     and primary_global_root
                     and root.kind != primary_global_root.kind
                 ):
-                    if primary_global_entry or enforce_mirror:
-                        already_linked = (
-                            entry.is_symlink
-                            and primary_global_target is not None
-                            and entry.path.resolve() == primary_global_target
-                        )
-                        if already_linked:
+                    if primary_global_entry or enforce_mirror or promoted_sec_root is not None:
+                        if _shares_resolved_target(entry, primary_global_target):
                             continue
 
                         code = "GLOBAL_DUPLICATE_PRIMARY"
@@ -951,6 +1014,18 @@ def build_audit_report(
             if enforce_mirror and not only_existing:
                 for inv in inventories:
                     if not inv.root.kind.startswith("global-"):
+                        continue
+                    if (
+                        promoted_sec_root is not None
+                        and primary_global_root is not None
+                        and inv.root.path == primary_global_root.path
+                    ):
+                        continue
+                    # WHY: absent secondary global roots mean that harness is not
+                    # configured on this machine; mirroring would create unused dirs.
+                    if not inv.root.exists and (
+                        primary_global_root is None or inv.root.kind != primary_global_root.kind
+                    ):
                         continue
                     if skill in inv.skills:
                         continue
@@ -1026,11 +1101,7 @@ def build_audit_report(
             )
 
             if agents_entry and codex_entry:
-                already_linked = (
-                    codex_entry.is_symlink
-                    and codex_entry.path.resolve() == agents_entry.path.resolve()
-                )
-                if not already_linked:
+                if not _shares_resolved_target(codex_entry, agents_entry.path):
                     code = "CODEX_AGENTS_DUPLICATE"
                     message = (
                         "Codex and Agents roots are aggregated by Codex; "
@@ -1060,7 +1131,12 @@ def build_audit_report(
                         dest=codex_global_inventory.root.path / skill,
                         reason="Codex dedupe: prefer Agents source for aggregated catalogs",
                     )
-            elif agents_entry and not codex_entry and enforce_mirror:
+            elif (
+                (agents_entry or promoted_sec_root is not None)
+                and not codex_entry
+                and enforce_mirror
+                and codex_global_inventory.root.exists
+            ):
                 agents_target = agents_global_inventory.root.path / skill
                 add_issue(
                     severity="info",
@@ -1083,15 +1159,21 @@ def build_audit_report(
             preferred = preferred_global_for_skill(skill, inventories)
             if preferred:
                 _, preferred_entry = preferred
-                preferred_target = preferred_entry.path.resolve()
+                target_global_path = (
+                    primary_global_target
+                    if promoted_sec_root is not None and primary_global_target is not None
+                    else preferred_entry.path
+                )
+                preferred_target = target_global_path.resolve()
                 for root, entry in global_entries:
-                    if entry.path == preferred_entry.path:
+                    if entry.path == target_global_path or (
+                        promoted_sec_root is not None
+                        and primary_global_root is not None
+                        and root.path in {primary_global_root.path, promoted_sec_root}
+                    ):
                         continue
                     if global_policy == "prefer-primary-link":
-                        already_linked = (
-                            entry.is_symlink and entry.path.resolve() == preferred_target
-                        )
-                        if already_linked:
+                        if _shares_resolved_target(entry, preferred_target):
                             continue
 
                         code = "GLOBAL_DUPLICATE_PREFERRED"
@@ -1107,13 +1189,13 @@ def build_audit_report(
                             code=code,
                             skill=skill,
                             root=root.path,
-                            global_root=preferred_entry.path,
+                            global_root=target_global_path,
                             message=message,
                         )
                         add_action(
                             action="relink_to_global",
                             skill=skill,
-                            source=preferred_entry.path,
+                            source=target_global_path,
                             dest=root.path / skill,
                             reason="Prefer linking global duplicates to preferred source",
                         )
@@ -1125,14 +1207,14 @@ def build_audit_report(
                         code="GLOBAL_DRIFT",
                         skill=skill,
                         root=root.path,
-                        global_root=preferred_entry.path,
+                        global_root=target_global_path,
                         message="Global copies differ from preferred global source",
                     )
                     if not (canonical_inventory and skill in canonical_inventory.skills):
                         add_action(
                             action="sync_copy",
                             skill=skill,
-                            source=preferred_entry.path,
+                            source=target_global_path,
                             dest=root.path / skill,
                             reason="Align global copy with preferred global source",
                         )
@@ -1142,7 +1224,12 @@ def build_audit_report(
             if preferred is None:
                 continue
             _, global_entry = preferred
-            global_target = global_entry.path.resolve()
+            local_link_source = (
+                primary_global_target
+                if promoted_sec_root is not None and primary_global_target is not None
+                else global_entry.path
+            )
+            global_target = local_link_source.resolve()
 
             for root, entry in entries:
                 if root.kind != "local":
@@ -1165,8 +1252,7 @@ def build_audit_report(
                     (canonical_inventory.root.path / skill).resolve()
                     if canonical_inventory and skill in canonical_inventory.skills
                     else None)
-                if entry.is_symlink and entry.path.resolve() in {
-                        t for t in (global_target, canonical_target) if t is not None}:
+                if any(_shares_resolved_target(entry, t) for t in (global_target, canonical_target)):
                     continue
 
                 code = "LOCAL_DUPLICATE_GLOBAL"
@@ -1182,13 +1268,13 @@ def build_audit_report(
                     code=code,
                     skill=skill,
                     local_root=root.path,
-                    global_root=global_entry.path,
+                    global_root=local_link_source,
                     message=message,
                 )
                 add_action(
                     action="relink_to_global",
                     skill=skill,
-                    source=global_entry.path,
+                    source=local_link_source,
                     dest=root.path / skill,
                     reason="Prefer global link for local duplicate",
                 )
@@ -1491,8 +1577,19 @@ def apply_actions(
         dest = _expand_nofollow(action["dest"])
 
         try:
+            if (
+                action_type in {"sync_copy", "create_copy", "relink_to_global",
+                                "replace_deprecated_skill", "promote_to_primary"}
+                and action.get("source")
+                and _source_depends_on_dest(_expand_nofollow(action["source"]), dest)
+            ):
+                raise RuntimeError(
+                    f"Refusing self-referential {action_type}: source {action['source']} resolves through destination {dest}"
+                )
+
             if action_type in {"sync_copy", "create_copy", "relink_to_global",
-                               "replace_deprecated_skill", "remove_stale_entry"}:
+                               "replace_deprecated_skill", "remove_stale_entry",
+                               "promote_to_primary"}:
                 backup = _backup_destination(dest, backup_base, stamp)
                 if backup:
                     result["backups"].append({"dest": str(dest), "backup": str(backup)})
@@ -1506,7 +1603,7 @@ def apply_actions(
             if action_type == "promote_to_primary":
                 # Copy concrete skill to primary global, then relink secondary
                 _replace_with_copy(source, dest)
-                secondary_dest = _expand(action["secondary_dest"])
+                secondary_dest = _expand_nofollow(action["secondary_dest"])
                 sec_backup = _backup_destination(secondary_dest, backup_base, stamp)
                 if sec_backup:
                     result["backups"].append({"dest": str(secondary_dest), "backup": str(sec_backup)})

@@ -81,80 +81,50 @@ from urllib.parse import unquote
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILLS_ROOT = REPO_ROOT / "skills"
 
-# Docs that describe current state. Dated artifacts (plans, specs, designs,
-# research, replay results) are deliberately excluded: they record what was true
-# when written, and rewriting them to match today would destroy the record.
+# WHY: dated artifacts (plans, specs, designs, research, replay results) are
+# excluded because they record what was true when written, and rewriting them to
+# match today would destroy the record.
 LIVING_DOCS = [
     REPO_ROOT / "README.md",
     REPO_ROOT / "docs" / "system",
     REPO_ROOT / "docs" / "project",
 ]
 
-# An odd run of backslashes before `[` escapes it; an even run escapes only
-# itself and leaves a real link.
 MD_LINK = re.compile(r"(?<!\\)(?:\\\\)*\[[^\]]*\]\((?!https?://|mailto:)([^)\s]+)\)")
 SKILL_PATH = re.compile(r"(?<!/)\bskills/([a-z0-9][a-z0-9-]*)/")
-# Sibling entries are list heads: "- `name` — description". Matching only that
-# position keeps model names and inline mentions out of the check.
 SIBLING_ENTRY = re.compile(r"^\s*[-*]\s+`([a-z0-9][a-z0-9-]{2,})`", re.M)
 SIBLING_HEADING = re.compile(r"^#{1,4}\s+Sibling skills\s*$", re.M)
-# A backtick fence's info string cannot contain backticks (```x``` is inline code).
 FENCE_OPEN = re.compile(r"^\s*(`{3,}(?=[^`]*$)|~{3,})")
 LIST_ITEM = re.compile(r"^( *)([-*+]|\d{1,9}[.)])( +|$)")
 QUOTE_MARKER = re.compile(r" {0,3}>[ \t]?")
-# A heading inside a block quote, possibly nested, is rendered but not parsed.
 QUOTED_HEADING = re.compile(r"^(?: {0,3}>[ \t]?)+ {0,3}#{1,6}(?:[ \t]|$)")
 FRONTMATTER = re.compile(r"---[ \t]*\r?\n.*?^---[ \t]*$", re.M | re.S)
 ATX_HEADING = re.compile(r"^ {0,3}#{1,6}(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$")
 SETEXT_UNDERLINE = re.compile(r"^ {0,3}(?:=+|-+)[ \t]*$")
 THEMATIC_BREAK = re.compile(r"^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$")
-# Lines that cannot be setext heading text: list items, quotes, headings, HTML.
 NOT_SETEXT_TEXT = re.compile(r"^(?: {4}|\s*(?:[-*+>#<]|\d+[.)])(?:\s|$))")
-# A link reference definition is its own block, never setext heading text: one
-# whole on a line (`[ref]: /url "title"`), or one whose destination is the
-# next line (`[ref]:`), which an underline below it would be.
 REF_DEF_LABEL = r"^ {0,3}\[(?=\s*[^\s\]])(?:[^\\\[\]]|\\.)+\]:[ \t]*"
 REF_DEF = re.compile(REF_DEF_LABEL + r"(?:<[^<>\n]*>|[^\s<]\S*)"
                      r"(?:[ \t]+(?:\"[^\"]*\"|'[^']*'|\([^()]*\)))?[ \t]*$")
 REF_DEF_OPEN = re.compile(REF_DEF_LABEL + "$")
-# A start tag, allowing `>` inside quoted attribute values.
 HTML_TAG = re.compile(r"<[A-Za-z](?:[^<>\"']|\"[^\"]*\"|'[^']*')*>")
-# A code span closes on a backtick run of exactly the opener's length and may
-# wrap lines but not cross a blank line; an unmatched opener is literal text.
 CODE_SPAN_BODY = r"(?P<ticks>`+)(?!`)(?P<code>(?:(?!\n[ \t]*\n)[\s\S])+?)(?<!`)(?P=ticks)(?!`)"
 CODE_SPAN = re.compile(r"(?<![`\\])" + CODE_SPAN_BODY)
-# In heading text, backslash escapes and code spans are read together left to
-# right, so `\`` cannot open a span, `\\` before one leaves it open, and a
-# backslash inside one is literal.
 HEADING_LITERAL = re.compile(r"\\(?P<esc>[!-/:-@\[-`{-~])|(?<!`)" + CODE_SPAN_BODY)
-# Link destinations may hold one level of balanced parentheses; deeper nesting
-# or an escaped `\[` leaves a `](` behind and marks the heading unsupported.
 INLINE_LINK = re.compile(r"\[([^\]]*)\]\((?:[^()]|\([^()]*\))*\)")
-# Flanking is judged on the whole underscore run: it opens only if the run is
-# followed by a non-space, and closes only if the run is preceded by one, so
-# `\____` leaves a `___` that neither opens nor closes.
 UNDERSCORE_EMPHASIS = re.compile(r"(?<!\w)(?=_+[^\s_])(_{1,3})(?=\S)(.+?)"
                                  r"(?:(?<=[^\s_])|(?<=[^\s_]_)|(?<=[^\s_]__))\1(?!\w)")
-# Raw HTML (tags, comments, declarations, processing instructions), images and
-# reference-style links (`[x][ref]`, whose text depends on whether `ref` is
-# defined) make a heading's anchor renderer-dependent. Escaped punctuation
-# cannot form them, so this runs after escapes are set aside.
 HEADING_MARKUP = re.compile(r"<[A-Za-z/!?]|!\[|\]\[")
-# Custom-id attributes and emoji shortcodes are read from the rendered text, so
-# one spelled with escapes or entities is still caught.
 HEADING_TEXT_MARKUP = re.compile(r"\{#|:[a-z0-9_+-]+:")
-# A closed HTML comment, unless it sits inside an inline code span.
 CODE_OR_COMMENT = re.compile(CODE_SPAN.pattern + r"|<!--(?s:.*?)-->")
 
-# Documentation placeholders that stand in for "whatever skill you are working
-# on". Kept explicit and small rather than loosening the path check, which would
+# WHY: kept explicit and small rather than loosening the path check, which would
 # stop catching the real thing.
 PLACEHOLDERS = {"my-skill", "your-skill", "example-skill", "skill-name", "some-skill"}
 
-# docs/archive/ is gitignored: completed plans and superseded analyses are kept
-# locally, not published. Living docs legitimately cite them for the local
-# reader, so those links resolve on the author's machine and nowhere else.
-# Checking them would fail every CI run for a reason that is not a defect.
+# WHY: docs/archive/ is gitignored, so living docs cite it for the local reader
+# and those links resolve on the author's machine only; checking them would fail
+# every CI run for a reason that is not a defect.
 LOCAL_ONLY_PREFIXES = ("docs/archive/",)
 
 
@@ -183,16 +153,16 @@ def strip_fences(text: str, margins: list[int] | None = None) -> str:
     fence = ""
     fence_margin = fence_depth = 0
     in_comment = False
-    items: list[int] = []  # content columns of the enclosing list items
+    items: list[int] = []
     for line in text.splitlines():
         expanded = line.expandtabs(4)
         indent = len(expanded) - len(expanded.lstrip(" "))
         if fence and expanded.strip() and indent < fence_margin:
-            fence = ""  # outdent ended the list item, and the fence with it
+            fence = ""
         if fence:
             depth, body = _unquote(expanded[fence_margin:], fence_depth)
             if depth < fence_depth:
-                fence = ""  # the block quote holding the fence ended
+                fence = ""
             else:
                 m = FENCE_OPEN.match(body)
                 if m and m.group(1)[0] == fence[0] and len(m.group(1)) >= len(fence) \
@@ -220,7 +190,7 @@ def strip_fences(text: str, margins: list[int] | None = None) -> str:
                 gap = len(item.group(3))
                 items.append(item.start(3) + (gap if 1 <= gap <= 4 else 1))
                 m = FENCE_OPEN.match(expanded[items[-1]:])
-                if m and _indent(expanded[items[-1]:]) <= 3:  # `- ```lang` opens a fence
+                if m and _indent(expanded[items[-1]:]) <= 3:
                     fence, fence_margin, fence_depth = m.group(1), items[-1], 0
                     line = ""
             out.append(line)
@@ -286,7 +256,7 @@ def heading_text(raw: str) -> str | None:
         else:
             code = m.group("code")
             held.append(code[1:-1] if code.startswith(" ") and code.endswith(" ") and code.strip() else code)
-        return chr(0xD800 + len(held) - 1)  # past 2048 this lands in private use: unsupported
+        return chr(0xD800 + len(held) - 1)
 
     def restore(text: str, only: set[int] | None = None) -> str:
         def put(m: re.Match[str]) -> str:
@@ -299,14 +269,13 @@ def heading_text(raw: str) -> str | None:
         return None
     text = INLINE_LINK.sub(r"\1", text)
     if "](" in text:
-        return None  # a link this checker could not parse, or escaped link syntax
+        return None
     while (reduced := UNDERSCORE_EMPHASIS.sub(r"\2", text)) != text:
-        text = reduced  # nested emphasis: `_outer __inner__ end_`
+        text = reduced
     text = restore(html.unescape(text), escapes)
     if HEADING_TEXT_MARKUP.search(text):
         return None
     text = restore(text)
-    # Private-use glyphs (any plane), literal or from entities, slug differently per renderer.
     return None if any(unicodedata.category(ch) == "Co" for ch in text) else text
 
 
@@ -339,16 +308,16 @@ def anchors(text: str) -> set[str] | None:
         body = line.expandtabs(4)[margins[i]:]
         depth, inner = _unquote(body, None)
         if not m and (margins[i] and ATX_HEADING.match(body) or QUOTED_HEADING.match(body)):
-            return None  # heading in a block quote, past column 3 of a list item, or on its marker
+            return None
         if m:
             raw = (m.group(1) or "").strip()
         elif i and SETEXT_UNDERLINE.match(line) and _setext_text(lines[i - 1]):
             if i > 1 and lines[i - 2].strip() and not _ends_block(lines[i - 2]):
-                return None  # multi-line, or possibly continued, setext heading text
+                return None
             raw = lines[i - 1].strip()
         elif i and (margins[i] or depth) and SETEXT_UNDERLINE.match(inner) \
                 and _setext_text(_unquote(lines[i - 1].expandtabs(4)[margins[i - 1]:], None)[1]):
-            return None  # setext heading in a list item or block quote
+            return None
         else:
             continue
         rendered = heading_text(raw)
@@ -374,11 +343,11 @@ def _indented_code_lines(lines: list[str], margins: list[int]) -> set[int]:
     shallower line continues it lazily.
     """
     code: set[int] = set()
-    para: tuple[int, int] | None = None  # quote depth and list margin of the open paragraph
+    para: tuple[int, int] | None = None
     for i, line in enumerate(lines):
         depth, body = _unquote(line.expandtabs(4)[margins[i]:], None)
         if not body.strip():
-            para = None  # blank lines may sit inside an indented code block
+            para = None
             continue
         fresh = para is None or depth > para[0]
         if fresh and _indent(body) >= 4:
@@ -404,7 +373,6 @@ def known_skills(skills_root: Path) -> set[str]:
 
 def markdown_files(skills_root: Path, living_docs: list[Path]) -> list[Path]:
     files: list[Path] = sorted(skills_root.glob("**/*.md"))
-    # A skill's own evals/replay-results-*.md is a dated record, like the docs above.
     files = [f for f in files if not f.name.startswith("replay-results-")]
     for target in living_docs:
         if target.is_dir():
@@ -446,13 +414,12 @@ def check(skills_root: Path = SKILLS_ROOT, living_docs: list[Path] | None = None
         except (OSError, UnicodeDecodeError):
             continue
         rel = path.relative_to(repo_root) if path.is_relative_to(repo_root) else path
-        # assets/ holds templates whose links are placeholders by design.
+        # WHY: assets/ holds templates whose links are placeholders by design.
         if "assets" in path.parts:
             continue
         text = strip_fences(text)
-        # Link syntax inside a code span is an example and inside a comment is
-        # not rendered; a space keeps the neighbours from joining into a link
-        # that is not in the source.
+        # WHY: blank the span with spaces rather than removing it, so its neighbours
+        # cannot join into a link that is not in the source.
         link_text = CODE_OR_COMMENT.sub(lambda m: re.sub(r"[^\n]+", " ", m.group()), text)
 
         for link in MD_LINK.findall(link_text):

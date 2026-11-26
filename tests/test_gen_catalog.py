@@ -3,6 +3,8 @@ from __future__ import annotations
 import importlib.util
 import json
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -21,7 +23,6 @@ def load_module():
 def embedded_data(page: str):
     m = re.search(r'<script id="data" type="application/json">(.*?)</script>', page, re.DOTALL)
     assert m
-    # Script contents are raw text: the browser does not decode HTML entities.
     return json.loads(m.group(1))
 
 
@@ -45,10 +46,9 @@ def test_build_page_embeds_name_desc_triggers():
     assert [s["name"] for s in data] == ["diagnose", "handoff"]
     assert data[0]["version"] == "1.2.0"
     assert data[0]["triggers"] == ["debug this"]
-    # path is dropped from the catalog payload; triggers omitted when absent
     assert "path" not in data[0]
     assert "triggers" not in data[1]
-    assert "53 skills" not in page  # count reflects this manifest
+    assert "53 skills" not in page
     assert "2 skills" in page
     assert 'class="version">v${esc(s.version)}' in page
 
@@ -60,20 +60,71 @@ def test_check_detects_drift(tmp_path: Path, monkeypatch):
     out = tmp_path / "catalog.html"
 
     monkeypatch.setattr("sys.argv", ["gen", "--manifest", str(manifest), "--out", str(out), "--check"])
-    assert module.main() == 1  # not generated yet
+    assert module.main() == 1
 
     monkeypatch.setattr("sys.argv", ["gen", "--manifest", str(manifest), "--out", str(out)])
-    assert module.main() == 0  # write
+    assert module.main() == 0
 
     monkeypatch.setattr("sys.argv", ["gen", "--manifest", str(manifest), "--out", str(out), "--check"])
-    assert module.main() == 0  # clean
+    assert module.main() == 0
+
+
+def test_catalog_merges_independent_version_bumps(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", "/dev/null")
+    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
+    monkeypatch.setenv("GIT_MERGE_AUTOEDIT", "no")
+    manifest_path = tmp_path / "skills.json"
+    catalog_path = tmp_path / "docs/catalog/index.html"
+    manifest = {
+        "version": 1,
+        "skills": [
+            {"name": "alpha", "description": "First skill.", "version": "1.0.0"},
+            {"name": "beta", "description": "Second skill.", "version": "1.0.0"},
+        ],
+    }
+
+    def git(*args: str, check: bool = True):
+        return subprocess.run(
+            ["git", *args], cwd=tmp_path, check=check, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        )
+
+    def generate():
+        subprocess.run(
+            [sys.executable, str(SCRIPT_PATH), "--manifest", str(manifest_path), "--out", str(catalog_path)],
+            cwd=tmp_path, check=True,
+        )
+
+    def commit_catalog(message: str):
+        generate()
+        git("add", str(manifest_path), str(catalog_path))
+        git("commit", "-m", message)
+
+    git("init", "-b", "main")
+    git("config", "user.name", "Catalog test")
+    git("config", "user.email", "test@example.invalid")
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    commit_catalog("Generate catalog")
+
+    for index, branch in enumerate(("bump-alpha", "bump-beta")):
+        git("checkout", "-b", branch, "main")
+        branch_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        branch_manifest["skills"][index]["version"] = "1.0.1"
+        manifest_path.write_text(json.dumps(branch_manifest, indent=2) + "\n", encoding="utf-8")
+        commit_catalog(branch)
+
+    merge = git("merge", "bump-alpha", check=False)
+    assert merge.returncode == 0, merge.stdout
+    merged_catalog = catalog_path.read_bytes()
+    assert [skill["version"] for skill in embedded_data(merged_catalog.decode("utf-8"))] == ["1.0.1", "1.0.1"]
+    generate()
+    assert catalog_path.read_bytes() == merged_catalog
 
 
 def test_escapes_html_in_descriptions():
     module = load_module()
     manifest = {"version": 1, "skills": [{"name": "x", "description": '<script>alert("xss")</script>', "version": "1.0.0"}]}
     page = module.build_page(manifest)
-    # raw closing script tag must not appear unescaped in the embedded JSON payload
     assert "</script>alert" not in page
     data = embedded_data(page)
     assert data[0]["description"] == '<script>alert("xss")</script>'
@@ -85,6 +136,4 @@ def test_content_edges_preserve_text_and_script_boundary():
     page = module.build_page(manifest)
     assert embedded_data(page) == manifest["skills"]
     payload = re.search(r'<script id="data" type="application/json">(.*?)</script>', page, re.DOTALL).group(1)
-    # A literal '<' could open a closing-script token or an HTML comment that
-    # changes the tokenizer state, even though the script is a JSON data block.
     assert "<" not in payload

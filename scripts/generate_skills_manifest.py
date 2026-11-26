@@ -83,7 +83,6 @@ def build_manifest(skills_dir):
             'version': version,
         }
 
-        # Include optional fields if present
         if 'license' in frontmatter:
             entry['license'] = frontmatter['license']
         if 'allowed-tools' in frontmatter:
@@ -167,7 +166,6 @@ def check_manifest(skills_dir, output_path):
 
 
 if __name__ == '__main__':
-    # Resolve repo root relative to this script
     script_dir = Path(__file__).resolve().parent
     repo_root = script_dir.parent
 

@@ -50,7 +50,7 @@ contracts.
 
 ## CLI Machine Contracts
 
-For CLI APIs, apply `create-cli` for full design. At API-review level, ensure:
+For CLI APIs, apply `cli-design` for full design. At API-review level, ensure:
 
 - Machine-readable output has an explicit schema and stable top-level shape.
 - Human output and diagnostics go to stderr when stdout is intended for piping.

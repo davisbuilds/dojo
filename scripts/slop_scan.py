@@ -27,8 +27,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-# (label, pattern) — patterns are matched case-insensitively. Keep these
-# high-precision: a hit should almost always be slop, never a false positive.
+# WHY: keep these high-precision; a hit should almost always be slop, never a
+# false positive.
 PATTERNS: list[tuple[str, str]] = [
     ("filler-opener", r"it'?s important to note"),
     ("filler-opener", r"it is worth noting"),

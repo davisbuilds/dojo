@@ -35,8 +35,8 @@ TRIGGERS = REPO_ROOT / "skills" / "skill-evals" / "scripts" / "run_trigger_evals
 
 def _run_json(args: list[str]) -> dict:
     proc = subprocess.run(args, capture_output=True, text=True)
-    # Both tools print JSON to stdout and use exit codes to flag issues; we read
-    # the payload regardless of exit code (a failing contract is still valid JSON).
+    # WHY: read the payload regardless of exit code; both tools flag issues by exit
+    # code, and a failing contract is still valid JSON.
     out = proc.stdout.strip()
     if not out:
         raise RuntimeError(f"no JSON from {' '.join(args)}\n{proc.stderr}")
@@ -57,7 +57,6 @@ def build_report(skills_root: Path) -> dict:
     contract = _run_json([sys.executable, str(CONTRACT), "--skills-root", str(skills_root), "--strict", "--json"])
     triggers = _run_json([sys.executable, str(TRIGGERS), "--from-triggers", "--skills-root", str(skills_root)])
 
-    # Group trigger assertions by skill
     trig_by_skill: dict[str, list[dict]] = {}
     for a in triggers.get("assertions", []):
         trig_by_skill.setdefault(a["skill"], []).append(a)
@@ -128,8 +127,6 @@ def format_report(report: dict) -> str:
         lines.append("")
         lines.append("All skills pass the contract; no trigger routing issues.")
 
-    # Runtime section is strictly additive: rendered only when the report was
-    # enriched with runtime health (i.e. runtime flags were passed).
     if report["summary"].get("runtime_source"):
         lines.extend(runtime.render_runtime_section(report))
 
@@ -165,7 +162,6 @@ def main() -> int:
         print(f"Skills root not found: {skills_root}", file=sys.stderr)
         return 1
 
-    # Any runtime flag activates the runtime path.
     runtime_active = (
         args.runtime or args.agentmonitor_url is not None
         or args.health_json is not None or args.findings
@@ -173,10 +169,9 @@ def main() -> int:
     url = None if args.health_json else (args.agentmonitor_url or runtime.DEFAULT_URL)
     source = args.health_json or url
 
-    # Findings mode is deliberately decoupled from the static report: it needs
-    # only the dojo catalog (for scoping) and the health rows, so it never runs
-    # the contract/trigger eval subprocesses. A failure there must not suppress
-    # a valid findings run, and findings must not invoke skill-evals (per spec).
+    # WHY: findings mode needs only the catalog and the health rows, so it never runs
+    # the contract or trigger subprocesses: a failure there must not suppress a valid
+    # findings run, and the spec forbids findings from invoking skill-evals.
     if args.findings:
         try:
             rows = runtime.load_health_rows(url=url, path=args.health_json)
@@ -197,8 +192,8 @@ def main() -> int:
         print(f"Failed to build health report: {exc}", file=sys.stderr)
         return 1
 
-    # Load + enrich happen before any report is printed, so a requested-but-failed
-    # runtime load yields no partial report.
+    # WHY: load and enrich before printing anything, so a requested runtime load
+    # that fails yields no partial report.
     if runtime_active:
         try:
             rows = runtime.load_health_rows(url=url, path=args.health_json)

@@ -2,7 +2,7 @@
 name: brainstorming
 description: Clarify what to build from a vague idea or feature request. Use when requirements are unclear, multiple directions need exploration, or material trade-offs need discussion before planning. Reuse settled direction; save a design summary only when requested or useful for downstream work.
 skill-type: workflow
-version: 3.0.0
+version: 3.0.1
 ---
 
 # Brainstorming

@@ -32,7 +32,6 @@ import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-# From render.rs. Kept here as named constants so a vendor bump is a one-line diff.
 APPROX_BYTES_PER_TOKEN = 4
 SKILL_METADATA_CONTEXT_WINDOW_PERCENT = 2
 DEFAULT_SKILL_METADATA_CHAR_BUDGET = 8_000
@@ -44,17 +43,13 @@ BLOCK_CLOSE = "</skills_instructions>"
 AVAILABLE_HEADER = "### Available skills"
 ROOTS_HEADER = "### Skill roots"
 
-# render.rs picks one of two intros; which one appears tells us the render mode
-# without having to infer it from the entry shape.
 INTRO_ABSOLUTE = "Each entry includes a name, description, and source locator."
 INTRO_ALIASES = "a short path that can be expanded into an absolute path using the skill roots table"
 
 
-# ``- <name>: <description> (file: <path>)`` with the description optional and the
-# locator label open-ended: render.rs emits ``file``, ``environment resource``,
-# ``orchestrator resource``, or ``custom resource`` depending on the source.
+# WHY: the locator label is open-ended because render.rs emits ``file``,
+# ``environment resource``, ``orchestrator resource``, or ``custom resource``.
 ENTRY_RE = re.compile(r"^- (?P<body>.*?) \((?P<kind>[a-z ]+): (?P<locator>.*)\)$")
-# A name with no description renders as ``- name: (file: ...)``.
 NAME_ONLY_RE = re.compile(r"^(?P<name>\S+):$")
 NAME_DESC_RE = re.compile(r"^(?P<name>\S+): (?P<description>.*)$", re.DOTALL)
 
@@ -249,9 +244,6 @@ def parse_block(block: str) -> Listing:
 
         match = ENTRY_RE.match(line)
         if not match:
-            # A ``- `` line inside the skills section that carries no locator is
-            # not an entry. Skipping silently is how the roots table once got
-            # counted as a fake entry, so this is deliberate and narrow.
             continue
 
         body = match.group("body")
@@ -324,7 +316,7 @@ def active_model(codex_home: Path | None = None) -> str | None:
     for line in config.read_text().splitlines():
         stripped = line.strip()
         if stripped.startswith("["):
-            break  # past the top-level table; nested tables have their own `model`
+            break
         match = re.match(r'^model\s*=\s*"([^"]+)"', stripped)
         if match:
             return match.group(1)
@@ -353,9 +345,9 @@ def fingerprint(cwd: str | Path | None = None) -> dict:
     slug = active_model()
     entry = next((m for m in catalog if m.get("slug") == slug), None)
     if entry is None:
-        # No configured model means Codex picks its own default. Record the
-        # ambiguity rather than silently adopting the first catalog row: the
-        # windows happen to agree today, and that is not a guarantee.
+        # WHY: with no configured model Codex picks its own default. Record the
+        # ambiguity rather than adopting the first catalog row: the windows agreeing
+        # today is not a guarantee.
         windows = {m.get("context_window") for m in catalog if m.get("context_window")}
         window = windows.pop() if len(windows) == 1 else None
         resolution = "catalog-unanimous" if window else "indeterminate"
@@ -436,17 +428,9 @@ def classify(
         )
     plugin_cache = f"{home}/plugins/"
     system_root = f"{home}/skills/.system/"
-    # Codex's project scope is `.agents/skills` under the session cwd — not
-    # `.claude/skills` (Claude Code's) and not `.agent/skills` (nobody's).
-    #
-    # It must be **resolved**: Codex reports the symlink's target, not the link.
-    # A project root that is a symlink into the canonical catalog (which is how
-    # every dojo checkout exposes itself) appears in the roots table as the
-    # canonical path, so an unresolved comparison finds project scope nowhere and
-    # reports a confident zero.
-    # ``resolve()`` is non-strict, so a link whose target is absent on this
-    # machine still resolves. That matters for evidence captured elsewhere: the
-    # target need not exist here for the comparison to be meaningful.
+    # WHY: resolved, because Codex reports a symlinked root by its target and every
+    # dojo checkout links its project root into the canonical catalog. resolve() is
+    # non-strict, so evidence captured on another machine still compares.
     project_root = None
     if cwd:
         candidate = Path(cwd) / ".agents" / "skills"

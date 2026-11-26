@@ -2,7 +2,6 @@
 name: review
 description: Review the requested local change for actionable, evidence-backed defects.
 argument-hint: "[--mode working|staged|branch --base <ref> --head <ref> --max-diff-lines <n> --deep]"
-allowed-tools: [Read, Bash(git:*), Bash(rg:*), Bash(bash skills/local-review/scripts/collect_review_context.sh:*)]
 ---
 
 # Local Review Command

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.1 - 2026-11-04
+
+- Point verification-environment and tooling work to `verification-tooling`;
+  retain ownership of test methodology and coverage decisions.
+
 ## 2.1.0 - 2026-10-07
 
 - Add conditional test-retirement guidance: preserve distinct contracts, inspect

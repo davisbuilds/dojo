@@ -25,15 +25,15 @@ This reference defines default policy for `skill-standardizer`.
 - `DANGLING_SKILL_LINK`: symlink under a skills root whose target no longer
   exists. Split from `INVALID_SKILL_DIR` because the repair differs — recreate
   the link, rather than author a missing file
-- `MISSING_GLOBAL_MIRROR`: canonical skill missing in global (only when `--enforce-mirror`)
-- `MISSING_GLOBAL_LINK`: canonical skill missing as a secondary global link (only when `--enforce-mirror` and link policy)
-- `MISSING_CODEX_LINK_TO_AGENTS`: Codex global is missing a link to the Agents source
+- `MISSING_GLOBAL_MIRROR`: canonical skill missing in global (only when `--enforce-mirror`, for primary or existing secondary global roots)
+- `MISSING_GLOBAL_LINK`: canonical skill missing as a secondary global link (only when `--enforce-mirror`, link policy, and the secondary root exists)
+- `MISSING_CODEX_LINK_TO_AGENTS`: Codex global is missing a link to the Agents source (only when `--enforce-mirror` and Codex global exists)
 - `SELECTED_SKILL_NOT_FOUND`: a requested `--skill` name was not found in any scanned root
 
 ## Version Deltas
 
 The report's `versions` list compares each installed copy with its source: the
-canonical copy, or the preferred global (Agents, then Codex, then Claude) when
+canonical copy, or the preferred global (Agents, then Codex, then Claude, then Gemini) when
 canonical lacks the skill. The source itself and deprecated names are not
 listed, and `--skill` scopes the list like issues. Symlinked entries report the
 version of their target. Each row gives `source_version`, `current_version`,
@@ -70,6 +70,7 @@ content hashes: drift issues, planned actions, and exit codes are unchanged. The
   1. `~/.agents/skills`
   2. `~/.codex/skills`
   3. `~/.claude/skills`
+  4. `~/.gemini/config/skills`
 - Action mode default: dry run
 - Apply mode stages replaced destinations until verification; retain only unique or uncertain copies after success
 - Deprecated-name replacement default:
@@ -87,6 +88,7 @@ content hashes: drift issues, planned actions, and exit codes are unchanged. The
 - `obsidian-bases` -> `obsidian`
 - `obsidian-canvas` -> `obsidian`
 - `imagegen` -> `gpt-imagen`
+- `create-cli` -> `cli-design`
 
 Treat the canonical replacement as the source of truth for future audits and sync operations.
 
@@ -104,7 +106,7 @@ Combine `--skill` with `--enforce-mirror` to install a selected canonical skill 
 
 ## Topology Normalization (`--normalize-primary`)
 
-When enabled, concrete skills found in secondary global roots are promoted to the primary global root and the secondary copies are replaced with symlinks. This handles the common case where skills were originally installed in `~/.codex/skills` or `~/.claude/skills` and need to be consolidated into `~/.agents/skills` as the single gold copy.
+When enabled, concrete skills found in secondary global roots are promoted to the primary global root and the secondary copies are replaced with symlinks (including when the primary global entry is a symlink pointing to that secondary copy, preferring canonical contents when available). This handles the common case where skills were originally installed in `~/.codex/skills`, `~/.claude/skills`, or `~/.gemini/config/skills` and need to be consolidated into `~/.agents/skills` as the single gold copy.
 
 ## Recovery and Retention
 

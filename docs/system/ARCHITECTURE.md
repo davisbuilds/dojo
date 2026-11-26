@@ -46,7 +46,7 @@ Context loading follows three tiers:
 
 ## Hook Pipeline
 
-Hooks run at defined lifecycle events and are configured in `.claude/settings.json` and `.agents/settings.json`.
+Hooks run at defined lifecycle events and are configured in `.claude/settings.json`. Only Claude Code runs them: Codex reads hooks from its own `hooks.json`, which this repository does not ship.
 
 | Hook | Event | Purpose |
 |------|-------|---------|
@@ -59,7 +59,7 @@ Hooks run at defined lifecycle events and are configured in `.claude/settings.js
 | `post-tool-use-regen-manifest.sh` | PostToolUse (Write/Edit) | On SKILL.md or `skills/_fragments/*` edits, expands opt-in fragment composition, regenerates `skills.json`, then rebuilds the catalog |
 | `post-tool-use-validate-spec.sh` | PostToolUse (Write/Edit) | Validates `docs/specs/*-spec.md` against the `write-spec` contract schema; forbids plan-shaped content, conditionally enforces high-risk IDs/scenarios/readiness, and advises on obvious weak acceptance gates |
 | `post-tool-use-validate-plan.sh` | PostToolUse (Write/Edit) | Validates `docs/plans/*-plan.md` against the `write-plan` execution schema; resolves target-repository paths, conditionally enforces linked-spec coverage/task/file grounding/readiness, and advises on obvious weak acceptance gates |
-| `stop-hook-git-check.sh` | (unregistered) | Blocks if there are uncommitted changes or untracked files. Script kept in `hooks/` but no longer wired into `.claude/settings.json`. |
+| `post-tool-use-validate-doc.sh` | (shared body) | Called by the spec and plan hooks; resolves the edited file to a repository-relative path, so absolute and relative `file_path` values both match |
 | `stop-hook-skill-structure.sh` | Stop | Validates modified skill directories have valid SKILL.md and release-version bumps |
 | `stop-hook-session-retro.sh` | Stop | Non-blocking reminder to capture still-missing consequential knowledge only when authorized; skips already-captured or unnecessary updates |
 
@@ -91,7 +91,7 @@ SKILL.md frontmatter is the single source of truth; deterministic, idempotent ge
 identity/type gates and opt-in advisory prose heuristics. It does not gate on heading
 names, trigger phrases, or length, and does not establish behavioral quality.
 
-`skills/skill-evals/scripts/check_skill_versions.py` compares changed skill files against a git base ref. Release-relevant skill edits require a strictly greater version than the base SKILL.md and a matching `CHANGELOG.md` entry. The initial migration from unversioned skills is allowed without reconstructing historical changelogs.
+`skills/skill-evals/scripts/check_skill_versions.py` compares changed skill files against a git base ref. Release-relevant skill edits require a strictly greater version than the base SKILL.md and a matching `CHANGELOG.md` entry with a dated version heading and at least one nonempty bullet. The initial migration from unversioned skills is allowed without reconstructing historical changelogs.
 
 Uses a polyglot shebang — works with both `python` and `python3`.
 
@@ -164,12 +164,9 @@ So a skill's Python script is tested centrally from `tests/`, loaded with
 see `tests/test_bump_skill_version.py`, which covers a script owned by
 `skills/skill-evals/`. The skill directory stays free of test code.
 
-Known exception: `skills/skill-standardizer/scripts/test_skill_standardizer.py`
-is skill-local code tests — a third category that predates this rule. It is the
-only test file outside `tests/`, keeps a stdlib-only direct runner with its own
-CI step, and ships to globals as dead weight. `tests/test_skill_standardizer_suite.py`
-runs each of its tests under pytest. Porting it is tracked in
-`docs/project/BACKLOG.md`; do not use it as a pattern for new skills.
+The skill-standardizer suite in `tests/test_skill_standardizer_suite.py` uses
+temporary skill roots and pytest's `monkeypatch` fixture to restore the working
+directory and harness-home variables after each test.
 
 ## Directory Map
 

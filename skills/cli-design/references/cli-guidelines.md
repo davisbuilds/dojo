@@ -24,6 +24,7 @@ Table of contents:
   - Subcommands
   - Robustness
   - Future-proofing
+  - Verifying command behavior
   - Signals and control characters
   - Configuration
   - Environment variables
@@ -188,6 +189,15 @@ This is a practical rubric for designing CLI interfaces (args/flags/subcommands/
 - Interfaces are contracts: args, flags, subcommands, config, env vars, output modes.
 - Keep changes additive; deprecate loudly + early; provide migration paths.
 - Allow human output to evolve; keep scripts stable by encouraging `--plain`/`--json`.
+
+### Verifying command behavior
+
+Choose the example that exercises the contract you changed.
+
+- **Prompts.** For a command that needs confirmation, give it an empty pipe and keep the writer open. With a short timeout, check that it exits without prompting or changing state. Repeat with stdin at EOF. A command that reads until EOF can pass the second case and hang in the first.
+- **Machine output.** Run the query in JSON mode against a known empty store and parse stdout as a caller would. Then make the store unavailable. Check that the failure is distinguishable by exit status and diagnostics, and that the read leaves the store untouched.
+- **Retries.** In a disposable target, let the mutation finish, discard the response, and repeat the request with the same operation identity. Inspect the target to verify the promised effect and check that the caller can identify the original operation or detect a duplicate.
+- **Result limits.** Seed more known records than the default limit. Check the first page's bound and truncation signal. If the command offers a cursor, follow it through the last page and compare IDs for gaps and duplicates. Try an invalid cursor and check that the caller can distinguish it from a valid first page.
 
 ### Signals and control characters
 

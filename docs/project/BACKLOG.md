@@ -40,6 +40,8 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   its tooling retains draft-hygiene, citation, and CLI coverage. Remaining
   candidates include fixed profile vocabulary/membership in
   `tests/test_profiles_definitions.py` and plan/spec validator requirements.
+  By 2026-11-20 (`8b9c86d`) the suite had grown to 1,114 collected cases; the
+  category counts above are from the earlier inventory.
 - **Next**: identify the current consumer or protected failure for each disputed
   requirement before keeping, narrowing, replacing, or retiring it. Change the
   owning instructions, validators, and tests together. Keep coverage for safe
@@ -63,39 +65,32 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   expected behavior, not model-performance improvement. Methodology skills and
   higher-priority harness loading policies can still add process outside the
   revised cluster.
-- **Next**: use the separate skill-effect experiment reported by the user on
-  2026-09-17 for empirical comparison; keep that experiment with its owning
-  project. Compare current guidance, compact guidance, and minimal added guidance
-  with the same harness/repo controls. Assess outcomes, authority boundaries,
-  unnecessary artifacts/stops, context cost, and time. Prioritize remaining
-  skills from observed friction; do not infer low value from invocation counts.
-- **Revisit when**: a candidate is selected, real usage exposes more friction,
-  experimental results arrive, or model/tool changes warrant recalibration.
-
-### Remaining command permission patterns hardcode dojo-relative paths
-
-- **What**: `local-review` and `repo-hardening`
-  command wrappers still declare literal `Bash(... skills/<name>/...)` prefixes.
-  Their runnable bodies use installed absolute paths, which these matchers do not
-  cover. Observed in source on 2026-10-03; effective behavior is harness-dependent.
-- **Why or evidence**: fixing the instruction path does not fix permission matcher
-  semantics. The security rewrite removed these ineffective declarations from
-  `secure-code` and `audit-skill`; those wrappers now inherit harness permissions
-  without adding a broad shell allowlist.
-- **Next**: when revising the remaining wrappers, decide whether ordinary harness
-  permissions suffice. If pre-approval adds value, verify a portable matcher with
-  vendor documentation or a real positive/negative probe before applying it.
-  Do not guess at wildcard semantics or broaden authority just to avoid prompts.
+- **Decision, 2026-11-20**: the maintainer gated the next review candidate on
+  [skilleval](https://github.com/davisbuilds/skilleval)'s experimental results
+  plus observed friction, so no choice is pending from the maintainer. The
+  experiment stays with skilleval; it compares current, compact, and minimal
+  added guidance under the same harness/repo controls, assessing outcomes,
+  authority boundaries, unnecessary artifacts/stops, context cost, and time.
+- **Next**: when results arrive, select the candidate they and observed friction
+  support; do not infer low value from invocation counts.
+- **Revisit when**: skilleval reports results, real usage exposes more friction,
+  or model/tool changes warrant recalibration.
 
 ### Observe the bounded CLI pilot before expanding its scope
 
 - **What**: exercise `bin/dojo check` and `bin/dojo inspect` on normal skill edits
   and harness-discovery investigations, including use by a fresh agent.
-- **Why or evidence, 2026-10-06**: the [pilot](../design/2026-10-06-dojo-cli-pilot.md)
+- **Why or evidence, 2026-10-06**: the [development CLI](../system/OPERATIONS.md#dojo-development-cli)
   connects existing tools and exposes revision, scope, findings, and evidence
   limits. Its first live creator inspection surfaced a profile/exposure mismatch.
   Tests and author-driven use establish functionality, not a measured reduction
   in supervision or an improvement in task outcomes.
+- **Outstanding acceptance check**: the pilot called for a live Codex creator
+  catalog inspection on both pilot hosts. Two-host coverage remains unverified.
+  On each host, run `uv run --locked bin/dojo inspect skill-creator --harness codex --cwd . --json`
+  and record the host, probe context, exit code, and catalog findings. The
+  result describes a fresh prompt rendering.
+  [Original acceptance criteria](https://github.com/davisbuilds/dojo/blob/2726ee4bc47e02c2a4c2363e15254ae0585475dd/docs/design/2026-10-06-dojo-cli-pilot.md#L49-L56)
 - **Next**: observe whether an agent can reach the correct conclusion without
   reconstructing commands or overstating a pass. Add commands only for recurring
   unmet work. Claude probing needs an explicit capture/effect contract; revision
@@ -133,70 +128,30 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   optional evidence lenses, not a reason to restore mandatory scorecards.
 
 ### skills-health: many canonical dojo skills aren't installed globally, so they're unmeasurable
-- **What**: As of 2026-07-15, 26 of 57 canonical `skills/` are installed in none
-  of the global catalog dirs AgentMonitor scans (`~/.claude/skills`,
-  `~/.codex/skills`, `~/.agents/skills`) and have never fired, so AgentMonitor
-  emits no health row and they land in the report's collapsed "no data" bucket
-  (agent-native-architecture, caveman, compound-docs, design-md,
-  fetchmd, gh-commit-push-pr, loop-design, markdown-converter,
-  nextjs-app-router, repo-hardening, skill-evals, skill-installer, template,
-  theme-factory, vercel-composition-patterns, vercel-deploy,
-  vercel-preview-logs). **Updated 2026-08-01:** eight of the original 26 were
-  retired rather than installed, giving a then-current census of 17 of 48.
-  This is historical evidence, not current membership; `compound-docs` was
-  retired on 2026-09-22. Recompute before using the census for a decision. The earlier
-  "13 of 55" figure was a stale
-  point-in-time AgentMonitor snapshot; the catalog has since grown and prior
-  syncs used `--only-existing`.
-- **Why it matters**: A skill that isn't installed anywhere the agent can trigger
-  it can't generate trigger health, so the loop can't tell whether its
-  description works. A prior skill-standardizer run likely used `--only-existing`,
-  which skips skills not already installed globally, so newly-added canonical
-  skills never got pushed out.
-- **Direction**: do **not** install the entire catalog merely to
-  manufacture runtime coverage. The distribution-profile contract makes
-  intentional exclusion explicit and evaluates routing against deployable
-  profiles; health coverage should distinguish excluded skills from missing or
-  drifted members of the selected profile.
-
-### Port skill-standardizer tests to pytest under tests/
-- **What**: `skills/skill-standardizer/scripts/test_skill_standardizer.py` uses a
-  hand-rolled `main()` runner and an `assert_true` helper instead of pytest. It
-  is the only test file outside `tests/`, and CI needs a dedicated step for it.
-- **Why it matters**: `tests/` already tests skill-owned scripts —
-  `tests/test_bump_skill_version.py` covers `skills/skill-evals/scripts/`
-  via `importlib.spec_from_file_location`, and skill-evals ships no tests of its
-  own. The standardizer is the sole outlier.
-- **Interim state**: each test restores cwd and
-  `AGENTS_HOME`/`CODEX_HOME`/`CLAUDE_HOME` through `isolated_tempdir()`, and
-  `tests/test_skill_standardizer_suite.py` loads the file with `importlib` to run
-  every test under pytest, check that restoration, and run the direct runner
-  without pytest. What remains is shipped test code, the dedicated CI step, and
-  two ways to invoke one file.
-- **No longer blocked**: an earlier version of this entry said the port needed a
-  call on whether the skill should keep shipping its own tests, since sync copies
-  them to `~/.agents/skills/skill-standardizer/scripts/`. Settled — the Test
-  Tiers rule in `docs/system/ARCHITECTURE.md` says behavior ships (`evals/`) and
-  code tests do not. Nothing in a global install invokes the suite. It does run
-  there (stdlib-only, hermetic tempdir fixtures — verified passing from `/tmp`),
-  but "can run" is not "has a consumer". Losing it from the global copy costs
-  nothing, so the port is plain conformance.
-- **Next**: port the tests into `tests/test_skill_standardizer_suite.py` with
-  `tmp_path`/`monkeypatch` while keeping the stdlib-only direct runner and its
-  pytest-free check, which are a current contract. Deleting the original,
-  dropping the dedicated CI step, and updating the `Run skill-standardizer
-  regression tests` section of `docs/system/OPERATIONS.md` and the "known
-  exception" paragraph under Test Tiers in `docs/system/ARCHITECTURE.md` retire
-  that contract, so they need their own decision first.
-- **Rejected alternative**: symlinking `tests/test_skill_standardizer.py` to the
-  skill's copy so pytest collects it while the skill still ships it. It would
-  work (pytest collects module-level `test_*` functions; `assert_true` raises
-  `AssertionError`), but it leaves a dead `main()` plus two ways to invoke one
-  file. It preserves the anomaly instead of resolving it; the interim `importlib`
-  wrapper shares that cost until the port lands.
+- **What**: canonical `skills/` that are installed in none of the catalog dirs
+  AgentMonitor scans emit no health row, so `scripts/skills_health.py --runtime`
+  lumps them into one "no data" bucket. Missing or drifted members of the
+  selected profile look the same as intentionally excluded skills.
+- **Why or evidence, 2026-11-20**: AgentMonitor scans `~/.claude/skills` and
+  `$CODEX_HOME/skills` by default, overridable with
+  `AGENTMONITOR_SKILL_CATALOG_DIRS` (agentmonitor `src/config.ts`, `7da48d5`).
+  `scripts/skill_health_runtime.py` counts absent skills as "no data" and has no
+  profile awareness. The catalog has 40 skill directories; the July/August
+  installation censuses (26 of 57, then 17 of 48) predate later retirements and
+  are not current. AgentMonitor's backlog tracks the consumer-side gap
+  ("Version attribution only reaches skills in the installed catalog").
+- **Next**: do **not** install the entire catalog merely to manufacture runtime
+  coverage. The distribution-profile contract makes intentional exclusion
+  explicit; have the health report distinguish excluded skills from missing or
+  drifted members of the selected profile. Recompute the census on the target
+  host before using it for a decision.
 
 ### Shared SemVer helper
-- **What**: SemVer parsing/validation now exists in multiple scripts.
+- **What**: SemVer parsing/validation now exists in multiple scripts. On
+  2026-11-20 four `SEMVER_RE` copies existed: `scripts/generate_skills_manifest.py`,
+  `skills/skill-creator/scripts/quick_validate.py`,
+  `skills/skill-evals/scripts/check_skill_versions.py`, and
+  `skills/skill-standardizer/scripts/skill_standardizer_lib.py`.
 - **Why it matters**: The duplication is small, but future changes to prerelease
   or build-metadata handling could drift between validation, manifest generation,
   and version-bump checks.
@@ -204,40 +159,33 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   module under `skills/skill-evals/scripts/` or `scripts/lib/`, then have
   validators and generators use the same implementation.
 
-### Changelog entry format hardening
-- **What**: Version checks currently require a `CHANGELOG.md` heading containing
-  the new version, but do not require dates or entry content.
-- **Why it matters**: This keeps adoption friction low, but changelog quality may
-  vary once skills start receiving regular releases.
-- **Next**: After a few real version bumps, consider requiring headings like
-  `## 1.2.3 - YYYY-MM-DD` plus at least one bullet under the heading.
-
 ### Install/update workflows should understand skill versions
-- **What**: `skill-standardizer` audit/sync reports now show source and current
+- **What**: `skill-standardizer` audit/sync reports show source and current
   versions with a behind/ahead/equal/divergent/unknown delta (2026-10-21), but
-  `skill-installer` still does not report available/current version deltas.
+  `skill-installer` listings still do not report available/current versions.
+- **Decision, 2026-11-20**: the maintainer chose to keep and diverge Dojo's
+  `skill-installer` and install it for Claude Code; Codex keeps its bundled
+  copy. Version 2.0.0 rebased it on the Codex CLI 0.163.0 bundled copy; see its
+  [changelog](../../skills/skill-installer/CHANGELOG.md) and
+  [Global Skill Membership](GLOBAL-SKILL-MEMBERSHIP.md).
 - **Why it matters**: `list-skills.py` marks a skill only "already installed",
   so an available update looks the same as an up-to-date copy.
-- **Next**: Show installed and available versions in `skill-installer` listings,
+- **Next**: show installed and available versions in `skill-installer` listings,
   reusing the standardizer's semantics in
-  `skills/skill-standardizer/references/policy.md#version-deltas`.
+  `skills/skill-standardizer/references/policy.md#version-deltas`. Re-check the
+  bundled Codex copy for upstream changes when doing so.
 
-### Test isolation: a test leaves the process cwd deleted under Python 3.14
-- **What**: some test in `pytest tests/` deletes the process working directory
-  without restoring it; under Python 3.14's `os.getcwd()` a later test that reads
-  cwd then fails only in full-suite ordering, never in isolation. The victim was
-  `test_validate_plan.py::test_high_risk_plan_requires_linked_spec_and_structured_addendum`.
-- **Why or evidence**: reproduced 2026-08-14 on local Python 3.14.6. The
-  `discover_repo_root` crash half of this was fixed 2026-08-16 (it now catches
-  `FileNotFoundError` and degrades to the artifact's directory), so the full
-  suite is green on 3.14 — but the leaky test remains a latent flake generator
-  for any other code that reads cwd. The poisoner was not isolated; it does not
-  reproduce in the pairwise combinations tried.
-- **Next**: find the test that deletes cwd without restoring (bisect via a
-  session-scoped autouse fixture that asserts cwd is intact after each test),
-  fix it to restore or avoid chdir, then add 3.14 to the CI matrix
-  (`skill-contract-pilot.yml` pins 3.12) so the regression cannot return silently.
-- **Revisit when**: moving CI to Python 3.14, or the failure appears in isolation.
+### skill-standardizer cannot keep a skill out of the shared global root
+- **What**: `--normalize-primary` promotes any concrete skill in a secondary
+  global root to `~/.agents/skills`, and `--enforce-mirror` creates one there.
+  Neither knows that a skill is meant for one harness only.
+- **Why or evidence, 2026-11-20**: a temp-home dry run with a Claude-only
+  `skill-installer` in `~/.claude/skills` planned `PROMOTE_TO_PRIMARY`. Applied,
+  that would expose Dojo's copy to Codex beside its bundled one. `--only-existing`
+  syncs the copy in place and is safe.
+- **Next**: let the standardizer honor harness-scoped skills, for example by
+  reading `profiles/harness-equivalences.yaml` when the canonical repo is Dojo or
+  through a repeatable flag; until then, review dry runs for this skill.
 
 ### Scan-timeout test races scanner startup under load
 - **What**: `tests/test_audit_skill.py::test_scan_timeout_stops_scanner_and_its_child`
@@ -246,10 +194,12 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
   "Scanner never started" assertion fails without any cleanup defect.
 - **Why or evidence**: failed once in a full `scripts/check` run on 2026-10-15
   (MacBook, Python 3.12), then passed in isolation five times and in two further
-  full runs.
-- **Next**: have the fake engine write its PID file before any other work, or
-  raise the timeout enough to cover cold interpreter startup; revisit if it
-  fails in CI.
+  full runs. The last 100 `skill-contract-pilot.yml` runs (2026-10-20 to
+  2026-11-20) had no failures. The fake engine spawns its sleeping child before
+  writing the PID file, because the file records both PIDs.
+- **Next**: shorten the work before the PID write (for example, start the child
+  with a cheaper command than a second Python interpreter), or raise the timeout
+  enough to cover cold interpreter startup; revisit if it fails in CI.
 
 ### Revalidate earlier catalog improvement candidates before selecting work
 
@@ -263,3 +213,30 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 - **Revisit when**: observed user friction or a selected catalog review supplies a
   current need. Check existing skills, tools, examples, and tests before adopting
   any candidate; preserve distinct triggers when they serve different tasks.
+
+### Decide the open Codex equivalences for `gpt-imagen` and `local-review`
+
+- **What**: `profiles/harness-equivalences.yaml` leaves two Codex pairs
+  undeclared until someone decides them: `gpt-imagen` against Codex's bundled
+  `imagegen`, and `local-review` against Codex's `.system/review-agent`.
+- **Why or evidence**: a wrong declaration silently removes a selected skill, so
+  both stay undeclared and are reported as collisions. `gpt-imagen` belongs to no
+  overlay, so its suppression would never fire today (2026-08 observations).
+- **Next**: compare the two image skills' actual capabilities (masking, batch
+  output, the pinned model) rather than their descriptions, and declare the pair
+  only if the bundled path covers them; the `local-review` pair needs a
+  maintainer decision because `local-review` is a `core` member.
+
+### Reconcile Claude Code `unresolved` origins against the probe's source counts
+
+- **What**: `scripts/profiles/probe_claude.py` (`classify` origin assignment)
+  labels any listed entry it finds in no inspectable root `unresolved`, and
+  `scripts/profiles/observe.py` (`observe_claude`) exempts `unresolved` entries
+  alongside `harness-bundled` ones. A comment deferred reconciling that bucket
+  against the per-source counts in the debug log's `Loading skills from` line
+  to a later plan task, which never shipped (checked 2026-11-22).
+- **Why or evidence**: bundled skills ship inside the binary and land in this
+  bucket, but so would anything else the probe cannot see; while it is exempt,
+  an unseen non-bundled entry is never charged or reported.
+- **Next**: compare the bucket's size with the bundled count that line
+  reports, and mark the observation unsupported when they disagree.

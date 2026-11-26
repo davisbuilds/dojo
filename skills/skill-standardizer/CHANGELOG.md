@@ -1,3 +1,15 @@
+## 2.2.0 - 2026-11-25
+
+- Support global-gemini (~/.gemini/config/skills) with GEMINI_HOME override, skip absent secondary global roots during mirror enforcement, preserve concrete secondary copies referenced by primary-global symlinks, and promote canonical contents during `--normalize-primary` when canonical drift exists.
+
+## 2.1.2 - 2026-11-25
+
+- Move regression tests into the repository pytest suite and retire the shipped test runner.
+
+## 2.1.1 - 2026-11-23
+
+- Migrate existing create-cli installs to cli-design with the standard backup and link policies.
+
 ## 2.1.0 - 2026-10-21
 
 - Report each installed copy's version against its source (`behind`, `ahead`, `equal`, `divergent`, or `unknown`) in audit and sync reports. Missing or invalid versions stay `unknown`, and an equal version with different content is `divergent`. Planning and exit codes are unchanged.

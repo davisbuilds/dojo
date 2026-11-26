@@ -30,19 +30,13 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from profiles import probe_claude, probe_codex  # noqa: E402
 
-# Deliberately NOT `Path.home() / ".codex"`. The fixtures are captures from
-# another machine, and classification must follow the evidence rather than the
-# runner: keying on this machine's home passed locally and failed every CI run,
-# reporting zero plugin entries and misfiling bundled skills as dojo-managed.
-# `None` makes `classify` infer the capture's own Codex home from its locators.
+# WHY: not `Path.home() / ".codex"`. The fixtures are captures from another
+# machine, so classification must follow the evidence rather than the runner;
+# keying on this machine's home passed locally and failed every CI run. `None`
+# makes `classify` infer the capture's own Codex home from its locators.
 CAPTURE_HOME = None
 DOJO_SKILLS = REPO_ROOT / "skills"
 
-# The truncating fixture was captured from a scratch directory holding only
-# `.agents/skills -> <canonical catalog>`, which is the topology that made a dojo
-# session cost 177% before PR #54. Tests needing that cwd rebuild it under
-# `tmp_path` rather than referencing the original capture directory, which does
-# not exist on any other machine.
 ROOT_ALIAS_RE = re.compile(r"^- `(?P<alias>\w+)` = `(?P<path>.*)`$")
 
 
@@ -93,11 +87,6 @@ def claude_request() -> probe_claude.RequestResult:
     return probe_claude.parse_request(body)
 
 
-# --------------------------------------------------------------------------
-# Codex: the parser
-# --------------------------------------------------------------------------
-
-
 def test_recovers_namespaced_plugin_entries(dojo):
     """The zero rule, applied to the error that produced one.
 
@@ -140,11 +129,6 @@ def test_alias_locators_expand_to_absolute_paths(truncating, tmp_path):
     assert any(not e.locator.startswith("/") for e in listing.entries), "fixture is not alias-rendered"
     origins = {e.origin for e in listing.entries}
     assert "plugin" in origins, "alias locators failed to expand; plugin cache went undetected"
-
-
-# --------------------------------------------------------------------------
-# Codex: cost, which is where the arithmetic has to be exact
-# --------------------------------------------------------------------------
 
 
 def test_only_skill_lines_are_charged(dojo):
@@ -210,11 +194,6 @@ def test_unknown_window_falls_back_to_characters_not_a_guessed_token_count():
     assert probe_codex.budget_for_window(0) == (8_000, "characters")
 
 
-# --------------------------------------------------------------------------
-# Codex: origin and scope classification
-# --------------------------------------------------------------------------
-
-
 def test_every_origin_is_proven_against_a_known_present_case(dojo):
     """Non-degeneracy floors, never totals (SC-04, SC-05)."""
     listing = probe_codex.classify(dojo, DOJO_SKILLS, CAPTURE_HOME, REPO_ROOT)
@@ -272,11 +251,6 @@ def test_duplication_is_visible_and_charged_twice(truncating):
     assert truncating.entry_cost_tokens > deduped
 
 
-# --------------------------------------------------------------------------
-# Claude Code
-# --------------------------------------------------------------------------
-
-
 def test_sent_and_loaded_are_different_numbers(claude_debug):
     """Using ``loaded`` restates the filesystem error in a new costume.
 
@@ -297,8 +271,6 @@ def test_budget_is_characters_end_to_end_with_no_token_conversion():
     """``context_tokens × 4 × fraction``, compared characters to characters."""
     assert probe_claude.budget_chars(200_000) == 8_000
     assert probe_claude.budget_chars(1_000_000) == 40_000
-    # The same repository is conformant on one model and not the other, which is
-    # why the model belongs to policy identity.
     assert probe_claude.budget_chars(1_000_000) > probe_claude.budget_chars(200_000)
 
 
@@ -315,9 +287,6 @@ def test_the_listing_is_found_by_its_opening_sentence_not_its_section(claude_req
     assert probe_claude.LISTING_OPENING in json.dumps(body)
     names = {e.name for e in claude_request.entries}
     assert "## Available Skills" not in names
-    # Was `> 10` on a 75-entry listing, which is why six dropped entries went
-    # unnoticed. The count is now pinned to the block itself in
-    # `test_every_listing_line_becomes_an_entry`.
     assert len(names) > 50
 
 
@@ -350,18 +319,12 @@ def test_the_elision_hazard_is_quantified_on_one_capture(claude_debug, claude_re
     assert demand_ratio > rendered_ratio * 2
 
 
-# --------------------------------------------------------------------------
-# Staleness
-# --------------------------------------------------------------------------
-
-
 def test_a_perturbed_fingerprint_marks_dependent_evidence_stale():
     """EV-LEG-03: a harness or model change invalidates prior evidence."""
     recorded = {"harness": "codex", "version": "codex-cli 0.145.0", "model": "gpt-5.6-terra", "context_window": 272_000}
     assert probe_codex.is_stale(recorded, dict(recorded)) == []
     assert probe_codex.is_stale(recorded, {**recorded, "version": "codex-cli 0.146.0"}) == ["version"]
     assert probe_codex.is_stale(recorded, {**recorded, "context_window": 200_000}) == ["context_window"]
-    # The model alone is enough, because the budget is a function of its window.
     assert "model" in probe_codex.is_stale(recorded, {**recorded, "model": "gpt-5.4"})
 
 
@@ -441,7 +404,6 @@ def test_classification_follows_the_capture_not_the_running_machine(dojo):
     inferred = probe_codex.infer_codex_home(dojo)
     assert inferred and inferred.endswith("/.codex")
 
-    # A wrong home must not quietly degrade to a plausible classification.
     wrong = probe_codex.classify(load_codex("codex-prompt-input-dojo-2026-08-02.json"),
                                  DOJO_SKILLS, "/nonexistent/.codex", REPO_ROOT)
     assert not any(e.origin == "plugin" for e in wrong.entries)
@@ -460,11 +422,6 @@ def test_refuses_to_classify_a_listing_with_no_discoverable_home():
     )
     with pytest.raises(ValueError, match="Codex home"):
         probe_codex.classify(empty, DOJO_SKILLS, None, REPO_ROOT)
-
-
-# --------------------------------------------------------------------------
-# Regressions found in review of PR #56
-# --------------------------------------------------------------------------
 
 
 def test_every_listing_line_becomes_an_entry(claude_request):
@@ -487,8 +444,6 @@ def test_claude_recovers_namespaced_plugin_names(claude_request):
     namespaced = [e for e in claude_request.entries if e.is_namespaced]
     assert len(namespaced) >= 1
     assert all(":" in e.name for e in namespaced)
-    # A colon *followed by a space* is the description separator; a bare colon
-    # belongs to the name. Both shapes appear in the fixture.
     assert any(e.description is None for e in namespaced)
     assert any(e.description for e in namespaced)
 
@@ -513,9 +468,6 @@ def test_claude_entries_are_classified(claude_request, tmp_path):
     origins = collections.Counter(e.origin for e in result.entries)
     assert origins["unknown"] == 0
     assert origins["plugin"] >= 1, "namespaced entries are plugin-provided by construction"
-    # Entries this probe cannot place are `unresolved`, never asserted as
-    # `harness-bundled`: Claude Code's listing carries no locators, so that
-    # label would be a guess wearing a positive identification's clothes.
     assert origins["harness-bundled"] == 0
     assert origins["unresolved"] >= 1
     scopes = collections.Counter(e.scope for e in result.entries)
@@ -551,7 +503,6 @@ def test_utilization_never_mixes_tokens_against_a_character_limit(dojo):
     chars = dojo.utilization(8_000, "characters")
     assert 0.7 < tokens < 0.8
     assert chars > 2.0
-    # The two costs must not be interchangeable: ~4 bytes per token.
     assert dojo.charged_chars > 3 * dojo.charged_tokens
     with pytest.raises(ValueError, match="unknown budget unit"):
         dojo.utilization(8_000, "furlongs")
@@ -591,7 +542,6 @@ def test_fixture_inventory_is_reviewed():
         "claude-request-dojo-2026-08-02.json",
         "codex-prompt-input-dojo-2026-08-02.json",
         "codex-prompt-input-truncating-2026-08-02.json",
-        # Verbatim frontmatter from this repository's capture-era commit.
         "codex-source-frontmatter-2026-08-02.json",
         "codex-tui-clipped-110.jsonl",
         "codex-tui-clipped-56.jsonl",

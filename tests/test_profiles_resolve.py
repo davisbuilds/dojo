@@ -63,11 +63,6 @@ def example_suppression():
     )}
 
 
-# --------------------------------------------------------------------------
-# Composition
-# --------------------------------------------------------------------------
-
-
 def test_all_overlay_permutations_resolve_identically(defs, catalog):
     """EV-CON-02, at full strength.
 
@@ -94,7 +89,7 @@ def test_composition_is_set_union_and_collapses_overlap(defs, catalog):
     shared = "verify-before-complete"
     a = definitions.Profile(
         name="engineering", kind="overlay", description="x",
-        members=("create-cli", "secure-code", shared), source=Path("a.yaml"), is_sentinel=False,
+        members=("cli-design", "secure-code", shared), source=Path("a.yaml"), is_sentinel=False,
     )
     b = definitions.Profile(
         name="research", kind="overlay", description="x",
@@ -103,7 +98,7 @@ def test_composition_is_set_union_and_collapses_overlap(defs, catalog):
     patched = {**defs, "engineering": a, "research": b}
     result = resolve(("core", "engineering", "research"), patched, catalog)
     assert result.members.count(shared) == 1
-    assert {"create-cli", "deep-research"} <= set(result.members)
+    assert {"cli-design", "deep-research"} <= set(result.members)
 
 
 def test_full_tracks_the_catalog_rather_than_a_list(defs, catalog):
@@ -111,11 +106,6 @@ def test_full_tracks_the_catalog_rather_than_a_list(defs, catalog):
     result = resolve(("full",), defs, catalog)
     assert set(result.members) == set(catalog)
     assert len(result.members) == len(catalog)
-
-
-# --------------------------------------------------------------------------
-# Rejections — each with its own code
-# --------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -151,11 +141,6 @@ def test_the_five_codes_are_actually_distinct():
         SelectionErrorCode.FULL_NOT_EXCLUSIVE,
     ]
     assert len({c.value for c in codes}) == len(codes)
-
-
-# --------------------------------------------------------------------------
-# Identity: what is, and is not, an input
-# --------------------------------------------------------------------------
 
 
 def test_profile_identity_ignores_selection_order(defs):
@@ -196,7 +181,7 @@ def test_one_profile_identity_two_harnesses_different_realizations(defs, catalog
     codex = resolve_for_harness(result, example_suppression, "codex")
     claude = resolve_for_harness(result, {}, "claude-code")
 
-    assert "skill-creator" in result.members  # SC-02 constrains selection, not realization.
+    assert "skill-creator" in result.members
     assert "skill-creator" not in codex.realized
     assert "skill-creator" in claude.realized
 
@@ -251,11 +236,6 @@ def test_canonical_revision_moves_realization_but_not_profile_identity(defs, cat
         canonical_revision="b", **common
     )
     assert resolve(("core", "research"), defs, catalog).identity == result.identity
-
-
-# --------------------------------------------------------------------------
-# Suppression is declared, never inferred
-# --------------------------------------------------------------------------
 
 
 def test_an_undeclared_collision_is_reported_and_the_member_survives(defs, catalog, equivalences):

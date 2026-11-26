@@ -56,7 +56,6 @@ def test_declared_trigger_collision_is_flagged(tmp_path: Path) -> None:
     module = load_module()
     skills_root = tmp_path / "skills"
     skills_root.mkdir()
-    # Two skills claiming an identical trigger phrase -> guaranteed collision.
     write_skill(
         skills_root,
         "review-swarm",
@@ -76,9 +75,6 @@ def test_declared_trigger_collision_is_flagged(tmp_path: Path) -> None:
     assert result["summary"]["failed"] >= 1
     flagged = [a for a in result["assertions"] if a["collision_with"] is not None]
     assert flagged, "expected at least one collision to be flagged"
-
-
-# --- Scorer rewrite: TF-IDF cosine + stemming + ranking assertions ---------
 
 
 def write_plain_skill(skills_root: Path, name: str, description: str) -> None:
@@ -119,13 +115,10 @@ def test_hyphenated_compounds_split_into_components() -> None:
 
 def test_stem_folds_regular_plurals_and_gerunds() -> None:
     module = load_module()
-    # Regular plurals must not be over-stripped, and doubled-consonant gerunds
-    # must undouble so 'scanning' meets 'scan'.
     assert module.stem("articles") == module.stem("article")
     assert module.stem("spots") == module.stem("spot")
     assert module.stem("scanning") == module.stem("scan")
     assert module.stem("deployments") == module.stem("deployment")
-    # But do not mangle these.
     assert module.stem("class") == "class"
     assert module.stem("us") == "us"
 
@@ -143,7 +136,6 @@ def test_idf_downweights_corpus_wide_tokens(tmp_path: Path) -> None:
     root.mkdir()
     write_plain_skill(root, "secure-code", "Detect the trifecta risk.")
     write_plain_skill(root, "review-tool", "Review repository workspace files and layout.")
-    # Filler skills make 'repository' and 'workspace' corpus-wide (low IDF).
     for i in range(5):
         write_plain_skill(root, f"filler-{i}", "Operate on the repository workspace.")
     skills = module.build_skill_index(root, None)
@@ -167,7 +159,6 @@ def test_ranking_picks_winner_over_generic_sibling(tmp_path: Path) -> None:
     result = module.evaluate_cases(skills, cases["cases"], mode="ranking")
     assert result["summary"]["failed"] == 0
     assert result["summary"]["mode"] == "ranking"
-    # self-improve smoke greps for this exact token
     assert all(a["passed"] for a in result["assertions"])
 
 
@@ -228,7 +219,7 @@ def test_ranking_winner_must_clear_score_floor(tmp_path: Path) -> None:
         "prompt": "qzxwv mmnbb gibberish tokens",
         "expected": {"trigger": ["only-skill"], "avoid": []},
     }]
-    skills = module.build_skill_index(root, {"only-skill"})  # narrow to the one skill
+    skills = module.build_skill_index(root, {"only-skill"})
     result = module.evaluate_cases(skills, cases, mode="ranking")
     assert result["summary"]["failed"] >= 1
 
@@ -312,7 +303,6 @@ def test_idf_computed_over_full_corpus_not_selected_subset(tmp_path: Path) -> No
         write_plain_skill(root, f"filler-{i}", "Work with code in the repository workspace.")
     full = module.build_skill_index(root, None)
     subset = module.build_skill_index(root, {"secure-code", "filler-0"})
-    # "semgrep" idf must be identical whether or not we filter the returned set.
     assert full["secure-code"]["idf"]["semgrep"] == subset["secure-code"]["idf"]["semgrep"]
 
 

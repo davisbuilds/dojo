@@ -40,7 +40,6 @@ def make_repo(tmp_path: Path):
         config.write_text(json.dumps(selection))
         return d
 
-    # Pre-seed harness dirs as plain directories (mimicking the drifted state)
     for harness in (".claude", ".agents", ".agent"):
         (tmp_path / harness / "skills").mkdir(parents=True)
 
@@ -76,9 +75,7 @@ def test_generates_symlinks_and_sidecars(tmp_path: Path):
     text = sidecar.read_text()
     assert text.startswith(module.MARKER)
     assert 'display_name: "Diagnose"' in text
-    # default_prompt must mention the skill as $name (explicit invocation)
     assert "$diagnose" in text
-    # short_description must respect the 25-64 char contract
     sd = next(line for line in text.splitlines() if "short_description:" in line)
     value = sd.split('"', 1)[1].rsplit('"', 1)[0]
     assert 25 <= len(value) <= 64, value
@@ -90,7 +87,7 @@ def test_idempotent_check_after_generate(tmp_path: Path):
     make_skill("diagnose", "Use when debugging.")
 
     assert _invoke(module, tmp_path, []) == 0
-    assert _invoke(module, tmp_path, ["--check"]) == 0  # clean after generate
+    assert _invoke(module, tmp_path, ["--check"]) == 0
 
 
 def test_check_reports_drift_before_generate(tmp_path: Path):
@@ -98,7 +95,7 @@ def test_check_reports_drift_before_generate(tmp_path: Path):
     skills_root, make_skill = make_repo(tmp_path)
     make_skill("diagnose", "Use when debugging.")
 
-    assert _invoke(module, tmp_path, ["--check"]) == 1  # symlinks + sidecar missing
+    assert _invoke(module, tmp_path, ["--check"]) == 1
 
 
 def test_skip_symlinks_writes_sidecars_only(tmp_path: Path):
@@ -107,11 +104,8 @@ def test_skip_symlinks_writes_sidecars_only(tmp_path: Path):
     make_skill("diagnose", "Use when debugging.")
 
     assert _invoke(module, tmp_path, ["--skip-symlinks"]) == 0
-    # sidecar written
     assert (skills_root / "diagnose" / "agents" / "openai.yaml").exists()
-    # harness skills/ left as the original plain dir (not converted to a symlink)
     assert not (tmp_path / ".claude" / "skills").is_symlink()
-    # sidecars-only check passes regardless of symlink state
     assert _invoke(module, tmp_path, ["--check", "--skip-symlinks"]) == 0
 
 
@@ -119,13 +113,11 @@ def test_refuses_to_delete_nonempty_real_dir(tmp_path: Path):
     module = load_module()
     skills_root, make_skill = make_repo(tmp_path)
     make_skill("diagnose", "Use when debugging.")
-    # A developer's real harness dir with untracked local content
     local = tmp_path / ".claude" / "skills" / "my-local-skill"
     local.mkdir(parents=True)
     (local / "SKILL.md").write_text("local", encoding="utf-8")
 
-    assert _invoke(module, tmp_path, []) == 1  # errors -> non-zero
-    # untouched: the local skill is preserved, not rmtree'd
+    assert _invoke(module, tmp_path, []) == 1
     assert (local / "SKILL.md").read_text() == "local"
     assert not (tmp_path / ".claude" / "skills").is_symlink()
 
@@ -135,7 +127,7 @@ def test_short_description_truncates_long_first_sentence(tmp_path: Path):
     long = "This is an intentionally very long first sentence that runs well beyond the sixty four character ceiling"
     out = module.short_description(long, "Demo")
     assert len(out) <= 64
-    assert " " in out  # truncated on a word boundary, not mid-word
+    assert " " in out
 
 
 def test_hand_authored_sidecar_preserved(tmp_path: Path):
@@ -145,14 +137,9 @@ def test_hand_authored_sidecar_preserved(tmp_path: Path):
     make_skill("fancy", "Use when fancy.", agents_file="openai.yaml", content=curated)
 
     assert _invoke(module, tmp_path, []) == 0
-    # untouched: no marker, original content intact
     out = (skills_root / "fancy" / "agents" / "openai.yaml").read_text()
     assert out == curated
-    # and --check is satisfied by its existence
     assert _invoke(module, tmp_path, ["--check"]) == 0
-
-
-# --- Command wrapper wiring into .claude/commands/ -------------------------
 
 
 def _add_command(skill_dir: Path, rel: str, body: str = "# cmd\n"):
@@ -192,7 +179,6 @@ def test_check_reports_missing_command_link(tmp_path: Path):
     module = load_module()
     skills_root, make_skill = make_repo(tmp_path)
     _add_command(make_skill("local-review", "Use when reviewing."), "review.md")
-    # Symlinks + sidecar + command link all missing -> drift.
     assert _invoke(module, tmp_path, ["--check"]) == 1
 
 
@@ -201,7 +187,6 @@ def test_collision_across_skills_errors(tmp_path: Path):
     skills_root, make_skill = make_repo(tmp_path)
     _add_command(make_skill("local-review", "Use when reviewing."), "review.md")
     _add_command(make_skill("gh-review-pr", "Use when reviewing PRs."), "review.md")
-    # Two skills map to .claude/commands/review.md -> refuse, non-zero, no clobber.
     assert _invoke(module, tmp_path, []) == 1
     link = tmp_path / ".claude" / "commands" / "review.md"
     assert not link.exists()
@@ -215,7 +200,6 @@ def test_prunes_stale_command_symlink(tmp_path: Path):
     assert _invoke(module, tmp_path, []) == 0
     link = tmp_path / ".claude" / "commands" / "review.md"
     assert link.is_symlink()
-    # Remove the source command; re-run must prune the now-dangling managed link.
     cmd.unlink()
     assert _invoke(module, tmp_path, []) == 0
     assert not link.exists() and not link.is_symlink()
@@ -225,7 +209,6 @@ def test_does_not_touch_a_real_command_file(tmp_path: Path):
     module = load_module()
     skills_root, make_skill = make_repo(tmp_path)
     _add_command(make_skill("local-review", "Use when reviewing."), "review.md")
-    # A user's hand-authored command that maps to no skill source.
     hand = tmp_path / ".claude" / "commands" / "my-own.md"
     hand.parent.mkdir(parents=True, exist_ok=True)
     hand.write_text("mine", encoding="utf-8")
@@ -237,14 +220,12 @@ def test_foreign_command_symlink_is_reported_not_clobbered(tmp_path: Path):
     module = load_module()
     skills_root, make_skill = make_repo(tmp_path)
     _add_command(make_skill("local-review", "Use when reviewing."), "review.md")
-    # A user's own symlink at the generated target, pointing outside skills/*/commands/.
     foreign_source = tmp_path / "dotfiles" / "review.md"
     foreign_source.parent.mkdir(parents=True, exist_ok=True)
     foreign_source.write_text("mine", encoding="utf-8")
     link = tmp_path / ".claude" / "commands" / "review.md"
     link.parent.mkdir(parents=True, exist_ok=True)
     os.symlink(os.path.relpath(foreign_source, link.parent), link)
-    # Must refuse (like a real file), leaving the foreign symlink intact.
     assert _invoke(module, tmp_path, []) == 1
     assert link.is_symlink()
     assert link.resolve().read_text() == "mine"
@@ -262,13 +243,12 @@ def test_skip_symlinks_skips_commands(tmp_path: Path):
 def test_does_not_link_the_catalog_into_codex_project_scope(tmp_path: Path):
     """Even an empty selection creates real roots, never a catalog link."""
     module = load_module()
-    make_repo(tmp_path)  # pre-seeds .agents/skills as a plain dir
+    make_repo(tmp_path)
 
     assert _invoke(module, tmp_path, []) == 0
 
     agents_link = tmp_path / ".agents" / "skills"
     assert not agents_link.is_symlink(), "generator must not link the catalog into Codex project scope"
-    # the sibling it still owns proves the run actually did its work
     assert (tmp_path / ".claude" / "skills").is_dir()
 
 
@@ -280,13 +260,13 @@ def test_retires_a_pre_existing_agents_link(tmp_path: Path):
     stale.rmdir()
     os.symlink("../skills", stale)
 
-    assert _invoke(module, tmp_path, ["--check"]) == 1  # reported as drift first
-    assert stale.is_symlink()  # --check writes nothing
+    assert _invoke(module, tmp_path, ["--check"]) == 1
+    assert stale.is_symlink()
 
     assert _invoke(module, tmp_path, []) == 0
     assert stale.is_dir() and not stale.is_symlink()
-    assert (tmp_path / ".agents").is_dir()  # the dir may hold real config
-    assert _invoke(module, tmp_path, ["--check"]) == 0  # idempotent
+    assert (tmp_path / ".agents").is_dir()
+    assert _invoke(module, tmp_path, ["--check"]) == 0
 
 
 def test_refuses_to_delete_a_real_agents_directory(tmp_path: Path):
@@ -297,7 +277,7 @@ def test_refuses_to_delete_a_real_agents_directory(tmp_path: Path):
     mine.mkdir(parents=True)
     (mine / "SKILL.md").write_text("local", encoding="utf-8")
 
-    assert _invoke(module, tmp_path, []) == 1  # error -> non-zero
+    assert _invoke(module, tmp_path, []) == 1
     assert (mine / "SKILL.md").read_text() == "local"
 
 
@@ -311,7 +291,7 @@ def test_leaves_a_foreign_agents_symlink_alone(tmp_path: Path):
     stale.rmdir()
     os.symlink("../elsewhere", stale)
 
-    assert _invoke(module, tmp_path, []) == 1  # error -> non-zero
+    assert _invoke(module, tmp_path, []) == 1
     assert stale.is_symlink() and os.readlink(stale) == "../elsewhere"
 
 
@@ -345,7 +325,7 @@ def test_selection_replaces_catalog_links_and_prunes_unselected_commands(tmp_pat
     assert not (commands / 'brainstorm.md').is_symlink()
     assert (commands / 'audit.md').resolve() == selected / 'commands/audit.md'
     assert (commands / 'personal.md').read_text() == 'keep me'
-    assert (other / 'agents/openai.yaml').exists()  # source catalog still gets sidecars
+    assert (other / 'agents/openai.yaml').exists()
     assert _invoke(module, tmp_path, ['--check']) == 0
     assert _invoke(module, tmp_path, []) == 0
 

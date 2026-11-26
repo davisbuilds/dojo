@@ -3,7 +3,7 @@ name: skill-evals
 description: Check skill packaging, release versions, and lexical routing fixtures, and choose evidence appropriate to a skill-quality claim. Use when validating a skill edit, investigating trigger collisions, or assessing what an evaluation establishes.
 skill-type: workflow
 compatibility: "Requires python3 and PyYAML; repository checks need a Dojo checkout."
-version: 2.1.1
+version: 3.0.0
 ---
 
 # Skill Evals
@@ -28,13 +28,14 @@ merely because an evaluation identified a concern; stay within the user's scope.
 ## Repository checks
 
 Run these from the Dojo checkout; these are repository tool paths, not paths
-assumed to exist in a consuming project's working directory.
+assumed to exist in a consuming project's working directory. Release-relevant
+changes need a version bump and a changelog entry with a dated version heading
+and at least one nonempty bullet.
 
 ```bash
 # Metadata gates. --json exposes each result; --authoring-hints adds prose hints.
 python3 skills/skill-evals/scripts/validate_skill_contract.py --skills-root skills --strict
 
-# Release-relevant changes need a version bump and matching changelog heading.
 python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
 
 # Helper when a release bump is part of the authorized edit.

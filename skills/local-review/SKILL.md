@@ -2,7 +2,7 @@
 name: local-review
 description: Review code changes for actionable defects without posting to GitHub. Use for local, staged, branch, or commit reviews, including focused reviews of error handling, fallbacks, types, and invariants. Trace affected callers and contracts; return concise, evidence-backed findings.
 skill-type: workflow
-version: 2.0.0
+version: 2.0.1
 ---
 
 # Local Review

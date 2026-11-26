@@ -64,11 +64,6 @@ def source_entries(names, catalog) -> list[dict]:
     ]
 
 
-# --------------------------------------------------------------------------
-# The rule the whole task exists for
-# --------------------------------------------------------------------------
-
-
 def test_cost_never_derives_from_rendered_output(claude_200k):
     """SC-04. The elision hazard, on the live capture that demonstrates it.
 
@@ -96,10 +91,8 @@ def test_all_five_degradation_shapes_are_detected(codex_policy, claude_200k):
     long_source = "x" * (probe_codex.MAX_DEFAULT_CONTEXT_SKILL_DESCRIPTION_CHARS + 50)
 
     codex_cases = [
-        # (a) clipped mid-word, no marker at all
         ([{"name": "a", "source_description": "full sentence here", "listed_description": "full sen"}],
          Degradation.CODEX_CLIPPED),
-        # (b) 1,024-char pre-cap, which DOES mark with "..."
         ([{"name": "b", "source_description": long_source,
            "listed_description": long_source[:1021] + "..."}],
          Degradation.CODEX_PRECAP),
@@ -117,7 +110,6 @@ def test_all_five_degradation_shapes_are_detected(codex_policy, claude_200k):
         codex_policy, candidate_count=5,
     )
 
-    # (d) and (e), Claude Code
     assert Degradation.CLAUDE_ELLIPSIS_TRUNCATED in detect_degradation(
         [{"name": "d", "source_description": "long", "listed_description": "lon…"}], claude_200k
     )
@@ -149,11 +141,6 @@ def test_degradation_makes_a_target_nonconformant_regardless_of_cost(claude_1m):
     assert result.demand < result.limit * 0.01
     assert result.verdict is Verdict.NONCONFORMANT
     assert Degradation.CLAUDE_DESCRIPTION_REMOVED in result.degradations
-
-
-# --------------------------------------------------------------------------
-# Arithmetic, per policy's own unit
-# --------------------------------------------------------------------------
 
 
 def test_the_two_harnesses_use_genuinely_different_units(codex_policy, claude_1m):
@@ -203,10 +190,8 @@ def test_a_provisional_limit_cannot_gate(codex_policy):
     assert provisional.provisional is True
     entries = [{"name": "n", "source_description": "d", "locator": "/r/n/SKILL.md"}]
 
-    # The surface MUST be declared here. Without it the assessment is refused on
-    # surface grounds and this test passes without ever reaching the provisional
-    # check — found by mutation probe, which survived deleting that check
-    # entirely. A test that passes for the wrong reason is not coverage.
+    # WHY: the surface must be declared here. Without it the assessment is refused on
+    # surface grounds and the test passes without reaching the provisional check.
     scored = assess(entries, provisional, surface="codex-tui")
     assert scored.verdict is not Verdict.UNSUPPORTED, "must be scored, not refused"
     assert scored.gating is False, "a provisional ceiling must never fail a build"
@@ -284,11 +269,6 @@ def test_an_empty_catalog_is_unsupported_not_deployable(codex_policy):
     result = assess([], codex_policy, surface="codex-tui")
     assert result.verdict is Verdict.UNSUPPORTED
     assert "no entries" in result.reason
-
-
-# --------------------------------------------------------------------------
-# SC-03 fit proofs, one per declared pair
-# --------------------------------------------------------------------------
 
 
 def _fit_entries(catalog):

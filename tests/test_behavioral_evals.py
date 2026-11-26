@@ -51,7 +51,6 @@ def test_parse_response_is_tolerant():
 def test_run_evals_with_injected_runner():
     module = load_module()
 
-    # Perfect router: echoes the owning skill for each known trigger.
     trigger_to_skill = {"debug this": "diagnose", "diagnose this": "diagnose", "create a handoff": "handoff"}
 
     def good_runner(prompt: str) -> str:
@@ -64,9 +63,8 @@ def test_run_evals_with_injected_runner():
     assert report["summary"]["cases"] == 3
     assert report["summary"]["failed"] == 0
 
-    # Always-wrong router
     report2 = module.run_evals(CATALOG, lambda p: "handoff")
-    assert report2["summary"]["failed"] == 2  # the two diagnose cases misroute
+    assert report2["summary"]["failed"] == 2
 
 
 def test_empty_cases_json_is_valid_json(tmp_path: Path, monkeypatch, capsys):
@@ -83,7 +81,7 @@ def test_empty_cases_json_is_valid_json(tmp_path: Path, monkeypatch, capsys):
     monkeypatch.setattr("sys.argv", ["behavioral", "--skills-root", str(skills_root), "--json"])
     assert module.main() == 0
 
-    payload = json.loads(capsys.readouterr().out)  # must be valid JSON
+    payload = json.loads(capsys.readouterr().out)
     assert payload["summary"] == {"cases": 0, "passed": 0, "failed": 0}
     assert payload["results"] == []
 
@@ -96,5 +94,5 @@ def test_gated_off_by_default(tmp_path: Path, monkeypatch):
     called = {"runner": False}
     monkeypatch.setattr(module, "default_runner", lambda p: called.__setitem__("runner", True) or "x")
 
-    assert module.main() == 0  # opt-in notice, clean exit
-    assert called["runner"] is False  # never invoked the agent
+    assert module.main() == 0
+    assert called["runner"] is False

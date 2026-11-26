@@ -26,9 +26,9 @@ def test_flags_known_slop_phrases():
     findings = module.scan_text(text)
     labels = {f[1] for f in findings}
     assert "filler-opener" in labels
-    assert "hype-verb" in labels  # "delve into" + "unlock the power of"
-    assert "cliche-metaphor" in labels  # "rich tapestry"
-    assert "hype-temporal" in labels  # "in today's fast-paced world"
+    assert "hype-verb" in labels
+    assert "cliche-metaphor" in labels
+    assert "hype-temporal" in labels
 
 
 def test_clean_technical_prose_has_no_hits():

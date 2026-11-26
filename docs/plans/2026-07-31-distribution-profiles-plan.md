@@ -3,7 +3,7 @@ date: 2026-08-01
 author: claude-opus-5
 topic: distribution-profiles
 stage: plan
-status: complete
+status: reference
 source: conversation
 risk_profile: high
 readiness: ready
@@ -11,6 +11,11 @@ spec: docs/specs/2026-07-27-distribution-profiles-spec.md
 ---
 
 # Distribution Profiles Plan
+
+The delivered measurement program is documented in
+[Operations](../system/OPERATIONS.md#measure-what-a-sessions-skill-listing-actually-costs).
+This historical plan also provides the positive control for the plan validation
+hook's regression test.
 
 Historical implementation plan. SC-02 revision 20 (2026-10-23) retires the
 `shipping` overlay and its Vercel skills. The file roster, six-overlay counts,

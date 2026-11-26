@@ -57,7 +57,7 @@ For mutative APIs:
 
 ## CLI Contract Tests
 
-Use `create-cli` for full CLI design. Verify:
+Use `cli-design` for full CLI design. Verify:
 
 - `--json` output parses on success.
 - Failure output follows the documented machine contract if one exists.

@@ -75,7 +75,6 @@ def test_check_runs_once_from_declared_cwd_and_preserves_output_and_exit(tmp_pat
     assert run.stderr == 'detail\n'
     assert (work / 'calls').read_text() == 'x'
     assert not (tmp_path / 'should-not-exist').exists()
-    # A real passing command is a control for the failure/exit propagation check.
     result, other = scaffold(tmp_path, blueprint(check={
         'command': 'test -f calls', 'cwd': str(work),
     }), tmp_path / 'passing-bundle')

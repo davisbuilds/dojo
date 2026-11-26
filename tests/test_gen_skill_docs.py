@@ -103,13 +103,13 @@ def test_check_detects_drift(setup, monkeypatch):
     make_skill("opted", "<!-- INCLUDE: footer -->\n")
 
     monkeypatch.setattr("sys.argv", ["gen", "--skills-root", str(skills_root), "--check"])
-    assert module.main() == 1  # never generated -> stale
+    assert module.main() == 1
 
     monkeypatch.setattr("sys.argv", ["gen", "--skills-root", str(skills_root)])
-    assert module.main() == 0  # write
+    assert module.main() == 0
 
     monkeypatch.setattr("sys.argv", ["gen", "--skills-root", str(skills_root), "--check"])
-    assert module.main() == 0  # now clean
+    assert module.main() == 0
 
 
 def test_missing_fragment_errors(setup, monkeypatch):

@@ -1,0 +1,35 @@
+{
+  "description": "Lexical discovery probes for verification machinery construction and maintenance, with adjacent task boundaries. These do not establish native harness loading or skill effectiveness.",
+  "cases": [
+    {
+      "id": "create-environment",
+      "type": "implicit",
+      "prompt": "Build repeatable repository verification tooling: this project lacks a usable verification environment and agents cannot exercise its CLI consumer paths.",
+      "expected": {"trigger": ["verification-tooling"], "avoid": ["verify-before-complete"]}
+    },
+    {
+      "id": "repair-fixtures",
+      "type": "implicit",
+      "prompt": "Repair the verification scripts and runbooks: setup and fixtures have drifted, and cleanup erases the evidence.",
+      "expected": {"trigger": ["verification-tooling"]}
+    },
+    {
+      "id": "test-design",
+      "type": "implicit",
+      "prompt": "Design a test strategy for the parser, choosing behavior-based assertions and real dependencies over mocks.",
+      "expected": {"trigger": ["test-strategy"], "avoid": ["verification-tooling"]}
+    },
+    {
+      "id": "completion-audit",
+      "type": "implicit",
+      "prompt": "Audit this consequential completion claim: is the existing evidence fresh and sufficient to call the migration done?",
+      "expected": {"trigger": ["verify-before-complete"], "avoid": ["verification-tooling"]}
+    },
+    {
+      "id": "routine-execution",
+      "type": "implicit",
+      "prompt": "Run the documented unit-test command and report its result.",
+      "expected": {"avoid": ["verification-tooling"]}
+    }
+  ]
+}

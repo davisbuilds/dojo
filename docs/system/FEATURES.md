@@ -45,7 +45,8 @@ accessibility compliance.
 | `write-spec` | Resolve acceptance decisions or write a requested durable contract; reuse settled targets and retain conditional high-risk readiness |
 | `write-plan` | Plan dependencies, rollout, and proof when needed; accept tickets/conversations and retain conditional high-risk traceability and review |
 | `blind-spots` | Find what you don't know about one change — blind spot pass before it's built, or a brief-then-quiz before you merge (never scored, never gating) |
-| `create-cli` | CLI design or focused interface consultation during implementation |
+| `cli-design` | CLI design or focused interface consultation during implementation |
+| `verification-tooling` | Build and maintain repeatable consumer verification paths, including setup, evidence, cleanup, and drift repair |
 | `agent-native-design` | Design agent-facing interfaces, delegated work, and products for agent consumers |
 | `deep-research` | Direct source-backed research with claim-level evidence checks and optional structured-finding triage |
 | `research-architect` | Shape portable research prompts with the user, commission independent same-question runs, and assess or synthesize returned reports |
@@ -101,7 +102,7 @@ accessibility compliance.
 
 - SKILL.md frontmatter validated on every write/edit (pre-tool-use).
 - Catalog skills declare `skill-type` for inventory and optional authoring hints; strict validation gates metadata, not prose structure.
-- Every skill declares a SemVer `version`; release-relevant skill edits require a version bump and changelog entry against the selected git base.
+- Every skill declares a SemVer `version`; release-relevant skill edits require a version bump and a changelog entry with a dated heading and at least one nonempty bullet against the selected git base.
 - Pushes to protected branches are blocked unless the command includes an explicit `DOJO_ALLOW_PROTECTED_PUSH=1` override.
 - `skills.json` manifest regenerated after every SKILL.md change (post-tool-use).
 - Newly authored design summaries, specs, and plans identify the producing agent

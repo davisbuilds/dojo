@@ -50,7 +50,7 @@ def test_build_report_aggregates_contract_and_triggers(tmp_path: Path):
     skills_root = tmp_path / "skills"
     skills_root.mkdir()
     make_skill(skills_root, "alpha", triggers=["use alpha", "run alpha"])
-    make_skill(skills_root, "bravo")  # no triggers
+    make_skill(skills_root, "bravo")
 
     report = module.build_report(skills_root)
 
@@ -61,7 +61,6 @@ def test_build_report_aggregates_contract_and_triggers(tmp_path: Path):
     by_name = {s["skill"]: s for s in report["skills"]}
     assert by_name["alpha"]["triggers_declared"] == 2
     assert by_name["bravo"]["triggers_declared"] == 0
-    # contract status is one of the known states
     assert by_name["alpha"]["contract_status"] in {"pass", "warn", "fail"}
 
 
@@ -77,9 +76,6 @@ def test_format_report_renders_summary(tmp_path: Path):
     assert "declare triggers" in text
 
 
-# Frozen output of the static (no-runtime) format_report for a fixed report.
-# The phase-2 runtime section must be strictly additive: a report without a
-# `runtime_source` in its summary renders byte-identically to this baseline.
 _STATIC_GOLDEN = """Skill Health Report
   catalog: 2 skills
   contract: pass=1 warn=1 fail=0
@@ -108,7 +104,6 @@ _STATIC_REPORT = {
 def test_default_run_is_byte_identical():
     module = load_module()
     assert module.format_report(_STATIC_REPORT) == _STATIC_GOLDEN
-    # A report carrying no runtime_source must produce no runtime section.
     assert "Runtime health" not in module.format_report(_STATIC_REPORT)
 
 
@@ -128,7 +123,7 @@ def test_findings_mode_does_not_run_static_build_report(monkeypatch, capsys):
 
     assert module.main() == 0
     out = capsys.readouterr().out
-    assert "#### find-skills" in out  # fixture's never-fired dojo skill
+    assert "#### find-skills" in out
 
 
 def test_health_reports_strict_catalog_defects_as_failures(tmp_path: Path):

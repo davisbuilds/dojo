@@ -62,6 +62,7 @@ from __future__ import annotations
 import json
 import re
 from collections import Counter
+from collections.abc import Collection
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -71,15 +72,19 @@ BLOCK_OPEN = "<skills_instructions>"
 BLOCK_CLOSE = "</skills_instructions>"
 
 SURFACE_TUI = "codex-tui"
+SURFACE_DESKTOP = "Codex Desktop"
+# WHY: only the surfaces a person works in render the account-synced
+# connectors; `codex exec` does not load them.
+INTERACTIVE_SURFACES = frozenset({SURFACE_TUI, SURFACE_DESKTOP})
 SURFACE_EXEC = "codex_exec"
-SURFACE_PROBE = "exec"  # what probe_codex observes; an alias of the exec path
+#: What ``probe_codex`` observes: an alias of the exec path.
+SURFACE_PROBE = "exec"
 
 _BLOCK_RE = re.compile(rf"{BLOCK_OPEN}.*?{BLOCK_CLOSE}", re.S)
 
-# Origin is read from the locator, because a fixture's paths do not exist on the
-# machine reading it. Where the path *is* present, `.codex-remote-plugin-install.json`
-# confirms an account-synced entry from the plugin's own payload rather than from
-# a path heuristic; the marker is checked when available and never required.
+# WHY: origin is read from the locator, because a fixture's paths do not exist
+# on the machine reading it; the `.codex-remote-plugin-install.json` marker is
+# checked when present and never required.
 CONNECTOR_SEGMENT = "/plugins/cache/openai-curated-remote/"
 PLUGIN_CACHE_SEGMENT = "/plugins/cache/"
 BUNDLED_SEGMENTS = ("/.codex/skills/.system/", "codex-primary-runtime")
@@ -92,12 +97,9 @@ ORIGIN_CONNECTOR = "connector"
 ORIGIN_PLUGIN = "plugin"
 ORIGIN_FOREIGN = "foreign"
 
-# Origins the operator cannot govern from this repository. `connector` is the
-# sharp case: it is governed by a ChatGPT account setting, is invisible to
-# `codex plugin list` (which reports such entries `not installed` while they are
-# listing), and its local `enabled = false` config key is **inert** — verified by
-# controlled test on 2026-08-04, google-drive disabled with its cache intact and
-# openai-developers left untouched as a control.
+# WHY: `connector` is governed by a ChatGPT account setting, reported
+# `not installed` by `codex plugin list` while listing, and its local
+# `enabled = false` key is inert (controlled test, 2026-08-04).
 UNCONTROLLED_ORIGINS = frozenset({ORIGIN_CONNECTOR, ORIGIN_PLUGIN, ORIGIN_BUNDLED})
 
 
@@ -239,8 +241,6 @@ def classify_locator(locator: str) -> str:
     if any(seg in locator for seg in BUNDLED_SEGMENTS):
         return ORIGIN_BUNDLED
     if PLUGIN_CACHE_SEGMENT in locator:
-        # A plugin cache entry whose payload carries a remote-install marker is
-        # an account-synced connector regardless of which cache it landed in.
         probe = Path(locator)
         for parent in list(probe.parents)[:6]:
             if (parent / REMOTE_MARKER).exists():
@@ -316,20 +316,10 @@ def read_rollout(path: Path | str) -> RolloutObservation | None:
             record = json.loads(raw)
         except json.JSONDecodeError:
             continue
-        # **Only the harness-authored context record may supply the listing.**
-        # An earlier version walked every string in every record and took the
-        # first hit. A conversation that merely *discusses* a skills listing then
-        # supplies the measurement: across this machine's 309 rollouts the block
-        # appears 238 times as `developer` (the real context) but also twice as
-        # `user`, twice as `assistant`, 136 times inside `compacted` summaries,
-        # and 67 times in untyped response items. One live session —
-        # 2026-07-28T17-23-34 — has a **user-pasted block first**, so the naive
-        # reader would have measured pasted text as the effective catalog. The
-        # historical table in the spec used the sibling session recorded 14
-        # seconds later and was correct by luck.
-        #
-        # `compacted` is excluded deliberately: it is harness-authored but is a
-        # summary of an earlier turn, so its listing may be stale.
+        # WHY: only the harness-authored context record may supply the listing; a
+        # conversation that discusses or pastes a listing would otherwise supply the
+        # measurement. `compacted` is excluded because it summarizes an earlier turn, so
+        # its listing may be stale.
         if not _is_harness_context(record):
             continue
         for text in _walk_strings(record):
@@ -368,7 +358,6 @@ def find_rollouts(sessions_root: Path | str | None = None) -> list[Path]:
     if not root.is_dir():
         return []
     paths = list(root.rglob("rollout-*.jsonl"))
-    # Fall back to mtime only when the name carries no stamp to read.
     return sorted(
         paths,
         key=lambda p: (p.name[8:24], p.stat().st_mtime)
@@ -378,7 +367,7 @@ def find_rollouts(sessions_root: Path | str | None = None) -> list[Path]:
 
 
 def observations(sessions_root: Path | str | None = None, *, cwd: str | Path | None = None,
-                 surface: str | None = None, limit: int | None = None,
+                 surface: str | Collection[str] | None = None, limit: int | None = None,
                  errors: list | None = None) -> list[RolloutObservation]:
     """Parsed observations, newest first, optionally filtered by cwd and surface.
 
@@ -404,7 +393,8 @@ def observations(sessions_root: Path | str | None = None, *, cwd: str | Path | N
             continue
         if observation is None:
             continue
-        if surface is not None and observation.meta.surface != surface:
+        if surface is not None and observation.meta.surface not in (
+                {surface} if isinstance(surface, str) else surface):
             continue
         if wanted_cwd is not None:
             try:
@@ -429,10 +419,12 @@ class LimitEvidence:
     """
 
     limit: int | None
-    basis: str                       # "observed" | "vendor" | "indeterminate"
+    #: ``"observed"``, ``"vendor"``, or ``"indeterminate"``.
+    basis: str
     provisional: bool
     reason: str = ""
-    samples: tuple[tuple[int, int], ...] = ()   # (entry_count, charged_tokens)
+    #: ``(entry_count, charged_tokens)`` pairs.
+    samples: tuple[tuple[int, int], ...] = ()
 
 
 def derive_limit(obs: list[RolloutObservation], *, clipped_only: bool = True) -> LimitEvidence:
@@ -444,11 +436,9 @@ def derive_limit(obs: list[RolloutObservation], *, clipped_only: bool = True) ->
     under-budget listing totals whatever it happens to cost, which is not a
     limit.
     """
-    # **Never mix harness builds.** A 2026-07-10 session on build 0.144.1 charged
-    # 6,188 tokens without clipping, while every 0.146.0 render saturates at
-    # 4,000 — so the limit is a property of the build, not a constant. Pooling
-    # them would either fabricate a disagreement or, worse, average two real
-    # ceilings into one that belongs to neither.
+    # WHY: never mix harness builds. The limit is a property of the build (0.144.1
+    # charged 6,188 tokens unclipped where 0.146.0 saturates at 4,000), so pooling
+    # fabricates a disagreement or averages two real ceilings into neither.
     builds = {o.meta.harness_build for o in obs}
     if len(builds) > 1:
         return LimitEvidence(
@@ -568,16 +558,13 @@ def surface_mismatch(live: Listing, recorded: RolloutObservation) -> dict | None
     module exists to catch, so it must be visible in evidence. Reconciling it
     silently would restore exactly the failure of the last four days.
     """
-    # **A multiset of qualified identities, not a set of bare names.** Codex does
-    # not shadow across roots: it lists every copy of a duplicated name and
-    # charges for each. The 56-entry fixture carries two `skill-creator` entries
-    # — one bundled by Codex, one shipped by dojo — so a set of names reports no
-    # mismatch when one copy disappears, hiding a real cost difference.
+    # WHY: a multiset of qualified identities, not a set of bare names. Codex lists
+    # and charges every copy of a duplicated name, so a set misses one copy going.
     live_ids = qualified_identities(live)
     recorded_ids = qualified_identities(recorded.listing)
     if live_ids == recorded_ids:
         return None
-    only_recorded = recorded_ids - live_ids     # Counter subtraction keeps multiplicity
+    only_recorded = recorded_ids - live_ids
     only_live = live_ids - recorded_ids
     return {
         "kind": "surface-mismatch",
@@ -601,8 +588,6 @@ def staleness(previous: RolloutObservation, current: RolloutObservation) -> list
     unchanged on 2026-08-06 while six entries left and nine arrived.
     """
     reasons = []
-    # The uncontrolled sets below are classification-derived, so a broken
-    # classifier produces a confident, meaningless diff.
     for label, obs in (("previous", previous), ("current", current)):
         alarm = obs.classification_alarm
         if alarm:
@@ -638,12 +623,8 @@ def attribute_demand(observation: RolloutObservation,
     """
     from .probe_codex import line_cost_tokens  # noqa: PLC0415 — avoids a cycle at import
 
-    # **Fail closed.** SC-04: "a budget verdict that cannot attribute demand to a
-    # controllable source is reported as unsupported rather than as a pass." An
-    # attribution computed over wholesale-misclassified entries sums correctly
-    # and means nothing, which is worse than no attribution at all — that is how
-    # 2,547 tokens of the operator's own catalog were reported as someone
-    # else's. Pass `allow_degraded=True` only to inspect the broken labels.
+    # WHY: fail closed (SC-04). An attribution over wholesale-misclassified entries
+    # sums correctly and means nothing.
     alarm = classification_alarm(observation)
     if alarm and not allow_degraded:
         raise ClassificationError(alarm)
@@ -651,8 +632,8 @@ def attribute_demand(observation: RolloutObservation,
     totals: dict[str, int] = {}
     descriptions = source_descriptions or {}
     for entry in observation.listing.entries:
-        # Classify on the absolute locator, cost on the rendered one: Codex
-        # charged the alias form, so costing the expansion would overstate.
+        # WHY: classify on the absolute locator, cost on the rendered one: Codex
+        # charges the alias form, so costing the expansion would overstate.
         origin = observation.origin_of(entry.locator)
         text = descriptions.get(entry.name, entry.description or "")
         line = f"- {entry.name}: {text} ({entry.locator_kind}: {entry.locator})"

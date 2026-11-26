@@ -18,13 +18,13 @@ knowledge-capture ownership, and claim-specific verification/testing. That is th
 basis for subsequent review, not proof of improved model performance. Empirical
 comparison remains separate from structural validation and source review.
 
-The bounded [development CLI pilot](../design/2026-10-06-dojo-cli-pilot.md)
+The bounded [development CLI pilot](../system/OPERATIONS.md#dojo-development-cli)
 connects existing packaging checks and effective-catalog evidence. Evaluate it
 through real authoring and discovery work before expanding its command surface.
 
 Make existing capabilities easier to try on real work. Lead consumer examples
 with `skill-standardizer` for executable drift auditing and recoverable sync,
-`create-cli` for specialist interface conventions, and `test-strategy` for
+`cli-design` for specialist interface conventions, and `test-strategy` for
 portable testing preferences and meaningful regression coverage. Each example
 should name a concrete task and a result the user can inspect. These are useful
 starting points, not a required installation set or claims of measured benefit.
