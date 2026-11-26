@@ -38,7 +38,7 @@
   university repository, research-center, news, and root hosts; keep unlisted
   university subdomains neutral.
 
-## 2.0.0
+## 2.0.0 - 2026-07-12
 
 - Narrow trigger semantics to direct, answer-seeking web research
   (stakes-based split): prompt engineering, commissioning multi-model or

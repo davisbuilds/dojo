@@ -419,7 +419,7 @@ The write path also refreshes the browseable catalog (`docs/catalog/index.html`)
 
 ### Check skill release versions
 
-Compares release-relevant skill changes against a git base. After the one-time unversioned baseline, changed skill contents require a strictly greater SemVer value and a matching `CHANGELOG.md` entry:
+Compares release-relevant skill changes against a git base. After the one-time unversioned baseline, changed skill contents require a strictly greater SemVer value and a matching `CHANGELOG.md` entry. Give that entry a `## <version> - YYYY-MM-DD` heading with a valid calendar date and at least one nonempty bullet under it.
 
 ```bash
 python3 skills/skill-evals/scripts/check_skill_versions.py --base origin/main
