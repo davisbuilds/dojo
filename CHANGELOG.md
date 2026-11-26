@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.0](https://github.com/davisbuilds/dojo/compare/dojo-cli-v0.2.0...dojo-cli-v0.3.0) (2026-11-26)
+
+
+### Features
+
+* **skill-standardizer:** support global-gemini (~/.gemini/config/skills) root ([134b3ed](https://github.com/davisbuilds/dojo/commit/134b3ed36f85331e485837c0d161f650c1fd96b7))
+* **skill-standardizer:** support global-gemini (~/.gemini/config/skills) root ([#150](https://github.com/davisbuilds/dojo/issues/150)) ([c8ac26d](https://github.com/davisbuilds/dojo/commit/c8ac26d8b380dea5a49ec6654d236e739c5a0537))
+
+
+### Bug Fixes
+
+* **skill-evals:** require dated changelog entries with bullets ([c88037b](https://github.com/davisbuilds/dojo/commit/c88037b38a2f38dab589245b2079c3f968381274))
+* **skill-evals:** require dated changelog entries with bullets ([#153](https://github.com/davisbuilds/dojo/issues/153)) ([1edfe6f](https://github.com/davisbuilds/dojo/commit/1edfe6f0df015ea2ae222959b1746ec4264b2754))
+* **skill-standardizer:** preserve concrete secondary sources referenced by primary symlinks ([458e567](https://github.com/davisbuilds/dojo/commit/458e5677c248a2e17d5b3e8dcccb84d83941672d))
+* **skill-standardizer:** repair canonical drift during primary promotion ([ca4c28f](https://github.com/davisbuilds/dojo/commit/ca4c28f47adc04a92f1239d818061aaa53c71b72))
+
 ## [0.2.0](https://github.com/davisbuilds/dojo/compare/dojo-cli-v0.1.0...dojo-cli-v0.2.0) (2026-11-23)
 
 
