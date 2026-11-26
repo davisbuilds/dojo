@@ -506,7 +506,9 @@ The same generator links only selected skills' `commands/*.md` into `.claude/com
 
 ### Regenerate the skill catalog
 
-Builds a self-contained, searchable `docs/catalog/index.html` from `skills.json` (open it directly in a browser):
+Builds a self-contained, searchable `docs/catalog/index.html` from `skills.json`
+(open it directly in a browser). The embedded data follows manifest order, with
+each skill in its own block so Git can merge version bumps to different skills.
 
 ```bash
 python scripts/gen_catalog.py          # write
