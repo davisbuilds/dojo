@@ -76,24 +76,6 @@ Fix simple, quick, or blocking issues inline when within the active task's scope
 - **Revisit when**: skilleval reports results, real usage exposes more friction,
   or model/tool changes warrant recalibration.
 
-### Remaining command permission patterns hardcode dojo-relative paths
-
-- **What**: `local-review` and `repo-hardening`
-  command wrappers still declare literal `Bash(... skills/<name>/...)` prefixes.
-  Their runnable bodies use installed absolute paths, which these matchers do not
-  cover. Observed in source on 2026-10-03 and still present on 2026-11-20 at
-  line 5 of `skills/local-review/commands/review.md` and
-  `skills/repo-hardening/commands/repo-{audit,harden}.md`; effective behavior is
-  harness-dependent.
-- **Why or evidence**: fixing the instruction path does not fix permission matcher
-  semantics. The security rewrite removed these ineffective declarations from
-  `secure-code` and `audit-skill`; those wrappers now inherit harness permissions
-  without adding a broad shell allowlist.
-- **Next**: when revising the remaining wrappers, decide whether ordinary harness
-  permissions suffice. If pre-approval adds value, verify a portable matcher with
-  vendor documentation or a real positive/negative probe before applying it.
-  Do not guess at wildcard semantics or broaden authority just to avoid prompts.
-
 ### Observe the bounded CLI pilot before expanding its scope
 
 - **What**: exercise `bin/dojo check` and `bin/dojo inspect` on normal skill edits

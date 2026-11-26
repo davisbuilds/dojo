@@ -2,7 +2,6 @@
 name: repo-harden
 description: Use repo-hardening artifacts to implement the highest-value repo hardening fixes and refresh the audit packet.
 argument-hint: "[repo-path] [--out-dir <dir>] [--package <name> ...]"
-allowed-tools: [Read, Write, Edit, Bash(git:*), Bash(rg:*), Bash(python3 skills/repo-hardening/scripts/repo_inventory.py:*)]
 ---
 
 # Repo Harden Command

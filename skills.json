@@ -124,7 +124,7 @@
       "name": "local-review",
       "description": "Review code changes for actionable defects without posting to GitHub. Use for local, staged, branch, or commit reviews, including focused reviews of error handling, fallbacks, types, and invariants. Trace affected callers and contracts; return concise, evidence-backed findings.",
       "path": "skills/local-review",
-      "version": "2.0.0"
+      "version": "2.0.1"
     },
     {
       "name": "loop-design",
@@ -155,7 +155,7 @@
       "name": "repo-hardening",
       "description": "Audit and harden a software repo against supply-chain and workflow risks. Use when a user asks to audit a repo, harden CI, pin GitHub Actions, freeze installs, reduce bot workflow risk, review lockfile/package-manager discipline, or create repo-local security investigation artifacts. Supports Node, Python, GitHub Actions, GitLab CI, and mixed-stack repos. On-demand via /repo-audit and /repo-harden.",
       "path": "skills/repo-hardening",
-      "version": "1.0.3"
+      "version": "1.0.4"
     },
     {
       "name": "research-architect",
