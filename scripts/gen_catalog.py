@@ -88,7 +88,7 @@ def build_page(manifest: dict) -> str:
     # WHY: script data is raw text, so HTML entities would corrupt displayed values;
     # JSON escapes round-trip through JSON.parse and keep HTML's script end and
     # comment tokens out of the data block.
-    data = json.dumps(catalog, ensure_ascii=False).replace("<", "\\u003c")
+    data = json.dumps(catalog, ensure_ascii=False, indent=2).replace("<", "\\u003c")
     return PAGE_TEMPLATE.format(count=len(catalog), data=data)
 
 
