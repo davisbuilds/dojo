@@ -43,10 +43,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections import Counter
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -96,18 +97,22 @@ class Baseline:
     charged_tokens: int = 0
     saturated: bool = False
     ceiling: int | None = None
+    catalog_kind: str = "full"
 
     @classmethod
     def from_observation(cls, obs: rc.RolloutObservation) -> "Baseline":
         return cls(
             harness_build=obs.meta.harness_build,
             surface=obs.meta.surface,
-            observed_at=obs.meta.path.name[8:24],
+            observed_at=_observation_stamp(obs),
             entry_ids=sorted(rc.qualified_identities(obs.listing).elements()),
             uncontrolled_ids=sorted(obs.uncontrolled_entries),
             charged_tokens=obs.charged_tokens,
             saturated=rc.is_saturated(obs),
-            ceiling=obs.charged_tokens if rc.is_saturated(obs) else None,
+            ceiling=(obs.charged_tokens if rc.is_saturated(obs)
+                     and obs.meta.catalog_kind == "full"
+                     and obs.meta.cli_version != "unknown" else None),
+            catalog_kind=obs.meta.catalog_kind,
         )
 
 
@@ -116,30 +121,33 @@ def _observation_cwd(obs: rc.RolloutObservation) -> str:
     return str(obs.meta.cwd)
 
 
-def _observation_age_days(obs: rc.RolloutObservation) -> int | None:
-    """How old the observed session is. None when the stamp is unreadable."""
-    try:
-        when = datetime.strptime(obs.meta.path.name[8:24], "%Y-%m-%dT%H-%M")
-    except (ValueError, TypeError):
+def _observation_stamp(obs: rc.RolloutObservation) -> str:
+    return obs.meta.observed_at or obs.meta.path.name[8:24]
+
+
+def _timestamp(value: str | None) -> datetime | None:
+    if not value:
         return None
-    return (datetime.now() - when).days
+    try:
+        parsed = (datetime.strptime(value, "%Y-%m-%dT%H-%M")
+                  if re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}-\d{2}", value)
+                  else datetime.fromisoformat(value.replace("Z", "+00:00")))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo is not None else parsed.astimezone()
+
+
+def _age_days(value: str | None) -> int | None:
+    when = _timestamp(value)
+    return (datetime.now(timezone.utc) - when).days if when is not None else None
+
+
+def _observation_age_days(obs: rc.RolloutObservation) -> int | None:
+    return _age_days(_observation_stamp(obs))
 
 
 def _days_blind(baseline: Baseline | None) -> int | None:
-    """Days since the last successful observation; None if there never was one.
-
-    None and a large number mean the same thing operationally — nobody is
-    watching this machine — but they are distinguished because the remedies
-    differ: one machine needs a session run on it, the other needs the check
-    moved off it.
-    """
-    if baseline is None:
-        return None
-    try:
-        when = datetime.strptime(baseline.observed_at[:16], "%Y-%m-%dT%H-%M")
-    except (ValueError, TypeError):
-        return None
-    return (datetime.now() - when).days
+    return _age_days(baseline.observed_at) if baseline is not None else None
 
 
 def load_store(path: Path) -> dict[str, Baseline]:
@@ -198,10 +206,14 @@ def compare(previous: Baseline, current: Baseline) -> list[str]:
         prev_cli, _, prev_model = previous.harness_build.partition("/")
         cur_cli, _, cur_model = current.harness_build.partition("/")
         if prev_cli != cur_cli:
-            findings.append(
-                f"harness build changed: {prev_cli} -> {cur_cli}. The listing ceiling, "
-                "locator form, and render mode are all build-scoped; re-derive rather "
-                "than carrying the previous figures forward.")
+            if "unknown" in (prev_cli, cur_cli):
+                findings.append(f"harness build provenance changed: {prev_cli} -> {cur_cli}; "
+                                "a resumed catalog does not establish its process build.")
+            else:
+                findings.append(
+                    f"harness build changed: {prev_cli} -> {cur_cli}. The listing ceiling, "
+                    "locator form, and render mode are all build-scoped; re-derive rather "
+                    "than carrying the previous figures forward.")
         if prev_model != cur_model:
             findings.append(
                 f"model changed: {prev_model} -> {cur_model}. The ceiling has been "
@@ -209,8 +221,18 @@ def compare(previous: Baseline, current: Baseline) -> list[str]:
                 "to ignore the model entirely on others, so a model switch may or may "
                 "not move it — which is why it is reported rather than assumed.")
 
+    if previous.catalog_kind != current.catalog_kind:
+        findings.append(f"catalog evidence changed: {previous.catalog_kind} -> "
+                        f"{current.catalog_kind}; reconstructed token cost is an estimate, "
+                        "not a measured render ceiling.")
+
     if previous.ceiling != current.ceiling:
-        if current.ceiling is None:
+        if current.catalog_kind != "full":
+            findings.append("ceiling is not derivable from a reconstructed catalog.")
+        elif current.ceiling is None and current.saturated:
+            findings.append("clipping is visible but its render build is unverified; "
+                            "the previous build-specific ceiling cannot be retained.")
+        elif current.ceiling is None:
             findings.append(
                 f"ceiling no longer derivable (was {previous.ceiling}): nothing saturates, "
                 "so the listing now fits with room. The limit is only known to be "
@@ -278,6 +300,7 @@ def _only_uncontrolled_membership_changed(previous: Baseline,
     if (previous.harness_build != current.harness_build
             or _surface_class(previous.surface) != _surface_class(current.surface)
             or previous.ceiling != current.ceiling
+            or previous.catalog_kind != current.catalog_kind
             or previous.saturated != current.saturated
             or previous.saturated or current.saturated):
         return False
@@ -305,8 +328,10 @@ def _saturation_findings(obs: rc.RolloutObservation, current: Baseline) -> list[
     if not current.saturated:
         return []
     clipped = rc.clipped_entry_names(obs)
+    bound = (f"at its {current.ceiling}-token ceiling" if current.ceiling is not None
+             else "with an unmeasured ceiling")
     return [
-        f"the listing is saturated at its {current.ceiling}-token ceiling: "
+        f"the listing is saturated {bound}: "
         f"{len(clipped)} of {len(obs.listing.entries)} descriptions are cut at "
         "the clip length, mid-word and unmarked, so skill selection is running "
         "on truncated text. This is a standing condition rather than a change — "
@@ -329,8 +354,9 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
     surfaces = tuple(dict.fromkeys(surfaces))
     label = _surfaces_label(surfaces)
     errors: list[tuple[Path, str]] = []
+    evidence_errors: list[rc.RolloutReadError] = []
     observations = rc.observations(
-        cwd=cwd, surface=surfaces, errors=errors, limit=1)
+        cwd=cwd, surface=surfaces, errors=errors, evidence_errors=evidence_errors, limit=1)
 
     # WHY: every path that cannot establish a fresh, well-classified observation
     # runs through this one gate. Guarding only the no-rollout branch let a degraded
@@ -358,10 +384,19 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
     if not observations:
         detail = f"; {len(errors)} rollouts were unparseable" if errors else ""
         return blind_or("cannot-evaluate",
-                        [f"no parseable {label} session found{detail}"],
+                        [f"no parseable {label} session found{detail}"]
+                        + [str(error) for error in evidence_errors],
                         EXIT_CANNOT_EVALUATE)
 
     current_obs = observations[0]
+    observed_at = _timestamp(_observation_stamp(current_obs))
+    blocking = [error for error in evidence_errors
+                if (failed_at := _timestamp(error.meta.observed_at)) is None
+                or observed_at is None or failed_at >= observed_at]
+    if blocking:
+        return blind_or("cannot-evaluate",
+                        [f"newest catalog evidence is unreadable: {error}" for error in blocking],
+                        EXIT_CANNOT_EVALUATE)
     alarm = current_obs.classification_alarm
     if alarm:
         return blind_or("cannot-evaluate",
@@ -371,6 +406,9 @@ def run(baseline_path: Path, *, cwd: str | None = None, update: bool = False,
     current = Baseline.from_observation(current_obs)
 
     age = _observation_age_days(current_obs)
+    if max_blind_days is not None and age is None:
+        return blind_or("cannot-evaluate", ["observation timestamp is unavailable or invalid"],
+                        EXIT_CANNOT_EVALUATE)
     stale = (max_blind_days is not None and age is not None and age > max_blind_days)
 
     # WHY: drift is historical and stays true however old both samples are, while
@@ -452,9 +490,11 @@ def _emit(as_json: bool, state: str, findings: list[str], current: Baseline | No
         print(json.dumps(payload, indent=2, sort_keys=True))
         return
     if current:
-        ceiling = current.ceiling if current.ceiling is not None else f">={current.charged_tokens}"
+        ceiling = ("unmeasured" if current.catalog_kind != "full"
+                   or (current.saturated and current.ceiling is None) else
+                   current.ceiling if current.ceiling is not None else f">={current.charged_tokens}")
         print(f"{current.surface} {current.harness_build} @ {current.observed_at}: "
-              f"{len(current.entry_ids)} entries, {current.charged_tokens} charged, "
+              f"{len(current.entry_ids)} entries, {current.charged_tokens} estimated listing tokens, "
               f"ceiling {ceiling}, saturated={current.saturated}")
     print(f"state: {state}")
     for finding in findings:
