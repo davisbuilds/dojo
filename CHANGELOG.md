@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.1](https://github.com/davisbuilds/dojo/compare/dojo-cli-v0.3.0...dojo-cli-v0.3.1) (2026-11-28)
+
+
+### Bug Fixes
+
+* **catalog:** let independent skill bumps merge cleanly ([6305dd0](https://github.com/davisbuilds/dojo/commit/6305dd0d872dfd019e863cad8ea3ce6d366dc2e0))
+* **catalog:** let independent skill bumps merge cleanly ([#158](https://github.com/davisbuilds/dojo/issues/158)) ([e8e42ae](https://github.com/davisbuilds/dojo/commit/e8e42aeb1bb155bc0b4c99cd900d2d6556b46bcc))
+* **profiles:** collect current Codex catalogs without stale fallback ([9edd536](https://github.com/davisbuilds/dojo/commit/9edd536fc558f0321eb6f867132c9d291cadf2d7))
+* **profiles:** collect current Codex catalogs without stale fallback ([#160](https://github.com/davisbuilds/dojo/issues/160)) ([e8daa28](https://github.com/davisbuilds/dojo/commit/e8daa2839ab7cc1a2b74bf6905bcbac803452838))
+
 ## [0.3.0](https://github.com/davisbuilds/dojo/compare/dojo-cli-v0.2.0...dojo-cli-v0.3.0) (2026-11-26)
 
 
