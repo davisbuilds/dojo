@@ -606,13 +606,26 @@ Four things to know before trusting a number from these:
   5,440 (and at 7,440 for a 372,000-window model, both matching `2% × window`),
   and 0.145.0 changed it. Never pool samples across builds. And **the
   harness's shortening warning is not a fit signal** — Codex warned at 246% and
-  stayed silent at 144% while still clipping 50 of 56 descriptions. To locate
-  the source rollout:
+  stayed silent at 144% while still clipping 50 of 56 descriptions.
 
-  ```bash
-  # what the harness ACTUALLY sent, per session, with its originator
-  ls -t ~/.codex/sessions/*/*/*/rollout-*.jsonl | head -1
-  ```
+  Use `scripts/profiles/rollout_codex.py` to inspect authentic developer
+  catalog records rather than choosing a file by modification time. A resumed
+  chat can emit a newer catalog inside an older rollout. The reader supports
+  plain `.jsonl` and `.jsonl.zst` inputs; compressed reads require the `zstd`
+  executable on the caller's PATH. It never expands archives on disk.
+
+  Full catalogs replace their own source's prior listing. Identifiable updates
+  can be composed over a known base; unsupported or ambiguous updates remain
+  unknown until a later full catalog establishes that source again. Compaction
+  summaries and user-pasted catalogs are not new catalog evidence. A composed
+  catalog's token figure estimates its current listing size; it cannot reveal
+  the renderer's budget ceiling. Creation-time CLI versions do not establish
+  the build that emitted a resumed catalog.
+
+  A resumed catalog needs its following turn context to establish its working
+  directory and model. An incomplete append remains unknown. Rollbacks
+  invalidate reconstructed membership until a complete catalog establishes it
+  again; the reader does not guess which earlier updates survived.
 
 - **`demand` is computed from untruncated source, never from the rendered
   listing.** A harness that elides to fit produces output that always fits: a
@@ -669,14 +682,21 @@ python3 scripts/profiles/drift_check.py --json     # machine-readable
 python3 scripts/profiles/drift_check.py --uncontrolled-as-notice  # health mode
 ```
 
-It compares the newest `codex-tui` rollout (or, with `--surface`, a `Codex Desktop`
-one) against a recorded baseline (default
+It compares the newest attributable catalog observation in `codex-tui` rollouts
+(or, with `--surface`, `Codex Desktop` rollouts) against a recorded baseline (default
 `~/.agents/.dojo-profile-baseline.json`, deliberately outside this public
 repository, and **keyed by working directory**) and reports build changes, model changes, a moved or newly
 underivable ceiling, saturation starting or stopping, changes to the listed and
-uncontrolled entry **multisets**, and charged demand moving under unchanged
-membership. Exit `0` clean, `1` cannot evaluate, `2` drift, `3` blind too long,
+uncontrolled entry **multisets**, and estimated listing demand moving under unchanged
+membership. Observation timestamps come from catalog records, with a legacy
+filename fallback only for captures that lack them. Known subagent records do
+not count as interactive sessions. Exit `0` clean, `1` cannot evaluate, `2` drift, `3` blind too long,
 `4` saturated.
+
+JSON observations and baselines include `catalog_kind` to distinguish full
+renders from reconstructed evidence; older baselines default to `full` when
+read. New observation timestamps use timezone-aware ISO 8601. CLI flags and
+exit codes are unchanged.
 
 By default only `codex-tui` sessions are read. A machine whose Codex use is the
 desktop app has none, so it would be reported blind; pass `--surface "Codex
@@ -698,8 +718,11 @@ This mode is intended for machine-health wrappers, where packaging churn is
 observable without declaring the workstation unhealthy.
 
 It **fails closed**: no rollout, an unparseable one, a missing baseline, or
-degraded origin classification all report *cannot evaluate*, never clean — a
-monitor that reports "no drift" when it observed nothing is worse than no
+degraded origin classification all report *cannot evaluate*, never clean. A newer
+unreadable in-scope observation blocks fallback to an older healthy catalog and
+leaves the baseline unchanged, including with `--update`; failures with unknown
+time are treated conservatively. Older parse failures remain visible to history
+callers without hiding a newer valid observation. A monitor that reports "no drift" when it observed nothing is worse than no
 monitor. `--max-blind-days N` extends that to the wrapper's problem: a machine
 between interactive sessions has nothing to compare and stays quiet, while one
 that has *never* been observed, or not in N days, exits `3`. Without that
@@ -750,8 +773,11 @@ file written before this keying is dropped and re-seeded rather than guessed at,
 which costs one silent cycle.
 
 It **fails closed**: no rollout, an unparseable one, a missing baseline, or
-degraded origin classification all report *cannot evaluate*, never clean — a
-monitor that reports "no drift" when it observed nothing is worse than no
+degraded origin classification all report *cannot evaluate*, never clean. A newer
+unreadable in-scope observation blocks fallback to an older healthy catalog and
+leaves the baseline unchanged, including with `--update`; failures with unknown
+time are treated conservatively. Older parse failures remain visible to history
+callers without hiding a newer valid observation. A monitor that reports "no drift" when it observed nothing is worse than no
 monitor. The one exception runs the same way: whether the current listing clips
 is knowable from that listing alone, so a missing baseline reports saturation
 (`4`) rather than *cannot evaluate* when it does. Falling back to `1` there

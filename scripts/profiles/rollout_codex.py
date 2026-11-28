@@ -61,12 +61,27 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 from collections import Counter
-from collections.abc import Collection
-from dataclasses import dataclass, field
+from collections.abc import Collection, Iterator
+from contextlib import contextmanager
+from dataclasses import dataclass, field, replace
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import BinaryIO
 
-from .probe_codex import Listing, _absolute, parse_block
+from .probe_codex import (
+    AVAILABLE_HEADER,
+    ROOTS_HEADER,
+    Entry,
+    INTRO_ABSOLUTE,
+    Listing,
+    _absolute,
+    alias_table_cost_tokens,
+    line_cost_tokens,
+    parse_block,
+    render_available_skills_body,
+)
 
 BLOCK_OPEN = "<skills_instructions>"
 BLOCK_CLOSE = "</skills_instructions>"
@@ -80,7 +95,26 @@ SURFACE_EXEC = "codex_exec"
 #: What ``probe_codex`` observes: an alias of the exec path.
 SURFACE_PROBE = "exec"
 
-_BLOCK_RE = re.compile(rf"{BLOCK_OPEN}.*?{BLOCK_CLOSE}", re.S)
+_ROOT_RE = re.compile(r"^- `(?P<alias>\w+)` = `(?P<path>.+)`$")
+_CATALOG_SOURCES = ("Host", "Cloud", "Selected-environment")
+_UPDATE_ENTRIES = "### Added or updated skills:"
+_UPDATE_ROOTS = "These mappings replace earlier mappings for the same aliases."
+_INTRO_WITHOUT_DESCRIPTIONS = INTRO_ABSOLUTE.replace("name, description, and", "name and")
+_BLOCK_MARKER = BLOCK_OPEN.encode()
+_TURN_CONTEXT_MARKER = b'"turn_context"'
+_ROLLBACK = "thread_rolled_back"
+_CATALOG_KINDS = {
+    "host_skills.instructions": "Host",
+    "cloud_skills.instructions": "Cloud",
+    "skills.instructions": "Selected-environment",
+    "skills.catalog": "Host",
+}
+_SOURCE_KEYS = {"Host": "host_skills", "Cloud": "cloud_skills", "Selected-environment": "skills"}
+_CATALOG_MARKERS = (_BLOCK_MARKER, *(json.dumps(kind).encode() for kind in _CATALOG_KINDS))
+_RECORD_MARKERS = (
+    *_CATALOG_MARKERS, b'"session_meta"', _TURN_CONTEXT_MARKER, b'"compacted"', b'"world_state"',
+    json.dumps(_ROLLBACK).encode(),
+)
 
 # WHY: origin is read from the locator, because a fixture's paths do not exist
 # on the machine reading it; the `.codex-remote-plugin-install.json` marker is
@@ -113,6 +147,9 @@ class RolloutMeta:
     cwd: str
     model: str | None
     session_id: str | None = None
+    observed_at: str | None = None
+    catalog_kind: str = "full"
+    is_subagent: bool = False
 
     @property
     def harness_build(self) -> str:
@@ -131,6 +168,7 @@ class RolloutObservation:
 
     meta: RolloutMeta
     listing: Listing
+    descriptions_intentionally_omitted: bool = False
 
     @property
     def charged_tokens(self) -> int:
@@ -249,89 +287,433 @@ def classify_locator(locator: str) -> str:
     return ORIGIN_FOREIGN
 
 
-HARNESS_CONTEXT_ROLE = "developer"
+class RolloutReadError(ValueError):
+    """A rollout whose latest catalog evidence cannot be interpreted."""
+
+    def __init__(self, meta: RolloutMeta, reason: str):
+        super().__init__(reason)
+        self.meta = meta
 
 
-def _is_harness_context(record: dict) -> bool:
-    """Whether this record is the harness's own rendered context.
-
-    Keyed on the message role rather than on the record type, because the type
-    (`response_item`) is shared with ordinary conversation turns.
-    """
-    payload = record.get("payload")
-    if not isinstance(payload, dict):
-        return False
-    return payload.get("role") == HARNESS_CONTEXT_ROLE
+def _field(payload: dict, name: str) -> str | None:
+    value = payload.get(name)
+    return value if isinstance(value, str) and value else None
 
 
-def _walk_strings(obj):
-    if isinstance(obj, str):
-        yield obj
-    elif isinstance(obj, dict):
-        for value in obj.values():
-            yield from _walk_strings(value)
-    elif isinstance(obj, list):
-        for value in obj:
-            yield from _walk_strings(value)
-
-
-def _meta_from(path: Path, lines: list[str]) -> RolloutMeta:
-    fields: dict[str, str] = {}
-    for raw in lines[:60]:
+def _timestamp(value: str | None) -> str | None:
+    if value is not None:
         try:
-            record = json.loads(raw)
-        except json.JSONDecodeError:
-            continue
-        for key in ("originator", "cli_version", "cwd", "model", "id"):
-            if key in fields:
-                continue
-            match = re.search(rf'"{key}":\s*"([^"]*)"', raw)
-            if match:
-                fields[key] = match.group(1)
-        del record
+            when = datetime.fromisoformat(value)
+            if when.tzinfo is not None:
+                return when.astimezone(UTC).isoformat(timespec="microseconds")
+        except (ValueError, OverflowError):
+            pass
+    return None
+
+
+def _session_meta(path: Path, payload: dict) -> RolloutMeta:
+    source = payload.get("source")
     return RolloutMeta(
         path=path,
-        surface=fields.get("originator", "unknown"),
-        cli_version=fields.get("cli_version", "unknown"),
-        cwd=fields.get("cwd", ""),
-        model=fields.get("model"),
-        session_id=fields.get("id"),
+        surface=_field(payload, "originator") or "unknown",
+        cli_version=_field(payload, "cli_version") or "unknown",
+        cwd=_field(payload, "cwd") or "",
+        model=_field(payload, "model"),
+        session_id=_field(payload, "id"),
+        is_subagent=(payload.get("thread_source") == "subagent"
+                     or (isinstance(source, dict) and "subagent" in source)),
     )
 
 
-def read_rollout(path: Path | str) -> RolloutObservation | None:
-    """Parse one rollout, or None when it carries no skills block.
+@contextmanager
+def _rollout_stream(path: Path) -> Iterator[BinaryIO]:
+    if path.suffix != ".zst":
+        with path.open("rb") as stream:
+            yield stream
+        return
+    try:
+        process = subprocess.Popen(
+            ["zstd", "-q", "-dc", "--", str(path.resolve())],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+        )
+    except FileNotFoundError as exc:
+        raise ValueError("zstd is required to read compressed rollouts") from exc
+    with process:
+        assert process.stdout is not None
+        try:
+            yield process.stdout
+        except BaseException:
+            process.kill()
+            raise
+        if process.wait() != 0:
+            raise ValueError("compressed rollout could not be decompressed completely")
 
-    A session that never made a model call has sent nothing and recorded
-    nothing — that is an absent observation, not an empty one, and the caller
-    must be able to tell the difference.
-    """
-    path = Path(path)
-    lines = path.read_text(errors="replace").splitlines()
-    block = None
-    for raw in lines:
-        if BLOCK_OPEN not in raw:
+
+def _records(stream: BinaryIO) -> Iterator[dict]:
+    for raw in stream:
+        if not any(marker in raw for marker in _RECORD_MARKERS):
             continue
         try:
             record = json.loads(raw)
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            if any(marker in raw for marker in _CATALOG_MARKERS):
+                raise ValueError("malformed rollout record contains skills instructions") from exc
+            if _TURN_CONTEXT_MARKER in raw:
+                yield {"type": "turn_context"}
             continue
-        # WHY: only the harness-authored context record may supply the listing; a
-        # conversation that discusses or pastes a listing would otherwise supply the
-        # measurement. `compacted` is excluded because it summarizes an earlier turn, so
-        # its listing may be stale.
-        if not _is_harness_context(record):
+        if isinstance(record, dict):
+            yield record
+
+
+def _content_item(values: object, index: int) -> object:
+    if isinstance(values, list) and index < len(values):
+        return values[index]
+    return None
+
+
+@dataclass(frozen=True)
+class _CatalogBlock:
+    text: str
+    source: str
+    delta: bool
+    typed: bool
+    unsupported: str | None = None
+
+
+def _catalog_blocks(message: dict) -> Iterator[_CatalogBlock]:
+    if message.get("type") != "message" or message.get("role") != "developer":
+        return
+    content = message.get("content")
+    if not isinstance(content, list):
+        return
+    metadata = message.get("internal_chat_message_metadata_passthrough")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    for index, part in enumerate(content):
+        kind = _content_item(metadata.get("content_item_kinds"), index)
+        metadata_item = _content_item(metadata.get("content_item_metadata"), index)
+        provenance = metadata_item.get("provenance") if isinstance(metadata_item, dict) else None
+        provenance_type = _field(provenance, "type") if isinstance(provenance, dict) else None
+        if provenance_type not in (None, "skills", "unknown"):
             continue
-        for text in _walk_strings(record):
-            match = _BLOCK_RE.search(text)
-            if match:
-                block = match.group(0)
-                break
-        if block:
-            break
-    if block is None:
+        typed = provenance_type == "skills"
+        typed_source = _CATALOG_KINDS.get(kind) if isinstance(kind, str) else None
+        if kind is not None and typed_source is None and not typed:
+            continue
+        text = ""
+        if isinstance(part, dict) and part.get("type") == "input_text":
+            text = (_field(part, "text") or "").strip()
+        if text.startswith(BLOCK_OPEN):
+            yield _catalog_block(text, typed_source, typed)
+        elif typed_source is not None and typed:
+            yield _CatalogBlock(text, typed_source, False, True, "unsupported catalog wrapper")
+
+
+def _catalog_block(text: str, typed_source: str | None, typed: bool) -> _CatalogBlock:
+    heading = text[len(BLOCK_OPEN):].strip().partition("\n")[0].strip()
+    for source in _CATALOG_SOURCES:
+        if heading in (f"## {source} skills", f"## {source} skills update"):
+            return _CatalogBlock(text, source, heading.endswith(" update"), typed)
+    source = typed_source or "Host"
+    if heading.startswith("## ") and heading not in ("## Skills", "## Skills update"):
+        return _CatalogBlock(text, source, False, typed, "unsupported catalog source heading")
+    return _CatalogBlock(text, source, heading == "## Skills update", typed)
+
+
+def _root_aliases(root_lines: list[str]) -> dict[str, str]:
+    roots = {}
+    for line in root_lines:
+        match = _ROOT_RE.fullmatch(line)
+        if not match or match["alias"] in roots:
+            raise ValueError("unrecognized or duplicate catalog alias mapping")
+        roots[match["alias"]] = line
+    return roots
+
+
+def _is_absolute_path(path: str) -> bool:
+    return "\0" not in path and (path.startswith("/") or bool(re.match(r"^[A-Za-z]:[/\\]", path)))
+
+
+def _entry_key(entry: Entry, roots: list[str]) -> tuple[str, str]:
+    locator = _absolute(entry.locator, roots)
+    if entry.locator_kind == "file" and not _is_absolute_path(locator):
+        raise ValueError("catalog file locator has no resolvable root")
+    return entry.locator_kind, locator
+
+
+def _parse_full(block: str) -> Listing:
+    if not block.endswith(BLOCK_CLOSE) or BLOCK_CLOSE in block[:-len(BLOCK_CLOSE)]:
+        raise ValueError("malformed skills instruction wrapper")
+    listing = parse_block(block.replace(_INTRO_WITHOUT_DESCRIPTIONS, INTRO_ABSOLUTE, 1))
+    listing.block_chars = len(block)
+    section = False
+    seen = False
+    skill_lines = []
+    for line in block[len(BLOCK_OPEN):-len(BLOCK_CLOSE)].splitlines():
+        if line == AVAILABLE_HEADER:
+            if seen:
+                raise ValueError("catalog repeats the available skills section")
+            section = seen = True
+        elif line.startswith(("## ", "### ")):
+            section = False
+        elif section and line.strip() and not line.startswith(
+            ("Exceeded skills context budget", "Skill descriptions were shortened"),
+        ):
+            skill_lines.append(line)
+    if not seen or [entry.rendered for entry in listing.entries] != skill_lines:
+        raise ValueError("unrecognized available skills section")
+    _root_aliases(listing.root_lines)
+    for entry in listing.entries:
+        _entry_key(entry, listing.root_lines)
+    if listing.root_lines:
+        listing.render_mode = "alias"
+    return listing
+
+
+def _delta_entries(block: str, previous_roots: list[str]) -> tuple[list[Entry], list[str]]:
+    if not block.endswith(BLOCK_CLOSE):
+        raise ValueError("malformed skills instruction wrapper")
+    lines = block[len(BLOCK_OPEN):-len(BLOCK_CLOSE)].strip().splitlines()[1:]
+    try:
+        entries_at = lines.index(_UPDATE_ENTRIES)
+    except ValueError as exc:
+        raise ValueError("catalog update does not identify added or updated skills") from exc
+    roots = _root_aliases(previous_roots)
+    if entries_at:
+        if lines[:2] != [ROOTS_HEADER, _UPDATE_ROOTS] or entries_at == 2:
+            raise ValueError("unrecognized catalog update headings")
+        roots.update(_root_aliases(lines[2:entries_at]))
+    additions = lines[entries_at + 1:]
+    if not additions or any(not line.startswith("- ") for line in additions):
+        raise ValueError("catalog update contains unsupported entries or notices")
+    root_lines = list(roots.values())
+    rendered = render_available_skills_body(root_lines, additions)
+    parsed = _parse_full(f"{BLOCK_OPEN}{rendered}{BLOCK_CLOSE}")
+    return parsed.entries, root_lines
+
+
+def _preserve_locator(entry: Entry, old_roots: list[str], new_roots: list[str]) -> Entry:
+    locator = _absolute(entry.locator, old_roots)
+    if locator != _absolute(entry.locator, new_roots):
+        rendered = entry.rendered.removesuffix(f"{entry.locator})") + f"{locator})"
+        return replace(entry, locator=locator, rendered=rendered, cost_tokens=line_cost_tokens(rendered))
+    return entry
+
+
+def _apply_delta(previous: Listing, block: str) -> Listing:
+    additions, roots = _delta_entries(block, previous.root_lines)
+    entry_positions: dict[tuple[str, str], list[int]] = {}
+    entries = []
+    for index, entry in enumerate(previous.entries):
+        key = _entry_key(entry, previous.root_lines)
+        entry_positions.setdefault(key, []).append(index)
+        entries.append(_preserve_locator(entry, previous.root_lines, roots))
+    previous_names = {entry.name for entry in previous.entries}
+    seen = set()
+    for entry in additions:
+        key = _entry_key(entry, roots)
+        positions = entry_positions.get(key, [])
+        if len(positions) > 1 or key in seen:
+            raise ValueError("catalog update has an ambiguous skill identity")
+        seen.add(key)
+        if positions:
+            entries[positions[0]] = entry
+        elif entry.name in previous_names:
+            raise ValueError("catalog update changes the locator of an existing skill name")
+        else:
+            entries.append(entry)
+    return Listing(
+        render_mode="alias" if roots else "absolute",
+        entries=entries,
+        root_lines=roots,
+        entry_cost_tokens=sum(entry.cost_tokens for entry in entries),
+        root_table_cost_tokens=alias_table_cost_tokens(roots),
+        block_chars=previous.block_chars + len(block),
+        warning=previous.warning,
+    )
+
+
+def _combine_catalogs(catalogs: list[Listing]) -> Listing:
+    if len(catalogs) == 1:
+        return catalogs[0]
+    roots = list(dict.fromkeys(line for listing in catalogs for line in listing.root_lines))
+    entries = [
+        _preserve_locator(entry, listing.root_lines, roots)
+        for listing in catalogs for entry in listing.entries
+    ]
+    return Listing(
+        render_mode="alias" if roots else "absolute",
+        entries=entries,
+        root_lines=roots,
+        entry_cost_tokens=sum(entry.cost_tokens for entry in entries),
+        root_table_cost_tokens=sum(listing.root_table_cost_tokens for listing in catalogs),
+        block_chars=sum(listing.block_chars for listing in catalogs),
+        warning=next((listing.warning for listing in catalogs if listing.warning), None),
+    )
+
+
+@dataclass
+class _CatalogState:
+    sources: dict[str, Listing] = field(default_factory=dict)
+    errors: dict[str, str] = field(default_factory=dict)
+    deltas: set[str] = field(default_factory=set)
+    descriptionless: set[str] = field(default_factory=set)
+
+    def apply(self, block: _CatalogBlock) -> None:
+        source = block.source
+        try:
+            if block.unsupported is not None:
+                raise ValueError(block.unsupported)
+            if block.delta:
+                previous = self.sources.get(source)
+                if previous is None or source in self.errors:
+                    raise ValueError("catalog update has no verified full listing")
+                self.sources[source] = _apply_delta(previous, block.text)
+                self.deltas.add(source)
+            else:
+                self.sources[source] = _parse_full(block.text)
+                self.deltas.discard(source)
+                self.descriptionless.discard(source)
+                if _INTRO_WITHOUT_DESCRIPTIONS in block.text:
+                    self.descriptionless.add(source)
+        except ValueError as exc:
+            self.errors[source] = str(exc)
+        else:
+            self.errors.pop(source, None)
+
+    def after_compaction(self, payload: dict) -> tuple[_CatalogState, dict[str, str]]:
+        history = payload["replacement_history"]
+        metadata = payload.get("replacement_history_metadata")
+        aligned = isinstance(metadata, list) and len(metadata) == len(history)
+        replacement = _CatalogState()
+        fresh = aligned
+        bodies: dict[str, str] = {}
+        for index, message in enumerate(history):
+            if not isinstance(message, dict):
+                continue
+            for block in _catalog_blocks(message):
+                item_meta = _content_item(metadata, index) if aligned else None
+                fresh = (fresh and block.typed and not block.delta and isinstance(item_meta, dict)
+                         and "history_sequence" not in item_meta)
+                replacement.apply(block)
+                bodies[_SOURCE_KEYS[block.source]] = block.text[len(BLOCK_OPEN):-len(BLOCK_CLOSE)].strip()
+        return replacement, bodies if fresh and not replacement.errors else {}
+
+    def invalidate(self, reason: str, *, other: _CatalogState | None = None) -> _CatalogState:
+        sources = self.sources.keys() | self.errors.keys()
+        if other is not None:
+            sources |= other.sources.keys() | other.errors.keys()
+        return _CatalogState(errors=dict.fromkeys(sources, reason))
+
+
+def _matches_compaction_checkpoint(payload: dict, bodies: dict[str, str]) -> bool:
+    snapshot = payload.get("state")
+    if payload.get("full") is not True or not isinstance(snapshot, dict):
+        return False
+    # WHY: the replacement history also carries old developer messages. A
+    # body-matching complete checkpoint corroborates the new catalog emission.
+    for source, body in bodies.items():
+        persisted = snapshot.get(source)
+        if not isinstance(persisted, dict) or persisted.get("includeInstructions") is not True:
+            return False
+        persisted_body = _field(persisted, "body")
+        if persisted_body is None or persisted_body.strip() != body:
+            return False
+    return True
+
+
+def read_rollout(path: Path | str) -> RolloutObservation | None:
+    """Read the latest reconstructable catalog emitted by a Codex rollout."""
+    path = Path(path)
+    session = _session_meta(path, {})
+    meta = session
+    state = _CatalogState()
+    pending_context = False
+    current_context_required = False
+    catalog_in_session = False
+    turn_in_session = False
+    compacted_catalog: _CatalogState | None = None
+    compacted_bodies: dict[str, str] = {}
+    full_checkpoint = False
+    try:
+        with _rollout_stream(path) as stream:
+            for record in _records(stream):
+                kind = record.get("type")
+                payload = record.get("payload")
+                if kind == "turn_context":
+                    if compacted_catalog is not None and full_checkpoint:
+                        state = compacted_catalog
+                    compacted_catalog = None
+                    if pending_context and isinstance(payload, dict):
+                        cwd = _field(payload, "cwd")
+                        model = _field(payload, "model")
+                        if not current_context_required or (cwd and _is_absolute_path(cwd) and model):
+                            meta = replace(meta, cwd=cwd or meta.cwd, model=model or meta.model)
+                    pending_context = False
+                    turn_in_session = True
+                elif not isinstance(payload, dict):
+                    continue
+                elif kind == "session_meta":
+                    session = _session_meta(path, payload)
+                    catalog_in_session = turn_in_session = pending_context = False
+                    compacted_catalog = None
+                elif kind == "world_state" and compacted_catalog is not None:
+                    full_checkpoint = _matches_compaction_checkpoint(payload, compacted_bodies)
+                elif kind == "response_item":
+                    blocks = list(_catalog_blocks(payload))
+                    if not blocks:
+                        continue
+                    compacted_catalog = None
+                    for block in blocks:
+                        state.apply(block)
+                    # WHY: resuming an existing rollout appends records without a new
+                    # session_meta. Its original build is only attributable to startup.
+                    current_context_required = (catalog_in_session or turn_in_session
+                                                or any(block.typed or block.delta for block in blocks))
+                    meta = replace(
+                        session,
+                        observed_at=_timestamp(_field(record, "timestamp")),
+                        cli_version="unknown" if catalog_in_session or turn_in_session else session.cli_version,
+                        cwd="" if current_context_required else session.cwd,
+                        model=None if current_context_required else session.model,
+                    )
+                    catalog_in_session = pending_context = True
+                elif kind == "compacted" and isinstance(payload.get("replacement_history"), list):
+                    replacement, compacted_bodies = state.after_compaction(payload)
+                    if replacement.sources == state.sources and replacement.errors == state.errors:
+                        continue
+                    state = state.invalidate(
+                        "compaction catalog does not match timestamped catalog evidence", other=replacement,
+                    )
+                    compacted_catalog = replacement if compacted_bodies else None
+                    full_checkpoint = False
+                    meta = replace(session, observed_at=_timestamp(_field(record, "timestamp")),
+                                   cli_version="unknown", cwd="", model=None)
+                    pending_context = current_context_required = True
+                elif kind == "event_msg" and payload.get("type") == _ROLLBACK:
+                    state = state.invalidate("rollback invalidated the verified full listing")
+                    compacted_catalog = None
+                    pending_context = False
+                    turn_in_session = True
+                    meta = replace(session, observed_at=_timestamp(_field(record, "timestamp")),
+                                   cli_version="unknown", cwd="", model=None)
+    except OSError as exc:
+        raise RolloutReadError(replace(session, cwd=""), "could not read rollout") from exc
+    except ValueError as exc:
+        raise RolloutReadError(replace(session, cwd=""), str(exc)) from exc
+    if state.errors:
+        raise RolloutReadError(meta, next(iter(state.errors.values())))
+    if not state.sources:
         return None
-    return RolloutObservation(meta=_meta_from(path, lines), listing=parse_block(block))
+    if current_context_required and meta.observed_at is None:
+        raise RolloutReadError(meta, "catalog record timestamp is unavailable or invalid")
+    if current_context_required and (not meta.cwd or not meta.model):
+        raise RolloutReadError(meta, "catalog turn context is unavailable or invalid")
+    catalog_kind = "composed" if len(state.sources) > 1 else ("delta" if state.deltas else "full")
+    return RolloutObservation(
+        meta=replace(meta, catalog_kind=catalog_kind),
+        listing=_combine_catalogs(list(state.sources.values())),
+        descriptions_intentionally_omitted=bool(state.descriptionless),
+    )
 
 
 def default_sessions_root() -> Path:
@@ -339,73 +721,68 @@ def default_sessions_root() -> Path:
 
 
 def find_rollouts(sessions_root: Path | str | None = None) -> list[Path]:
-    """Every rollout, newest session first.
-
-    Ordered by the timestamp in the filename, **not** by modification time. A
-    rollout's listing block is written once at session start and never rewritten,
-    so the filename stamp is when the observation was actually made, while the
-    mtime only says when the file was last touched. Sorting by mtime floated a
-    resumed July session to the top on 2026-08-12 and presented its 0.144.1
-    listing as the current state, with 0.147.0 sessions from that morning below
-    it -- which the drift check would have reported as a build regression that
-    never happened.
-
-    Deliberately not a `find -newermt` style filter: on BSD `find` that flag
-    silently matches nothing rather than erroring, and it produced two false
-    "no rollout exists" reports during this task. Sort here, filter in Python.
-    """
+    """Discover plain and compressed rollouts in session-start order."""
     root = Path(sessions_root) if sessions_root else default_sessions_root()
-    if not root.is_dir():
-        return []
-    paths = list(root.rglob("rollout-*.jsonl"))
-    return sorted(
-        paths,
-        key=lambda p: (p.name[8:24], p.stat().st_mtime)
-        if len(p.name) >= 24 else ("", p.stat().st_mtime),
-        reverse=True,
-    )
+    plain = set(root.rglob("rollout-*.jsonl"))
+    compressed = [
+        path for path in root.rglob("rollout-*.jsonl.zst") if path.with_suffix("") not in plain
+    ]
+    return sorted((*plain, *compressed), key=lambda path: (path.name[8:24], str(path)), reverse=True)
+
+
+def _observation_order(meta: RolloutMeta) -> float:
+    if meta.observed_at is not None:
+        return datetime.fromisoformat(meta.observed_at).timestamp()
+    # WHY: old captures can lack a record timestamp. Use the local filename
+    # only for ordering these historical observations.
+    try:
+        return datetime.strptime(meta.path.name[8:24], "%Y-%m-%dT%H-%M").timestamp()
+    except (ValueError, OSError, OverflowError):
+        return float("-inf")
+
+
+def _matches_scope(
+    meta: RolloutMeta, cwd: str | None, surfaces: Collection[str] | None,
+    *, include_unknown: bool = False,
+) -> bool:
+    if surfaces is not None and meta.is_subagent and meta.surface in INTERACTIVE_SURFACES:
+        return False
+    if surfaces is not None and meta.surface not in surfaces:
+        if not (include_unknown and meta.surface == "unknown"):
+            return False
+    if cwd is None:
+        return True
+    if not meta.cwd:
+        return include_unknown
+    try:
+        return str(Path(meta.cwd).resolve()) == cwd
+    except (OSError, RuntimeError, ValueError):
+        return include_unknown
 
 
 def observations(sessions_root: Path | str | None = None, *, cwd: str | Path | None = None,
                  surface: str | Collection[str] | None = None, limit: int | None = None,
-                 errors: list | None = None) -> list[RolloutObservation]:
-    """Parsed observations, newest first, optionally filtered by cwd and surface.
-
-    A rollout whose block cannot be parsed is **skipped, not fatal, and never
-    silent**: pass `errors` to receive `(path, reason)` for each. `parse_block`
-    fails closed when the vendor's intro wording changes, which is correct — but
-    an older wording is common enough that one bad file must not abort a scan.
-    On the capture machine **98 of 313** rollouts predate a change from "name,
-    description, and file path" to "name, description, and source locator", and
-    the first of them aborted a whole-history sweep.
-
-    Counting the skips matters more than skipping quietly: a sweep that silently
-    dropped a third of its input would report a confident, wrong history.
-    """
+                 errors: list | None = None,
+                 evidence_errors: list[RolloutReadError] | None = None) -> list[RolloutObservation]:
+    """Find observations in catalog-record order, reporting unreadable evidence."""
     wanted_cwd = str(Path(cwd).resolve()) if cwd else None
+    surfaces = {surface} if isinstance(surface, str) else surface
     found: list[RolloutObservation] = []
     for path in find_rollouts(sessions_root):
         try:
             observation = read_rollout(path)
-        except ValueError as exc:
+        except RolloutReadError as exc:
             if errors is not None:
                 errors.append((path, str(exc)))
+            if evidence_errors is not None and _matches_scope(
+                exc.meta, wanted_cwd, surfaces, include_unknown=True,
+            ):
+                evidence_errors.append(exc)
             continue
-        if observation is None:
-            continue
-        if surface is not None and observation.meta.surface not in (
-                {surface} if isinstance(surface, str) else surface):
-            continue
-        if wanted_cwd is not None:
-            try:
-                if str(Path(observation.meta.cwd).resolve()) != wanted_cwd:
-                    continue
-            except OSError:
-                continue
-        found.append(observation)
-        if limit is not None and len(found) >= limit:
-            break
-    return found
+        if observation is not None and _matches_scope(observation.meta, wanted_cwd, surfaces):
+            found.append(observation)
+    found.sort(key=lambda observation: _observation_order(observation.meta), reverse=True)
+    return found[:limit]
 
 
 @dataclass
@@ -439,7 +816,11 @@ def derive_limit(obs: list[RolloutObservation], *, clipped_only: bool = True) ->
     # WHY: never mix harness builds. The limit is a property of the build (0.144.1
     # charged 6,188 tokens unclipped where 0.146.0 saturates at 4,000), so pooling
     # fabricates a disagreement or averages two real ceilings into neither.
-    builds = {o.meta.harness_build for o in obs}
+    eligible = [
+        observation for observation in obs
+        if observation.meta.catalog_kind == "full" and observation.meta.cli_version != "unknown"
+    ]
+    builds = {observation.meta.harness_build for observation in eligible}
     if len(builds) > 1:
         return LimitEvidence(
             None, "indeterminate", True,
@@ -449,7 +830,7 @@ def derive_limit(obs: list[RolloutObservation], *, clipped_only: bool = True) ->
         )
 
     samples: list[tuple[int, int]] = []
-    for observation in obs:
+    for observation in eligible:
         if clipped_only and not is_saturated(observation):
             continue
         samples.append((len(observation.listing.entries), observation.charged_tokens))
@@ -498,8 +879,14 @@ def clipped_entry_names(observation: RolloutObservation) -> list[str]:
     at all on listings that fit (0 of 2, 0 of 1) -- so requiring both costs
     nothing that was ever detected and refuses the case the shape alone invents.
     """
-    entries = observation.listing.entries
-    lengths = [len(e.description or "") for e in entries]
+    listing = observation.listing
+    warning = listing.warning or ""
+    if "All skill descriptions were removed" in warning:
+        return [entry.name for entry in listing.entries if entry.description is None]
+    entries = [entry for entry in listing.entries if entry.description]
+    if not entries and not observation.descriptions_intentionally_omitted and len(listing.entries) >= 3:
+        return [entry.name for entry in listing.entries]
+    lengths = [len(entry.description or "") for entry in entries]
     if len(lengths) < 3:
         return []
     longest = max(lengths)
@@ -533,7 +920,8 @@ def is_saturated(observation: RolloutObservation, source_descriptions: dict | No
         if len(observation.listing.entries) < 3:
             return False
         return any(
-            len(e.description or "") < len(source_descriptions.get(e.name, ""))
+            (e.description is not None or not observation.descriptions_intentionally_omitted)
+            and len(e.description or "") < len(source_descriptions.get(e.name, ""))
             for e in observation.listing.entries
         )
     return bool(clipped_entry_names(observation))
@@ -621,8 +1009,6 @@ def attribute_demand(observation: RolloutObservation,
     told so by `cost_basis` elsewhere. Costing those at zero understated a live
     target by 20%.
     """
-    from .probe_codex import line_cost_tokens  # noqa: PLC0415 — avoids a cycle at import
-
     # WHY: fail closed (SC-04). An attribution over wholesale-misclassified entries
     # sums correctly and means nothing.
     alarm = classification_alarm(observation)

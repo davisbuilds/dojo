@@ -350,18 +350,16 @@ def test_blindness_is_opt_in_so_ad_hoc_runs_are_unaffected(tmp_path, monkeypatch
     assert dc.run(tmp_path / "absent.json") == EXIT_CANNOT_EVALUATE
 
 
-def test_a_machine_that_can_be_read_never_reports_blind(tmp_path, monkeypatch):
-    """Blindness is about the instrument, never about what the instrument saw.
-
-    A threshold that also fired on a healthy observation would make the check
-    unusable on the daily driver, which is the machine it most needs to watch.
-    """
+def test_a_fresh_healthy_observation_never_reports_blind(tmp_path, monkeypatch):
     import profiles.drift_check as dc
+    from datetime import timezone
 
-    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [rc.read_rollout(FOK45)])
+    observation = rc.read_rollout(FOK45)
+    observation.meta = dataclasses.replace(
+        observation.meta, observed_at=datetime.now(timezone.utc).isoformat())
+    monkeypatch.setattr(dc.rc, "observations", lambda **kw: [observation])
     path = tmp_path / "baseline.json"
     assert dc.run(path, update=True, max_blind_days=1) == EXIT_CLEAN
-    assert dc.run(path, max_blind_days=1) == EXIT_CLEAN
 
 
 def test_a_stale_but_readable_session_still_counts_as_blind(tmp_path, capsys, monkeypatch):
@@ -756,6 +754,51 @@ def _sessions_dir(tmp_path, originator: str, name: str = "sessions"):
     return tmp_path / name
 
 
+def test_partial_resumed_turn_cannot_update_either_directory_baseline(
+        tmp_path, monkeypatch, capsys):
+    import profiles.drift_check as dc
+    from profiles.probe_codex import render_available_skills_body
+
+    root = _sessions_dir(tmp_path, "codex-tui")
+    monkeypatch.setattr(rc, "default_sessions_root", lambda: root)
+    baseline = tmp_path / "baseline.json"
+    assert dc.main(["--baseline", str(baseline), "--update", "--json"]) == EXIT_CLEAN
+    capsys.readouterr()
+    before = baseline.read_bytes()
+    initial_cwd = next(iter(json.loads(before)))
+    new_cwd = str(tmp_path / "another-project")
+    body = render_available_skills_body([], [
+        "- new-skill: A synthetic skill. (file: /Users/example/.agents/skills/new/SKILL.md)",
+    ])
+    record = {
+        "type": "response_item", "timestamp": "2026-11-03T13:00:00Z",
+        "payload": {"type": "message", "role": "developer", "content": [
+            {"type": "input_text", "text": f"<skills_instructions>\n## Host skills\n{body}</skills_instructions>"},
+        ]},
+    }
+    rollout = next(root.rglob("*.jsonl"))
+    with rollout.open("a") as stream:
+        stream.write(json.dumps(record) + "\n")
+
+    for cwd in (initial_cwd, new_cwd):
+        assert dc.main(["--baseline", str(baseline), "--cwd", cwd,
+                        "--update", "--json"]) == EXIT_CANNOT_EVALUATE
+        assert json.loads(capsys.readouterr().out)["observed"] is None
+        assert baseline.read_bytes() == before
+
+    with rollout.open("a") as stream:
+        stream.write(json.dumps({
+            "type": "turn_context", "timestamp": "2026-11-03T13:00:00Z",
+            "payload": {"cwd": new_cwd, "model": "example-model"},
+        }) + "\n")
+    assert dc.main(["--baseline", str(baseline), "--cwd", new_cwd,
+                    "--update", "--json"]) == EXIT_CLEAN
+    assert json.loads(capsys.readouterr().out)["observed"]["entry_ids"] == ["dojo-managed:new-skill"]
+    stored = json.loads(baseline.read_text())
+    assert stored[initial_cwd] == json.loads(before)[initial_cwd]
+    assert new_cwd in stored
+
+
 def test_the_default_still_reads_only_the_tui(tmp_path, capsys, monkeypatch):
     """Opt-in, not a changed default: with no --surface a desktop-only machine is
     still unobserved, exactly as before."""
@@ -855,3 +898,136 @@ def test_a_surface_change_alone_does_not_defeat_notice_mode():
     assert dc._only_uncontrolled_membership_changed(previous, current)
     assert not dc._only_uncontrolled_membership_changed(
         previous, dataclasses.replace(healthy, surface="codex_exec"))
+
+
+def test_observation_timestamp_overrides_old_startup_filename(tmp_path, monkeypatch, capsys):
+    import profiles.drift_check as dc
+    from datetime import timezone
+
+    obs = rc.read_rollout(FOK45)
+    recorded = datetime.now(timezone.utc).isoformat()
+    obs.meta = dataclasses.replace(obs.meta, observed_at=recorded)
+    monkeypatch.setattr(rc, 'observations', lambda **kw: [obs])
+    baseline = tmp_path / 'baseline.json'
+    assert dc.run(baseline, update=True, max_blind_days=14) == EXIT_CLEAN
+    capsys.readouterr()
+    assert _only(json.loads(baseline.read_text()))['observed_at'] == recorded
+    assert dc.run(baseline, max_blind_days=14) == EXIT_CLEAN
+
+
+def test_baseline_age_accepts_aware_iso_timestamp():
+    import profiles.drift_check as dc
+    from datetime import timezone
+
+    baseline = Baseline.from_observation(rc.read_rollout(FOK45))
+    baseline.observed_at = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
+    assert dc._days_blind(baseline) == 2
+
+
+def test_baseline_age_respects_timezone_offset():
+    import profiles.drift_check as dc
+    from datetime import timezone
+
+    baseline = Baseline.from_observation(rc.read_rollout(FOK45))
+    zone = timezone(timedelta(hours=12))
+    baseline.observed_at = (datetime.now(zone) - timedelta(hours=25)).isoformat()
+    assert dc._days_blind(baseline) == 1
+
+
+@pytest.mark.parametrize('error_age', [None, -1])
+def test_unreadable_latest_catalog_preserves_baseline(tmp_path, monkeypatch, capsys, error_age):
+    import profiles.drift_check as dc
+    from datetime import timezone
+
+    obs = rc.read_rollout(FOK45)
+    observed = datetime.now(timezone.utc) - timedelta(days=1)
+    obs.meta = dataclasses.replace(obs.meta, observed_at=observed.isoformat())
+    failure_meta = dataclasses.replace(
+        obs.meta, observed_at=None if error_age is None else
+        (observed - timedelta(days=error_age)).isoformat())
+    failure = ValueError('unsupported catalog update')
+    failure.meta = failure_meta
+
+    def collect(**kwargs):
+        kwargs.get('evidence_errors', []).append(failure)
+        return [obs]
+
+    monkeypatch.setattr(rc, 'observations', collect)
+    baseline = tmp_path / 'baseline.json'
+    before = json.dumps({obs.meta.cwd: dataclasses.asdict(Baseline.from_observation(obs))}) + '\n'
+    baseline.write_text(before)
+    assert dc.run(baseline, update=True) == EXIT_CANNOT_EVALUATE
+    assert baseline.read_text() == before
+    assert 'unsupported catalog update' in capsys.readouterr().out
+
+
+def test_older_unreadable_catalog_does_not_hide_newer_valid_observation(tmp_path, monkeypatch):
+    import profiles.drift_check as dc
+    from datetime import timezone
+
+    obs = rc.read_rollout(FOK45)
+    now = datetime.now(timezone.utc)
+    obs.meta = dataclasses.replace(obs.meta, observed_at=now.isoformat())
+    failure_meta = dataclasses.replace(obs.meta, observed_at=(now - timedelta(days=2)).isoformat())
+    failure = ValueError('old unsupported render')
+    failure.meta = failure_meta
+
+    def collect(**kwargs):
+        kwargs.get('evidence_errors', []).append(failure)
+        return [obs]
+
+    monkeypatch.setattr(rc, 'observations', collect)
+    assert dc.run(tmp_path / 'baseline.json', update=True) == EXIT_CLEAN
+
+
+def test_reconstructed_clipped_catalog_does_not_invent_ceiling():
+    obs = rc.read_rollout(F56)
+    obs.meta = dataclasses.replace(obs.meta, catalog_kind="delta")
+    baseline = Baseline.from_observation(obs)
+    assert baseline.saturated is True
+    assert baseline.ceiling is None
+
+
+def test_unsupported_only_catalog_reports_reason(tmp_path, monkeypatch, capsys):
+    import profiles.drift_check as dc
+
+    def collect(**kwargs):
+        kwargs.get('evidence_errors', []).append(ValueError('zstd decoder is unavailable'))
+        return []
+
+    monkeypatch.setattr(rc, 'observations', collect)
+    baseline = tmp_path / 'baseline.json'
+    assert dc.run(baseline, update=True) == EXIT_CANNOT_EVALUATE
+    assert not baseline.exists()
+    assert 'zstd decoder is unavailable' in capsys.readouterr().out
+
+
+def test_legacy_baseline_timestamp_keeps_local_wall_time():
+    import profiles.drift_check as dc
+
+    local = datetime.now().replace(second=0, microsecond=0)
+    stamp = local.strftime('%Y-%m-%dT%H-%M')
+    assert dc._timestamp(stamp) == local.astimezone()
+
+
+def test_unmeasurable_observation_age_cannot_seed_fresh_baseline(tmp_path, monkeypatch, capsys):
+    import profiles.drift_check as dc
+
+    obs = rc.read_rollout(FOK45)
+    obs.meta = dataclasses.replace(obs.meta, observed_at="not-a-timestamp")
+    monkeypatch.setattr(rc, 'observations', lambda **kw: [obs])
+    baseline = tmp_path / 'baseline.json'
+    assert dc.run(baseline, update=True, max_blind_days=14) == dc.EXIT_BLIND
+    assert not baseline.exists()
+    assert 'observation timestamp' in capsys.readouterr().out
+
+
+def test_unattributed_build_does_not_get_a_build_specific_ceiling(capsys):
+    import profiles.drift_check as dc
+
+    observation = rc.read_rollout(F56)
+    observation.meta = dataclasses.replace(observation.meta, cli_version='unknown')
+    baseline = Baseline.from_observation(observation)
+    assert baseline.ceiling is None
+    dc._emit(False, 'saturated', [], baseline)
+    assert 'ceiling unmeasured' in capsys.readouterr().out
